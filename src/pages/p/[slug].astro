@@ -1,0 +1,465 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { loadProducts } from "../../lib/products";
+
+/** Helpers */
+const clean = (v) => (v == null ? "" : String(v).trim());
+
+const slugify = (input = "") =>
+  String(input)
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\p{L}\p{N}-]+/gu, "") // keeps Bulgarian letters too
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const normalizeTags = (tagsValue) => {
+  // Supports:
+  // - array: ["gift", "wood"]
+  // - string: "gift, wood"
+  // - null/undefined
+  if (Array.isArray(tagsValue)) {
+    return tagsValue.map((t) => String(t).trim()).filter(Boolean);
+  }
+  if (typeof tagsValue === "string") {
+    return tagsValue
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+export async function getStaticPaths() {
+  const products = await loadProducts();
+  return products.map((p) => ({ params: { slug: p.slug }, props: { product: p } }));
+}
+
+const { product } = Astro.props;
+
+// Load all products once for related
+const all = await loadProducts();
+
+// Normalize tags (important!)
+const tags = normalizeTags(product.tags);
+const tagSet = new Set(tags.map((t) => t.toLowerCase()));
+
+// Price text
+const priceText =
+  product.price_min_eur !== null && product.price_max_eur !== null
+    ? `${product.price_min_eur}–${product.price_max_eur} ${product.currency}`
+    : product.price_min_eur !== null
+      ? `${product.price_min_eur}+ ${product.currency}`
+      : "";
+
+// Breadcrumbs
+const categorySlug = slugify(product.category || "");
+const breadcrumbs = [
+  { label: "Начало", href: "/" },
+  // If you don't have category pages yet, remove href below.
+  { label: product.category || "Категория", href: categorySlug ? `/k/${categorySlug}` : undefined },
+  { label: product.brand_name || "Бранд", href: product.brand_slug ? `/brand/${product.brand_slug}` : undefined },
+  { label: product.name_bg || "Продукт" },
+];
+
+// Related products: score by shared tags + same category
+const related = all
+  .filter((p) => p.slug !== product.slug)
+  .map((p) => {
+    const pTags = normalizeTags(p.tags);
+    const sameCategory = p.category === product.category ? 3 : 0;
+
+    const sharedTags = pTags.reduce(
+      (acc, t) => acc + (tagSet.has(String(t).toLowerCase()) ? 2 : 0),
+      0
+    );
+
+    const score = sameCategory + sharedTags;
+    return { p, score };
+  })
+  .filter((x) => x.score > 0)
+  .sort((a, b) => b.score - a.score)
+  .slice(0, 6)
+  .map((x) => x.p);
+
+const relatedPrice = (p) =>
+  p.price_min_eur !== null && p.price_max_eur !== null
+    ? `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`
+    : p.price_min_eur !== null
+      ? `${p.price_min_eur}+ ${p.currency}`
+      : "";
+
+/** ✅ SEO (use meta fields when available) */
+const pageTitle =
+  clean(product.meta_title_bg) || `${product.name_bg} — Bulgaritam`;
+
+const pageDescription =
+  clean(product.meta_desc_bg) ||
+  `${product.name_bg}. ${product.short_desc_bg || ""}`.trim();
+
+/** ✅ Canonical URL */
+const canonical = `https://bulgaritam.bg/p/${product.slug}`;
+---
+
+<BaseLayout title={pageTitle} description={pageDescription} canonical={canonical}>
+  <main class="container">
+   {/* 🔒 Hidden data for JS filters */}
+    <div
+      class="sr-only"
+      aria-hidden="true"
+      data-tags={tags.join(",")}
+    ></div>
+    <a href="/" class="back">← Назад</a>
+
+   <!-- Breadcrumbs -->
+<nav aria-label="breadcrumbs" class="breadcrumbs">
+  <ol>
+    {breadcrumbs.map((c, i) => (
+      <li>
+        {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+        {i < breadcrumbs.length - 1 ? <span class="sep">→</span> : null}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<h1 class="title">{product.name_bg}</h1>
+
+<!-- Brand name (clickable) -->
+{product.brand_slug ? (
+  <a class="brand" href={`/brand/${product.brand_slug}`}>
+    {product.brand_name}
+  </a>
+) : product.brand_name ? (
+  <div class="brand brand--plain">{product.brand_name}</div>
+) : null}
+
+{product.image_urls?.length ? (
+  <div class="hero hero--relative">
+
+   
+{/* SAVE BUTTON (PRODUCT) */}
+<button
+  class="save-btn save-btn--product"
+  type="button"
+  aria-label="Запази продукта"
+  aria-pressed="false"
+  data-save-id={product.slug}
+  data-save-url={`/p/${product.slug}/`}
+  data-save-title={product.name_bg}
+  data-save-brand={product.brand_name ?? ""}
+  data-save-price={priceText ?? ""}
+  data-save-image={product.image_urls?.[0] ?? ""}
+>
+  <svg class="save-icon" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z"
+      stroke="currentColor"
+      stroke-width="1.8"
+      fill="none"
+      stroke-linejoin="round"
+    />
+  </svg>
+</button>
+
+
+
+
+    <img
+      src={product.image_urls[0]}
+      alt={product.name_bg}
+      class="hero-img"
+      loading="lazy"
+    />
+  </div>
+) : null}
+
+<div class="meta">
+  <div>
+    <strong>Категория:</strong> {product.category}
+  </div>
+
+  {tags.length ? (
+    <div class="tags-row">
+      <strong>Тагове:</strong>
+      <div class="tags">
+        {tags.map((t) => (
+          <span class="tag">{t}</span>
+        ))}
+      </div>
+    </div>
+  ) : null}
+
+  {priceText ? <div class="price">{priceText}</div> : null}
+</div>
+
+{product.short_desc_bg ? <p class="desc">{product.short_desc_bg}</p> : null}
+
+<a href={product.product_url} target="_blank" rel="noopener noreferrer" class="btn">
+  Виж на сайта на бранда →
+</a>
+
+
+    {related.length ? (
+      <section class="related">
+        <h2 class="related-title">Подобни продукти</h2>
+
+        <ul class="related-grid">
+          {related.map((r) => {
+            const rTags = normalizeTags(r.tags);
+            return (
+              <li class="related-card">
+                <a href={`/p/${r.slug}`} class="related-link">
+                  {r.image_urls?.length ? (
+                    <img
+                      src={r.image_urls[0]}
+                      alt={r.name_bg}
+                      class="related-img"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="related-img placeholder" aria-hidden="true"></div>
+                  )}
+
+                  <div class="related-body">
+                    <div class="related-name">{r.name_bg}</div>
+
+                    <div class="related-sub">
+                      {r.category}
+                      {r.brand_name ? ` • ${r.brand_name}` : ""}
+                      {rTags.length ? ` • ${rTags.slice(0, 3).join(", ")}` : ""}
+                    </div>
+
+                    {relatedPrice(r) ? (
+                      <div class="related-price">{relatedPrice(r)}</div>
+                    ) : null}
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ) : null}
+  </main>
+
+  <style>
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 26px 16px 46px;
+    }
+
+    /* BACK LINK */
+    .back{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px; /* sits above breadcrumbs */
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 650;
+      font-size: 0.95rem;
+    }
+    .back:hover{
+      color: var(--accent-strong);
+    }
+
+    /* BREADCRUMBS */
+    .breadcrumbs{
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-bottom: 18px;
+    }
+
+    .breadcrumbs ol{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .breadcrumbs a{
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      color: inherit;
+    }
+
+    .breadcrumbs a:hover{
+      border-bottom-color: currentColor;
+    }
+
+    .sep{
+      opacity: 0.6;
+      margin: 0 0.2rem;
+    }
+
+    .title{
+      margin: 8px 0 8px;
+      font-size: clamp(30px, 4vw, 44px);
+      letter-spacing: -0.02em;
+    }
+
+    .brand{
+      display: inline-block;
+      margin: 0 0 14px;
+      text-decoration: none;
+      font-weight: 750;
+      color: rgba(0,0,0,.78);
+    }
+    .brand:hover{ text-decoration: underline; }
+    .brand--plain{ text-decoration: none; }
+
+    .hero{ margin: 0 0 18px; }
+
+    .hero-img{
+      width: 100%;
+      max-height: 420px;
+      object-fit: cover;
+      border-radius: 16px;
+      display:block;
+      border: 1px solid rgba(26,26,26,.10);
+      background: #fff;
+    }
+
+    .meta{
+      opacity: .82;
+      margin: 10px 0 14px;
+    }
+
+    .tags-row{
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .tags{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .tag{
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(26,26,26,.12);
+      background: rgba(255,255,255,.65);
+      opacity: 1;
+    }
+
+    .price{
+      margin-top: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+      opacity: 1;
+    }
+
+    .desc{
+      font-size: 16px;
+      line-height: 1.6;
+      margin: 0 0 18px;
+    }
+
+    .btn{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid rgba(0,0,0,.06);
+      margin-top: 6px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+    }
+    .btn:hover{ background: var(--accent-strong); }
+    .btn:active{ transform: translateY(1px); }
+
+    .related{ margin-top: 34px; }
+
+    .related-title{
+      font-size: 18px;
+      margin: 0 0 12px;
+      opacity: .8;
+    }
+
+    /* RELATED PRODUCTS GRID */
+    .related-grid{
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;
+    }
+
+    /* CARD */
+    .related-card{
+      border: 1px solid rgba(26,26,26,.12);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255,255,255,.6);
+    }
+
+    /* LINK = CARD */
+    .related-link{
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* IMAGE — BIG & CONFIDENT */
+    .related-img{
+      width: 100%;
+      aspect-ratio: 4 / 5;      /* same feel as main page */
+      object-fit: cover;
+      display: block;
+      background: #fff;
+    }
+
+    .placeholder{
+      background: linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,.02));
+    }
+
+    /* BODY */
+    .related-body{
+      padding: 12px 14px 14px;
+    }
+
+    .related-name{
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .related-sub{
+      font-size: 13px;
+      opacity: .7;
+      margin-bottom: 8px;
+    }
+
+    .related-price{
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .related-card:hover{
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      transform: translateY(-1px);
+      transition: box-shadow .15s ease, transform .1s ease;
+    }
+
+    @media (min-width: 780px){
+      .related-grid{
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</BaseLayout>

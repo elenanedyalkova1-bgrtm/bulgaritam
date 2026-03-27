@@ -1,0 +1,62 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "За нас | Българитъм";
+const description =
+  "Българитъм е мястото за откриване на български брандове и продукти. Подбрани предложения, които те водят директно до сайта на бранда.";
+const canonical = "https://bulgaritam.bg/za-nas";
+---
+
+<BaseLayout title={title} description={description} canonical={canonical}>
+  <main class="wrap">
+    <h1>За нас</h1>
+
+    <p class="lead">
+      Българитъм е платформа за откриване на български продукти. Не сме маркетплейс —
+      показваме подбрани предложения и те насочваме директно към сайта на бранда.
+    </p>
+
+    <section class="card">
+      <h2>Как работи</h2>
+      <ol>
+        <li>Търсиш конкретен тип продукт или разглеждаш категории.</li>
+        <li>Отваряш продукта, който ти харесва.</li>
+        <li>С един клик отиваш на сайта на бранда и поръчваш оттам.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Защо го правим</h2>
+      <ul>
+        <li>По-лесно откриване на локални брандове.</li>
+        <li>По-малко “скрол” и повече реални находки.</li>
+        <li>Подкрепа за българското производство.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Контакт</h2>
+      <p>
+        Ако си български бранд и искаш да се включиш, пиши ни от страницата
+        <a href="/partnyori">Партньори</a>.
+      </p>
+    </section>
+  </main>
+
+  <style>
+    .wrap{ max-width: 900px; margin: 0 auto; padding: 28px 16px 60px; }
+    h1{ font-size: clamp(32px, 4vw, 48px); letter-spacing: -0.02em; margin: 0 0 12px; }
+    .lead{ font-size: 18px; line-height: 1.7; opacity: .9; margin: 0 0 18px; }
+    .card{
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 18px;
+      background: rgba(255,255,255,.7);
+      padding: 16px 16px;
+      margin-top: 14px;
+    }
+    h2{ margin: 0 0 10px; font-size: 18px; opacity: .85; }
+    ol, ul{ margin: 0; padding-left: 18px; line-height: 1.7; }
+    a{ color: var(--accent); text-decoration: none; font-weight: 650; }
+    a:hover{ text-decoration: underline; }
+  </style>
+</BaseLayout>

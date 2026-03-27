@@ -1,0 +1,524 @@
+---
+const {
+  title = "Българитъм",
+  description = "Открий любими български продукти по категория, цена и тагове.",
+  canonical,
+} = Astro.props;
+
+const pathname = Astro.url.pathname;
+const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+---
+
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+
+    {canonical ? <link rel="canonical" href={canonical} /> : null}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/styles/global.css" />
+
+    <!-- Microsoft Clarity -->
+    <script is:inline>
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "sbw66lvia1");
+    </script>
+  </head>
+
+
+ <body class={`bg ${Astro.url.pathname === "/" ? "home" : "page"}`}>
+    <!-- HEADER -->
+    <header class="topbar">
+      <div class="wrap topbar-inner">
+        <a class="brand" href="/">Българитъм</a>
+
+        <!-- Desktop nav -->
+        <nav class="nav nav-desktop" aria-label="Основна навигация">
+          <a
+            href="/"
+            class:list={{ "nav-link": true, "is-active": isActive("/") }}
+          >Начало</a>
+
+          <a
+            href="/zapazeni/"
+            class:list={{ "nav-link": true, "nav-saved-link": true, "is-active": isActive("/zapazeni") }}
+          >
+            Запазени <span class="saved-count" data-saved-count hidden>(0)</span>
+          </a>
+
+          <a
+            href="/blog/"
+            class:list={{ "nav-link": true, "is-active": isActive("/blog") }}
+          >Препоръчано</a>
+
+          <a class="nav-link" href="/bulgarski-brandove/">Брандове</a>
+
+
+          <a
+            href="/za-nas/"
+            class:list={{ "nav-link": true, "is-active": isActive("/za-nas") }}
+          >За нас</a>
+
+          <a
+            href="/partnyori/"
+            class:list={{ "nav-link": true, "is-active": isActive("/partnyori") }}
+          >Стани партньор</a>
+        </nav>
+
+        <!-- Mobile open button -->
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Отвори меню"
+          aria-expanded="false"
+          aria-controls="mobile-overlay"
+        >
+          ☰
+        </button>
+      </div>
+
+      <!-- Mobile overlay -->
+      <div id="mobile-overlay" class="mobile-overlay" hidden aria-hidden="true">
+        <div class="mobile-overlay__backdrop" data-close></div>
+
+        <aside class="mobile-drawer" role="dialog" aria-modal="true" aria-label="Меню">
+          <div class="mobile-drawer__top">
+            <div class="mobile-drawer__title">Меню</div>
+            <button class="mobile-close" type="button" aria-label="Затвори меню" data-close>✕</button>
+          </div>
+
+          <a class="mobile-cta" href="/partnyori/#kandidatstvai">Кандидатствай</a>
+
+          <nav class="mobile-nav" aria-label="Мобилна навигация">
+            <a href="/" class:list={{ "nav-link": true, "is-active": isActive("/") }}>Начало</a>
+
+            <a
+              href="/zapazeni/"
+              class:list={{ "nav-link": true, "nav-saved-link": true, "is-active": isActive("/zapazeni") }}
+            >
+              Запазени <span class="saved-count" data-saved-count hidden>(0)</span>
+            </a>
+
+            <a href="/blog/" class:list={{ "nav-link": true, "is-active": isActive("/blog") }}>Препоръчано</a>
+            <a class="nav-link" href="/bulgarski-brandove/">Брандове</a>
+            <a href="/za-nas/" class:list={{ "nav-link": true, "is-active": isActive("/za-nas") }}>За нас</a>
+            <a href="/partnyori/" class:list={{ "nav-link": true, "is-active": isActive("/partnyori") }}>Стани партньор</a>
+          </nav>
+        </aside>
+      </div>
+
+      <script is:inline>
+        const btn = document.querySelector(".nav-toggle");
+        const overlay = document.getElementById("mobile-overlay");
+        const closeEls = overlay ? overlay.querySelectorAll("[data-close]") : [];
+        const links = overlay ? overlay.querySelectorAll("a") : [];
+
+        const setOpen = (open) => {
+          if (!btn || !overlay) return;
+          if (open) {
+            overlay.removeAttribute("hidden");
+            overlay.setAttribute("aria-hidden", "false");
+            btn.setAttribute("aria-expanded", "true");
+            document.documentElement.classList.add("no-scroll");
+          } else {
+            overlay.setAttribute("hidden", "");
+            overlay.setAttribute("aria-hidden", "true");
+            btn.setAttribute("aria-expanded", "false");
+            document.documentElement.classList.remove("no-scroll");
+          }
+        };
+
+        if (btn && overlay) {
+          btn.addEventListener("click", () => setOpen(true));
+          closeEls.forEach((el) => el.addEventListener("click", () => setOpen(false)));
+          links.forEach((a) => a.addEventListener("click", () => setOpen(false)));
+
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !overlay.hasAttribute("hidden")) setOpen(false);
+          });
+        }
+      </script>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <slot />
+    <script is:inline>
+  // ==========================================
+  // Bulgaritam Saved Boards (single device)
+  // ==========================================
+  const STORAGE_KEY = "bulgaritam_saved_boards_v1";
+
+  const defaultState = () => ({
+    boards: [{ id: "all", name: "Запазени" }],
+    items: { all: [] } // boardId -> savedItem[]
+  });
+
+  const readState = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      const s = JSON.parse(raw);
+      if (!s || !Array.isArray(s.boards) || typeof s.items !== "object") return defaultState();
+      if (!s.boards.find(b => b.id === "all")) s.boards.unshift({ id: "all", name: "Запазени" });
+      s.items.all = s.items.all || [];
+      return s;
+    } catch {
+      return defaultState();
+    }
+  };
+
+const updateSavedBadges = (state) => {
+  const count = (state?.items?.all || []).length;
+  document.querySelectorAll("[data-saved-count]").forEach((el) => {
+    el.textContent = `(${count})`;
+    if (count > 0) el.removeAttribute("hidden");
+    else el.setAttribute("hidden", "");
+  });
+};
+
+  const writeState = (s) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  window.dispatchEvent(new CustomEvent("bulgaritam:saved", { detail: s }));
+  updateSavedBadges(s); // ✅ обновява count веднага
+};
+
+
+  const escapeHtml = (s) => String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+  const slugId = () => "b_" + Math.random().toString(36).slice(2, 10);
+
+  const isSavedAnywhere = (state, id) => {
+    const pid = String(id);
+    return Object.values(state.items).some(arr => Array.isArray(arr) && arr.some(x => String(x.id) === pid));
+  };
+
+  const removeEverywhere = (state, id) => {
+    const pid = String(id);
+    for (const k of Object.keys(state.items)) {
+      state.items[k] = (state.items[k] || []).filter(x => String(x.id) !== pid);
+    }
+  };
+
+  const addToBoard = (state, boardId, item) => {
+    state.items[boardId] = state.items[boardId] || [];
+    state.items[boardId].unshift(item);
+
+    // keep unique per board by id
+    const seen = new Set();
+    state.items[boardId] = state.items[boardId].filter(x => {
+      const key = String(x.id);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // also keep "all" as catch-all
+    state.items.all = state.items.all || [];
+    state.items.all.unshift(item);
+    const seenAll = new Set();
+    state.items.all = state.items.all.filter(x => {
+      const key = String(x.id);
+      if (seenAll.has(key)) return false;
+      seenAll.add(key);
+      return true;
+    });
+  };
+
+  // -------------------------
+// Modal UI
+// -------------------------
+const modal = document.getElementById("save-modal");
+const boardsWrap = document.getElementById("save-modal-boards");
+const inputNew = document.getElementById("save-modal-newname");
+const btnCreate = document.getElementById("save-modal-create");
+const btnSave = document.getElementById("save-modal-save");
+
+let pendingItem = null;
+let selectedBoardId = "all";
+
+/**
+ * IMPORTANT:
+ * Some pages don't have the modal HTML at all.
+ * If modal isn't present, we must NOT attach listeners or touch modal elements.
+ */
+const hasModalUI = !!(modal && boardsWrap && inputNew && btnCreate && btnSave);
+
+const renderBoards = (state) => {
+  if (!hasModalUI) return;
+
+  const boards = state.boards || [];
+  boardsWrap.innerHTML = boards
+    .map((b) => {
+      const count = (state.items?.[b.id] || []).length;
+      const sel = b.id === selectedBoardId ? " is-selected" : "";
+      return `
+        <button class="save-board${sel}" type="button" data-board="${b.id}">
+          <span class="save-board__name">${escapeHtml(b.name)}</span>
+          <span class="save-board__meta">${count} продукта</span>
+        </button>
+      `;
+    })
+    .join("");
+};
+
+const openModal = (item) => {
+  if (!hasModalUI) return;
+
+  pendingItem = item;
+  const state = readState();
+
+  selectedBoardId = "all";
+  renderBoards(state);
+
+  modal.setAttribute("aria-hidden", "false");
+  document.documentElement.classList.add("no-scroll");
+
+  inputNew.value = "";
+  inputNew.focus();
+};
+
+const closeModal = () => {
+  if (!hasModalUI) return;
+
+  modal.setAttribute("aria-hidden", "true");
+  document.documentElement.classList.remove("no-scroll");
+  pendingItem = null;
+};
+
+// Only attach listeners if modal UI exists on this page
+if (hasModalUI) {
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-save-close]")) closeModal();
+
+    const b = e.target.closest("[data-board]");
+    if (b) {
+      selectedBoardId = b.getAttribute("data-board") || "all";
+      renderBoards(readState());
+    }
+  });
+
+  btnCreate.addEventListener("click", () => {
+    const name = (inputNew.value || "").trim();
+    if (!name) return;
+
+    const state = readState();
+    const id = slugId();
+    state.boards.push({ id, name });
+    state.items[id] = state.items[id] || [];
+    writeState(state);
+
+    selectedBoardId = id;
+    renderBoards(state);
+    inputNew.value = "";
+  });
+
+  // ✅ IMPORTANT: btnSave listener MUST be inside this if
+  btnSave.addEventListener("click", () => {
+    if (!pendingItem) return;
+
+    const state = readState();
+    addToBoard(state, selectedBoardId, pendingItem);
+    writeState(state);
+
+    syncSaveButtons();
+    closeModal();
+  });
+}
+
+
+
+  // -------------------------
+  // Save buttons everywhere
+  // -------------------------
+  const getItemFromBtn = (btn) => {
+    // Required:
+    // data-save-id, data-save-url
+    // Optional:
+    // data-save-title, data-save-image, data-save-brand, data-save-price
+    return {
+      id: btn.getAttribute("data-save-id"),
+      url: btn.getAttribute("data-save-url"),
+      title: btn.getAttribute("data-save-title") || "Запазен продукт",
+      image: btn.getAttribute("data-save-image") || "",
+      brand: btn.getAttribute("data-save-brand") || "",
+      price: btn.getAttribute("data-save-price") || ""
+    };
+  };
+
+  const syncSaveButtons = () => {
+    const state = readState();
+    document.querySelectorAll(".save-btn[data-save-id]").forEach(btn => {
+      const id = btn.getAttribute("data-save-id");
+      const saved = isSavedAnywhere(state, id);
+      btn.classList.toggle("is-saved", saved);
+      btn.setAttribute("aria-pressed", saved ? "true" : "false");
+    });
+  };
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".save-btn[data-save-id]");
+    if (!btn) return;
+
+    const item = getItemFromBtn(btn);
+    const state = readState();
+
+    // toggle behavior:
+    // if already saved -> remove everywhere
+    if (isSavedAnywhere(state, item.id)) {
+      removeEverywhere(state, item.id);
+      writeState(state);
+      syncSaveButtons();
+      return;
+    }
+
+    // if only "all" exists -> save directly (no modal yet)
+    if ((state.boards || []).length <= 1) {
+      addToBoard(state, "all", item);
+      writeState(state);
+      syncSaveButtons();
+      return;
+    }
+
+    // otherwise ask where to save
+    openModal(item);
+  });
+
+  // initial
+const initialState = readState();
+syncSaveButtons();
+updateSavedBadges(initialState);
+
+window.addEventListener("storage", () => {
+  const s = readState();
+  syncSaveButtons();
+  updateSavedBadges(s);
+});
+
+window.addEventListener("bulgaritam:saved", (e) => {
+  updateSavedBadges(e.detail);
+});
+
+
+</script>
+
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="wrap footer-inner">
+        <div class="footer-col">
+          <div class="footer-title">Контакт</div>
+          <a class="footer-link" href="mailto:info@bulgaritam.bg">info@bulgaritam.bg</a>
+          <div class="footer-legal">
+            <a class="footer-link" href="/politika-na-poveritelnost/">Политика за поверителност</a>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          В България има страхотни творци, устремени предприемачи, с несломими дух и вяра,
+          които посвещават живота си на това да създават качествени продукти. За нас от
+          Българитъм е цел и чест да даваме гласност на талантливите ни родни производители.
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="wrap footer-bottom-inner">
+          <span>© {new Date().getFullYear()} Българитъм</span>
+          <span class="footer-muted">Всички права запазени</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- COOKIE BANNER -->
+    <div id="cookie-banner" class="cookie" hidden>
+      <div class="cookie-card" role="dialog" aria-live="polite">
+        <div class="cookie-text">
+          <div class="cookie-title">Бисквитки</div>
+          <p class="cookie-p">
+            Използваме необходими бисквитки за да работи сайтът.
+            С Ваше съгласие можем да използваме и аналитични бисквитки.
+            <a class="cookie-link" href="/politika-na-poveritelnost/">Политика за поверителност</a>.
+          </p>
+        </div>
+
+        <div class="cookie-actions">
+          <button class="cookie-btn" data-cookie="necessary">Само необходими</button>
+          <button class="cookie-btn cookie-btn--primary" data-cookie="accept">Приемам</button>
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+      const COOKIE_KEY = "bulgaritam_cookie_consent_v1";
+      const banner = document.getElementById("cookie-banner");
+
+      if (banner && !localStorage.getItem(COOKIE_KEY)) {
+        banner.removeAttribute("hidden");
+      }
+
+      banner?.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-cookie]");
+        if (!b) return;
+
+        localStorage.setItem(
+          COOKIE_KEY,
+          JSON.stringify({
+            necessary: true,
+            analytics: b.dataset.cookie === "accept",
+          })
+        );
+
+        banner.setAttribute("hidden", "");
+      });
+    </script>
+
+    
+  <div class="save-modal" id="save-modal" aria-hidden="true">
+  <div class="save-modal__backdrop" data-save-close></div>
+
+  <div class="save-modal__panel" role="dialog" aria-modal="true" aria-labelledby="save-modal-title">
+    <div class="save-modal__top">
+      <div class="save-modal__title" id="save-modal-title">Къде да запазя?</div>
+      <button class="save-modal__close" type="button" aria-label="Затвори" data-save-close>×</button>
+    </div>
+
+    <div class="save-modal__body">
+      <div class="save-modal__hint">Избери списък или създай нов.</div>
+
+      <div class="save-modal__boards" id="save-modal-boards"></div>
+
+      <div class="save-modal__new">
+        <input class="save-modal__input" id="save-modal-newname" type="text" placeholder="Нова папка (напр. Подаръци)" />
+        <button class="save-modal__btn" type="button" id="save-modal-create">Създай</button>
+      </div>
+
+      <div class="save-modal__actions">
+        <button class="save-modal__btn save-modal__btn--ghost" type="button" data-save-close>Отказ</button>
+        <button class="save-modal__btn save-modal__btn--primary" type="button" id="save-modal-save">Запази</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  </body>
+</html>

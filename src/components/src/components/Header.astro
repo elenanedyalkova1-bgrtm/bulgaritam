@@ -1,0 +1,107 @@
+---
+const { pathname } = Astro.url;
+
+const isActive = (href) => {
+  if (href === "/") return pathname === "/";
+  return pathname.startsWith(href);
+};
+---
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label="Българитъм – начало">
+      Българитъм
+    </a>
+
+    <nav class="nav" aria-label="Основна навигация">
+      <a
+        href="/blog/"
+        class={isActive("/blog") ? "active" : ""}
+        aria-current={isActive("/blog") ? "page" : undefined}
+      >
+        Препоръчано
+      </a>
+
+      <a
+        href="/za-nas"
+        class={isActive("/za-nas") ? "active" : ""}
+        aria-current={isActive("/za-nas") ? "page" : undefined}
+      >
+        За нас
+      </a>
+
+      <a
+        href="/stani-partnyor"
+        class={isActive("/stani-partnyor") ? "active" : ""}
+        aria-current={isActive("/stani-partnyor") ? "page" : undefined}
+      >
+        Стани партньор
+      </a>
+    </nav>
+  </div>
+
+  <style>
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(247, 241, 235, 0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      font-family: "Fraunces", ui-serif, Georgia, serif;
+      font-size: 20px;
+      text-decoration: none;
+      color: inherit;
+      letter-spacing: 0.2px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-family: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-size: 14px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: inherit;
+      opacity: 0.75;
+      position: relative;
+      padding-bottom: 2px;
+    }
+
+    .nav a:hover {
+      opacity: 1;
+    }
+
+    .nav a.active {
+      opacity: 1;
+      font-weight: 500;
+    }
+
+    .nav a.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -4px;
+      height: 1.5px;
+      background: currentColor;
+      opacity: 0.6;
+    }
+  </style>
+</header>

@@ -1,0 +1,151 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Партньори | Българитъм";
+const description =
+  "Кандидатствай за включване в Българитъм — платформа за откриване на български брандове и продукти. Еднократна цена, без месечни такси.";
+const canonical = "https://bulgaritam.bg/partnyori";
+
+// ✅ Your Google Form (public view link)
+const FORM_URL =
+  "https://docs.google.com/forms/d/1spir88RH9xJpulSoeFwQCbOXVgejIsSWNx1tevvN2Gw/viewform";
+---
+
+<BaseLayout title={title} description={description} canonical={canonical}>
+  <main class="wrap">
+    <h1>Партньори</h1>
+
+    <p class="lead">
+      Българитъм е платформа за <strong>откриване на български брандове и продукти</strong>.
+      Нашата цел е да помогнем на българските производители да стигнат <strong>по-лесно до хора,
+      които вече активно търсят български брандове</strong>.
+    </p>
+
+    <p class="lead">
+      Знаем, че това не винаги е лесно. В Instagram хората трябва да <em>ровят</em>, алгоритмите решават
+      какво да покажат, а качествените продукти често се губят. Българитъм събира на едно място брандове
+      и продукти, които хората идват целенасочено да открият.
+    </p>
+
+    <section class="card">
+      <h2>Как да кандидатстваш</h2>
+      <p>
+        Първата стъпка е да попълниш кратък формуляр, с който събираме основната информация
+        за бранда и продуктите ти.
+      </p>
+
+      <div class="actions">
+        <a class="btn" href={FORM_URL} target="_blank" rel="noopener noreferrer">
+          Кандидатствай за включване →
+        </a>
+      </div>
+
+      <p class="note">
+        След като прегледаме информацията, ще се свържем с теб при нужда от уточнения и ще подготвим
+        страница за бранда + добавяне на продуктите в платформата.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Ценообразуване (еднократно)</h2>
+      <p>
+        Знаем, че малките брандове работят с ограничен бюджет. Затова цената е
+        <strong> еднократна</strong>, без месечни такси и без обвързване.
+      </p>
+
+      <ul class="list">
+        <li><strong>До 5 продукта</strong> – <strong>25 €</strong> (еднократно)</li>
+        <li><strong>До 10 продукта</strong> + страница в сайта, посветена на бранда и продуктите му + линк към Instagram – <strong>30 €</strong> (еднократно) + страница за бранда</li>
+        <li><strong>До 20 продукта</strong> + страница в сайта, посветена на бранда и продуктите му + линк към Instagram – <strong>35 €</strong> (еднократно) + страница за бранда</li>
+      </ul>
+
+      <div class="pill-row">
+        <span class="pill">Без месечни такси</span>
+        <span class="pill">Без комисиони</span>
+        <span class="pill">Директно към твоя сайт</span>
+      </div>
+
+      <p class="note">
+        Ние не продаваме вместо теб, а насочваме клиентите директно към твоя сайт.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>За кого е Българитъм</h2>
+      <p>Българитъм е за брандове, които:</p>
+      <ul class="list">
+        <li>произвеждат в България</li>
+        <li>държат на качеството и автентичността</li>
+        <li>искат да бъдат откривани от правилната аудитория, а не да „гонят“ алгоритми</li>
+      </ul>
+
+      <div class="actions">
+        <a class="btn" href={FORM_URL} target="_blank" rel="noopener noreferrer">
+          Попълни формуляра →
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <style>
+    .wrap { max-width: 900px; margin: 0 auto; padding: 28px 16px 60px; }
+
+    h1 {
+      font-size: clamp(32px, 4vw, 48px);
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+    }
+
+    .lead {
+      font-size: 18px;
+      line-height: 1.75;
+      opacity: 0.9;
+      margin: 0 0 14px;
+    }
+
+    .card {
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 18px;
+      background: rgba(255,255,255,.7);
+      padding: 16px 16px;
+      margin-top: 14px;
+    }
+
+    h2 { margin: 0 0 10px; font-size: 18px; opacity: .85; }
+
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 750;
+      border: 1px solid rgba(0,0,0,.06);
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+    }
+
+    .btn:hover { background: var(--accent-strong); }
+    .btn:active { transform: translateY(1px); }
+
+    .list { margin: 10px 0 0; padding-left: 18px; line-height: 1.8; }
+
+    .note { margin-top: 12px; opacity: .8; line-height: 1.65; }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .pill {
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.75);
+      opacity: .9;
+      font-weight: 650;
+    }
+  </style>
+</BaseLayout>

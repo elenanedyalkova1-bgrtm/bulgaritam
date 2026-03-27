@@ -1,0 +1,117 @@
+---
+const policyHref = "/politika-na-poveritelnost/";
+---
+
+<div id="cookie-banner" class="cookie" hidden>
+  <div class="cookie-card" role="dialog" aria-live="polite" aria-label="Настройки за бисквитки">
+    <div class="cookie-text">
+      <div class="cookie-title">Бисквитки</div>
+      <p class="cookie-p">
+        Използваме „необходими“ бисквитки за да работи сайтът. С Ваше съгласие можем да използваме и аналитични
+        бисквитки, за да подобряваме Българитъм. Прочетете повече в
+        <a class="cookie-link" href={policyHref}>Политика за поверителност</a>.
+      </p>
+    </div>
+
+    <div class="cookie-actions">
+      <button class="cookie-btn cookie-btn--ghost" type="button" data-cookie="settings">Настройки</button>
+      <button class="cookie-btn cookie-btn--ghost" type="button" data-cookie="necessary">Само необходими</button>
+      <button class="cookie-btn cookie-btn--primary" type="button" data-cookie="accept">Приемам</button>
+    </div>
+
+    <div id="cookie-settings" class="cookie-settings" hidden>
+      <label class="cookie-row">
+        <input type="checkbox" checked disabled />
+        <span>
+          <strong>Необходими</strong>
+          <span class="cookie-muted">– за основна функционалност.</span>
+        </span>
+      </label>
+
+      <label class="cookie-row">
+        <input id="cookie-analytics" type="checkbox" />
+        <span>
+          <strong>Аналитични</strong>
+          <span class="cookie-muted">– помагат ни да подобряваме сайта.</span>
+        </span>
+      </label>
+
+      <div class="cookie-actions cookie-actions--right">
+        <button class="cookie-btn cookie-btn--primary" type="button" data-cookie="save">Запази</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  const KEY = "bulgaritam_cookie_consent_v1";
+  const banner = document.getElementById("cookie-banner");
+  const settings = document.getElementById("cookie-settings");
+  const analyticsToggle = document.getElementById("cookie-analytics");
+
+  const read = () => {
+    try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch { return null; }
+  };
+
+  const write = (value) => {
+    localStorage.setItem(KEY, JSON.stringify(value));
+    window.dispatchEvent(new CustomEvent("cookie-consent", { detail: value }));
+  };
+
+  const apply = (consent) => {
+    // Expose for other scripts (optional)
+    window.__cookieConsent = consent || { necessary: true, analytics: false };
+    // Example: add a class so you can style if needed
+    document.documentElement.dataset.cookieAnalytics = consent?.analytics ? "1" : "0";
+  };
+
+  const show = () => banner && banner.removeAttribute("hidden");
+  const hide = () => banner && banner.setAttribute("hidden", "");
+
+  const existing = read();
+  if (!existing) {
+    show();
+    apply({ necessary: true, analytics: false });
+  } else {
+    apply(existing);
+  }
+
+  banner?.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-cookie]");
+    if (!btn) return;
+    const action = btn.getAttribute("data-cookie");
+
+    if (action === "settings") {
+      settings?.toggleAttribute("hidden", false);
+      return;
+    }
+
+    if (action === "accept") {
+      const consent = { necessary: true, analytics: true, ts: Date.now() };
+      write(consent);
+      apply(consent);
+      hide();
+      return;
+    }
+
+    if (action === "necessary") {
+      const consent = { necessary: true, analytics: false, ts: Date.now() };
+      write(consent);
+      apply(consent);
+      hide();
+      return;
+    }
+
+    if (action === "save") {
+      const consent = {
+        necessary: true,
+        analytics: Boolean(analyticsToggle?.checked),
+        ts: Date.now()
+      };
+      write(consent);
+      apply(consent);
+      hide();
+      return;
+    }
+  });
+</script>

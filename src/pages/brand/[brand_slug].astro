@@ -1,0 +1,421 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { loadProducts } from "../../lib/products";
+
+/**
+ * Brand sheet loader
+ * Supports BOTH:
+ *  1) Normal CSV with headers (brand_slug,brand_name,intro_bg,...)
+ *  2) Legacy "single cell with ` / `" rows
+ *
+ * Expected fields:
+ * brand_slug / brand_name / intro_bg / website_url / brand_logo_url / instagram_url / meta_title_bg / meta_desc_bg
+ */
+
+// ✅ Define URL ONCE (env OR fallback)
+const BRANDS_CSV_URL =
+  (import.meta.env.PUBLIC_BRANDS_CSV_URL &&
+    String(import.meta.env.PUBLIC_BRANDS_CSV_URL).trim()) ||
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQjqAyOBpnk3NbkfvYr8GXnZdV-tiUaGT77AVgfTi-mWWlVQVOu6yN4ebIoxJ7nQKibeyIndDSGdIaD/pub?gid=1963373970&single=true&output=csv";
+
+const clean = (v) => (v == null ? "" : String(v).trim());
+
+type BrandRow = {
+  brand_slug: string;
+  brand_name: string;
+  intro_bg?: string;
+  website_url?: string;
+  brand_logo_url?: string;
+  instagram_url?: string;
+  meta_title_bg?: string;
+  meta_desc_bg?: string;
+};
+
+// Small CSV line parser (handles quoted fields + commas)
+function parseCsvLine(line: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+
+    if (ch === '"') {
+      // escaped quote ""
+      if (inQuotes && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === "," && !inQuotes) {
+      out.push(cur);
+      cur = "";
+      continue;
+    }
+
+    cur += ch;
+  }
+
+  out.push(cur);
+  return out.map((s) => clean(s));
+}
+
+// ✅ Loader inside the page to avoid scope/env issues
+async function loadBrands(): Promise<BrandRow[]> {
+  if (!BRANDS_CSV_URL) return [];
+
+  let text = "";
+  try {
+    const res = await fetch(BRANDS_CSV_URL, {
+      headers: { Accept: "text/csv,text/plain;q=0.9,*/*;q=0.8" },
+    });
+
+    if (!res.ok) {
+      console.error("Failed to fetch brands CSV:", res.status, res.statusText);
+      return [];
+    }
+
+    text = await res.text();
+  } catch (err) {
+    console.error("Error fetching brands CSV:", err);
+    return [];
+  }
+
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (!lines.length) return [];
+
+  const first = lines[0].replace(/^"(.*)"$/, "$1").trim();
+
+  // Detect header CSV mode (your current sheet has headers)
+  const isHeaderCsv = first.toLowerCase().includes("brand_slug") && first.includes(",");
+
+  // ✅ HEADER CSV MODE
+  if (isHeaderCsv) {
+    const headers = parseCsvLine(first).map((h) => h.toLowerCase());
+    const idx = (key: string) => headers.indexOf(key);
+
+    const iSlug = idx("brand_slug");
+    const iName = idx("brand_name");
+    const iIntro = idx("intro_bg");
+    const iWeb = idx("website_url");
+    const iLogo = idx("brand_logo_url");
+    const iIg = idx("instagram_url");
+    const iTitle = idx("meta_title_bg");
+    const iDesc = idx("meta_desc_bg");
+
+    const brands: BrandRow[] = [];
+
+    for (const line of lines.slice(1)) {
+      const cols = parseCsvLine(line);
+      const brand_slug = clean(cols[iSlug]);
+
+      if (!brand_slug) continue;
+
+      brands.push({
+        brand_slug,
+        brand_name: clean(cols[iName]),
+        intro_bg: clean(cols[iIntro]),
+        website_url: clean(cols[iWeb]),
+        brand_logo_url: clean(cols[iLogo]),
+        instagram_url: clean(cols[iIg]),
+        meta_title_bg: clean(cols[iTitle]),
+        meta_desc_bg: clean(cols[iDesc]),
+      });
+    }
+
+    return brands;
+  }
+
+  // ✅ LEGACY " / " MODE
+  const brands: BrandRow[] = [];
+
+  for (const line of lines) {
+    const raw = line.replace(/^"(.*)"$/, "$1").trim();
+    const parts = raw.split(" / ").map((p) => clean(p));
+
+    if (parts.length < 2) continue;
+
+    const [
+      brand_slug,
+      brand_name,
+      intro_bg,
+      website_url,
+      brand_logo_url,
+      instagram_url,
+      meta_title_bg,
+      meta_desc_bg,
+    ] = parts;
+
+    if (!brand_slug) continue;
+
+    brands.push({
+      brand_slug,
+      brand_name,
+      intro_bg,
+      website_url,
+      brand_logo_url,
+      instagram_url,
+      meta_title_bg,
+      meta_desc_bg,
+    });
+  }
+
+  return brands;
+}
+
+export async function getStaticPaths() {
+  const products = (await loadProducts()).filter((p) => p.is_active);
+
+  const brandMap = new Map<string, { brand_slug: string; fallback_name: string }>();
+  for (const p of products) {
+    if (p.brand_slug && !brandMap.has(p.brand_slug)) {
+      brandMap.set(p.brand_slug, {
+        brand_slug: p.brand_slug,
+        fallback_name: p.brand_name,
+      });
+    }
+  }
+
+  return Array.from(brandMap.values()).map((b) => ({
+    params: { brand_slug: b.brand_slug },
+    props: { brandSlug: b.brand_slug, fallbackName: b.fallback_name },
+  }));
+}
+
+const { brandSlug, fallbackName } = Astro.props;
+
+const [allProducts, allBrands] = await Promise.all([loadProducts(), loadBrands()]);
+
+const brandRow = allBrands.find((b) => b.brand_slug === brandSlug);
+const brandName = brandRow?.brand_name || fallbackName || brandSlug;
+
+const brandProducts = allProducts
+  .filter((p) => p.is_active)
+  .filter((p) => p.brand_slug === brandSlug);
+
+// SEO (prefer brand sheet meta)
+const title = clean(brandRow?.meta_title_bg) || `${brandName} | Bulgaritam`;
+const description =
+  clean(brandRow?.meta_desc_bg) ||
+  `Открий продукти от ${brandName} — подбрани български предложения в Bulgaritam.`;
+
+const hasLogo = Boolean(brandRow?.brand_logo_url);
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="wrap">
+    <a class="back" href="/">← Начало</a>
+
+    <h1 class="h1">{brandName}</h1>
+
+    <div class="brand-head" data-has-logo={hasLogo ? "1" : "0"}>
+      {hasLogo ? (
+        <img
+          class="brand-logo"
+          src={brandRow.brand_logo_url}
+          alt={`${brandName} лого`}
+          loading="lazy"
+        />
+      ) : null}
+
+      <div class="brand-copy">
+        {brandRow?.intro_bg ? (
+          <p class="intro">{brandRow.intro_bg}</p>
+        ) : (
+          <p class="intro intro--muted">Всички продукти от този бранд.</p>
+        )}
+
+        <div class="brand-actions">
+          {brandRow?.website_url ? (
+            <a
+              class="visit"
+              href={brandRow.website_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Виж сайта на бранда →
+            </a>
+          ) : null}
+
+          {brandRow?.instagram_url ? (
+            <a
+              class="ig"
+              href={brandRow.instagram_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Instagram
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </div>
+
+    <h2 class="subhead">Продукти ({brandProducts.length})</h2>
+
+    <section class="grid">
+      {brandProducts.map((product) => {
+        const price =
+          product.price_min_eur !== null && product.price_max_eur !== null
+            ? `${product.price_min_eur}–${product.price_max_eur} ${product.currency || "EUR"}`
+            : product.price_min_eur !== null
+              ? `${product.price_min_eur}+ ${product.currency || "EUR"}`
+              : "";
+
+        return (
+          <a class="card" href={`/p/${product.slug}`}>
+            {product.image_urls?.length ? (
+              <img src={product.image_urls[0]} alt={product.name_bg} loading="lazy" />
+            ) : (
+              <div class="img placeholder" aria-hidden="true"></div>
+            )}
+
+            <div class="meta">
+              <div class="name">{product.name_bg}</div>
+              {price ? <div class="price">{price}</div> : null}
+            </div>
+          </a>
+        );
+      })}
+    </section>
+  </main>
+
+  <style>
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+    .back{
+      display:inline-block;
+      margin-bottom: 14px;
+      text-decoration:none;
+      color: var(--accent);
+      font-weight: 650;
+      font-size: .95rem;
+    }
+    .back:hover{ color: var(--accent-strong); }
+
+    .h1{
+      margin: 4px 0 0;
+      font-size: clamp(28px, 3.5vw, 44px);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-head{
+      display: grid;
+      gap: 14px;
+      align-items: start;
+      margin: 12px 0 18px;
+      grid-template-columns: 1fr; /* default: no narrow column */
+    }
+
+    /* only 2 columns when logo exists */
+    @media (min-width: 780px){
+      .brand-head[data-has-logo="1"]{
+        grid-template-columns: 104px 1fr;
+      }
+    }
+
+    .brand-logo{
+      width: 84px;
+      height: 84px;
+      object-fit: contain;
+      border-radius: 16px;
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(0,0,0,.08);
+      padding: 10px;
+    }
+
+    .brand-copy{
+      width: 100%;
+      max-width: 70ch;
+    }
+
+    .intro{
+      margin: 0 0 10px;
+      line-height: 1.65;
+      opacity: .85;
+      white-space: normal;
+    }
+    .intro--muted{ opacity: .7; }
+
+    .brand-actions{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .visit{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 750;
+      border: 1px solid rgba(0,0,0,.06);
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+    }
+    .visit:hover{ background: var(--accent-strong); }
+    .visit:active{ transform: translateY(1px); }
+
+    .ig{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.7);
+      color: rgba(0,0,0,.78);
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    .ig:hover{ text-decoration: underline; }
+
+    .subhead{
+      margin: 18px 0 10px;
+      font-size: 16px;
+      opacity: .78;
+    }
+
+    .grid {
+      margin-top: 8px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    .card {
+      text-decoration: none;
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255,255,255,.75);
+      color: inherit;
+    }
+
+    .card img,
+    .img {
+      width: 100%;
+      aspect-ratio: 4/5;
+      object-fit: cover;
+      display: block;
+      background: #fff;
+    }
+
+    .placeholder {
+      background: linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,.02));
+    }
+
+    .meta { padding: 10px 12px 12px; }
+    .name { font-weight: 650; line-height: 1.25; }
+    .price { margin-top: 6px; opacity: .85; font-size: .95rem; color: var(--accent); font-weight: 800; }
+  </style>
+</BaseLayout>

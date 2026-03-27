@@ -1,11 +1,432 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { loadProducts } from "../lib/products";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const products = await loadProducts();
+
+function priceLabel(p) {
+  if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
+  if (p.price_min_eur != null) return `${p.price_min_eur}+ ${p.currency}`;
+  return "";
+}
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout title="Българитъм — твоята търсачка за български продукти">
+  <main class="wrap">
+   <section class="hero hero--centered">
+  <div class="hero-copy">
+    <h1 class="h1 home-title">Пътеводителят в света на българските марки</h1>
+    <p class="sub">Намери любими български продукти бързо и лесно</p>
+  </div>
+
+  <div class="search">
+    <label class="search-label" for="q">Търси български продукт</label>
+
+    <div class="search-row">
+      <input
+        id="q"
+        class="search-input"
+        type="search"
+        placeholder='напр. „подарък до 50 евро“, „сребърни обеци“, „дамска пижама“'
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="search-hint">
+      Търсенето започва автоматично докато пишш
+    </div>
+  </div>
+
+  <div class="chips" aria-label="Категории" id="mainChips"></div>
+  <div class="chips chips-sub" aria-label="Подкатегории" id="subChips" hidden></div>
+</section>
+
+
+
+      <!-- MAIN CATEGORY PILLS (default) -->
+      <div class="chips" aria-label="Категории" id="mainChips"></div>
+
+      <!-- SUB PILLS (appear after selecting a main category) -->
+      <div class="chips chips-sub" aria-label="Подкатегории" id="subChips" hidden></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 class="h2">Продукти (<span id="count">{products.length}</span>)</h2>
+        <div class="hint" id="hint"></div>
+      </div>
+
+      <ul class="grid" id="grid">
+        {products.map((p) => (
+          <li
+            class="card"
+            data-search={`${p.name_bg} ${p.brand_name} ${p.category} ${
+              Array.isArray(p.tags)
+                ? p.tags.join(" ")
+                : typeof p.tags === "string"
+                ? p.tags
+                : ""
+            } ${p.slug}`.toLowerCase()}
+            data-tags={
+              Array.isArray(p.tags)
+                ? p.tags.join(",").toLowerCase()
+                : typeof p.tags === "string"
+                ? p.tags.toLowerCase()
+                : ""
+            }
+            data-brand={p.brand_slug}
+            data-price-min={p.price_min_eur ?? ""}
+            data-price-max={p.price_max_eur ?? ""}
+          >
+            <!-- IMAGE AREA -->
+            <div class="card-top">
+              <!-- Image clickable to product page -->
+              <a class="card-imglink" href={`/p/${p.slug}/`}>
+                <div class="thumb">
+                  {p.image_urls?.length ? (
+                    <img class="thumb-img" src={p.image_urls[0]} alt={p.name_bg} loading="lazy" />
+                  ) : (
+                    <div class="thumb-ph" aria-hidden="true"></div>
+                  )}
+                </div>
+              </a>
+
+              {/* SAVE BUTTON (on card) */}
+              <button
+  class="save-btn save-btn--card"
+  type="button"
+  aria-label="Запази продукта"
+  aria-pressed="false"
+  data-save-id={p.slug}
+  data-save-url={`/p/${p.slug}`}
+  data-save-title={p.name_bg}
+  data-save-brand={p.brand_name ?? ""}
+  data-save-price={priceLabel(p) ?? ""}
+  data-save-image={p.image_urls?.[0] ?? ""}
+>
+  <svg class="save-ic" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z" />
+  </svg>
+</button>
+
+            </div>
+
+         <div class="card-body">
+  <!-- Title clickable to product page -->
+  <a class="card-titlelink" href={`/p/${p.slug}`}>{p.name_bg}</a>
+
+  <div class="card-sub">
+    <span class="cat">{p.category}</span>
+
+    {p.brand_name && p.brand_slug ? (
+      <>
+        <span class="dot"> • </span>
+        <a class="brand-link" href={`/brand/${p.brand_slug}`}>
+          {p.brand_name}
+        </a>
+      </>
+    ) : null}
+  </div>
+</div>
+
+
+            <!-- Footer: NOT a link, contains price + external CTA -->
+            <div class="card-foot">
+              <span class="price">{priceLabel(p)}</span>
+
+              <a
+                class="cta-out"
+                href={p.product_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Виж в сайта на бранда ↗
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </main>
+
+  <style>
+  .home-title {
+    max-width: 18ch !important;
+    margin: 0 auto !important;
+    font-size: clamp(38px, 4.6vw, 62px) !important;
+    line-height: 1.06 !important;
+    letter-spacing: -0.03em !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    white-space: normal !important;
+    text-wrap: balance !important;
+  }
+    /* Optional: visually differentiate sub-pills */
+    .chips-sub { margin-top: 8px; opacity: .95; }
+    .chip-sub { border-style: dashed; }
+
+    /* Card top wrapper so we can overlay the save button */
+    .card-top {
+      position: relative;
+    }
+
+    /* SAVE BUTTON — card */
+    .save-btn--card{
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: rgba(255,255,255,.92);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(6px);
+    }
+
+    .save-btn--card .save-ic{
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+    }
+
+    /* Saved state */
+    .save-btn--card.is-saved{
+      border-color: rgba(0,0,0,.12);
+    }
+    .save-btn--card.is-saved .save-ic{
+      fill: currentColor;
+      stroke: none;
+    }
+
+    /* Focus accessibility */
+    .save-btn--card:focus-visible{
+      outline: 2px solid rgba(0,0,0,.35);
+      outline-offset: 2px;
+    }
+  </style>
+
+  <script>
+
+
+    const q = document.getElementById("q");
+    const grid = document.getElementById("grid");
+    const count = document.getElementById("count");
+    const hint = document.getElementById("hint");
+    const btn = document.getElementById("searchBtn");
+
+    const mainChips = document.getElementById("mainChips");
+    const subChips = document.getElementById("subChips");
+
+    
+    // ----------------------------
+    // MAIN + SUB CATEGORY PILLS
+    // ----------------------------
+    const CATEGORIES = [
+      {
+        key: "gifts",
+        label: "🎁 Подаръци",
+        q: "подарък",
+        subs: [
+          { label: "За нея", q: "подарък за нея" },
+          { label: "За него", q: "подарък за него" },
+          { label: "За бебе", q: "подарък за бебе" },
+          { label: "За дете", q: "подарък за дете" },
+          { label: "За сватба", q: "подарък за сватба" },
+          { label: "За дом", q: "подарък за дом" },
+          { label: "До 50 евро", q: "подарък до 50" },
+        ],
+      },
+      {
+        key: "clothing",
+        label: "👕 Облекло",
+        q: "облекло",
+        subs: [
+          { label: "Дамско", q: "дамско облекло" },
+          { label: "Мъжко", q: "мъжко облекло" },
+          { label: "Детско", q: "детско облекло" },
+          { label: "Бельо", q: "бельо" },
+          { label: "Домашно", q: "домашно облекло" },
+        ],
+      },
+      {
+        key: "home",
+        label: "🏠 За дома",
+        q: "дом",
+        subs: [
+          { label: "Кухня", q: "кухня" },
+          { label: "Баня", q: "баня" },
+          { label: "Декор", q: "декор" },
+          { label: "Почистване", q: "почистване" },
+          { label: "Градина / тераса", q: "градина тераса" },
+        ],
+      },
+      {
+        key: "kids",
+        label: "👶 За деца",
+        q: "деца",
+        subs: [
+          { label: "Играчки", q: "детски играчки" },
+          { label: "Дрехи", q: "детски дрехи" },
+          { label: "Книги", q: "детски книги" },
+          { label: "Грижа", q: "грижа за бебе" },
+          { label: "Аксесоари", q: "детски аксесоари" },
+        ],
+      },
+      {
+        key: "health",
+        label: "🌿 Здраве и грижа",
+        q: "здраве",
+        subs: [
+          { label: "Витамини", q: "витамини" },
+          { label: "Чай и билки", q: "чай билки" },
+          { label: "Натурално", q: "натурално" },
+          { label: "Имунитет", q: "имунитет" },
+          { label: "Спорт", q: "спорт" },
+        ],
+      },
+      {
+        key: "cosmetics",
+        label: "💄 Козметика",
+        q: "козметика",
+        subs: [
+          { label: "Лице", q: "козметика лице" },
+          { label: "Тяло", q: "козметика тяло" },
+          { label: "Коса", q: "козметика коса" },
+          { label: "Натурална", q: "натурална козметика" },
+          { label: "За мъже", q: "козметика за мъже" },
+        ],
+      },
+      {
+        key: "accessories",
+        label: "👜 Аксесоари",
+        q: "аксесоари",
+        subs: [
+          { label: "Бижута", q: "бижута" },
+          { label: "Чанти", q: "чанти" },
+          { label: "Обувки", q: "обувки" },
+          { label: "Колани", q: "колани" },
+          { label: "Сребро", q: "сребро" },
+        ],
+      },
+      {
+        key: "pets",
+        label: "🐾 Домашни любимци",
+        q: "домашни любимци",
+        subs: [
+          { label: "Храна", q: "храна за куче храна за котка" },
+          { label: "Играчки", q: "играчки за куче играчки за котка" },
+          { label: "Аксесоари", q: "аксесоари за домашни любимци" },
+          { label: "Грижа", q: "грижа за домашни любимци" },
+        ],
+      },
+      {
+        key: "fun",
+        label: "🎲 Забавление",
+        q: "хоби",
+        subs: [
+          { label: "Игри", q: "игри" },
+          { label: "Хоби", q: "хоби" },
+          { label: "Книги", q: "книги" },
+          { label: "Творчество", q: "творчество" },
+        ],
+      },
+    ];
+
+    function applyFilter(value) {
+      const v = (value || "").trim().toLowerCase();
+      let shown = 0;
+
+      grid.querySelectorAll("li.card").forEach((li) => {
+        const text = li.dataset.search || "";
+        const tags = li.dataset.tags || "";
+        const min = Number(li.dataset.priceMin);
+        const max = Number(li.dataset.priceMax);
+
+        let ok = true;
+
+        if (v.includes("подарък") && v.includes("50")) {
+          const isGift =
+            tags.includes("подарък") ||
+            tags.includes("podarok") ||
+            tags.includes("gift");
+
+          const priceOk =
+            (!isNaN(min) && min <= 50) ||
+            (!isNaN(max) && max <= 50) ||
+            (!isNaN(min) && !isNaN(max) && min <= 50 && max >= 0);
+
+          ok = isGift && priceOk;
+        } else {
+          ok = !v || text.includes(v);
+        }
+
+        li.style.display = ok ? "" : "none";
+        if (ok) shown++;
+      });
+
+      count.textContent = shown;
+      hint.textContent = v ? `Резултати за: “${value.trim()}”` : "";
+
+      if (!v) {
+        subChips.hidden = true;
+        subChips.innerHTML = "";
+      }
+    }
+
+    function renderMainChips() {
+      mainChips.innerHTML = "";
+
+      CATEGORIES.forEach((cat) => {
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.type = "button";
+        b.textContent = cat.label;
+
+        b.addEventListener("click", () => {
+          q.value = cat.q;
+          applyFilter(q.value);
+          q.focus();
+          renderSubChips(cat);
+        });
+
+        mainChips.appendChild(b);
+      });
+    }
+
+    function renderSubChips(cat) {
+      subChips.hidden = false;
+      subChips.innerHTML = "";
+
+      cat.subs.forEach((s) => {
+        const b = document.createElement("button");
+        b.className = "chip chip-sub";
+        b.type = "button";
+        b.textContent = s.label;
+
+        b.addEventListener("click", () => {
+          q.value = s.q;
+          applyFilter(q.value);
+          q.focus();
+        });
+
+        subChips.appendChild(b);
+      });
+    }
+
+    // Initial setup
+    renderMainChips();
+
+    // Existing listeners
+    q.addEventListener("input", (e) => applyFilter(e.target.value));
+    if (btn) btn.addEventListener("click", () => applyFilter(q.value));
+ 
+ 
+  </script>
+</BaseLayout>

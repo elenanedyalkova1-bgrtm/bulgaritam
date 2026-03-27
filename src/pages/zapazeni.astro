@@ -1,0 +1,135 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Запазени | Българитъм";
+const description = "Запазени продукти – вашият списък за по-късно.";
+---
+
+<BaseLayout title={title} description={description} canonical="https://bulgaritam.bg/zapazeni/">
+  <main class="wrap">
+    <h1 style="font-family: var(--font-title); margin: 24px 0 10px;">Запазени</h1>
+    <p style="color: var(--muted); margin: 0 0 18px;">
+      Тук са продуктите, които са запазени за по-късно на това устройство.
+    </p>
+
+    <div id="saved-grid" class="saved-grid"></div>
+
+    <div id="saved-empty" class="saved-empty" hidden>
+      <p style="margin: 0;">
+        Нямате запазени продукти засега. Кликнете на иконата „Запази“ върху продукт.
+      </p>
+    </div>
+  </main>
+
+  <script is:inline>
+  const BOARDS_KEY = "bulgaritam_saved_boards_v1";
+
+  function safeParse(raw) {
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+
+  function readItems() {
+    const raw = localStorage.getItem(BOARDS_KEY);
+    const state = raw ? safeParse(raw) : null;
+    const all = state?.items?.all;
+    return Array.isArray(all) ? all : [];
+  }
+
+  function writeState(state) {
+    localStorage.setItem(BOARDS_KEY, JSON.stringify(state));
+    window.dispatchEvent(new CustomEvent("bulgaritam:saved", { detail: state }));
+  }
+
+  function removeFromAll(id) {
+    const pid = String(id);
+
+    const raw = localStorage.getItem(BOARDS_KEY);
+    const state = raw ? safeParse(raw) : null;
+    if (!state?.items) return;
+
+    for (const k of Object.keys(state.items)) {
+      const arr = Array.isArray(state.items[k]) ? state.items[k] : [];
+      state.items[k] = arr.filter((x) => String(x?.id) !== pid);
+    }
+
+    writeState(state);
+    render();
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function render() {
+    const items = readItems();
+    const grid = document.getElementById("saved-grid");
+    const empty = document.getElementById("saved-empty");
+    if (!grid || !empty) return;
+
+    if (!items.length) {
+      empty.removeAttribute("hidden");
+      grid.innerHTML = "";
+      return;
+    }
+
+    empty.setAttribute("hidden", "");
+
+    grid.innerHTML = items.map((item) => {
+      const url = item?.url || "#";
+      const title = item?.title || "Запазен продукт";
+      const brand = item?.brand || "";
+      const price = item?.price || "";
+      const image = item?.image || "";
+      const id = item?.id || "";
+
+      return `
+        <article class="saved-card">
+          <a class="saved-link" href="${escapeHtml(url)}">
+            <div class="saved-media">
+              ${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" />` : ""}
+            </div>
+
+            <div class="saved-body">
+              <div class="saved-title">${escapeHtml(title)}</div>
+              ${brand ? `<div class="saved-meta">${escapeHtml(brand)}</div>` : ""}
+              ${price ? `<div class="saved-price">${escapeHtml(price)}</div>` : ""}
+            </div>
+          </a>
+
+          <button class="saved-remove" type="button" aria-label="Премахни" data-id="${escapeHtml(id)}">
+            Премахни
+          </button>
+        </article>
+      `;
+    }).join("");
+
+    grid.querySelectorAll(".saved-remove").forEach((btn) => {
+      btn.addEventListener("click", () => removeFromAll(btn.getAttribute("data-id")));
+    });
+  }
+
+  render();
+
+  // ако запазиш/махнеш от друга страница -> обнови тази страница
+  window.addEventListener("bulgaritam:saved", render);
+  window.addEventListener("storage", render);
+</script>
+
+
+  <style>
+    .saved-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .saved-card{ border:1px solid var(--border); border-radius: var(--radius); background: rgba(255,255,255,0.7); padding: 14px; display:flex; flex-direction:column; gap:10px; }
+    .saved-link{ text-decoration:none; color: var(--text); display:block; }
+    .saved-title{ font-weight: 700; line-height: 1.25; }
+    .saved-meta{ color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+    .saved-price{ font-weight: 600; margin-top: 6px; }
+    .saved-remove{ height: 40px; border-radius: 999px; border:1px solid var(--border); background: white; cursor:pointer; font-weight:600; }
+    .saved-empty{ border:1px dashed var(--border); border-radius: var(--radius); padding: 16px; color: var(--muted); }
+ 
+  </style>
+</BaseLayout>

@@ -1,0 +1,1012 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { loadBrands } from "../../lib/brands";
+import { loadProducts } from "../../lib/products";
+import { getBrandInsights } from "../../lib/brand-insights";
+import { getProductBadges } from "../../lib/product-badges";
+import { getCategoryLabelForLang, getTaxonomyForProduct } from "../../lib/taxonomy";
+
+const clean = (v) => (v == null ? "" : String(v).trim());
+const normalize = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .replace(/[\/_,;:.!?()[\]{}"'`´’“”]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+const getPrimaryImage = (product) =>
+  Array.isArray(product?.image_urls)
+    ? product.image_urls.find((url) => /^https?:\/\//i.test(clean(url))) || product.image_urls.find((url) => clean(url))
+    : "";
+const ZERO_WASTE_TERMS = ["zero waste", "нула отпадък", "без отпадък"];
+
+export async function getStaticPaths() {
+  const products = (await loadProducts()).filter((p) => p.is_active);
+
+  const brandMap = new Map<string, { brand_slug: string; fallback_name: string }>();
+  for (const p of products) {
+    if (p.brand_slug && !brandMap.has(p.brand_slug)) {
+      brandMap.set(p.brand_slug, {
+        brand_slug: p.brand_slug,
+        fallback_name: p.brand_name,
+      });
+    }
+  }
+
+  return Array.from(brandMap.values()).map((b) => ({
+    params: { brand_slug: b.brand_slug },
+    props: { brandSlug: b.brand_slug, fallbackName: b.fallback_name },
+  }));
+}
+
+const { brandSlug, fallbackName } = Astro.props;
+
+const [allProducts, allBrands] = await Promise.all([loadProducts(), loadBrands()]);
+
+const brandRow = allBrands.find((b) => b.brand_slug === brandSlug);
+const brandName = brandRow?.brand_name || fallbackName || brandSlug;
+
+const brandProducts = allProducts
+  .filter((p) => p.is_active)
+  .filter((p) => p.brand_slug === brandSlug);
+
+const displayBrandProducts = brandProducts.filter((product) => getPrimaryImage(product));
+const brandInsights = getBrandInsights(brandRow?.intro_bg || "", brandProducts);
+const brandPriceValues = brandProducts.flatMap((product) =>
+  [product.price_min_eur, product.price_max_eur].filter((value) => typeof value === "number" && !Number.isNaN(value))
+);
+const brandPriceRange =
+  brandPriceValues.length > 0
+    ? `${Math.min(...brandPriceValues)}–${Math.max(...brandPriceValues)} ${brandProducts.find((product) => product.currency)?.currency || "EUR"}`
+    : "";
+
+const brandBadgeCorpus = brandProducts
+  .flatMap((product) => [
+    product.name_bg,
+    product.short_desc_bg,
+    product.long_desc_bg,
+    ...(Array.isArray(product.tags) ? product.tags : []),
+  ])
+  .map(normalize)
+  .filter(Boolean)
+  .join(" | ");
+
+const brandHasBio = brandProducts.some((product) => getProductBadges(product).isBio);
+const brandHasEco = brandProducts.some((product) => getProductBadges(product).isEco);
+const brandHasHandmade = brandProducts.some((product) => getProductBadges(product).isHandmade);
+const brandHasGift = brandProducts.some((product) => getProductBadges(product).isGift);
+const brandHasZeroWaste = ZERO_WASTE_TERMS.some((term) => brandBadgeCorpus.includes(term));
+
+const brandHeroPills = [
+  brandHasBio ? { label: "Био", className: "brand-hero-pill--bio" } : null,
+  brandHasEco ? { label: "Еко", className: "brand-hero-pill--eco" } : null,
+  brandHasHandmade ? { label: "Ръчна изработка", className: "brand-hero-pill--handmade" } : null,
+  brandHasZeroWaste ? { label: "Zero Waste", className: "brand-hero-pill--zero-waste" } : null,
+  brandHasGift ? { label: "Подарък", className: "brand-hero-pill--gift" } : null,
+].filter(Boolean);
+
+const hasLogo = Boolean(brandRow?.brand_logo_url);
+---
+<BaseLayout seo={{ type: "brand", data: {
+  brandName,
+  description: brandRow?.intro_bg,
+  breadcrumbs: [
+    { name: "Начало", item: "/" },
+    { name: "Брандове", item: "/bulgarski-brandove/" },
+    { name: brandName, item: `/brand/${brandSlug}` },
+  ]
+} }} i18n={{
+  en: {
+    "brand.aboutTitle": "About the brand",
+    "brand.defaultIntro": "All products by this brand.",
+    "brand.visitWebsite": "Visit brand website →",
+    "brand.instagram": "Instagram",
+    "brand.cardCta": "Visit brand website →"
+  }
+}}>
+  <main class="wrap">
+    <a class="back" href="/">← Начало</a>
+
+    <div class="brand-hero-bar">
+      <div class="brand-hero-copy">
+        <h1 class="h1">{brandName}</h1>
+        {brandHeroPills.length ? (
+          <div class="brand-hero-pills" aria-label="Характер на бранда">
+            {brandHeroPills.map((pill) => (
+              <span class:list={["brand-hero-pill", pill.className]}>{pill.label}</span>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div class="brand-hero-actions">
+        {brandRow?.website_url ? (
+          <a
+            class="visit"
+            href={brandRow.website_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="brand.visitWebsite"
+          >
+            Виж сайта на бранда →
+          </a>
+        ) : null}
+
+        {brandRow?.instagram_url ? (
+          <a
+            class="ig"
+            href={brandRow.instagram_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="brand.instagram"
+          >
+            Instagram
+          </a>
+        ) : null}
+      </div>
+    </div>
+
+    {(brandInsights.length || brandPriceRange || brandRow?.intro_bg) ? (
+      <section class="brand-overview" aria-label="По-бърз поглед към бранда">
+        {(brandInsights.length || brandPriceRange) ? (
+          <div class="brand-insights" data-count={brandInsights.length + (brandPriceRange ? 1 : 0)}>
+            {brandPriceRange ? (
+              <article class="brand-insight brand-insight--price">
+                <p class="brand-insight__title">Ценови диапазон</p>
+                <p class="brand-insight__text">{brandPriceRange}</p>
+              </article>
+            ) : null}
+            {brandInsights.map((insight) => (
+              <article class="brand-insight">
+                <p class="brand-insight__title">{insight.title === "Силен фокус" ? "Главен фокус" : insight.title}</p>
+                <p class="brand-insight__text">{insight.text}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+
+        {brandRow?.intro_bg ? (
+          <div class="brand-head" data-has-logo={hasLogo ? "1" : "0"}>
+            {hasLogo ? (
+              <img
+                class="brand-logo"
+                src={brandRow.brand_logo_url}
+                alt={`${brandName} лого`}
+                loading="lazy"
+              />
+            ) : null}
+
+            <div class="brand-copy">
+              <section class="brand-intro-card">
+                <p class="brand-intro-card__eyebrow" data-i18n="brand.aboutTitle">За бранда</p>
+                <p class="intro">{brandRow.intro_bg}</p>
+              </section>
+
+              <div class="brand-actions">
+                {brandRow?.website_url ? (
+                  <a
+                    class="visit"
+                    href={brandRow.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-i18n="brand.visitWebsite"
+                  >
+                    Виж сайта на бранда →
+                  </a>
+                ) : null}
+
+                {brandRow?.instagram_url ? (
+                  <a
+                    class="ig"
+                    href={brandRow.instagram_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-i18n="brand.instagram"
+                  >
+                    Instagram
+                  </a>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </section>
+    ) : null}
+
+    <h2 class="subhead">Продукти (<span id="brandCount">{displayBrandProducts.length}</span>)</h2>
+
+    <section class="grid" id="brandGrid">
+      {displayBrandProducts.map((product, index) => {
+        const primaryImage = getPrimaryImage(product);
+        const { isBio, isEco, isHandmade, isGift } = getProductBadges(product);
+        const taxonomy = getTaxonomyForProduct(product);
+        const shouldEagerLoad = index < 4;
+        const price =
+          product.price_min_eur !== null && product.price_max_eur !== null
+            ? `${product.price_min_eur}–${product.price_max_eur} ${product.currency || "EUR"}`
+            : product.price_min_eur !== null
+              ? `${product.price_min_eur}+ ${product.currency || "EUR"}`
+              : "";
+
+        return (
+          <article
+            class="card"
+            data-brand-card
+            data-masonry-card
+            data-product-slug={product.slug}
+            data-product-name={product.name_bg}
+            data-brand-slug={product.brand_slug ?? ""}
+            data-brand-name={brandName}
+            data-product-url={product.product_url ?? ""}
+            data-category-key={taxonomy.categoryKey || ""}
+            data-subcategory-keys={taxonomy.subcategoryKeys.join(",")}
+          >
+            <div class="card-media">
+              <a class="card-link" href={`/p/${product.slug}/`}>
+                {primaryImage ? (
+                  <img
+                    src={primaryImage}
+                    alt={product.name_bg}
+                    loading={shouldEagerLoad ? "eager" : "lazy"}
+                    fetchpriority={index < 2 ? "high" : undefined}
+                    decoding="async"
+                    width="800"
+                    height="1000"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  />
+                ) : (
+                  <div class="img placeholder" aria-hidden="true"></div>
+                )}
+              </a>
+
+              <button
+                class="save-btn save-btn--brand"
+                type="button"
+                aria-label="Запази продукта"
+                aria-pressed="false"
+                data-save-id={product.slug}
+                data-save-url={`/p/${product.slug}/`}
+                data-save-title={product.name_bg}
+                data-save-brand={brandName}
+                data-save-price={price}
+                data-save-image={primaryImage}
+              >
+                <svg class="save-ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="card-body">
+              <div class="card-meta-row">
+                <div class="card-badges">
+                  <span class="pill" data-i18n-bg={getCategoryLabelForLang(taxonomy.categoryKey || product.category, "bg")} data-i18n-en={getCategoryLabelForLang(taxonomy.categoryKey || product.category, "en")}>{getCategoryLabelForLang(taxonomy.categoryKey || product.category, "bg")}</span>
+                  {isBio ? <span class="pill pill--bio">Био</span> : null}
+                  {isEco ? <span class="pill pill--eco">Еко</span> : null}
+                  {isHandmade ? <span class="pill pill--handmade">Ръчна изработка</span> : null}
+                  {isGift ? <span class="pill pill--gift">Подарък</span> : null}
+                </div>
+                {price ? <span class="price price--inline">{price}</span> : null}
+              </div>
+
+              <a class="card-titlelink" href={`/p/${product.slug}/`}>{product.name_bg}</a>
+
+              <div class="card-sub">
+                {product.brand_slug ? (
+                  <a class="brand-link" href={`/brand/${product.brand_slug}/`}>
+                    {brandName}
+                  </a>
+                ) : (
+                  <span>{brandName}</span>
+                )}
+              </div>
+            </div>
+
+            <div class="card-foot">
+              <a
+                class="cta-out"
+                href={product.product_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-i18n="brand.cardCta"
+              >
+                Виж в сайта на бранда →
+              </a>
+            </div>
+          </article>
+        );
+      })}
+    </section>
+
+    <div class="feed-meta">
+      <p class="feed-status" id="brandFeedStatus" aria-live="polite"></p>
+      <div class="feed-sentinel" id="brandFeedSentinel" aria-hidden="true"></div>
+    </div>
+  </main>
+
+  <style>
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+    .back{
+      display:inline-block;
+      margin-bottom: 14px;
+      text-decoration:none;
+      color: var(--accent);
+      font-weight: 650;
+      font-size: .95rem;
+    }
+    .back:hover{ color: var(--accent-strong); }
+
+    .h1{
+      margin: 4px 0 0;
+      max-width: none;
+      font-size: var(--type-h1);
+      letter-spacing: -0.02em;
+      text-align: left;
+    }
+
+    .brand-hero-bar{
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 6px;
+    }
+
+    .brand-hero-copy{
+      display: grid;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-hero-actions{
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-width: fit-content;
+    }
+
+    .brand-overview{
+      display: grid;
+      gap: 14px;
+      margin: 16px 0 20px;
+    }
+
+    .brand-head{
+      display: grid;
+      gap: 14px;
+      align-items: start;
+      margin: 0;
+      grid-template-columns: 1fr;
+    }
+
+    .brand-insights{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 0;
+    }
+
+    .brand-insight{
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+      padding: 16px 18px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(248, 245, 240, .76));
+      border: 1px solid rgba(26,26,26,.08);
+      box-shadow: 0 12px 28px rgba(0,0,0,.045);
+    }
+
+    .brand-insight::before{
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: rgba(95, 127, 107, 0.24);
+    }
+
+    .brand-insight:nth-child(4n + 1){
+      border-radius: 24px 28px 24px 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(242, 239, 232, .76));
+    }
+
+    .brand-insight:nth-child(4n + 2){
+      border-radius: 28px 24px 22px 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(240, 247, 242, .74));
+    }
+
+    .brand-insight:nth-child(4n + 3){
+      border-radius: 22px 24px 28px 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(245, 240, 236, .76));
+    }
+
+    .brand-insight:nth-child(4n + 4){
+      border-radius: 24px 22px 24px 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(239, 244, 241, .76));
+    }
+
+    .brand-insight--price::before{
+      background: rgba(123, 64, 59, 0.2);
+    }
+
+    .brand-insight__title{
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(26,26,26,.48);
+    }
+
+    .brand-insight__text{
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.55;
+      color: rgba(26,26,26,.82);
+    }
+
+    .brand-hero-pills{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .brand-hero-pill{
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(26,26,26,.1);
+      background: rgba(255,255,255,.76);
+      color: rgba(26,26,26,.78);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 18px rgba(0,0,0,.04);
+      white-space: nowrap;
+    }
+
+    .brand-hero-pill--bio{
+      background: rgba(87, 112, 88, 0.12);
+      color: rgba(68, 93, 70, 0.92);
+      border-color: rgba(87, 112, 88, 0.12);
+    }
+
+    .brand-hero-pill--eco{
+      background: rgba(111, 129, 112, 0.11);
+      color: rgba(84, 103, 85, 0.9);
+      border-color: rgba(111, 129, 112, 0.12);
+    }
+
+    .brand-hero-pill--handmade{
+      background: rgba(137, 96, 74, 0.12);
+      color: #6c4f3f;
+      border-color: rgba(137, 96, 74, 0.14);
+    }
+
+    .brand-hero-pill--zero-waste{
+      background: rgba(95, 127, 107, 0.1);
+      color: #4f6d5c;
+      border-color: rgba(95, 127, 107, 0.14);
+    }
+
+    .brand-hero-pill--gift{
+      background: rgba(123, 64, 59, 0.1);
+      color: #7b403b;
+      border-color: rgba(123, 64, 59, 0.12);
+    }
+
+    .brand-logo{
+      width: 84px;
+      height: 84px;
+      object-fit: contain;
+      border-radius: 16px;
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(0,0,0,.08);
+      padding: 10px;
+    }
+
+    .brand-copy{
+      width: 100%;
+      max-width: none;
+    }
+
+    .intro{
+      margin: 0 0 10px;
+      font-size: 16px;
+      line-height: 1.65;
+      opacity: .85;
+      white-space: normal;
+    }
+    .intro--muted{ opacity: .7; }
+
+    .brand-intro-card{
+      display: grid;
+      gap: 10px;
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(26,26,26,.08);
+      box-shadow: 0 12px 28px rgba(0,0,0,.045);
+    }
+
+    .brand-intro-card__eyebrow{
+      margin: 0;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(26,26,26,.48);
+    }
+
+    .brand-actions{
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+      display: none;
+    }
+
+    .visit{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 750;
+      border: 1px solid rgba(0,0,0,.06);
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+    }
+    .visit:hover{ background: var(--accent-strong); }
+    .visit:active{ transform: translateY(1px); }
+
+    .ig{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.7);
+      color: rgba(0,0,0,.78);
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    .ig:hover{ text-decoration: underline; }
+
+    .subhead{
+      margin: 18px 0 10px;
+      font-family: var(--font-title);
+      font-size: var(--type-h2);
+      line-height: 1.12;
+      opacity: .78;
+    }
+
+    .feed-meta {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .feed-status {
+      min-height: 20px;
+      margin: 0;
+      font-size: 13px;
+      color: rgba(26, 26, 26, 0.58);
+    }
+
+    .feed-sentinel {
+      width: 100%;
+      height: 2px;
+    }
+
+    .grid {
+      margin-top: 8px;
+      column-count: 4;
+      column-gap: 16px;
+    }
+
+    .card {
+      display: inline-block;
+      position: relative;
+      width: 100%;
+      margin: 0;
+      margin-bottom: 16px;
+      text-decoration: none;
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(255,255,255,.75);
+      color: inherit;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      break-inside: avoid;
+      -webkit-column-break-inside: avoid;
+      page-break-inside: avoid;
+      isolation: isolate;
+      contain: paint;
+    }
+
+    .card-link {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .card-media{
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.08);
+      border-color: rgba(0, 0, 0, 0.14);
+    }
+
+    .save-btn--brand {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.92);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .save-btn--brand .save-ic {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+    }
+
+    .save-btn--brand.is-saved .save-ic {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .card-corner-badges {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .badge-corner {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .card img,
+    .img {
+      width: 100%;
+      aspect-ratio: 4/5;
+      object-fit: cover;
+      display: block;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      background: #fff;
+    }
+
+    .placeholder {
+      background: linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,.02));
+    }
+
+    .card-body {
+      display: grid;
+      gap: 8px;
+      padding: 12px 14px 10px;
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.88);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .card-meta-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 9px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .pill--bio {
+      background: rgba(87, 112, 88, 0.12);
+      color: rgba(68, 93, 70, 0.92);
+      border: 1px solid rgba(87, 112, 88, 0.1);
+    }
+
+    .pill--eco {
+      background: rgba(111, 129, 112, 0.11);
+      color: rgba(84, 103, 85, 0.9);
+      border: 1px solid rgba(111, 129, 112, 0.12);
+    }
+    .pill--handmade {
+      background: rgba(137, 96, 74, 0.12);
+      color: #6c4f3f;
+      border: 1px solid rgba(137, 96, 74, 0.14);
+    }
+    .pill--gift {
+      background: rgba(123, 64, 59, 0.1);
+      color: #7b403b;
+      border: 1px solid rgba(123, 64, 59, 0.12);
+    }
+    .card-titlelink {
+      color: inherit;
+      text-decoration: none;
+      font-family: var(--font-title);
+      font-size: clamp(19px, 1.7vw, 28px);
+      line-height: 1.08;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+
+    .card-sub {
+      color: rgba(26, 26, 26, 0.62);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .card-sub .brand-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .price {
+      opacity: .85;
+      font-size: .95rem;
+      color: var(--accent);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .price--inline {
+      margin-top: 2px;
+      font-size: 13px;
+    }
+
+    .card-foot {
+      padding: 0 14px 14px;
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.88);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .cta-out {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.12);
+      background: rgba(255,255,255,.72);
+      color: rgba(26,26,26,.82);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+
+    .cta-out:hover {
+      background: rgba(95, 127, 107, 0.09);
+      border-color: rgba(95, 127, 107, 0.18);
+      color: rgba(26, 26, 26, 0.94);
+    }
+
+    @media (max-width: 1024px) {
+      .brand-insights {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid {
+        column-count: 3;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .brand-hero-bar{
+        display: grid;
+        gap: 12px;
+      }
+
+      .brand-hero-copy{
+        gap: 8px;
+      }
+
+      .brand-hero-actions{
+        display: none;
+      }
+
+      .brand-insights {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-head[data-has-logo="1"]{
+        grid-template-columns: 1fr;
+      }
+
+      .brand-logo{
+        display: none;
+      }
+
+      .grid {
+        display: block;
+        width: 100%;
+        column-count: 2;
+        column-gap: 12px;
+      }
+
+      .brand-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .visit,
+      .ig {
+        width: 100%;
+        min-height: 46px;
+      }
+
+      .card {
+        display: inline-block;
+        width: 100%;
+        margin-bottom: 14px;
+        border-radius: 22px;
+      }
+
+      .card-corner-badges {
+        top: 10px;
+        left: 10px;
+      }
+
+      .badge-corner {
+        min-height: 22px;
+        padding: 0 8px;
+        font-size: 9px;
+      }
+
+      .meta {
+        padding: 10px 10px 12px;
+      }
+
+      .card-body {
+        padding: 10px 10px 8px;
+      }
+
+      .card-titlelink {
+        font-size: clamp(17px, 4.8vw, 22px);
+      }
+
+      .card-foot {
+        padding: 0 10px 12px;
+      }
+
+      .cta-out {
+        min-height: 42px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        padding: 20px 16px 40px;
+      }
+
+      .grid {
+        width: 100%;
+        column-count: 2;
+        column-gap: 10px;
+      }
+    }
+  </style>
+
+  <script>
+    const brandGrid = document.getElementById("brandGrid");
+    const brandCount = document.getElementById("brandCount");
+    const brandFeedStatus = document.getElementById("brandFeedStatus");
+    const brandFeedSentinel = document.getElementById("brandFeedSentinel");
+    const brandCards = brandGrid ? Array.from(brandGrid.querySelectorAll("[data-brand-card]")) : [];
+
+    const getBrandBatchSize = () => {
+      if (window.innerWidth <= 640) return 8;
+      if (window.innerWidth <= 768) return 10;
+      return 16;
+    };
+
+    let brandVisibleCount = getBrandBatchSize();
+
+    function updateBrandFeed() {
+      brandCards.forEach((card, index) => {
+        card.style.display = index < brandVisibleCount ? "" : "none";
+      });
+
+      if (brandCount) brandCount.textContent = String(brandCards.length);
+      if (brandFeedStatus) {
+        const shown = Math.min(brandVisibleCount, brandCards.length);
+        brandFeedStatus.textContent =
+          brandCards.length > shown ? `Показани ${shown} от ${brandCards.length}` : "";
+      }
+
+      if (brandFeedSentinel) {
+        brandFeedSentinel.hidden = brandVisibleCount >= brandCards.length;
+      }
+
+      window.dispatchEvent(new Event("resize"));
+    }
+
+    function loadMoreBrandCards() {
+      if (brandVisibleCount >= brandCards.length) return;
+      brandVisibleCount += getBrandBatchSize();
+      updateBrandFeed();
+    }
+
+    updateBrandFeed();
+
+    if ("IntersectionObserver" in window && brandFeedSentinel) {
+      const brandObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) loadMoreBrandCards();
+        });
+      }, { rootMargin: "320px 0px" });
+
+      brandObserver.observe(brandFeedSentinel);
+    }
+
+    window.addEventListener("resize", () => {
+      brandVisibleCount = Math.max(brandVisibleCount, getBrandBatchSize());
+      updateBrandFeed();
+    });
+  </script>
+</BaseLayout>

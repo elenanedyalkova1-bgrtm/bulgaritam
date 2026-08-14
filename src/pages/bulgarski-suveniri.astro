@@ -1,0 +1,24 @@
+---
+import SeoProductLanding from "../components/SeoProductLanding.astro";
+import { getIntentLandingByPath, getProductsForIntentLanding } from "../lib/seo-landings";
+import { loadProducts } from "../lib/products";
+
+const allProducts = await loadProducts();
+const landing = getIntentLandingByPath("/bulgarski-suveniri/");
+
+if (!landing) {
+  throw new Error("Missing souvenirs intent landing");
+}
+
+const products = getProductsForIntentLanding(allProducts, landing);
+---
+
+<SeoProductLanding
+  landing={landing}
+  products={products}
+  canonicalPath="/bulgarski-suveniri/"
+  breadcrumbs={[
+    { name: "Начало", item: "/" },
+    { name: "Български сувенири", item: "/bulgarski-suveniri/" },
+  ]}
+/>

@@ -1,0 +1,57 @@
+---
+import SeoProductLanding from "../../components/SeoProductLanding.astro";
+import { getCategoryLanding, getProductsForLanding, getSubcategoryLandings, getIntentLandingsForCategory } from "../../lib/seo-landings";
+import { getSubcategoryLabelForLang } from "../../lib/taxonomy";
+import { loadProducts } from "../../lib/products";
+
+const allProducts = await loadProducts();
+const landing = getCategoryLanding("gifts");
+
+if (!landing) {
+  throw new Error("Missing gifts landing");
+}
+
+const seoLanding = {
+  ...landing,
+  h1: "Български подаръци",
+  title: "Български подаръци | Българитъм",
+  description: "Открий български подаръци от локални марки и автори в Българитъм.",
+  intro: [
+    "Открий български подаръци от локални марки, подредени така, че да стигаш по-лесно до точния жест за точния човек.",
+    "Тази страница събира идеи за подарък с повече смисъл, по-ясна структура и по-спокойно разглеждане."
+  ],
+};
+
+const products = getProductsForLanding(allProducts, landing);
+const primaryPills = [
+  ...getSubcategoryLandings("gifts")
+    .map((entry) => ({
+      ...entry,
+      productCount: getProductsForLanding(allProducts, entry).length,
+    }))
+    .filter((entry) => entry.productCount > 0)
+    .map((entry) => ({
+      label: entry.label,
+      labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
+      href: `/bulgarski-podaratsi/${entry.slug}/`,
+      isActive: false,
+    })),
+  ...getIntentLandingsForCategory("gifts", "gifts").map((entry) => ({
+    label: entry.label,
+    labelEn: entry.labelEn,
+    href: entry.path,
+    isActive: false,
+  })),
+];
+---
+
+<SeoProductLanding
+  landing={seoLanding}
+  products={products}
+  canonicalPath="/bulgarski-podaratsi/"
+  breadcrumbs={[
+    { name: "Начало", item: "/" },
+    { name: "Български подаръци", item: "/bulgarski-podaratsi/" },
+  ]}
+  primaryPills={primaryPills}
+/>

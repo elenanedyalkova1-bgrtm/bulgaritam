@@ -1,0 +1,24 @@
+---
+import SeoProductLanding from "../components/SeoProductLanding.astro";
+import { getIntentLandingByPath, getProductsForIntentLanding } from "../lib/seo-landings";
+import { loadProducts } from "../lib/products";
+
+const allProducts = await loadProducts();
+const landing = getIntentLandingByPath("/rachno-izraboteni/");
+
+if (!landing) {
+  throw new Error("Missing handmade intent landing");
+}
+
+const products = getProductsForIntentLanding(allProducts, landing);
+---
+
+<SeoProductLanding
+  landing={landing}
+  products={products}
+  canonicalPath="/rachno-izraboteni/"
+  breadcrumbs={[
+    { name: "Начало", item: "/" },
+    { name: "Ръчно изработени", item: "/rachno-izraboteni/" },
+  ]}
+/>

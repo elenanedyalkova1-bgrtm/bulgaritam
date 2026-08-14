@@ -1,0 +1,1547 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { loadBrands } from "../lib/brands";
+import { OCCASION_FILTERS, OCCASION_GROUPS, getOccasionKeysForProduct } from "../lib/occasions";
+import { loadProducts } from "../lib/products";
+import { buildSearchDocument } from "../lib/search";
+import { getTaxonomyForProduct, getTopLevelCategories } from "../lib/taxonomy";
+
+const [products, brandsSheet] = await Promise.all([loadProducts(), loadBrands()]);
+const categories = getTopLevelCategories();
+
+const brandsMap = new Map();
+const brandsBySlug = new Map(brandsSheet.map((brand) => [brand.brand_slug, brand]));
+
+for (const p of products) {
+  if (!p.brand_slug) continue;
+
+  const taxonomy = getTaxonomyForProduct(p);
+  if (!taxonomy.categoryKeys.length) continue;
+
+  const entry = brandsMap.get(p.brand_slug) || {
+    name: p.brand_name || p.brand_slug,
+    slug: p.brand_slug,
+    keys: new Set(),
+    occasionKeys: new Set(),
+    count: 0,
+    previewImages: [],
+    newestCreatedAt: 0,
+    searchText: "",
+    rawSearchText: "",
+  };
+
+  taxonomy.categoryKeys.forEach((key) => entry.keys.add(key));
+  getOccasionKeysForProduct(p).forEach((key) => entry.occasionKeys.add(key));
+  entry.count += 1;
+  if (p.image_urls?.[0] && entry.previewImages.length < 3) {
+    entry.previewImages.push(p.image_urls[0]);
+  }
+  const createdAt = p.created_at ? Date.parse(p.created_at) : 0;
+  if (!Number.isNaN(createdAt) && createdAt > entry.newestCreatedAt) {
+    entry.newestCreatedAt = createdAt;
+  }
+  entry.searchText = buildSearchDocument(
+    entry.searchText,
+    p.name_bg,
+    p.brand_name,
+    p.category,
+    taxonomy.categoryLabel,
+    taxonomy.subcategoryLabels,
+    p.tags,
+    p.short_desc_bg,
+    p.long_desc_bg
+  );
+  entry.rawSearchText = [
+    entry.rawSearchText,
+    p.name_bg,
+    p.brand_name,
+    p.category,
+    taxonomy.categoryLabel,
+    Array.isArray(taxonomy.subcategoryLabels) ? taxonomy.subcategoryLabels.join(" ") : taxonomy.subcategoryLabels,
+    Array.isArray(p.tags) ? p.tags.join(" ") : p.tags,
+    p.short_desc_bg,
+    p.long_desc_bg,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  brandsMap.set(p.brand_slug, entry);
+}
+
+const brands = Array.from(brandsMap.values()).map((b) => ({
+  ...b,
+  logo: brandsBySlug.get(b.slug)?.brand_logo_url || "",
+  intro: brandsBySlug.get(b.slug)?.intro_bg || "",
+  deliversAbroad: Boolean(brandsBySlug.get(b.slug)?.delivers_abroad),
+  keys: Array.from(b.keys),
+  occasionKeys: Array.from(b.occasionKeys || []),
+  searchText: buildSearchDocument(b.searchText, brandsBySlug.get(b.slug)?.intro_bg || "", b.name),
+  rawSearchText: [b.rawSearchText, brandsBySlug.get(b.slug)?.intro_bg || "", b.name, b.slug].filter(Boolean).join(" "),
+}));
+
+
+// SEO
+const title = "Български брандове – каталог на родни марки | Българитъм";
+const description =
+  "Открий подбрани български брандове и родни производители по категории – дом и интериор, козметика, облекло, подаръци и още.";
+const canonical = "https://bulgaritam.bg/bulgarski-brandove/";
+
+const editorialSections = [
+  {
+    title: "Защо все повече хора търсят български брандове",
+    paragraphs: [
+      "Когато търсиш български брандове, рядко търсиш само още един продукт. По-често търсиш усещане за близост, по-честен произход и онова приятно чувство, че избираш нещо направено с мисъл, а не просто произведено на конвейер. Българските марки често започват от лична нужда, от семейна история, от малко ателие, лаборатория или студио, в което всеки детайл минава през ръцете на хора, които стоят зад името си. Това се усеща в начина, по който е формулиран един козметичен продукт, в начина, по който е ушита една дреха, в избора на дърво, метал, текстил или аромат при продуктите за дома. Именно затова страницата за български брандове не е просто каталог, а място, в което можеш да се ориентираш по-лесно между различни стилове, категории и начини на създаване.",
+      "За много хора покупката от местен производител означава и по-кратък път между идеята и човека, който ще използва продукта. Това не гарантира автоматично качество, но много често означава повече внимание, по-малки серии, по-ясна комуникация и по-голям шанс да попаднеш на нещо, което не изглежда като копие на всичко останало. В Българитъм събираме такива марки на едно място, за да не губиш часове в Instagram, в разпръснати профили, хаотични търсения и случайни попадения. Тук идеята е да откриваш по-спокойно, по-смислено и с повече контекст."
+    ],
+  },
+  {
+    title: "Какво всъщност отличава добрите български марки",
+    paragraphs: [
+      "Добрите български марки не се разпознават само по това, че са локални. Те се разпознават по последователността си. Ако става дума за козметика, това често означава внимателно подбрани съставки, по-ясна философия на грижата и желание продуктът да бъде разбран, а не просто продаден. Ако става дума за дом и интериор, разликата често е в материала, в усещането за текстура, в това как един предмет стои в ежедневието ти и дали може да остане с теб дълго. При облеклото и аксесоарите пък личи в кройката, в малките серии, в това, че не всичко е направено за масов вкус, а за конкретен човек, настроение и стил.",
+      "Има и нещо по-тихо, но много важно: много български брандове създават продукти, които носят повече човешка мярка. Те не се опитват да бъдат всичко за всички. Затова често изглеждат по-искрени, по-разпознаваеми и по-лесни за обичане. Точно тази разлика искаме да стане видима и в начина, по който се разглеждат. Вместо да подреждаме марките като безличен списък, се стремим да ги поставим в контекст: в категории, в употреби, в стилове и в ситуации, в които наистина биха били полезни."
+    ],
+  },
+  {
+    title: "Български брандове за дом, грижа, подарък и ежедневие",
+    paragraphs: [
+      "Една от причините хората да търсят български марки е, че днес локалното производство присъства в почти всяка част от живота ни. В рамките на едно и също място можеш да откриеш свещи, домашен текстил, детски продукти, козметика, чайове, добавки, подаръчни комплекти, дрехи, бижута и малки предмети, които правят ежедневието по-красиво. Това разнообразие е прекрасно, но и объркващо, ако не е подредено добре. Затова на страницата за български брандове категориите не са просто етикети. Те са начин да започнеш от нуждата си: дали търсиш нещо за дома, за ритуал на грижа, за дете, за повод или за подарък.",
+      "Когато тази структура работи добре, откриването става много по-леко. Ако например знаеш, че искаш българска козметика, можеш бързо да видиш кои марки реално работят в тази посока. Ако обзавеждаш кът у дома или търсиш малък предмет с характер, можеш да влезеш през дом и интериор. Ако искаш подарък, който да носи история и усещане за отношение, можеш да разглеждаш марки, които създават комплекти, ръчно направени предмети или продукти, свързани с грижа, аромат, текстил и дизайн. Това прави избора не просто по-бърз, а и по-личен."
+    ],
+  },
+  {
+    title: "Как да използваш страницата по-умно, когато търсиш конкретен тип марка",
+    paragraphs: [
+      "Ако идваш тук с конкретна идея, най-добрият подход е да комбинираш категориите с търсенето по ключова дума. Така вместо да преглеждаш всичко, можеш да стигнеш по-бързо до по-релевантни марки. Например можеш да търсиш свещи, чанти, натурална козметика, детски играчки, лен, бижута или име на вече познат бранд. Това е особено полезно, когато знаеш типа продукт, но още не знаеш коя точно марка би паснала на вкуса ти. Подредбата също помага: понякога искаш да видиш подбраните марки първо, понякога търсиш нещо ново, а понякога просто искаш да минеш азбучно, за да сравняваш по-лесно.",
+      "Ако идваш без конкретна заявка, тогава страницата работи по друг начин: като място за откриване. Тук можеш да започнеш от визуалното усещане, от краткото интро, от категориите на даден бранд и да си позволиш да попаднеш на нещо, което не си търсила пряко. Именно в това е чарът на доброто търсене онлайн. То не е просто филтриране. То е усещане, че сред много избори постепенно намираш онези марки, които сякаш говорят на твоя език."
+    ],
+  },
+  {
+    title: "Защо това има значение и отвъд самата покупка",
+    paragraphs: [
+      "Да откриваш български брандове по-лесно има значение не само за самия потребител, но и за средата, в която живеем. Когато добрите локални марки са по-видими, повече хора достигат до тях навреме, а не след безкрайно ровене и случайни препоръки. Това означава повече шанс за малките производители, повече устойчивост за студията и ателиетата, повече пространство за смислен дизайн и по-малко нужда всичко да минава през шумни алгоритми. В такъв контекст пазаруването не е просто транзакция. То става избор за това какъв вкус, каква грижа и какъв тип отношение искаме да подкрепяме.",
+      "Затова в Българитъм не гледаме на страницата за български брандове като на проста директория. Гледаме на нея като на навигационна точка към по-добро откриване: място, където можеш да намериш марки, които правят ежедневието по-красиво, грижата по-смислена, дома по-личен и подаръците по-топли. Това е причината да подреждаме информацията така, че да има и структура, и атмосфера. Защото когато зад един продукт стои истинска работа, заслужава и начинът на откриване да бъде малко по-внимателен."
+    ],
+  },
+];
+---
+
+<BaseLayout
+  seo={{
+    type: "category",
+    title,
+    description,
+    data: {
+      category: "брандове",
+      description,
+      breadcrumbs: [
+        { name: "Начало", item: "/" },
+        { name: "Български брандове", item: "/bulgarski-brandove/" },
+      ],
+    },
+  }}
+  canonical={canonical}
+  i18n={{
+    en: {
+      "brands.kicker": "Catalog",
+      "brands.title": "Bulgarian brands",
+      "brands.intro": "Discover Bulgarian brands by category, explore visually curated selections, and reach the brands that best fit your style, home, care rituals, or gift ideas more quickly.",
+      "brands.sectionTitle": "Categories of Bulgarian brands",
+      "brands.searchLabel": "Search brand",
+      "brands.searchPlaceholder": "e.g. cosmetics, bags, candles, Saff",
+      "brands.sortLabel": "Sort",
+      "brands.sort.featured": "Featured",
+      "brands.sort.alphaAsc": "Alphabetical: A–Z",
+      "brands.sort.alphaDesc": "Alphabetical: Z–A",
+      "brands.sort.dateDesc": "Date added: newest",
+      "brands.sort.dateAsc": "Date added: oldest",
+      "brands.occasion": "Occasion",
+      "brands.all": "All",
+      "brands.curatedTitle": "Curated Bulgarian brands",
+      "brands.productsCount": "products",
+      "brands.categoriesCount": "categories",
+      "brands.explore": "Explore brand →",
+      "brands.empty": "There are no brands in this category yet.",
+      "brands.occasionEyebrow": "Browse by mood",
+      "brands.occasionTitle": "Occasion",
+      "brands.readMore": "Read more"
+    }
+  }}
+>
+  <main class="page-shell">
+    <header class="page-head">
+      <p class="page-kicker" data-i18n="brands.kicker">Каталог</p>
+      <h1 class="page-title" data-i18n="brands.title">Български брандове</h1>
+      <p class="page-intro" data-i18n="brands.intro">
+        Открий български марки по категории, разгледай визуално подбрани селекции и стигни по-бързо до брандовете, които най-добре пасват на твоя стил, дом, ритуали за грижа или идея за подарък.
+      </p>
+    </header>
+
+    <!-- CATEGORIES -->
+    <section class="section">
+      <h2 class="section-title" data-i18n="brands.sectionTitle">Категории български брандове</h2>
+
+      <div class="brand-discovery">
+        <label class="brand-search" for="brand-search-input">
+          <span class="brand-search__label" data-i18n="brands.searchLabel">Търси бранд</span>
+          <input
+            id="brand-search-input"
+            class="brand-search__input"
+            type="search"
+            placeholder="напр. козметика, чанти, свещи, Saff"
+            data-i18n-placeholder="brands.searchPlaceholder"
+            autocomplete="off"
+          />
+        </label>
+
+        <label class="brand-sort" for="brand-sort-select">
+          <span class="brand-sort__label" data-i18n="brands.sortLabel">Подредба</span>
+          <select id="brand-sort-select" class="brand-sort__select">
+            <option value="featured" data-i18n="brands.sort.featured">Подбрани</option>
+            <option value="alpha-asc" data-i18n="brands.sort.alphaAsc">Азбучно: А–Я</option>
+            <option value="alpha-desc" data-i18n="brands.sort.alphaDesc">Азбучно: Я–А</option>
+            <option value="date-desc" data-i18n="brands.sort.dateDesc">Дата на добавяне: нови</option>
+            <option value="date-asc" data-i18n="brands.sort.dateAsc">Дата на добавяне: стари</option>
+          </select>
+        </label>
+
+        <button
+          id="brand-occasion-toggle"
+          class="brand-occasion-trigger"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="brand-occasion-modal"
+          aria-expanded="false"
+        >
+          <span data-i18n="brands.occasion">Повод</span>
+          <span id="brand-occasion-badge" class="brand-occasion-trigger__badge" hidden>1</span>
+        </button>
+
+        <label class="brand-delivery-filter">
+          <input id="brand-delivery-outside" type="checkbox" />
+          <span>Доставя извън България</span>
+        </label>
+      </div>
+
+      <div class="pills" id="brand-filters" aria-label="Филтри по категория">
+        <button class="pill is-active" type="button" data-filter="all" data-i18n="brands.all">Всички</button>
+
+        {categories.map((c) => (
+          <button class="pill" type="button" data-filter={c.key} data-i18n-bg={c.chipLabel} data-i18n-en={c.chipLabelEn}>
+            {c.chipLabel}
+          </button>
+        ))}
+      </div>
+    </section>
+
+    <!-- BRANDS -->
+    <section class="section">
+      <h2 class="section-title" data-i18n="brands.curatedTitle">Подбрани български брандове</h2>
+
+      <ul class="brand-grid" id="brand-grid">
+        {brands.map((b, index) => (
+          <li
+            class="brand-card"
+            data-brand
+            data-brand-slug={b.slug}
+            data-keys={b.keys.join(",")}
+            data-occasion-keys={b.occasionKeys.join(",")}
+            data-search={b.searchText}
+            data-search-raw={b.rawSearchText}
+            data-brand-name={b.name.toLowerCase()}
+            data-created-at={b.newestCreatedAt || 0}
+            data-delivers-abroad={b.deliversAbroad ? "1" : "0"}
+            data-original-index={index}
+          >
+            <a class="brand-link" href={`/brand/${b.slug}/`}>
+              <div class="brand-card__top">
+                {b.logo ? (
+                  <img
+                    class="brand-logo"
+                    src={b.logo}
+                    alt={`${b.name} лого`}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="brand-logo brand-logo--fallback" aria-hidden="true">
+                    {b.name.slice(0, 1)}
+                  </div>
+                )}
+
+                <div class="brand-headline">
+                  <div class="brand-name">{b.name}</div>
+                  <div class="brand-meta">
+                    <span>{b.count} <span data-i18n="brands.productsCount">продукта</span></span>
+                    <span>{b.keys.length} <span data-i18n="brands.categoriesCount">категории</span></span>
+                  </div>
+                </div>
+              </div>
+
+              {b.previewImages.length ? (
+                <div class="brand-preview" aria-hidden="true">
+                  {b.previewImages.map((image, index) => (
+                    <div class:list={["brand-preview__item", index === 0 ? "is-featured" : ""]}>
+                      <img src={image} alt="" loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {b.intro ? <p class="brand-intro">{b.intro}</p> : null}
+
+              <div class="brand-cta" data-i18n="brands.explore">Разгледай марката →</div>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <!-- Optional empty state -->
+      <p id="brand-empty" class="empty" hidden data-i18n="brands.empty">
+        Няма брандове в тази категория засега.
+      </p>
+    </section>
+
+    <div id="brand-occasion-modal" class="brand-occasion-modal" hidden>
+      <div class="brand-occasion-modal__backdrop" data-brand-occasion-close></div>
+      <div
+        class="brand-occasion-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="brandOccasionTitle"
+      >
+        <div class="brand-occasion-modal__head">
+          <div>
+            <p class="brand-occasion-modal__eyebrow" data-i18n="brands.occasionEyebrow">Подбор по настроение</p>
+            <h3 id="brandOccasionTitle" class="brand-occasion-modal__title" data-i18n="brands.occasionTitle">Повод</h3>
+          </div>
+
+          <button class="brand-occasion-modal__close" type="button" aria-label="Затвори" data-brand-occasion-close>
+            ✕
+          </button>
+        </div>
+
+        <div class="brand-occasion-sheet">
+          {OCCASION_GROUPS.map((group) => (
+            <section class="brand-occasion-group">
+              <h4 class="brand-occasion-group__title" data-i18n-bg={group.label} data-i18n-en={group.labelEn}>{group.label}</h4>
+              <div class="brand-occasion-options">
+                {OCCASION_FILTERS.filter((occasion) => occasion.group === group.key).map((occasion) => (
+                  <label class="brand-occasion-option">
+                    <input type="checkbox" name="brandOccasionFilter" value={occasion.key} />
+                    <span data-i18n-bg={occasion.label} data-i18n-en={occasion.labelEn}>{occasion.label}</span>
+                  </label>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <div class="brand-occasion-modal__actions">
+          <button id="brand-occasion-reset" class="brand-occasion-action brand-occasion-action--ghost" type="button">
+            <span data-i18n="filters.clear">Изчисти</span>
+          </button>
+          <button id="brand-occasion-apply" class="brand-occasion-action" type="button">
+            <span data-i18n="filters.showResults">Покажи резултатите</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <section class="seo-editorial" aria-label="Контекст за българските брандове">
+      <div class="seo-editorial__header">
+        <p class="seo-editorial__kicker">По-широк контекст</p>
+        <h2 class="seo-editorial__title">Какво стои зад избора на български брандове</h2>
+        <p class="seo-editorial__intro">
+          Ако търсиш повече контекст, не само списък с марки, тази секция събира по-широката картина:
+          защо локалните производители стават все по-важни, как да се ориентираш по-умно в категориите
+          и какво всъщност прави едно откритие наистина стойностно.
+        </p>
+      </div>
+
+      <div class="seo-editorial__grid">
+        {editorialSections.map((section) => (
+          <details class="seo-editorial__card">
+            <summary class="seo-editorial__summary">
+              <div class="seo-editorial__summary-copy">
+                <h3>{section.title}</h3>
+              </div>
+              <span class="seo-editorial__toggle" aria-hidden="true" data-i18n="brands.readMore">Прочети още</span>
+            </summary>
+
+            <div class="seo-editorial__content">
+              {section.paragraphs.map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+
+  <style>
+    .section {
+      margin-top: 28px;
+    }
+
+    .section-title {
+      margin: 0 0 16px;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      text-align: center;
+      opacity: 0.9;
+    }
+
+    .brand-discovery {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 12px;
+      max-width: 900px;
+      margin: 0 auto 16px;
+      align-items: end;
+    }
+
+    .brand-search,
+    .brand-sort {
+      display: grid;
+      gap: 8px;
+    }
+
+    .brand-delivery-filter {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.74);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.04);
+      color: rgba(26, 26, 26, 0.72);
+      font-size: 13px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .brand-delivery-filter input {
+      width: 16px;
+      height: 16px;
+      accent-color: #7b403b;
+    }
+
+    .brand-occasion-trigger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.05);
+      color: rgba(26, 26, 26, 0.86);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .brand-occasion-trigger__badge {
+      display: inline-grid;
+      place-items: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.14);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .brand-search__label,
+    .brand-sort__label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.52);
+      text-align: left;
+    }
+
+    .brand-search__input,
+    .brand-sort__select {
+      min-height: 48px;
+      border-radius: 18px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.05);
+      font: inherit;
+      color: rgba(26, 26, 26, 0.86);
+    }
+
+    .brand-search__input {
+      width: 100%;
+      padding: 0 16px;
+    }
+
+    .brand-sort__select {
+      min-width: 220px;
+      padding: 0 16px;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    /* Pills */
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.72);
+      color: rgba(26, 26, 26, 0.84);
+      font: inherit;
+      text-decoration: none;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+      transition: transform 0.08s ease, background 0.12s ease;
+    }
+
+    .pill:hover {
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    .pill:active {
+      transform: scale(0.99);
+    }
+
+    .pill.is-active {
+      border-color: rgba(95, 127, 107, 0.45);
+      background: rgba(95, 127, 107, 0.12);
+      color: rgba(26, 26, 26, 0.92);
+    }
+
+    /* Brands grid */
+    .brand-grid {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .brand-grid.is-updated {
+      animation: brandResultsPulse 0.55s ease;
+    }
+
+    @keyframes brandResultsPulse {
+      0% {
+        transform: translateY(0);
+        opacity: 0.92;
+      }
+      40% {
+        transform: translateY(3px);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .brand-card {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+      transition:
+        transform 0.22s ease,
+        box-shadow 0.22s ease,
+        border-color 0.22s ease,
+        background 0.22s ease;
+    }
+
+    .brand-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 22px 44px rgba(0, 0, 0, 0.1);
+      border-color: rgba(26, 26, 26, 0.12);
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    .brand-link {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 16px;
+      min-height: 100%;
+      padding: 18px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-card__top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-name {
+      font-family: var(--font-title);
+      font-size: clamp(20px, 1.45vw, 25px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+      text-wrap: balance;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: auto;
+    }
+
+    .brand-meta {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.6);
+    }
+
+    .brand-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      object-fit: cover;
+      flex: 0 0 64px;
+      background: rgba(247, 244, 238, 0.88);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+    }
+
+    .brand-logo--fallback {
+      display: grid;
+      place-items: center;
+      font-family: var(--font-title);
+      font-size: 28px;
+      color: rgba(26, 26, 26, 0.7);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(240, 234, 224, 0.9));
+    }
+
+    .brand-headline {
+      min-width: 0;
+    }
+
+    .brand-preview {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(0, 0.8fr));
+      gap: 8px;
+      min-height: 196px;
+    }
+
+    .brand-preview__item {
+      overflow: hidden;
+      border-radius: 18px;
+      background: rgba(95, 127, 107, 0.08);
+    }
+
+    .brand-preview__item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+
+    .brand-card:hover .brand-preview__item img {
+      transform: scale(1.04);
+    }
+
+    .brand-preview__item.is-featured {
+      grid-row: 1 / span 2;
+    }
+
+    .brand-intro {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.62;
+      color: rgba(26, 26, 26, 0.74);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .brand-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(26, 26, 26, 0.84);
+    }
+
+    .empty {
+      margin-top: 14px;
+      text-align: center;
+      opacity: 0.75;
+    }
+
+    .brand-occasion-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+    }
+
+    .brand-occasion-modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(22, 18, 12, 0.18);
+      backdrop-filter: blur(6px);
+    }
+
+    .brand-occasion-modal__panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(94vw, 760px);
+      max-height: min(82vh, 760px);
+      overflow: auto;
+      padding: 24px;
+      border-radius: 28px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(250, 247, 242, 0.96);
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.16);
+      transform: translate(-50%, -50%);
+    }
+
+    .brand-occasion-modal__head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .brand-occasion-modal__eyebrow {
+      margin: 0 0 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.5);
+    }
+
+    .brand-occasion-modal__title {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-occasion-modal__close {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.88);
+      cursor: pointer;
+      color: #7b403b;
+    }
+
+    .brand-occasion-sheet {
+      display: grid;
+      gap: 18px;
+    }
+
+    .brand-occasion-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .brand-occasion-group__title {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.52);
+    }
+
+    .brand-occasion-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .brand-occasion-option {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .brand-occasion-option input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .brand-occasion-option span {
+      font-size: 14px;
+      font-weight: 650;
+      color: rgba(26, 26, 26, 0.82);
+    }
+
+    .brand-occasion-option:has(input:checked) {
+      border-color: rgba(95, 127, 107, 0.34);
+      background: rgba(95, 127, 107, 0.1);
+    }
+
+    .brand-occasion-modal__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .brand-occasion-action {
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(95, 127, 107, 0.12);
+      color: rgba(26, 26, 26, 0.88);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .brand-occasion-action--ghost {
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .seo-editorial {
+      margin-top: 46px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .seo-editorial__header {
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .seo-editorial__kicker {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.5);
+    }
+
+    .seo-editorial__title {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: clamp(34px, 4vw, 54px);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+
+    .seo-editorial__intro {
+      max-width: 760px;
+      margin: 14px auto 0;
+      line-height: 1.72;
+      color: rgba(26, 26, 26, 0.74);
+    }
+
+    .seo-editorial__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .seo-editorial__card {
+      min-width: 0;
+      padding: 24px 24px 22px;
+      border-radius: 26px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.04);
+    }
+
+    .seo-editorial__summary {
+      list-style: none;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .seo-editorial__summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .seo-editorial__summary::marker {
+      display: none;
+      content: "";
+    }
+
+    .seo-editorial__summary-copy {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .seo-editorial__card h3 {
+      margin: 0 0 12px;
+      font-family: var(--font-title);
+      font-size: clamp(27px, 2.5vw, 36px);
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+    }
+
+    .seo-editorial__card p {
+      margin: 0;
+      line-height: 1.76;
+      color: rgba(26, 26, 26, 0.78);
+    }
+
+    .seo-editorial__card p + p {
+      margin-top: 12px;
+    }
+
+    .seo-editorial__toggle {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.1);
+      color: rgba(26, 26, 26, 0.76);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .seo-editorial__content {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .seo-editorial__card[open] .seo-editorial__toggle {
+      background: rgba(26, 26, 26, 0.08);
+    }
+
+    @media (max-width: 1024px) {
+      .brand-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .brand-discovery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .section-title {
+        text-align: left;
+      }
+
+      .pills {
+        justify-content: center;
+      }
+
+      .brand-search {
+        grid-column: 1 / -1;
+      }
+
+      .brand-occasion-trigger {
+        min-height: 50px;
+        justify-content: space-between;
+      }
+
+      .brand-delivery-filter {
+        grid-column: 1 / -1;
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .brand-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .seo-editorial__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .seo-editorial__summary {
+        gap: 12px;
+      }
+
+      .brand-link {
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .brand-name {
+        font-size: 23px;
+      }
+
+      .brand-preview {
+        min-height: 148px;
+      }
+
+      .seo-editorial__toggle {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 11px;
+      }
+
+      .seo-editorial__content p,
+      .seo-editorial__intro {
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .brand-occasion-modal__panel {
+        width: min(94vw, 560px);
+        max-height: min(84vh, 720px);
+      }
+
+      .brand-occasion-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .brand-occasion-option {
+        min-height: 48px;
+        justify-content: center;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-head h1 {
+        font-size: clamp(30px, 8.5vw, 44px);
+      }
+
+      .brand-card__top {
+        align-items: flex-start;
+      }
+
+      .brand-logo {
+        width: 54px;
+        height: 54px;
+        flex-basis: 54px;
+      }
+
+      .brand-preview {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        min-height: 120px;
+      }
+
+      .brand-preview__item.is-featured {
+        grid-row: auto;
+      }
+    }
+  </style>
+
+  <script is:inline>
+    const filters = document.getElementById("brand-filters");
+    const brandGrid = document.getElementById("brand-grid");
+    const cards = Array.from(document.querySelectorAll("[data-brand]"));
+    const empty = document.getElementById("brand-empty");
+    const brandSearchInput = document.getElementById("brand-search-input");
+    const brandSortSelect = document.getElementById("brand-sort-select");
+    const brandOccasionToggle = document.getElementById("brand-occasion-toggle");
+    const brandOccasionBadge = document.getElementById("brand-occasion-badge");
+    const brandOccasionModal = document.getElementById("brand-occasion-modal");
+    const brandOccasionApply = document.getElementById("brand-occasion-apply");
+    const brandOccasionReset = document.getElementById("brand-occasion-reset");
+    const brandDeliveryOutside = document.getElementById("brand-delivery-outside");
+    let activeFilter = "all";
+    let activeQuery = "";
+    let activeSort = "featured";
+    let activeOccasionKeys = [];
+    let activeDeliveryOutside = false;
+    let brandSearchTrackTimer = 0;
+    let lastBrandSearchSignature = "";
+
+    let resultsPulseFrame = 0;
+    const pulseResults = () => {
+      if (!brandGrid) return;
+      brandGrid.classList.remove("is-updated");
+      cancelAnimationFrame(resultsPulseFrame);
+      resultsPulseFrame = requestAnimationFrame(() => {
+        brandGrid.classList.add("is-updated");
+        window.setTimeout(() => brandGrid.classList.remove("is-updated"), 650);
+      });
+    };
+
+    const getKeys = (el) =>
+      (el.getAttribute("data-keys") || "")
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean);
+
+    const CYRILLIC_TO_LATIN = {
+      "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ж": "zh", "з": "z",
+      "и": "i", "й": "y", "к": "k", "л": "l", "м": "m", "н": "n", "о": "o", "п": "p",
+      "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "h", "ц": "ts", "ч": "ch",
+      "ш": "sh", "щ": "sht", "ъ": "a", "ь": "y", "ю": "yu", "я": "ya",
+    };
+
+    const BG_SUFFIXES = [
+      "овете", "евете", "анията", "ението", "енията", "ищата", "ите", "ове", "еве",
+      "ата", "ята", "ният", "ната", "ното", "ните", "ски", "ска", "ско", "чен", "чна",
+      "чно", "чни", "ен", "на", "но", "ни", "ът", "та", "то", "те", "ия", "ие", "а",
+      "я", "и", "е", "о", "у",
+    ];
+
+    const SPECIAL_EQUIVALENTS = [
+      [/^памуч/, ["памук"]],
+      [/^pamuch/, ["pamuk"]],
+      [/^ленен/, ["лен"]],
+      [/^lenen/, ["len"]],
+      [/^вълнен/, ["вълна"]],
+      [/^valnen|^vulnen/, ["valna"]],
+    ];
+
+    const SEMANTIC_GROUPS = [
+      ["gift", "gifts", "подарък", "подаръци"],
+      ["baby", "babies", "бебе", "бебешки", "бебешко"],
+      ["kid", "kids", "children", "дете", "деца", "детски", "детско"],
+      ["clothing", "apparel", "outfit", "outfits", "облекло", "дреха", "дрехи"],
+      ["cotton", "памук", "памучен", "памучна", "памучно"],
+      ["linen", "лен", "ленен", "ленена"],
+      ["wool", "вълна", "вълнен", "вълнена"],
+      ["night", "нощен", "нощна", "нощно"],
+      ["day", "дневен", "дневна", "дневно"],
+      ["cream", "крем"],
+      ["serum", "серум"],
+      ["shampoo", "шампоан"],
+      ["mask", "маска"],
+      ["soap", "sapun", "сапун"],
+      ["body", "тяло"],
+      ["face", "лице"],
+      ["hair", "коса"],
+      ["lip", "lips", "устни"],
+      ["candle", "candles", "свещ", "свещи"],
+      ["bag", "bags", "чанта", "чанти"],
+      ["earring", "earrings", "обеци"],
+      ["jewelry", "бижута", "бижу"],
+      ["dress", "рокля", "рокли"],
+      ["shirt", "shirts", "риза", "ризи"],
+      ["tshirt", "t-shirt", "tshirt", "tee", "тениска", "тениски"],
+      ["home", "дом"],
+      ["interior", "интериор"],
+      ["decor", "dekor", "декор"],
+      ["cleaning", "почистване"],
+      ["book", "books", "книга", "книги"],
+      ["toy", "toys", "играчка", "играчки"],
+      ["tea", "чай"],
+      ["herbs", "herb", "билки", "билка"],
+      ["supplement", "supplements", "добавка", "добавки"],
+      ["extract", "extracts", "екстракт", "екстракти", "тинктура"],
+      ["sport", "sports", "спорт"],
+      ["cosmetics", "козметика"],
+      ["natural", "натурален", "натурална", "натурално"],
+      ["organic", "органичен", "органична", "органично", "bio", "био"],
+      ["eco", "еко", "sustainable", "устойчив", "reusable", "многократен", "biodegradable", "биоразградим"],
+    ];
+
+    const normalize = (value) =>
+      String(value || "")
+        .toLowerCase()
+        .replace(/&/g, " ")
+        .replace(/['\"`´’‘]/g, "")
+        .replace(/[.,/#!$%^*;:{}=\\-_~()@\\[\\]+<>?\\\\|]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const transliterateBulgarianToLatin = (value) =>
+      Array.from(normalize(value))
+        .map((char) => CYRILLIC_TO_LATIN[char] || char)
+        .join("");
+
+    const tokenize = (value) =>
+      normalize(value)
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+
+    const expandToken = (token) => {
+      const forms = new Set();
+      const normalized = normalize(token);
+      if (!normalized) return Array.from(forms);
+      forms.add(normalized);
+      if (normalized.length >= 4) forms.add(normalized.slice(0, 4));
+      if (normalized.length >= 6) forms.add(normalized.slice(0, 5));
+
+      BG_SUFFIXES.forEach((suffix) => {
+        if (normalized.length - suffix.length >= 3 && normalized.endsWith(suffix)) {
+          forms.add(normalized.slice(0, -suffix.length));
+        }
+      });
+
+      SPECIAL_EQUIVALENTS.forEach(([pattern, equivalents]) => {
+        if (pattern.test(normalized)) equivalents.forEach((entry) => forms.add(entry));
+      });
+
+      SEMANTIC_GROUPS.forEach((group) => {
+        if (group.includes(normalized)) group.forEach((entry) => forms.add(entry));
+      });
+
+      return Array.from(forms);
+    };
+
+    const buildSearchGroups = (value) => {
+      const normalized = normalize(value);
+      const transliterated = transliterateBulgarianToLatin(normalized);
+      const rawTokens = [...new Set([...tokenize(normalized), ...tokenize(transliterated)])];
+      return rawTokens.map((token) => expandToken(token));
+    };
+
+    const docTokenCache = new WeakMap();
+
+    const getDocumentTokens = (node) => {
+      if (!docTokenCache.has(node)) {
+        const raw = normalize(node?.dataset?.searchRaw || "");
+        const rawLatin = transliterateBulgarianToLatin(raw);
+        const structured = String(node?.dataset?.search || "");
+        docTokenCache.set(
+          node,
+          new Set([
+            ...structured.split(/\s+/).filter(Boolean),
+            ...tokenize(raw),
+            ...tokenize(rawLatin),
+          ])
+        );
+      }
+      return docTokenCache.get(node);
+    };
+
+    const matchesDirectText = (node, value) => {
+      const normalizedQuery = normalize(value);
+      if (!normalizedQuery) return true;
+
+      const raw = normalize(node?.dataset?.searchRaw || "");
+      const rawLatin = transliterateBulgarianToLatin(raw);
+      const queryLatin = transliterateBulgarianToLatin(normalizedQuery);
+
+      return raw.includes(normalizedQuery) ||
+        raw.includes(queryLatin) ||
+        rawLatin.includes(normalizedQuery) ||
+        rawLatin.includes(queryLatin);
+    };
+
+    const matchesSearchDocument = (node, value) => {
+      if (matchesDirectText(node, value)) return true;
+      const groups = buildSearchGroups(value);
+      if (!groups.length) return true;
+      const searchable = `${normalize(node?.dataset?.searchRaw || "")} ${String(node?.dataset?.search || "")}`.trim();
+      const searchableLatin = transliterateBulgarianToLatin(searchable);
+      return groups.every((group) =>
+        group.some((token) => {
+          if (!token) return false;
+          if (token.length < 3) return false;
+          const docTokens = getDocumentTokens(node);
+          if (docTokens.has(token)) return true;
+          for (const docToken of docTokens) {
+            if (docToken.startsWith(token)) return true;
+          }
+          return false;
+        })
+      );
+    };
+
+    const getBrandSearchRelevanceScore = (node, value) => {
+      const normalizedQuery = normalize(value);
+      if (!normalizedQuery) return 0;
+
+      const queryLatin = transliterateBulgarianToLatin(normalizedQuery);
+      const brandName = normalize(node?.dataset?.brandName || "");
+      const brandNameLatin = transliterateBulgarianToLatin(brandName);
+      const raw = normalize(node?.dataset?.searchRaw || "");
+      const rawLatin = transliterateBulgarianToLatin(raw);
+      const searchDocument = String(node?.dataset?.search || "");
+      const searchable = `${raw} ${searchDocument}`.trim();
+      const searchableLatin = transliterateBulgarianToLatin(searchable);
+      const queryGroups = buildSearchGroups(value);
+      let score = 0;
+
+      if (brandName === normalizedQuery || brandNameLatin === queryLatin) score += 260;
+      if (brandName.startsWith(normalizedQuery) || brandNameLatin.startsWith(queryLatin)) score += 190;
+      if (brandName.includes(normalizedQuery) || brandName.includes(queryLatin) || brandNameLatin.includes(normalizedQuery) || brandNameLatin.includes(queryLatin)) score += 150;
+      if (raw.includes(normalizedQuery) || rawLatin.includes(queryLatin)) score += 70;
+      if (searchable.includes(normalizedQuery) || searchable.includes(queryLatin) || searchableLatin.includes(normalizedQuery) || searchableLatin.includes(queryLatin)) score += 45;
+
+      queryGroups.forEach((group) => {
+        const bestTokenScore = group.reduce((best, token) => {
+          if (!token) return best;
+          if (brandName.includes(token) || brandNameLatin.includes(token)) return Math.max(best, 45);
+          if (searchable.includes(token) || searchableLatin.includes(token)) return Math.max(best, 18);
+          return best;
+        }, 0);
+        score += bestTokenScore;
+      });
+
+      return score;
+    };
+
+    const scheduleBrandSearchTracking = (value) => {
+      window.clearTimeout(brandSearchTrackTimer);
+      const normalized = normalize(value);
+      if (normalized.length < 2) {
+        lastBrandSearchSignature = "";
+        return;
+      }
+
+      brandSearchTrackTimer = window.setTimeout(() => {
+        const visibleCount = cards.filter((card) => card.style.display !== "none").length;
+        const signature = [normalized, activeFilter, activeSort, visibleCount].join("|");
+        if (signature === lastBrandSearchSignature) return;
+        lastBrandSearchSignature = signature;
+
+        window.bulgaritamTrack?.("brands_search", {
+          search_query: normalized,
+          active_category: activeFilter,
+          sort_mode: activeSort,
+          results_count: visibleCount,
+        });
+      }, 700);
+    };
+
+    const updateOccasionBadge = () => {
+      if (!brandOccasionBadge) return;
+      if (activeOccasionKeys.length) {
+        brandOccasionBadge.textContent = String(activeOccasionKeys.length);
+        brandOccasionBadge.removeAttribute("hidden");
+      } else {
+        brandOccasionBadge.setAttribute("hidden", "");
+      }
+    };
+
+    const syncOccasionInputs = () => {
+      brandOccasionModal?.querySelectorAll('input[name="brandOccasionFilter"]').forEach((input) => {
+        input.checked = activeOccasionKeys.includes(input.value);
+      });
+    };
+
+    const openOccasionModal = () => {
+      if (!brandOccasionModal) return;
+      syncOccasionInputs();
+      brandOccasionModal.removeAttribute("hidden");
+      brandOccasionToggle?.setAttribute("aria-expanded", "true");
+      document.documentElement.classList.add("no-scroll");
+    };
+
+    const closeOccasionModal = () => {
+      if (!brandOccasionModal) return;
+      brandOccasionModal.setAttribute("hidden", "");
+      brandOccasionToggle?.setAttribute("aria-expanded", "false");
+      document.documentElement.classList.remove("no-scroll");
+    };
+
+    const setActive = (btn) => {
+      filters.querySelectorAll(".pill").forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+    };
+
+    const sortCards = (list, sortValue) => {
+      const sorted = [...list];
+
+      switch (sortValue) {
+        case "alpha-asc":
+          sorted.sort((a, b) =>
+            (a.dataset.brandName || "").localeCompare(b.dataset.brandName || "", "bg")
+          );
+          break;
+        case "alpha-desc":
+          sorted.sort((a, b) =>
+            (b.dataset.brandName || "").localeCompare(a.dataset.brandName || "", "bg")
+          );
+          break;
+        case "date-desc":
+          sorted.sort((a, b) => Number(b.dataset.createdAt || 0) - Number(a.dataset.createdAt || 0));
+          break;
+        case "date-asc":
+          sorted.sort((a, b) => Number(a.dataset.createdAt || 0) - Number(b.dataset.createdAt || 0));
+          break;
+        case "featured":
+        default:
+          sorted.sort((a, b) => Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0));
+          break;
+      }
+
+      return sorted;
+    };
+
+    const sortCardsForSearch = (list, value) =>
+      [...list].sort((a, b) => {
+        const scoreDiff = getBrandSearchRelevanceScore(b, value) - getBrandSearchRelevanceScore(a, value);
+        if (scoreDiff !== 0) return scoreDiff;
+        return Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
+      });
+
+    const applyDiscovery = () => {
+      let visibleCount = 0;
+      const matchingCards = [];
+
+      cards.forEach((card) => {
+        const keys = getKeys(card);
+        const occasionKeys = (card.dataset.occasionKeys || "").split(",").filter(Boolean);
+        const matchesFilter = activeFilter === "all" ? true : keys.includes(activeFilter);
+        const matchesQuery = matchesSearchDocument(card, activeQuery);
+        const matchesOccasion = !activeOccasionKeys.length || activeOccasionKeys.some((key) => occasionKeys.includes(key));
+        const matchesDelivery = !activeDeliveryOutside || card.dataset.deliversAbroad === "1";
+        if (matchesFilter && matchesQuery && matchesOccasion && matchesDelivery) matchingCards.push(card);
+      });
+
+      const orderedCards = activeQuery.trim()
+        ? sortCardsForSearch(matchingCards, activeQuery)
+        : sortCards(matchingCards, activeSort);
+
+      orderedCards.forEach((card) => {
+        brandGrid?.appendChild(card);
+      });
+
+      cards.forEach((card) => {
+        const show = matchingCards.includes(card);
+        card.style.display = show ? "" : "none";
+        if (show) visibleCount += 1;
+      });
+
+      if (empty) {
+        if (visibleCount === 0) empty.removeAttribute("hidden");
+        else empty.setAttribute("hidden", "");
+      }
+    };
+
+    filters.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-filter]");
+      if (!btn) return;
+
+      const key = btn.getAttribute("data-filter") || "all";
+      activeFilter = key;
+      setActive(btn);
+      applyDiscovery();
+      window.bulgaritamTrack?.("category_pill_click", {
+        surface: "brands",
+        category_key: key,
+        category_label: btn.textContent || "",
+      });
+      pulseResults();
+    });
+
+    const handleBrandSearchInput = (value) => {
+      activeQuery = value || "";
+      if (activeQuery.trim()) {
+        activeFilter = "all";
+        const allButton = filters.querySelector('[data-filter="all"]');
+        if (allButton) setActive(allButton);
+      }
+      applyDiscovery();
+      scheduleBrandSearchTracking(activeQuery);
+      if (activeQuery.trim()) {
+        brandGrid?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      pulseResults();
+    };
+
+    brandSearchInput?.addEventListener("input", (e) => {
+      handleBrandSearchInput(e.target.value || "");
+    });
+
+    brandSearchInput?.addEventListener("search", (e) => {
+      activeQuery = e.target.value || "";
+      handleBrandSearchInput(activeQuery);
+    });
+
+    brandSortSelect?.addEventListener("change", (e) => {
+      activeSort = e.target.value || "featured";
+      applyDiscovery();
+      window.bulgaritamTrack?.("sort_change", {
+        surface: "brands",
+        sort_mode: activeSort,
+        active_category: activeFilter,
+      });
+      pulseResults();
+    });
+
+    brandDeliveryOutside?.addEventListener("change", (e) => {
+      activeDeliveryOutside = Boolean(e.target.checked);
+      applyDiscovery();
+      window.bulgaritamTrack?.("filter_apply", {
+        surface: "brands",
+        delivers_outside_bulgaria: activeDeliveryOutside,
+      });
+      pulseResults();
+    });
+
+    brandOccasionToggle?.addEventListener("click", openOccasionModal);
+    brandOccasionModal?.addEventListener("click", (e) => {
+      if (e.target.closest("[data-brand-occasion-close]")) closeOccasionModal();
+    });
+
+    brandOccasionApply?.addEventListener("click", () => {
+      activeOccasionKeys = Array.from(
+        brandOccasionModal?.querySelectorAll('input[name="brandOccasionFilter"]:checked') || []
+      ).map((input) => input.value);
+      closeOccasionModal();
+      updateOccasionBadge();
+      applyDiscovery();
+      window.bulgaritamTrack?.("occasion_filter_apply", {
+        surface: "brands",
+        occasion_keys: activeOccasionKeys,
+      });
+      pulseResults();
+    });
+
+    brandOccasionReset?.addEventListener("click", () => {
+      activeOccasionKeys = [];
+      syncOccasionInputs();
+      closeOccasionModal();
+      updateOccasionBadge();
+      applyDiscovery();
+      pulseResults();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && brandOccasionModal && !brandOccasionModal.hasAttribute("hidden")) {
+        closeOccasionModal();
+      }
+    });
+
+    updateOccasionBadge();
+    applyDiscovery();
+  </script>
+</BaseLayout>

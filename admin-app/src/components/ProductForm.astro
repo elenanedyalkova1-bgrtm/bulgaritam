@@ -1,0 +1,23 @@
+---
+const { product = {}, brands = [], csrf, error = "", isNew = false } = Astro.props as { product?: Record<string, any>; brands?: any[]; csrf: string; error?: string; isNew?: boolean };
+const linkedBrandId = Number(product.brand_ref?.[0]?.id || 0);
+const fields: Array<{name:string;label:string;type:"text"|"url"|"textarea";required:boolean}> = [
+  {name:"name_bg",label:"Product name",type:"text",required:true},{name:"slug",label:"Slug",type:"text",required:true},{name:"category",label:"Category",type:"text",required:false},{name:"tags",label:"Tags (comma separated)",type:"text",required:false},
+  {name:"price_min_eur",label:"Minimum price (EUR)",type:"text",required:false},{name:"price_max_eur",label:"Maximum price (EUR)",type:"text",required:false},{name:"currency",label:"Currency",type:"text",required:false},
+  {name:"product_url",label:"Merchant Product URL",type:"url",required:true},{name:"image_urls",label:"Image URLs (comma separated)",type:"textarea",required:false},
+  {name:"short_desc_bg",label:"Short description",type:"textarea",required:false},{name:"long_desc_bg",label:"Long description",type:"textarea",required:false},
+  {name:"meta_title_bg",label:"SEO title",type:"text",required:false},{name:"meta_desc_bg",label:"SEO description",type:"textarea",required:false},{name:"rating",label:"Rating",type:"text",required:false},{name:"created_at",label:"Created at",type:"text",required:false},
+];
+const active = String(product.is_active ?? "").toLowerCase() === "true" || String(product.is_active) === "TRUE";
+const siteOrigin = (import.meta.env.SITE_ORIGIN || "https://bulgaritam.bg").replace(/\/$/, "");
+---
+{error && <div class="error">{error}</div>}
+<form method="post" class="panel form-grid">
+  <input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="_action" value="save"/>
+  <label>Brand<select name="brand_ref" required><option value="">Select Brand</option>{brands.filter((b) => b.brand_name && b.brand_slug).map((b) => <option value={b.id} selected={b.id === linkedBrandId}>{b.brand_name}{b.is_active ? "" : " (hidden)"}</option>)}</select></label>
+  <label class="check"><input type="checkbox" name="is_active" value="true" checked={active}/> Published</label>
+  {fields.map(({name,label,type,required}) => type === "textarea" ? <label class="span-2">{label}<textarea name={name} required={required}>{product[name] || ""}</textarea></label> : <label>{label}<input type={type} name={name} value={product[name] || (name === "currency" ? "EUR" : "")} required={required}/></label>)}
+  {!isNew && <div class="span-2 panel warning"><strong>System-managed compatibility fields</strong><p class="hint">Legacy ID: {product["id 2"] || "—"}. Brand name, slug, URL, introduction and address are refreshed from the selected Brands row when this Product is saved. Brand editing always uses the Brands table.</p></div>}
+  <div class="span-2 actions"><button type="submit">{isNew ? "Create Product" : "Save Product"}</button>{!isNew && <a class="btn secondary" href={`${siteOrigin}/p/${product.slug}/`} target="_blank">Preview public page ↗</a>}</div>
+</form>
+{!isNew && <form method="post" class="panel"><input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="_action" value="visibility"/><input type="hidden" name="visible" value={active ? "false" : "true"}/><h2>{active ? "Hide Product" : "Restore Product"}</h2><p class="muted">No data will be deleted. Public visibility changes after the next static deployment.</p><button class={active ? "danger" : ""}>{active ? "Hide / unpublish" : "Restore / publish"}</button></form>}

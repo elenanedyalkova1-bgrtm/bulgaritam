@@ -1,0 +1,21 @@
+---
+import { checkLoginRateLimit, clearLoginFailures, createSession, recordLoginFailure, sessionCookie, verifyPassword } from "../lib/auth";
+let error = "";
+if (Astro.request.method === "POST") {
+  const clientKey = Astro.request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "single-admin";
+  const form = await Astro.request.formData();
+  if (!checkLoginRateLimit(clientKey)) {
+    error = "Too many attempts. Try again in 15 minutes.";
+  } else if (await verifyPassword(String(form.get("password") || ""))) {
+    clearLoginFailures(clientKey);
+    const session = await createSession();
+    Astro.cookies.set(sessionCookie.name, session.value, sessionCookie.options);
+    return Astro.redirect("/");
+  } else {
+    recordLoginFailure(clientKey);
+    error = "Invalid password.";
+  }
+}
+---
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><meta name="robots" content="noindex,nofollow"/><title>Login · Bulgaritam Admin</title></head><body><div class="login-wrap"><form class="login-card" method="post"><p>Private CMS</p><h1>Bulgaritam Admin</h1>{error && <div class="error">{error}</div>}<label>Password<input type="password" name="password" required autofocus autocomplete="current-password" /></label><button>Log in</button></form></div></body></html>
+<style>body{margin:0;background:#f5f1eb;color:#292723;font-family:Inter,system-ui}.login-wrap{min-height:100vh;display:grid;place-items:center;padding:20px}.login-card{width:min(400px,100%);background:white;border:1px solid #ded8cf;border-radius:14px;padding:30px;display:grid;gap:17px}.login-card p{color:#587064;text-transform:uppercase;letter-spacing:.12em;font-size:12px;margin:0}.login-card h1{font-family:Georgia,serif;margin:0 0 8px}.login-card label{display:grid;gap:7px;font-weight:650;font-size:14px}.login-card input{padding:12px;border:1px solid #c9c2b8;border-radius:8px;font:inherit}.login-card button{padding:12px;border:0;border-radius:8px;background:#315b4c;color:#fff;font-weight:700}.error{background:#fbe9e7;color:#842b27;padding:10px;border-radius:7px}</style>

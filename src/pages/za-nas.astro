@@ -1,0 +1,148 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "За нас | Българитъм";
+const description =
+  "Българитъм е място за откриване на български брандове и продукти с редакторски подход, ясна структура и вдъхновяващо browsing изживяване.";
+const canonical = "https://bulgaritam.bg/za-nas/";
+---
+
+<BaseLayout
+  seo={{
+    title,
+    description,
+    data: {
+      breadcrumbs: [
+        { name: "Начало", item: "/" },
+        { name: "За нас", item: "/za-nas/" },
+      ],
+    },
+  }}
+  canonical={canonical}
+  i18n={{
+    en: {
+      "about.kicker": "Who we are",
+      "about.title": "About Bulgaritam",
+      "about.intro1": "We used to spend hours on Instagram and ask around just to find beautiful Bulgarian products.",
+      "about.intro2": "That is why we created Bulgaritam. A platform where, within minutes, you can discover the right product for you, created by Bulgarian brands and artists.",
+      "about.intro3": "We built it to feel visual and intuitive, so you can get inspired, discover, and save your favorite finds.",
+      "about.intro4": "At Bulgaritam, we do not just search. We shape our own aesthetic.",
+      "about.how": "How it works",
+      "about.how1": "You browse categories or search for something specific.",
+      "about.how2": "You discover products you like.",
+      "about.how3": "You save them in your own collections for inspiration you can return to and share with a link.",
+      "about.how4": "And when you are ready, you go directly to the brand and order from there.",
+      "about.why": "Why we do it",
+      "about.why1": "Because discovering good Bulgarian products should not take hours.",
+      "about.why2": "Because there are people who want to shop from local makers, but until now there was no easy way to do that.",
+      "about.why3": "With Bulgaritam, we make the connection easier — between the people who search and the people who create.",
+      "about.contact": "Contact",
+      "about.contactBody": "If you are a Bulgarian brand and want to join, apply through the Partners page.",
+      "about.partnersLink": "Partners"
+    }
+  }}
+>
+  <main class="page-shell page-shell--narrow">
+    <header class="page-head">
+      <p class="page-kicker" data-i18n="about.kicker">Кои сме ние</p>
+      <h1 class="page-title" data-i18n="about.title">За Българитъм</h1>
+      <div class="page-intro page-intro--rich">
+        <p data-i18n="about.intro1">Прекарвахме часове в Instagram и питахме познати, за да открием хубави български продукти.</p>
+        <p data-i18n="about.intro2">Затова създадохме Българитъм. Платформа, на която за минути откриваш точния за теб продукт, създаден от български брандове и артисти.</p>
+        <p data-i18n="about.intro3">Създадохме го визуално и интуитивно, за да се вдъхновяваш, да откриваш и да запазваш любимите си находки.</p>
+        <p data-i18n="about.intro4">В Българитъм ние не просто търсим, а създаваме своята естетика.</p>
+      </div>
+    </header>
+
+    <section class="page-card">
+      <h2 data-i18n="about.how">Как работи</h2>
+      <ol>
+        <li data-i18n="about.how1">Разглеждаш категории или търсиш нещо конкретно.</li>
+        <li data-i18n="about.how2">Откриваш продукти, които ти харесват.</li>
+        <li data-i18n="about.how3">Запазваш ги в свои колекции за вдъхновение, към което можеш да се връщаш и да споделяш с линк.</li>
+        <li data-i18n="about.how4">И когато си готов, отиваш директно при бранда и поръчваш оттам.</li>
+      </ol>
+    </section>
+
+    <section class="page-card">
+      <h2 data-i18n="about.why">Защо го правим</h2>
+      <p data-i18n="about.why1">Защото откриването на добри български продукти не трябва да отнема часове.</p>
+      <p data-i18n="about.why2">Защото има хора, които искат да пазаруват от местни производители, но досега нямаше лесен начин за това.</p>
+      <p data-i18n="about.why3">С Българитъм правим връзката по-лесна - между хората, които търсят, и хората, които създават.</p>
+    </section>
+
+    <section class="page-card">
+      <h2 data-i18n="about.contact">Контакт</h2>
+      <p>
+        <span data-i18n="about.contactBody">Ако си български бранд и искаш да се включиш, кандидатствай от страницата</span>
+        <a href="/partnyori/" data-i18n="about.partnersLink">Партньори</a>.
+      </p>
+    </section>
+  </main>
+
+  <style>
+    .page-shell--narrow {
+      max-width: 920px;
+    }
+
+    .page-head {
+      margin-bottom: 40px;
+    }
+
+    .page-card {
+      padding: 28px 30px;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .page-card + .page-card {
+      margin-top: 24px;
+    }
+
+    .page-intro--rich {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .page-intro--rich p {
+      margin: 0;
+    }
+
+    .page-intro--rich p + p {
+      margin-top: 14px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+    }
+
+    ol,
+    ul,
+    .page-card p {
+      max-width: 680px;
+      margin: 0;
+      line-height: 1.7;
+    }
+
+    ol,
+    ul {
+      padding-left: 18px;
+    }
+
+    .page-card p {
+      padding-left: 0;
+    }
+
+    a { color: var(--accent); text-decoration: none; font-weight: 650; }
+    a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      .page-head {
+        margin-bottom: 30px;
+      }
+
+      .page-card {
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</BaseLayout>

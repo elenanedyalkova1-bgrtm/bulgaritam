@@ -1,0 +1,1053 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCategoryLabel, getCategoryLabelForLang, getSubcategoryLabelForLang, getTaxonomyForProduct } from "../lib/taxonomy";
+import { getProductBadges } from "../lib/product-badges";
+import { getClothingTypeMatches } from "../lib/clothing-types";
+
+const {
+  landing,
+  products,
+  canonicalPath,
+  breadcrumbs = [],
+  primaryPills = [],
+  secondaryPills = [],
+  primaryPillsAriaLabel = "Подкатегории",
+  secondaryPillsAriaLabel = "Още филтри",
+  editorialSections = [],
+  editorialHeader = null,
+  refinementOptions = [],
+  refinementTitle = "Вид облекло",
+  secondaryPillsTitle = "",
+} = Astro.props;
+
+const clean = (value) => String(value ?? "").trim();
+const getPrimaryImage = (product) =>
+  Array.isArray(product?.image_urls)
+    ? product.image_urls.find((url) => /^https?:\/\//i.test(clean(url))) || product.image_urls.find((url) => clean(url))
+    : "";
+
+const displayProducts = products.filter((product) => getPrimaryImage(product));
+
+function priceLabel(p) {
+  if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
+  if (p.price_min_eur != null) return `${p.price_min_eur}+ ${p.currency}`;
+  return "";
+}
+---
+
+<BaseLayout
+  seo={{
+    type: "category",
+    title: landing.title,
+    description: landing.description,
+    data: {
+      category: landing.h1,
+      description: landing.description,
+      breadcrumbs,
+    }
+  }}
+  canonical={`https://bulgaritam.bg${canonicalPath}`}
+  i18n={{
+    en: {
+      "landing.category": "Category",
+      "landing.subcategory": "Subcategory",
+      "landing.products": "Products",
+      "landing.backHome": "Back to home",
+      "landing.cta": "See on brand site ↗"
+    }
+  }}
+>
+  <main class="page-shell landing-shell">
+    <header class="page-head landing-head">
+      <p class="page-kicker" data-i18n={landing.kind === "category" ? "landing.category" : "landing.subcategory"}>{landing.kind === "category" ? "Категория" : "Подкатегория"}</p>
+      <h1 class="page-title">{landing.h1}</h1>
+      <div class="landing-intro">
+        {landing.intro.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </div>
+
+      {primaryPills.length ? (
+        <div class="landing-subcategories" aria-label={primaryPillsAriaLabel}>
+          {primaryPills.map((entry) => (
+            <a
+              class:list={[
+                "landing-subcategories__pill",
+                entry.isActive ? "is-active" : ""
+              ]}
+              href={entry.href}
+              data-i18n-bg={entry.label}
+              data-i18n-en={entry.labelEn || entry.label}
+            >
+              {entry.label}
+            </a>
+          ))}
+        </div>
+      ) : null}
+
+      {secondaryPills.length ? (
+        <div class="landing-secondary-group">
+          {secondaryPillsTitle ? <p class="landing-secondary-title">{secondaryPillsTitle}</p> : null}
+          <div class="landing-subcategories landing-subcategories--secondary" aria-label={secondaryPillsAriaLabel}>
+            {secondaryPills.map((entry) => (
+              <a
+                class:list={[
+                  "landing-subcategories__pill",
+                  "landing-subcategories__pill--secondary",
+                  entry.isActive ? "is-active" : ""
+                ]}
+                href={entry.href}
+                data-i18n-bg={entry.label}
+                data-i18n-en={entry.labelEn || entry.label}
+              >
+                {entry.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </header>
+
+    <section class="section section--feed">
+      {refinementOptions.length ? (
+        <details class="landing-refinements">
+          <summary class="landing-refinements__summary">
+            <span class="landing-refinements__label">{refinementTitle}</span>
+            <span class="landing-refinements__toggle">Филтрирай</span>
+          </summary>
+
+          <div class="landing-refinements__panel">
+            {refinementOptions.map((option) => (
+              <label class="landing-refinements__option">
+                <input type="checkbox" value={option.key} data-refinement-input />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
+        </details>
+      ) : null}
+
+      <div class="section-head section-head--centered">
+        <h2 class="h2"><span data-i18n="landing.products">Продукти</span> (<span id="count">{displayProducts.length}</span>)</h2>
+        <a class="landing-back" href="/" data-i18n="landing.backHome">Към началото</a>
+      </div>
+
+      <ul class="grid" id="grid" data-masonry-grid>
+        {displayProducts.map((p, index) => {
+          const primaryImage = getPrimaryImage(p);
+          const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
+          const taxonomy = getTaxonomyForProduct(p);
+          const shouldEagerLoad = index < 4;
+          const refinementKeys = refinementOptions.length ? getClothingTypeMatches(p, refinementOptions).join(",") : "";
+
+          return (
+          <li
+            class="card"
+            data-masonry-card
+            data-refinement-keys={refinementKeys}
+            data-product-slug={p.slug}
+            data-product-name={p.name_bg}
+            data-brand-slug={p.brand_slug ?? ""}
+            data-brand-name={p.brand_name ?? ""}
+            data-product-url={p.product_url ?? ""}
+            data-category-key={taxonomy.categoryKey || ""}
+            data-subcategory-keys={taxonomy.subcategoryKeys.join(",")}
+          >
+            <div class="card-top">
+              <a class="card-imglink" href={`/p/${p.slug}/`}>
+                <div class="thumb">
+                  {primaryImage ? (
+                    <img
+                      class="thumb-img"
+                      src={primaryImage}
+                      alt={p.name_bg}
+                      loading={shouldEagerLoad ? "eager" : "lazy"}
+                      fetchpriority={index < 2 ? "high" : undefined}
+                      decoding="async"
+                      width="800"
+                      height="1000"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div class="thumb-ph" aria-hidden="true"></div>
+                  )}
+                </div>
+              </a>
+
+              <button
+                class="save-btn save-btn--card"
+                type="button"
+                aria-label="Запази продукта"
+                aria-pressed="false"
+                data-save-id={p.slug}
+                data-save-url={`/p/${p.slug}/`}
+                data-save-title={p.name_bg}
+                data-save-brand={p.brand_name ?? ""}
+                data-save-price={priceLabel(p) ?? ""}
+                data-save-image={primaryImage}
+              >
+                <svg class="save-ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="card-body">
+              <div class="card-meta-row">
+                <div class="card-badges">
+                  <span class="cat" data-i18n-bg={getCategoryLabelForLang(taxonomy.categoryKey || p.category, "bg")} data-i18n-en={getCategoryLabelForLang(taxonomy.categoryKey || p.category, "en")}>{getCategoryLabel(p.category)}</span>
+                  {isBio ? <span class="cat cat--bio">Био</span> : null}
+                  {isEco ? <span class="cat cat--eco">Еко</span> : null}
+                  {isHandmade ? <span class="cat cat--handmade">Ръчна изработка</span> : null}
+                  {isGift ? <span class="cat cat--gift">Подарък</span> : null}
+                </div>
+                {priceLabel(p) ? <span class="price price--inline">{priceLabel(p)}</span> : null}
+              </div>
+
+              <a class="card-titlelink" href={`/p/${p.slug}/`}>{p.name_bg}</a>
+
+              <div class="card-sub">
+                {p.brand_name && p.brand_slug ? (
+                  <a class="brand-link" href={`/brand/${p.brand_slug}/`}>
+                    {p.brand_name}
+                  </a>
+                ) : null}
+              </div>
+            </div>
+
+            <div class="card-foot">
+              <a class="cta-out" href={p.product_url} target="_blank" rel="noopener noreferrer" data-i18n="landing.cta">
+                Виж в сайта на бранда ↗
+              </a>
+            </div>
+          </li>
+        )})}
+      </ul>
+
+      <div class="feed-meta">
+        <p class="feed-status" id="feedStatus" aria-live="polite"></p>
+        <div class="feed-sentinel" id="feedSentinel" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    {editorialSections.length ? (
+      <section class="seo-editorial" aria-label={editorialHeader?.ariaLabel || "По-широк контекст"}>
+        <div class="seo-editorial__header">
+          <p class="seo-editorial__kicker">{editorialHeader?.kicker || "Още контекст"}</p>
+          <h2 class="seo-editorial__title">{editorialHeader?.title || `Повече за ${landing.h1}`}</h2>
+          {editorialHeader?.intro ? <p class="seo-editorial__intro">{editorialHeader.intro}</p> : null}
+        </div>
+
+        <div class="seo-editorial__grid">
+          {editorialSections.map((section) => (
+            <details class="seo-editorial__card">
+              <summary class="seo-editorial__summary">
+                <div class="seo-editorial__summary-copy">
+                  <h3>{section.title}</h3>
+                </div>
+                <span class="seo-editorial__toggle">Прочети още</span>
+              </summary>
+
+              <div class="seo-editorial__content">
+                {section.paragraphs.map((paragraph) => (
+                  <p>{paragraph}</p>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+    ) : null}
+  </main>
+
+  <style>
+    .landing-shell {
+      max-width: 1240px;
+    }
+
+    .landing-head {
+      padding-bottom: 10px;
+    }
+
+    .landing-intro {
+      max-width: 72ch;
+      margin: 0 auto;
+      color: rgba(26, 26, 26, 0.78);
+    }
+
+    .landing-intro p {
+      margin: 0;
+      line-height: 1.72;
+    }
+
+    .landing-intro p + p {
+      margin-top: 10px;
+    }
+
+    .landing-subcategories {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .landing-subcategories--secondary {
+      margin-top: 12px;
+    }
+
+    .landing-secondary-group {
+      margin-top: 14px;
+    }
+
+    .landing-secondary-title {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.48);
+    }
+
+    .landing-subcategories__pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.78);
+      color: rgba(26, 26, 26, 0.82);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+    }
+
+    .landing-subcategories__pill--secondary {
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .landing-subcategories__pill.is-active {
+      border-color: rgba(95, 127, 107, 0.3);
+      background: rgba(95, 127, 107, 0.12);
+      color: rgba(26, 26, 26, 0.92);
+    }
+
+    .section--feed {
+      padding-top: 10px;
+    }
+
+    .landing-refinements {
+      margin: 0 auto 18px;
+      max-width: 820px;
+      border-radius: 24px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+
+    .landing-refinements__summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      cursor: pointer;
+    }
+
+    .landing-refinements__summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .landing-refinements__summary::marker {
+      display: none;
+      content: "";
+    }
+
+    .landing-refinements__label {
+      font-size: 15px;
+      font-weight: 700;
+      color: rgba(26, 26, 26, 0.82);
+    }
+
+    .landing-refinements__toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.1);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.78);
+    }
+
+    .landing-refinements__panel {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    .landing-refinements__option {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .landing-refinements__option input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .landing-refinements__option span {
+      font-size: 13px;
+      font-weight: 650;
+      color: rgba(26, 26, 26, 0.82);
+    }
+
+    .landing-refinements__option:has(input:checked) {
+      border-color: rgba(95, 127, 107, 0.3);
+      background: rgba(95, 127, 107, 0.12);
+    }
+
+    .section-head--centered {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 22px;
+      text-align: center;
+    }
+
+    .section-head--centered .h2 {
+      margin-bottom: 0;
+      font-size: 22px;
+      opacity: 0.86;
+    }
+
+    .landing-back {
+      font-size: 14px;
+      color: rgba(26, 26, 26, 0.66);
+      text-decoration: none;
+    }
+
+    .landing-back:hover {
+      text-decoration: underline;
+    }
+
+    .feed-meta {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .feed-status {
+      min-height: 20px;
+      margin: 0;
+      font-size: 13px;
+      color: rgba(26, 26, 26, 0.58);
+    }
+
+    .feed-sentinel {
+      width: 100%;
+      height: 2px;
+    }
+
+    .grid {
+      list-style: none;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 22px;
+      align-items: start;
+      grid-auto-rows: 10px;
+    }
+
+    .grid.grid--ordered {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 22px;
+      grid-auto-rows: auto;
+    }
+
+    .card {
+      display: block;
+      width: 100%;
+      margin: 0;
+      grid-row: span var(--masonry-span, 1);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+    }
+
+    .grid.grid--ordered .card {
+      grid-row: auto;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.1);
+      border-color: rgba(26, 26, 26, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .card-top {
+      position: relative;
+    }
+
+    .thumb {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+      border-radius: 24px 24px 0 0;
+      background: linear-gradient(180deg, rgba(95, 127, 107, 0.1), rgba(26, 26, 26, 0.04));
+    }
+
+    .thumb-img {
+      width: 100%;
+      display: block;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transition: transform 0.38s ease, filter 0.38s ease;
+    }
+
+    .card:hover .thumb-img {
+      transform: translateZ(0) scale(1.045);
+      filter: saturate(1.02) contrast(1.01);
+    }
+
+    .save-btn--card {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.92);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .save-btn--card .save-ic {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+    }
+
+    .save-btn--card.is-saved .save-ic {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .card-corner-badges {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .badge-corner {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .card-body {
+      padding: 14px 16px 10px;
+    }
+
+    .card-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card-badges {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cat {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.1);
+      color: rgba(26, 26, 26, 0.72);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .cat--bio {
+      background: rgba(87, 112, 88, 0.12);
+      color: rgba(68, 93, 70, 0.92);
+      border: 1px solid rgba(87, 112, 88, 0.1);
+    }
+
+    .cat--eco {
+      background: rgba(111, 129, 112, 0.11);
+      color: rgba(84, 103, 85, 0.9);
+      border: 1px solid rgba(111, 129, 112, 0.12);
+    }
+
+    .cat--handmade {
+      background: rgba(137, 96, 74, 0.12);
+      color: #6c4f3f;
+      border: 1px solid rgba(137, 96, 74, 0.14);
+      font-size: 10px;
+    }
+
+    .cat--gift {
+      background: rgba(123, 64, 59, 0.1);
+      color: #7b403b;
+      border: 1px solid rgba(123, 64, 59, 0.12);
+    }
+
+    .seo-editorial {
+      margin-top: 48px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .seo-editorial__header {
+      max-width: 860px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .seo-editorial__kicker {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.5);
+    }
+
+    .seo-editorial__title {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: clamp(34px, 4vw, 52px);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+
+    .seo-editorial__intro {
+      max-width: 760px;
+      margin: 14px auto 0;
+      line-height: 1.72;
+      color: rgba(26, 26, 26, 0.74);
+    }
+
+    .seo-editorial__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .seo-editorial__card {
+      min-width: 0;
+      padding: 24px 24px 22px;
+      border-radius: 26px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.04);
+    }
+
+    .seo-editorial__summary {
+      list-style: none;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .seo-editorial__summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .seo-editorial__summary::marker {
+      display: none;
+      content: "";
+    }
+
+    .seo-editorial__summary-copy {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .seo-editorial__card h3 {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: clamp(27px, 2.5vw, 36px);
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+    }
+
+    .seo-editorial__toggle {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.1);
+      color: rgba(26, 26, 26, 0.76);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .seo-editorial__content {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .seo-editorial__content p {
+      margin: 0;
+      line-height: 1.76;
+      color: rgba(26, 26, 26, 0.78);
+    }
+
+    .seo-editorial__card[open] .seo-editorial__toggle {
+      background: rgba(26, 26, 26, 0.08);
+    }
+
+    .price--inline {
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.62);
+    }
+
+    .card-titlelink {
+      display: block;
+      font-size: clamp(20px, 2vw, 24px);
+      line-height: 1.14;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      text-wrap: balance;
+    }
+
+    .card-sub {
+      margin-top: 8px;
+      min-height: 20px;
+      font-size: 14px;
+      color: rgba(26, 26, 26, 0.62);
+    }
+
+    .brand-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand-link:hover,
+    .card-titlelink:hover {
+      text-decoration: underline;
+    }
+
+    .card-foot {
+      padding: 0 16px 16px;
+    }
+
+    .cta-out {
+      width: auto;
+      min-height: 40px;
+      padding: 10px 14px;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      color: rgba(26, 26, 26, 0.76);
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      border-radius: 999px;
+    }
+
+    .cta-out:hover {
+      background: rgba(95, 127, 107, 0.08);
+      border-color: rgba(95, 127, 107, 0.22);
+      color: rgba(26, 26, 26, 0.92);
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .grid.grid--ordered {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .landing-refinements__panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: stretch;
+        gap: 12px;
+      }
+
+      .grid.grid--ordered {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .card {
+        margin-bottom: 14px;
+        border-radius: 24px;
+      }
+
+      .thumb {
+        border-radius: 24px 24px 0 0;
+      }
+
+      .card-body {
+        padding: 10px 10px 6px;
+      }
+
+      .card-meta-row {
+        flex-wrap: wrap;
+      }
+
+      .card-titlelink {
+        font-size: clamp(16px, 4.3vw, 19px);
+      }
+
+      .card-sub {
+        font-size: 12px;
+      }
+
+      .card-foot {
+        padding: 0 10px 10px;
+      }
+
+      .cta-out {
+        width: 100%;
+        min-height: 36px;
+        font-size: 10px;
+      }
+
+      .save-btn--card {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .landing-refinements__summary {
+        padding: 14px 16px;
+      }
+
+      .landing-refinements__panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 0 14px 14px;
+      }
+
+      .landing-refinements__option {
+        min-height: 42px;
+        padding: 0 12px;
+      }
+
+      .landing-refinements__option span {
+        font-size: 12px;
+      }
+
+      .landing-subcategories {
+        justify-content: center;
+      }
+
+      .grid {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: stretch;
+        gap: 10px;
+      }
+
+      .grid.grid--ordered {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .card {
+        margin-bottom: 12px;
+      }
+
+      .seo-editorial__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .seo-editorial__toggle {
+        min-height: 34px;
+        padding: 0 12px;
+        font-size: 11px;
+      }
+
+      .seo-editorial__content p,
+      .seo-editorial__intro {
+        font-size: 15px;
+        line-height: 1.7;
+      }
+    }
+  </style>
+
+  <script is:inline>
+    const grid = document.getElementById("grid");
+    const count = document.getElementById("count");
+    const feedStatus = document.getElementById("feedStatus");
+    const feedSentinel = document.getElementById("feedSentinel");
+    const allCards = Array.from(grid.querySelectorAll("li.card"));
+    const refinementInputs = Array.from(document.querySelectorAll("[data-refinement-input]"));
+
+    const getBatchSize = () => {
+      if (window.innerWidth <= 640) return 8;
+      if (window.innerWidth <= 768) return 10;
+      return 16;
+    };
+
+    let visibleCount = getBatchSize();
+
+    const getFilteredCards = () => {
+      const activeFilters = refinementInputs
+        .filter((input) => input.checked)
+        .map((input) => input.value);
+
+      if (!activeFilters.length) return allCards;
+
+      return allCards.filter((card) => {
+        const keys = String(card.dataset.refinementKeys || "")
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean);
+
+        return activeFilters.some((key) => keys.includes(key));
+      });
+    };
+
+    const updateFeedVisibility = () => {
+      const filteredCards = getFilteredCards();
+      const activeFilters = refinementInputs
+        .filter((input) => input.checked)
+        .map((input) => input.value);
+
+      if (window.innerWidth > 768) {
+        grid?.classList.toggle("grid--ordered", activeFilters.length > 0 || filteredCards.length <= 6);
+      } else {
+        grid?.classList.remove("grid--ordered");
+      }
+
+      allCards.forEach((card) => {
+        card.style.display = "none";
+      });
+
+      filteredCards.forEach((card, index) => {
+        card.style.display = index < visibleCount ? "" : "none";
+      });
+
+      if (count) {
+        count.textContent = String(filteredCards.length);
+      }
+
+      if (feedStatus) {
+        const shown = Math.min(visibleCount, filteredCards.length);
+        feedStatus.textContent = filteredCards.length > shown ? `Показани ${shown} от ${filteredCards.length}` : "";
+      }
+
+      if (feedSentinel) {
+        feedSentinel.hidden = filteredCards.length <= visibleCount;
+      }
+
+      window.dispatchEvent(new Event("resize"));
+    };
+
+    const loadMore = () => {
+      if (visibleCount >= getFilteredCards().length) return;
+      visibleCount += getBatchSize();
+      updateFeedVisibility();
+    };
+
+    updateFeedVisibility();
+
+    refinementInputs.forEach((input) => {
+      input.addEventListener("change", () => {
+        visibleCount = getBatchSize();
+        updateFeedVisibility();
+      });
+    });
+
+    if ("IntersectionObserver" in window && feedSentinel) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) loadMore();
+        });
+      }, { rootMargin: "320px 0px" });
+
+      observer.observe(feedSentinel);
+    }
+
+    window.addEventListener("resize", () => {
+      visibleCount = Math.max(visibleCount, getBatchSize());
+      updateFeedVisibility();
+    });
+  </script>
+</BaseLayout>

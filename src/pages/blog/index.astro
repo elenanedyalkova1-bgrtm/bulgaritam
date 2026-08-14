@@ -1,0 +1,199 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCuratedTagPages } from "../../lib/curated-tags";
+import { loadProducts } from "../../lib/products";
+
+const products = await loadProducts();
+const curatedPages = getCuratedTagPages(products);
+
+const pageTitle = "Препоръчано от Българитъм";
+const pageDescription =
+  "Редакционни теми и нишови идеи за откриване на български продукти, марки и по-конкретни търсения.";
+---
+
+<BaseLayout seo={{ title: pageTitle, description: pageDescription }} robots="noindex,follow,max-image-preview:large" i18n={{
+  en: {
+    "blog.title": "Recommended by Bulgaritam",
+    "blog.intro": "Explore editorial themes that go beyond ordinary category filtering. Here we gather more niche ideas, longer and more specific searches, and contexts in which Bulgarian products can be discovered more meaningfully.",
+    "blog.empty": "We are preparing the first thematic collections. Come back soon.",
+    "blog.searchPrefix": "Search:",
+    "blog.products": "products",
+    "blog.read": "Read the topic →"
+  }
+}}>
+  <main class="blog">
+    <header class="blog__header">
+      <h1 class="blog__title" data-i18n="blog.title">{pageTitle}</h1>
+      <p class="blog__intro" data-i18n="blog.intro">
+        Разгледай редакционни теми, които стигат отвъд обикновеното филтриране по категории. Тук
+        събираме по-нишови идеи, по-дълги и по-конкретни търсения и контексти, в които българските
+        продукти могат да бъдат откривани по-смислено.
+      </p>
+    </header>
+
+    <section class="blog__grid" aria-label="Колекции">
+      {curatedPages.length === 0 ? (
+        <div class="blog__empty">
+          <p data-i18n="blog.empty">Подготвяме първите тематични селекции. Ела пак скоро.</p>
+        </div>
+      ) : (
+        curatedPages.map((page) => (
+          <article class="card">
+            <a class="card__frame" href={`/blog/${page.slug}/`}>
+              <div class="card__meta-row">
+                <div class="card__meta">{page.kicker}</div>
+                <div class="card__theme">{page.themeLabel}</div>
+              </div>
+
+              <h2 class="card__title">{page.label}</h2>
+
+              <p class="card__excerpt">{page.intro[0]}</p>
+
+              <p class="card__summary">
+                <span data-i18n="blog.searchPrefix">Търсене:</span> {page.searchIntent} • {page.productCount} <span data-i18n="blog.products">продукта</span>
+              </p>
+
+              <span class="card__link" data-i18n="blog.read">
+                Прочети темата →
+              </span>
+            </a>
+          </article>
+        ))
+      )}
+    </section>
+  </main>
+
+  <style>
+    .blog {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 16px 56px;
+    }
+
+    .blog__header {
+      max-width: 760px;
+      margin: 0 auto 28px;
+      text-align: center;
+    }
+
+    .blog__title {
+      font-family: var(--font-title);
+      font-size: var(--type-h1);
+      line-height: 1.06;
+      margin: 0 0 12px;
+    }
+
+    .blog__intro {
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.7;
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .blog__grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .card {
+      grid-column: span 12;
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.58);
+      backdrop-filter: blur(6px);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 32px rgba(0,0,0,0.06);
+      border-color: rgba(0,0,0,0.16);
+    }
+
+    .card__frame {
+      display: block;
+      padding: 20px 20px 18px;
+      color: inherit;
+      text-decoration: none;
+      height: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .card { grid-column: span 6; }
+    }
+
+    .card__meta {
+      font-family: var(--font-body);
+      font-size: 13px;
+      opacity: 0.72;
+    }
+
+    .card__meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .card__theme {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.08);
+      color: rgba(26, 26, 26, 0.72);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .card__title {
+      margin: 0 0 10px;
+      font-family: var(--font-title);
+      font-size: var(--type-h2);
+      line-height: 1.14;
+    }
+
+    .card__frame:hover .card__title,
+    .card__link:hover {
+      text-decoration: underline;
+    }
+
+    .card__excerpt {
+      margin: 0 0 14px;
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    .card__summary {
+      margin: -4px 0 14px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+      color: rgba(26, 26, 26, 0.62);
+    }
+
+    .card__link {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .blog__empty {
+      grid-column: span 12;
+      text-align: center;
+      padding: 22px;
+      border: 1px dashed rgba(0,0,0,0.18);
+      border-radius: 16px;
+      opacity: 0.85;
+    }
+  </style>
+</BaseLayout>

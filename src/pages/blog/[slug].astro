@@ -1,0 +1,599 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCuratedTagPages } from "../../lib/curated-tags";
+import { getCategoryLabel } from "../../lib/taxonomy";
+import { loadProducts } from "../../lib/products";
+import { getProductBadges } from "../../lib/product-badges";
+
+function priceLabel(p) {
+  if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
+  if (p.price_min_eur != null) return `${p.price_min_eur}+ ${p.currency}`;
+  return "";
+}
+
+export async function getStaticPaths() {
+  const products = await loadProducts();
+  return getCuratedTagPages(products).map((page) => ({
+    params: { slug: page.slug },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+
+if (!page) {
+  throw new Error(`Unknown curated tag page: ${Astro.params.slug}`);
+}
+---
+
+<BaseLayout
+  seo={{
+    type: "blog",
+    title: page.title,
+    description: page.description,
+    data: {
+      blogTitle: page.title,
+      excerpt: page.description,
+      breadcrumbs: [
+        { name: "Начало", item: "/" },
+        { name: "Препоръчано", item: "/blog/" },
+        { name: page.label, item: `/blog/${page.slug}/` },
+      ],
+    },
+  }}
+  canonical={`https://bulgaritam.bg/blog/${page.slug}/`}
+>
+  <main class="page-shell tag-shell">
+    <header class="page-head tag-head">
+      <p class="page-kicker">{page.kicker}</p>
+      <h1 class="page-title">{page.label}</h1>
+      <p class="tag-search-intent">Тема: {page.searchIntent}</p>
+      <div class="tag-intro">
+        {page.intro.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </div>
+
+      {page.categories.length ? (
+        <div class="tag-categories" aria-label="Категории">
+          {page.categories.map((category) => (
+            <a class="tag-categories__pill" href={category.href}>{category.label}</a>
+          ))}
+        </div>
+      ) : null}
+    </header>
+
+    {page.sections?.length ? (
+      <section class="topic-sections" aria-label="Тема и контекст">
+        {page.sections.map((section) => (
+          <article class="topic-section">
+            <h2 class="topic-section__title">{section.title}</h2>
+            <div class="topic-section__body">
+              {section.paragraphs.map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+            </div>
+          </article>
+        ))}
+      </section>
+    ) : null}
+
+    <section class="section section--feed">
+      <div class="section-head section-head--centered">
+        <h2 class="h2">Препоръчани продукти (<span id="count">{page.products.length}</span>)</h2>
+        <a class="landing-back" href="/blog/">Всички колекции</a>
+      </div>
+
+      <ul class="grid" id="grid">
+        {page.products.map((p) => {
+          const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
+          return (
+          <li class="card">
+            <div class="card-top">
+              <a class="card-imglink" href={`/p/${p.slug}/`}>
+                <div class="thumb">
+                  {p.image_urls?.length ? (
+                    <img
+                      class="thumb-img"
+                      src={p.image_urls[0]}
+                      alt={p.name_bg}
+                      loading="lazy"
+                      decoding="async"
+                      width="800"
+                      height="1000"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div class="thumb-ph" aria-hidden="true"></div>
+                  )}
+                </div>
+              </a>
+
+              <button
+                class="save-btn save-btn--card"
+                type="button"
+                aria-label="Запази продукта"
+                aria-pressed="false"
+                data-save-id={p.slug}
+                data-save-url={`/p/${p.slug}/`}
+                data-save-title={p.name_bg}
+                data-save-brand={p.brand_name ?? ""}
+                data-save-price={priceLabel(p) ?? ""}
+                data-save-image={p.image_urls?.[0] ?? ""}
+              >
+                <svg class="save-ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="card-body">
+              <div class="card-meta-row">
+                <div class="card-badges">
+                  <span class="cat">{getCategoryLabel(p.category)}</span>
+                  {isBio ? <span class="cat cat--bio">Био</span> : null}
+                  {isEco ? <span class="cat cat--eco">Еко</span> : null}
+                  {isHandmade ? <span class="cat cat--handmade">Ръчна изработка</span> : null}
+                  {isGift ? <span class="cat cat--gift">Подарък</span> : null}
+                </div>
+                {priceLabel(p) ? <span class="price price--inline">{priceLabel(p)}</span> : null}
+              </div>
+
+              <a class="card-titlelink" href={`/p/${p.slug}/`}>{p.name_bg}</a>
+
+              <div class="card-sub">
+                {p.brand_name && p.brand_slug ? (
+                  <a class="brand-link" href={`/brand/${p.brand_slug}/`}>{p.brand_name}</a>
+                ) : null}
+              </div>
+            </div>
+
+            <div class="card-foot">
+              <a class="cta-out" href={p.product_url} target="_blank" rel="noopener noreferrer">
+                Виж в сайта на бранда ↗
+              </a>
+            </div>
+          </li>
+        )})}
+      </ul>
+
+      <div class="feed-meta">
+        <p class="feed-status" id="feedStatus" aria-live="polite"></p>
+        <div class="feed-sentinel" id="feedSentinel" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+
+  <style>
+    .tag-shell {
+      max-width: 1240px;
+    }
+
+    .tag-head {
+      padding-bottom: 12px;
+    }
+
+    .tag-intro {
+      max-width: 76ch;
+      margin: 0 auto;
+      color: rgba(26, 26, 26, 0.78);
+    }
+
+    .tag-search-intent {
+      margin: 0 auto 14px;
+      max-width: 760px;
+      color: rgba(26, 26, 26, 0.56);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .tag-intro p {
+      margin: 0;
+      line-height: 1.72;
+    }
+
+    .tag-intro p + p {
+      margin-top: 10px;
+    }
+
+    .tag-categories {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .topic-sections {
+      display: grid;
+      gap: 18px;
+      max-width: 920px;
+      margin: 0 auto 34px;
+    }
+
+    .topic-section {
+      padding: 24px 24px 22px;
+      border-radius: 24px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.04);
+    }
+
+    .topic-section__title {
+      margin: 0 0 12px;
+      font-family: var(--font-title);
+      font-size: clamp(28px, 3.2vw, 40px);
+      line-height: 1.08;
+    }
+
+    .topic-section__body {
+      color: rgba(26, 26, 26, 0.78);
+    }
+
+    .topic-section__body p {
+      margin: 0;
+      line-height: 1.72;
+    }
+
+    .topic-section__body p + p {
+      margin-top: 10px;
+    }
+
+    .tag-categories__pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.76);
+      color: rgba(26, 26, 26, 0.82);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .section-head--centered {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 22px;
+      text-align: center;
+    }
+
+    .section-head--centered .h2 {
+      margin-bottom: 0;
+      opacity: 0.86;
+    }
+
+    .landing-back {
+      font-size: 14px;
+      color: rgba(26, 26, 26, 0.66);
+      text-decoration: none;
+    }
+
+    .landing-back:hover {
+      text-decoration: underline;
+    }
+
+    .grid {
+      list-style: none;
+      padding: 0;
+      column-gap: 22px;
+      columns: 4 260px;
+    }
+
+    .feed-meta {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .feed-status {
+      min-height: 20px;
+      margin: 0;
+      font-size: 13px;
+      color: rgba(26, 26, 26, 0.58);
+    }
+
+    .feed-sentinel {
+      width: 100%;
+      height: 2px;
+    }
+
+    .card {
+      display: inline-block;
+      width: 100%;
+      margin: 0 0 22px;
+      break-inside: avoid;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.1);
+      border-color: rgba(26, 26, 26, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .card-top {
+      position: relative;
+    }
+
+    .thumb {
+      border-radius: 24px 24px 0 0;
+      background: linear-gradient(180deg, rgba(95, 127, 107, 0.1), rgba(26, 26, 26, 0.04));
+    }
+
+    .thumb-img {
+      width: 100%;
+      display: block;
+      transition: transform 0.38s ease, filter 0.38s ease;
+    }
+
+    .card:hover .thumb-img {
+      transform: scale(1.045);
+      filter: saturate(1.02) contrast(1.01);
+    }
+
+    .save-btn--card {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.92);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .save-btn--card .save-ic {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+    }
+
+    .save-btn--card.is-saved .save-ic {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .card-body {
+      padding: 14px 16px 10px;
+    }
+
+    .card-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card-badges {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cat {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.1);
+      color: rgba(26, 26, 26, 0.72);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .cat--bio {
+      background: rgba(87, 112, 88, 0.12);
+      color: rgba(68, 93, 70, 0.92);
+      border: 1px solid rgba(87, 112, 88, 0.1);
+    }
+
+    .cat--eco {
+      background: rgba(111, 129, 112, 0.11);
+      color: rgba(84, 103, 85, 0.9);
+      border: 1px solid rgba(111, 129, 112, 0.12);
+    }
+
+    .cat--handmade {
+      background: rgba(137, 96, 74, 0.12);
+      color: #6c4f3f;
+      border: 1px solid rgba(137, 96, 74, 0.14);
+      font-size: 10px;
+    }
+
+    .cat--gift {
+      background: rgba(123, 64, 59, 0.1);
+      color: #7b403b;
+      border: 1px solid rgba(123, 64, 59, 0.12);
+    }
+
+    .price--inline {
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.62);
+    }
+
+    .card-titlelink {
+      display: block;
+      text-decoration: none;
+    }
+
+    .card-titlelink:hover,
+    .brand-link:hover {
+      text-decoration: underline;
+    }
+
+    .card-sub {
+      margin-top: 8px;
+      min-height: 20px;
+      font-size: 14px;
+      color: rgba(26, 26, 26, 0.62);
+    }
+
+    .brand-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .card-foot {
+      padding: 0 16px 16px;
+    }
+
+    .cta-out {
+      width: auto;
+      min-height: 40px;
+      padding: 10px 14px;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      color: rgba(26, 26, 26, 0.76);
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      border-radius: 999px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        columns: 3 240px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        columns: 2 148px;
+        column-gap: 14px;
+      }
+
+      .card {
+        margin-bottom: 14px;
+        border-radius: 24px;
+      }
+
+      .thumb {
+        border-radius: 24px 24px 0 0;
+      }
+
+      .card-body {
+        padding: 12px 12px 8px;
+      }
+
+      .card-meta-row {
+        flex-wrap: wrap;
+      }
+
+      .card-foot {
+        padding: 0 12px 12px;
+      }
+
+      .cta-out {
+        width: 100%;
+        min-height: 38px;
+        font-size: 11px;
+      }
+
+      .save-btn--card {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .tag-categories {
+        justify-content: center;
+      }
+
+      .topic-section {
+        padding: 20px 18px 18px;
+      }
+
+      .grid {
+        columns: 2 132px;
+        column-gap: 12px;
+      }
+
+      .card {
+        margin-bottom: 12px;
+      }
+    }
+  </style>
+
+  <script is:inline>
+    const grid = document.getElementById("grid");
+    const feedStatus = document.getElementById("feedStatus");
+    const feedSentinel = document.getElementById("feedSentinel");
+    const allCards = Array.from(grid.querySelectorAll("li.card"));
+
+    const getBatchSize = () => {
+      if (window.innerWidth <= 640) return 8;
+      if (window.innerWidth <= 768) return 10;
+      return 16;
+    };
+
+    let visibleCount = getBatchSize();
+
+    const updateFeedVisibility = () => {
+      allCards.forEach((card, index) => {
+        card.style.display = index < visibleCount ? "" : "none";
+      });
+
+      if (feedStatus) {
+        const shown = Math.min(visibleCount, allCards.length);
+        feedStatus.textContent = allCards.length > shown ? `Показани ${shown} от ${allCards.length}` : "";
+      }
+
+      if (feedSentinel) {
+        feedSentinel.hidden = allCards.length <= visibleCount;
+      }
+    };
+
+    const loadMore = () => {
+      if (visibleCount >= allCards.length) return;
+      visibleCount += getBatchSize();
+      updateFeedVisibility();
+    };
+
+    updateFeedVisibility();
+
+    if ("IntersectionObserver" in window && feedSentinel) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) loadMore();
+        });
+      }, { rootMargin: "320px 0px" });
+
+      observer.observe(feedSentinel);
+    }
+
+    window.addEventListener("resize", () => {
+      visibleCount = Math.max(visibleCount, getBatchSize());
+      updateFeedVisibility();
+    });
+  </script>
+</BaseLayout>

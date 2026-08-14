@@ -1,0 +1,26 @@
+{
+  "name": "bulgaritam-admin",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "test:import": "tsx tests/csv-import.test.ts",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/vercel": "11.0.5",
+    "astro": "7.2.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "path-to-regexp": "6.3.0"
+  }
+}

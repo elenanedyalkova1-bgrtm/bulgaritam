@@ -1,0 +1,1421 @@
+---
+import "../styles/global.css";
+const SITE_URL = (
+  (import.meta.env.PUBLIC_SITE_URL && String(import.meta.env.PUBLIC_SITE_URL).trim()) ||
+  (Astro.site ? String(Astro.site) : "") ||
+  "https://bulgaritam.bg"
+).replace(/\/+$/, "");
+
+const HOME_SEO = {
+  title: "Българитъм | Подбрани български марки и продукти",
+  description:
+    "Открий подбрани български марки и продукти в Българитъм. Разглеждай, запазвай и намирай качествени находки на едно място.",
+};
+
+const {
+  title,
+  description,
+  canonical,
+  seo,
+  robots,
+  i18n = {},
+} = Astro.props;
+
+const normalizeText = (value = "") => String(value ?? "").replace(/\s+/g, " ").trim();
+
+const trimAtWord = (value, max) => {
+  const text = normalizeText(value);
+  if (!text) return "";
+  if (text.length <= max) return text;
+
+  const slice = text.slice(0, max + 1);
+  const breakpoints = [" ", "-", "–", "—", "|", ","];
+  let cutIndex = -1;
+
+  for (const breakpoint of breakpoints) {
+    cutIndex = Math.max(cutIndex, slice.lastIndexOf(breakpoint));
+  }
+
+  const safeIndex = cutIndex > Math.floor(max * 0.6) ? cutIndex : max;
+  return slice
+    .slice(0, safeIndex)
+    .trim()
+    .replace(/[|,;:.!?\-–—]+$/u, "");
+};
+
+const buildTitleWithSuffix = (primary, suffix, max = 60) => {
+  const main = normalizeText(primary);
+  const tail = normalizeText(suffix);
+  if (!main && !tail) return "";
+  if (!tail) return trimAtWord(main, max);
+
+  const full = `${main} ${tail}`.trim();
+  if (full.length <= max) return full;
+
+  const availableForMain = max - tail.length - 1;
+  if (availableForMain <= 12) return trimAtWord(full, max);
+
+  return `${trimAtWord(main, availableForMain)} ${tail}`.trim();
+};
+
+function generateTitle(seoConfig, manualTitle) {
+  const directTitle = trimAtWord(manualTitle || seoConfig?.title, 60);
+  if (directTitle) return directTitle;
+
+  const type = normalizeText(seoConfig?.type).toLowerCase();
+  const data = seoConfig?.data || {};
+
+  switch (type) {
+    case "product": {
+      const productName = normalizeText(data.productName);
+      const brandName = normalizeText(data.brandName);
+      if (!productName || !brandName) return HOME_SEO.title;
+      return buildTitleWithSuffix(productName, `| От ${brandName} | Българитъм`);
+    }
+
+    case "brand": {
+      const brandName = normalizeText(data.brandName);
+      if (!brandName) return HOME_SEO.title;
+      return buildTitleWithSuffix(brandName, "| Български бранд | Българитъм");
+    }
+
+    case "category": {
+      const category = normalizeText(data.category);
+      if (!category) return HOME_SEO.title;
+      return buildTitleWithSuffix(`Български ${category}`, "| Подбрани марки | Българитъм");
+    }
+
+    case "blog": {
+      const blogTitle = normalizeText(data.blogTitle);
+      if (!blogTitle) return HOME_SEO.title;
+      return buildTitleWithSuffix(blogTitle, "| Българитъм");
+    }
+
+    case "home":
+      return HOME_SEO.title;
+
+    default:
+      return HOME_SEO.title;
+  }
+}
+
+function generateDescription(seoConfig, manualDescription) {
+  const directDescription = trimAtWord(manualDescription || seoConfig?.description, 155);
+  if (directDescription) return directDescription;
+
+  const type = normalizeText(seoConfig?.type).toLowerCase();
+  const data = seoConfig?.data || {};
+
+  switch (type) {
+    case "product": {
+      const productName = normalizeText(data.productName);
+      const brandName = normalizeText(data.brandName);
+      if (!productName || !brandName) return HOME_SEO.description;
+      return trimAtWord(
+        `Открий ${productName} от ${brandName} в Българитъм. Подбрани български продукти с неповторим дизайн и качество.`,
+        155
+      );
+    }
+
+    case "brand": {
+      const brandName = normalizeText(data.brandName);
+      if (!brandName) return HOME_SEO.description;
+      return trimAtWord(
+        `Открий ${brandName} – български бранд със собствен характер и неповторим стил. Разгледай продуктите им в Българитъм.`,
+        155
+      );
+    }
+
+    case "category": {
+      const category = normalizeText(data.category);
+      if (!category) return HOME_SEO.description;
+      return trimAtWord(
+        `Разгледай български ${category}. Подбрани марки и продукти, създадени в България.`,
+        155
+      );
+    }
+
+    case "blog": {
+      const excerpt =
+        normalizeText(data.excerpt) ||
+        normalizeText(data.summary) ||
+        normalizeText(data.description);
+      if (excerpt) return trimAtWord(excerpt, 155);
+
+      const blogTitle = normalizeText(data.blogTitle);
+      if (!blogTitle) return HOME_SEO.description;
+
+      return trimAtWord(
+        `Прочети ${blogTitle} в Българитъм и открий подбрани истории, идеи и препоръки за български марки и продукти.`,
+        155
+      );
+    }
+
+    case "home":
+      return HOME_SEO.description;
+
+    default:
+      return HOME_SEO.description;
+  }
+}
+
+const resolvedTitle = generateTitle(seo, title);
+const resolvedDescription = generateDescription(seo, description);
+const resolvedCanonical = normalizeText(canonical) || new URL(Astro.url.pathname, `${SITE_URL}/`).toString();
+
+const pathname = Astro.url.pathname;
+const isActive = (href) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+
+const normalizeUrl = (value) => {
+  const text = normalizeText(value);
+  if (!text) return "";
+
+  try {
+    return new URL(text, `${SITE_URL}/`).toString();
+  } catch {
+    return "";
+  }
+};
+
+const seoType = normalizeText(seo?.type).toLowerCase();
+const seoData = seo?.data || {};
+const robotsDirective = normalizeText(robots) || "index,follow,max-image-preview:large";
+const socialImage = normalizeUrl(seoData.image) || `${SITE_URL}/social-preview.png`;
+const openGraphType = seoType === "product" ? "product" : "website";
+const gaMeasurementId = normalizeText(import.meta.env.PUBLIC_GA_MEASUREMENT_ID) || "G-7XT69Z6DKS";
+const faviconSvg = "/favicon.svg";
+const faviconPng48 = "/favicon-48x48.png";
+const faviconPng192 = "/favicon-192x192.png";
+const appleTouchIcon = "/apple-touch-icon.png";
+
+const defaultBreadcrumbs = [{ name: "Начало", item: `${SITE_URL}/` }];
+if (pathname !== "/") {
+  defaultBreadcrumbs.push({ name: resolvedTitle, item: resolvedCanonical });
+}
+
+const breadcrumbItems = Array.isArray(seoData.breadcrumbs) && seoData.breadcrumbs.length
+  ? seoData.breadcrumbs
+      .map((entry) => ({
+        name: normalizeText(entry?.name || entry?.label),
+        item: normalizeUrl(entry?.item || entry?.href),
+      }))
+      .filter((entry) => entry.name && entry.item)
+  : defaultBreadcrumbs;
+
+const structuredData = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Българитъм",
+    url: SITE_URL,
+    logo: `${SITE_URL}${faviconPng192}`,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Българитъм",
+    url: SITE_URL,
+    inLanguage: "bg-BG",
+  },
+];
+
+if (breadcrumbItems.length > 1) {
+  structuredData.push({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: breadcrumbItems.map((entry, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: entry.name,
+      item: entry.item,
+    })),
+  });
+}
+
+if (seoType === "product" && seoData.productName) {
+  const productImage = normalizeUrl(seoData.image);
+  const brandName = normalizeText(seoData.brandName);
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: normalizeText(seoData.productName),
+    description: normalizeText(seoData.description) || resolvedDescription,
+    url: resolvedCanonical,
+    image: productImage ? [productImage] : undefined,
+    brand: brandName ? { "@type": "Brand", name: brandName } : undefined,
+    category: normalizeText(seoData.category) || undefined,
+    offers: seoData.productUrl
+      ? {
+          "@type": "Offer",
+          url: normalizeUrl(seoData.productUrl) || resolvedCanonical,
+          priceCurrency: normalizeText(seoData.currency) || "EUR",
+          price: seoData.price ?? undefined,
+          availability: "https://schema.org/InStock",
+        }
+      : undefined,
+  };
+
+  structuredData.push(productSchema);
+}
+
+if (seoType === "brand" && seoData.brandName) {
+  structuredData.push({
+    "@context": "https://schema.org",
+    "@type": "Brand",
+    name: normalizeText(seoData.brandName),
+    url: resolvedCanonical,
+    description: normalizeText(seoData.description) || resolvedDescription,
+  });
+}
+
+if (seoType === "category" && seoData.category) {
+  structuredData.push({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: normalizeText(seoData.category),
+    url: resolvedCanonical,
+    description: normalizeText(seoData.description) || resolvedDescription,
+    inLanguage: "bg-BG",
+  });
+}
+---
+
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{resolvedTitle}</title>
+    <meta name="description" content={resolvedDescription} />
+    <meta name="robots" content={robotsDirective} />
+    <meta name="googlebot" content={robotsDirective} />
+    <link rel="icon" type="image/svg+xml" sizes="any" href={faviconSvg} />
+    <link rel="icon" type="image/png" sizes="48x48" href={faviconPng48} />
+    <link rel="icon" type="image/png" sizes="192x192" href={faviconPng192} />
+    <link rel="apple-touch-icon" sizes="180x180" href={appleTouchIcon} />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="msapplication-TileImage" content="/mstile-150x150.png" />
+    <meta name="msapplication-TileColor" content="#f4eee6" />
+    <meta name="theme-color" content="#f4eee6" />
+    <link rel="canonical" href={resolvedCanonical} />
+    <link rel="alternate" hrefLang="bg-BG" href={resolvedCanonical} />
+    <link rel="alternate" hrefLang="x-default" href={resolvedCanonical} />
+    <meta property="og:title" content={resolvedTitle} />
+    <meta property="og:description" content={resolvedDescription} />
+    <meta property="og:type" content={openGraphType} />
+    <meta property="og:url" content={resolvedCanonical} />
+    <meta property="og:site_name" content="Българитъм" />
+    <meta property="og:locale" content="bg_BG" />
+    <meta property="og:image" content={socialImage} />
+    <meta property="og:image:width" content="1227" />
+    <meta property="og:image:height" content="812" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={resolvedTitle} />
+    <meta name="twitter:description" content={resolvedDescription} />
+    <meta name="twitter:image" content={socialImage} />
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+      />
+    </noscript>
+
+    <!-- Microsoft Clarity -->
+    <script is:inline>
+      (() => {
+        const startClarity = () => {
+          if (window.__bulgaritamClarityLoaded) return;
+          window.__bulgaritamClarityLoaded = true;
+          (function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          })(window, document, "clarity", "script", "sbw66lvia1");
+        };
+
+        const schedule =
+          window.requestIdleCallback
+            ? () => window.requestIdleCallback(startClarity, { timeout: 2500 })
+            : () => window.setTimeout(startClarity, 1800);
+
+        if (document.readyState === "complete") schedule();
+        else window.addEventListener("load", schedule, { once: true });
+      })();
+    </script>
+
+    {gaMeasurementId ? (
+      <script async src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaMeasurementId)}`}></script>
+    ) : null}
+    <script is:inline define:vars={{ gaMeasurementId }}>
+      (() => {
+        const measurementId = String(gaMeasurementId || "").trim();
+        const queue = [];
+
+        const hasAnalyticsConsent = () =>
+          Boolean(window.__cookieConsent?.analytics || document.documentElement.dataset.cookieAnalytics === "1");
+
+        const getLanguage = () => (localStorage.getItem("bulgaritam_lang_v1") === "en" ? "en" : "bg");
+        const getDeviceType = () => (window.matchMedia("(max-width: 768px)").matches ? "mobile" : "desktop");
+
+        const sanitizeValue = (value) => {
+          if (Array.isArray(value)) return value.filter(Boolean).join(",");
+          if (value == null) return undefined;
+          if (typeof value === "boolean") return value ? "1" : "0";
+          const stringValue = String(value).trim();
+          return stringValue ? stringValue.slice(0, 240) : undefined;
+        };
+
+        const sanitizeParams = (params = {}) =>
+          Object.fromEntries(
+            Object.entries(params)
+              .map(([key, value]) => [key, sanitizeValue(value)])
+              .filter(([, value]) => value !== undefined)
+          );
+
+        const ensureGa = () => {
+          if (!measurementId) return;
+
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
+          if (!window.__bulgaritamGaInitialized) {
+            window.gtag("js", new Date());
+            window.gtag("consent", "default", {
+              analytics_storage: "denied",
+              ad_storage: "denied",
+              ad_user_data: "denied",
+              ad_personalization: "denied",
+            });
+            window.gtag("config", measurementId, {
+              anonymize_ip: true,
+              send_page_view: false,
+            });
+            window.__bulgaritamGaInitialized = true;
+          }
+        };
+
+        const flushQueue = () => {
+          if (typeof window.gtag !== "function") return;
+          while (queue.length) {
+            const next = queue.shift();
+            if (next) window.gtag("event", next.eventName, next.params);
+          }
+        };
+
+        const applyConsentToGa = () => {
+          if (!measurementId || typeof window.gtag !== "function") return;
+          const granted = hasAnalyticsConsent();
+          window.gtag("consent", "update", {
+            analytics_storage: granted ? "granted" : "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+          });
+
+          if (granted && !window.__bulgaritamInitialPageviewSent) {
+            window.gtag("event", "page_view", {
+              page_path: window.location.pathname,
+              page_location: window.location.href,
+              page_title: document.title,
+              language: getLanguage(),
+              device_type: getDeviceType(),
+            });
+            window.__bulgaritamInitialPageviewSent = true;
+          }
+
+          if (granted) flushQueue();
+        };
+
+        const buildCommonParams = () => ({
+          page_path: window.location.pathname,
+          page_location: window.location.href,
+          page_title: document.title,
+          language: getLanguage(),
+          device_type: getDeviceType(),
+        });
+
+        window.bulgaritamTrack = (eventName, params = {}) => {
+          if (!measurementId || !hasAnalyticsConsent() || !eventName) return;
+
+          const payload = {
+            ...buildCommonParams(),
+            ...sanitizeParams(params),
+          };
+
+          ensureGa();
+          applyConsentToGa();
+
+          if (typeof window.gtag === "function") {
+            window.gtag("event", eventName, payload);
+          } else {
+            queue.push({ eventName, params: payload });
+          }
+        };
+
+        const getProductContext = (node) => {
+          const scope = node?.closest?.("[data-product-slug]");
+          if (!scope) return {};
+          return sanitizeParams({
+            product_slug: scope.dataset.productSlug,
+            product_name: scope.dataset.productName,
+            brand_slug: scope.dataset.brandSlug,
+            brand_name: scope.dataset.brandName,
+            category_key: scope.dataset.categoryKey,
+            subcategory_keys: scope.dataset.subcategoryKeys,
+            destination_url: scope.dataset.productUrl,
+          });
+        };
+
+        const getBrandContext = (node) => {
+          const scope = node?.closest?.("[data-brand]");
+          if (!scope) return {};
+          const href = node?.getAttribute?.("href") || "";
+          const inferredSlug = href.startsWith("/brand/") ? href.replace(/^\/brand\//, "").replace(/\/$/, "") : "";
+          return sanitizeParams({
+            brand_slug: scope.dataset.brandSlug || inferredSlug,
+            brand_name: scope.dataset.brandName,
+            category_keys: scope.dataset.keys,
+            delivers_abroad: scope.dataset.deliversAbroad,
+          });
+        };
+
+        document.addEventListener("click", (event) => {
+          const outboundLink = event.target.closest("a.cta-out, a[data-analytics-event='outbound_brand_click']");
+          if (outboundLink) {
+            window.bulgaritamTrack?.("outbound_brand_click", {
+              ...getProductContext(outboundLink),
+              destination_url: outboundLink.getAttribute("href") || "",
+              link_text: outboundLink.textContent || "",
+            });
+            return;
+          }
+
+          const productLink = event.target.closest("a.card-titlelink, a.card-imglink, a.related-link");
+          if (productLink) {
+            window.bulgaritamTrack?.("product_open", {
+              ...getProductContext(productLink),
+              target_path: productLink.getAttribute("href") || "",
+            });
+            return;
+          }
+
+          const brandLink = event.target.closest("a.brand-link, a.brand[href^='/brand/']");
+          if (brandLink) {
+            window.bulgaritamTrack?.("brand_open", {
+              ...getBrandContext(brandLink),
+              target_path: brandLink.getAttribute("href") || "",
+            });
+          }
+        });
+
+        window.addEventListener("cookie-consent", () => {
+          ensureGa();
+          applyConsentToGa();
+        });
+
+        ensureGa();
+        applyConsentToGa();
+      })();
+    </script>
+    <script is:inline>
+      (() => {
+        const markBrokenImage = (img) => {
+          if (!(img instanceof HTMLImageElement) || img.dataset.fallbackApplied === "true") return;
+          const source = img.currentSrc || img.src || img.getAttribute("data-lazy-src") || "";
+          if (!source || source.startsWith("data:")) return;
+
+          img.dataset.fallbackApplied = "true";
+          img.classList.add("is-broken-product-image");
+          img.removeAttribute("data-lazy-src");
+          img.alt = "Снимката временно не е налична";
+
+          const frame = img.closest("picture, .thumb, .card-media, .hero, .related-media, .related-link") || img.parentElement;
+          frame?.classList.add("has-broken-product-image");
+        };
+
+        document.addEventListener("error", (event) => markBrokenImage(event.target), true);
+        window.addEventListener("DOMContentLoaded", () => {
+          document.querySelectorAll("img").forEach((img) => {
+            if (img.complete && img.naturalWidth === 0) markBrokenImage(img);
+          });
+        });
+      })();
+    </script>
+  </head>
+
+
+ <body class={`bg ${Astro.url.pathname === "/" ? "home" : "page"}`}>
+    <!-- HEADER -->
+    <header class="topbar">
+      <div class="wrap topbar-inner">
+        <a class="brand" href="/">Българитъм</a>
+
+        <!-- Desktop nav -->
+        <nav class="nav nav-desktop" aria-label="Основна навигация">
+          <a
+            href="/"
+            class:list={{ "nav-link": true, "is-active": isActive("/") }}
+            data-i18n="nav.home"
+          >Начало</a>
+
+          <a
+            href="/zapazeni/"
+            class:list={{ "nav-link": true, "nav-saved-link": true, "is-active": isActive("/zapazeni") }}
+          >
+            <span data-i18n="nav.saved">Запазени</span> <span class="saved-count" data-saved-count hidden>(0)</span>
+          </a>
+
+          <a
+            href="/blog/"
+            class:list={{ "nav-link": true, "is-active": isActive("/blog") }}
+            data-i18n="nav.recommended"
+          >Препоръчано</a>
+
+          <a class="nav-link" href="/bulgarski-brandove/" data-i18n="nav.brands">Брандове</a>
+
+
+          <a
+            href="/za-nas/"
+            class:list={{ "nav-link": true, "is-active": isActive("/za-nas") }}
+            data-i18n="nav.about"
+          >За нас</a>
+
+          <a
+            href="/partnyori/"
+            class:list={{ "nav-link": true, "is-active": isActive("/partnyori") }}
+            data-i18n="nav.partner"
+          >Стани партньор</a>
+        </nav>
+
+        <div class="lang-switch nav-lang-switch" aria-label="Език">
+          <button class="lang-switch__btn is-active" type="button" data-lang-switch="bg" aria-pressed="true">BG</button>
+          <button class="lang-switch__btn" type="button" data-lang-switch="en" aria-pressed="false">EN</button>
+        </div>
+
+        <!-- Mobile open button -->
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Отвори меню"
+          aria-expanded="false"
+          aria-controls="mobile-overlay"
+        >
+          ☰
+        </button>
+      </div>
+
+      <!-- Mobile overlay -->
+      <div id="mobile-overlay" class="mobile-overlay" hidden aria-hidden="true">
+        <div class="mobile-overlay__backdrop" data-close></div>
+
+        <aside class="mobile-drawer" role="dialog" aria-modal="true" aria-label="Меню">
+          <div class="mobile-drawer__top">
+            <div class="mobile-drawer__title" data-i18n="nav.menu">Меню</div>
+            <button class="mobile-close" type="button" aria-label="Затвори меню" data-close>✕</button>
+          </div>
+
+          <div class="lang-switch lang-switch--mobile" aria-label="Language">
+            <button class="lang-switch__btn is-active" type="button" data-lang-switch="bg" aria-pressed="true">BG</button>
+            <button class="lang-switch__btn" type="button" data-lang-switch="en" aria-pressed="false">EN</button>
+          </div>
+
+          <a class="mobile-cta" href="/partnyori/#kandidatstvai" data-i18n="nav.apply">Кандидатствай</a>
+
+          <nav class="mobile-nav" aria-label="Мобилна навигация">
+            <a href="/" class:list={{ "nav-link": true, "is-active": isActive("/") }} data-i18n="nav.home">Начало</a>
+
+            <a
+              href="/zapazeni/"
+              class:list={{ "nav-link": true, "nav-saved-link": true, "is-active": isActive("/zapazeni") }}
+            >
+              <span data-i18n="nav.saved">Запазени</span> <span class="saved-count" data-saved-count hidden>(0)</span>
+            </a>
+
+            <a href="/blog/" class:list={{ "nav-link": true, "is-active": isActive("/blog") }} data-i18n="nav.recommended">Препоръчано</a>
+            <a class="nav-link" href="/bulgarski-brandove/" data-i18n="nav.brands">Брандове</a>
+            <a href="/za-nas/" class:list={{ "nav-link": true, "is-active": isActive("/za-nas") }} data-i18n="nav.about">За нас</a>
+            <a href="/partnyori/" class:list={{ "nav-link": true, "is-active": isActive("/partnyori") }} data-i18n="nav.partner">Стани партньор</a>
+          </nav>
+        </aside>
+      </div>
+
+      <script is:inline>
+        const btn = document.querySelector(".nav-toggle");
+        const overlay = document.getElementById("mobile-overlay");
+        const closeEls = overlay ? overlay.querySelectorAll("[data-close]") : [];
+        const links = overlay ? overlay.querySelectorAll("a") : [];
+
+        const setOpen = (open) => {
+          if (!btn || !overlay) return;
+          if (open) {
+            overlay.removeAttribute("hidden");
+            overlay.setAttribute("aria-hidden", "false");
+            btn.setAttribute("aria-expanded", "true");
+            document.documentElement.classList.add("no-scroll");
+          } else {
+            overlay.setAttribute("hidden", "");
+            overlay.setAttribute("aria-hidden", "true");
+            btn.setAttribute("aria-expanded", "false");
+            document.documentElement.classList.remove("no-scroll");
+          }
+        };
+
+        if (btn && overlay) {
+          btn.addEventListener("click", () => setOpen(true));
+          closeEls.forEach((el) => el.addEventListener("click", () => setOpen(false)));
+          links.forEach((a) => a.addEventListener("click", () => setOpen(false)));
+
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !overlay.hasAttribute("hidden")) setOpen(false);
+          });
+        }
+      </script>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <slot />
+    <script is:inline>
+  // ==========================================
+  // Bulgaritam Saved Boards (single device)
+  // ==========================================
+  const STORAGE_KEY = "bulgaritam_saved_boards_v1";
+  const DEFAULT_BOARD_ID = "all";
+  const DEFAULT_BOARD_NAME = "Всички запазени";
+
+  const defaultState = () => ({
+    boards: [{ id: DEFAULT_BOARD_ID, name: DEFAULT_BOARD_NAME, visibility: "private", shareKey: null }],
+    items: { [DEFAULT_BOARD_ID]: [] } // boardId -> savedItem[]
+  });
+
+  const readState = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      const s = JSON.parse(raw);
+      if (!s || !Array.isArray(s.boards) || typeof s.items !== "object") return defaultState();
+      s.boards = s.boards
+        .map((b) => ({
+          id: String(b?.id || ""),
+          name: String(b?.name || "").trim() || "Нова колекция",
+          visibility: b?.visibility || "private",
+          shareKey: b?.shareKey ?? null,
+        }))
+        .filter((b) => b.id);
+
+      if (!s.boards.find((b) => b.id === DEFAULT_BOARD_ID)) {
+        s.boards.unshift({ id: DEFAULT_BOARD_ID, name: DEFAULT_BOARD_NAME, visibility: "private", shareKey: null });
+      } else {
+        s.boards = s.boards.map((b) =>
+          b.id === DEFAULT_BOARD_ID
+            ? { ...b, name: DEFAULT_BOARD_NAME, visibility: "private", shareKey: null }
+            : b
+        );
+      }
+
+      s.items[DEFAULT_BOARD_ID] = s.items[DEFAULT_BOARD_ID] || [];
+      s.boards.forEach((board) => {
+        s.items[board.id] = Array.isArray(s.items[board.id]) ? s.items[board.id] : [];
+      });
+      return s;
+    } catch {
+      return defaultState();
+    }
+  };
+
+const updateSavedBadges = (state) => {
+  const count = (state?.items?.[DEFAULT_BOARD_ID] || []).length;
+  document.querySelectorAll("[data-saved-count]").forEach((el) => {
+    el.textContent = `(${count})`;
+    if (count > 0) el.removeAttribute("hidden");
+    else el.setAttribute("hidden", "");
+  });
+};
+
+  const writeState = (s) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  window.dispatchEvent(new CustomEvent("bulgaritam:saved", { detail: s }));
+  updateSavedBadges(s); // ✅ обновява count веднага
+};
+
+
+  const escapeHtml = (s) => String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+  const slugId = () => "b_" + Math.random().toString(36).slice(2, 10);
+
+  const isSavedInBoard = (state, boardId, id) => {
+    const pid = String(id);
+    return Array.isArray(state?.items?.[boardId]) && state.items[boardId].some((x) => String(x.id) === pid);
+  };
+
+  const isSavedAnywhere = (state, id) => {
+    const pid = String(id);
+    return Object.values(state.items).some(arr => Array.isArray(arr) && arr.some(x => String(x.id) === pid));
+  };
+
+  const removeEverywhere = (state, id) => {
+    const pid = String(id);
+    for (const k of Object.keys(state.items)) {
+      state.items[k] = (state.items[k] || []).filter(x => String(x.id) !== pid);
+    }
+  };
+
+  const addToBoard = (state, boardId, item) => {
+    state.items[boardId] = state.items[boardId] || [];
+    state.items[boardId].unshift(item);
+
+    // keep unique per board by id
+    const seen = new Set();
+    state.items[boardId] = state.items[boardId].filter(x => {
+      const key = String(x.id);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // also keep the default collection as catch-all
+    state.items[DEFAULT_BOARD_ID] = state.items[DEFAULT_BOARD_ID] || [];
+    state.items[DEFAULT_BOARD_ID].unshift(item);
+    const seenAll = new Set();
+    state.items[DEFAULT_BOARD_ID] = state.items[DEFAULT_BOARD_ID].filter(x => {
+      const key = String(x.id);
+      if (seenAll.has(key)) return false;
+      seenAll.add(key);
+      return true;
+    });
+  };
+
+  // -------------------------
+// Modal UI
+// -------------------------
+const getSaveModalUI = () => {
+  const modal = document.getElementById("save-modal");
+  const boardsWrap = document.getElementById("save-modal-boards");
+  const inputNew = document.getElementById("save-modal-newname");
+  const btnCreate = document.getElementById("save-modal-create");
+  const btnSave = document.getElementById("save-modal-save");
+
+  return {
+    modal,
+    boardsWrap,
+    inputNew,
+    btnCreate,
+    btnSave,
+    hasModalUI: !!(modal && boardsWrap && inputNew && btnCreate && btnSave),
+  };
+};
+
+let pendingItem = null;
+let selectedBoardId = DEFAULT_BOARD_ID;
+
+const renderBoards = (state) => {
+  const { boardsWrap, hasModalUI } = getSaveModalUI();
+  if (!hasModalUI) return;
+
+  const boards = state.boards || [];
+  boardsWrap.innerHTML = boards
+    .map((b) => {
+      const count = (state.items?.[b.id] || []).length;
+      const sel = b.id === selectedBoardId ? " is-selected" : "";
+      return `
+        <button class="save-board${sel}" type="button" data-board="${b.id}">
+          <span class="save-board__name">${escapeHtml(b.name)}</span>
+          <span class="save-board__meta">${count} продукта</span>
+        </button>
+      `;
+    })
+    .join("");
+};
+
+const openModal = (item) => {
+  const { modal, inputNew, hasModalUI } = getSaveModalUI();
+  if (!hasModalUI) return;
+
+  pendingItem = item;
+  const state = readState();
+  const customBoards = (state.boards || []).filter((board) => board.id !== DEFAULT_BOARD_ID);
+  const alreadySavedCustomBoard = customBoards.find((board) => isSavedInBoard(state, board.id, item.id));
+
+  selectedBoardId = alreadySavedCustomBoard?.id || customBoards[0]?.id || DEFAULT_BOARD_ID;
+  renderBoards(state);
+
+  modal.setAttribute("aria-hidden", "false");
+  document.documentElement.classList.add("no-scroll");
+
+  inputNew.value = "";
+  inputNew.focus();
+};
+
+const closeModal = () => {
+  const { modal, hasModalUI } = getSaveModalUI();
+  if (!hasModalUI) return;
+
+  modal.setAttribute("aria-hidden", "true");
+  document.documentElement.classList.remove("no-scroll");
+  pendingItem = null;
+};
+
+const createBoardFromModal = () => {
+  const { inputNew, hasModalUI } = getSaveModalUI();
+  if (!hasModalUI) return;
+
+  const name = (inputNew.value || "").trim();
+  if (!name) return;
+
+  const state = readState();
+  const id = slugId();
+  state.boards.push({ id, name, visibility: "private", shareKey: null });
+  state.items[id] = state.items[id] || [];
+  writeState(state);
+
+  selectedBoardId = id;
+  renderBoards(state);
+  inputNew.value = "";
+};
+
+const savePendingItemToBoard = () => {
+  if (!pendingItem || !selectedBoardId) return;
+
+  const state = readState();
+  addToBoard(state, selectedBoardId, pendingItem);
+  writeState(state);
+
+  const board = (state.boards || []).find((entry) => entry.id === selectedBoardId);
+  window.bulgaritamTrack?.("save_product", {
+    product_slug: pendingItem?.id || "",
+    product_name: pendingItem?.title || "",
+    brand_name: pendingItem?.brand || "",
+    destination_url: pendingItem?.url || "",
+    board_id: selectedBoardId || "",
+    board_name: board?.name || "",
+  });
+
+  syncSaveButtons();
+  closeModal();
+};
+
+document.addEventListener("click", (e) => {
+  const closeBtn = e.target.closest("[data-save-close]");
+  if (closeBtn) {
+    closeModal();
+    return;
+  }
+
+  const boardBtn = e.target.closest("[data-board]");
+  if (boardBtn) {
+    selectedBoardId = boardBtn.getAttribute("data-board") || DEFAULT_BOARD_ID;
+    renderBoards(readState());
+    return;
+  }
+
+  const createBtn = e.target.closest("#save-modal-create");
+  if (createBtn) {
+    createBoardFromModal();
+    return;
+  }
+
+  const saveBtn = e.target.closest("#save-modal-save");
+  if (saveBtn) {
+    savePendingItemToBoard();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  const { inputNew, modal, hasModalUI } = getSaveModalUI();
+  if (!hasModalUI) return;
+
+  if (e.key === "Escape" && modal.getAttribute("aria-hidden") === "false") {
+    closeModal();
+    return;
+  }
+
+  if (e.key === "Enter" && document.activeElement === inputNew) {
+    e.preventDefault();
+    createBoardFromModal();
+  }
+});
+
+
+
+  // -------------------------
+  // Save buttons everywhere
+  // -------------------------
+  const getItemFromBtn = (btn) => {
+    // Required:
+    // data-save-id, data-save-url
+    // Optional:
+    // data-save-title, data-save-image, data-save-brand, data-save-price
+    return {
+      id: btn.getAttribute("data-save-id"),
+      url: btn.getAttribute("data-save-url"),
+      title: btn.getAttribute("data-save-title") || "Запазен продукт",
+      image: btn.getAttribute("data-save-image") || "",
+      brand: btn.getAttribute("data-save-brand") || "",
+      price: btn.getAttribute("data-save-price") || ""
+    };
+  };
+
+  const syncSaveButtons = () => {
+    const state = readState();
+    document.querySelectorAll(".save-btn[data-save-id]").forEach(btn => {
+      const id = btn.getAttribute("data-save-id");
+      const saved = isSavedAnywhere(state, id);
+      btn.classList.toggle("is-saved", saved);
+      btn.setAttribute("aria-pressed", saved ? "true" : "false");
+    });
+  };
+  window.syncSaveButtons = syncSaveButtons;
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".save-btn[data-save-id]");
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+  const item = getItemFromBtn(btn);
+  const state = readState();
+    const hasCustomCollections = (state.boards || []).some((board) => board.id !== DEFAULT_BOARD_ID);
+
+    // Always ask where to save.
+    // If there are no custom collections yet, the modal still opens so the user
+    // can explicitly choose "Всички запазени" or create a new one first.
+    openModal(item);
+  });
+
+  // initial
+const initialState = readState();
+syncSaveButtons();
+updateSavedBadges(initialState);
+
+window.addEventListener("storage", () => {
+  const s = readState();
+  syncSaveButtons();
+  updateSavedBadges(s);
+});
+
+window.addEventListener("bulgaritam:saved", (e) => {
+  updateSavedBadges(e.detail);
+});
+
+
+</script>
+
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="wrap footer-inner">
+        <div class="footer-col">
+          <a class="footer-brand footer-link" href="/">Българитъм</a>
+          <div class="footer-note" data-i18n="footer.note">
+            Откривай български марки и продукти на едно място - представени по начин, който прави търсенето по-лесно, по-бързо и по-вдъхновяващо.
+          </div>
+          <div class="footer-made" data-i18n="footer.made">Създадено в България 🇧🇬</div>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-title" data-i18n="footer.explore">Разгледай</div>
+          <nav class="footer-nav" aria-label="Разгледай">
+            <a class="footer-link" href="/" data-i18n="nav.home">Начало</a>
+            <a class="footer-link" href="/bulgarski-brandove/" data-i18n="nav.brands">Брандове</a>
+            <a class="footer-link" href="/zapazeni/" data-i18n="nav.saved">Запазени</a>
+            <a class="footer-link" href="/blog/" data-i18n="nav.recommended">Препоръчано</a>
+          </nav>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-title" data-i18n="footer.categories">Категории</div>
+          <nav class="footer-nav" aria-label="Категории">
+            <a class="footer-link" href="/k/obleklo/" data-i18n="category.clothing">Облекло</a>
+            <a class="footer-link" href="/k/za-doma/" data-i18n="category.home">Дом и интериор</a>
+            <a class="footer-link" href="/k/kozmetika/" data-i18n="category.cosmetics">Козметика</a>
+            <a class="footer-link" href="/bulgarski-podaratsi/" data-i18n="category.gifts">Подаръци</a>
+            <a class="footer-link" href="/k/aksesoari/" data-i18n="category.accessories">Аксесоари</a>
+          </nav>
+        </div>
+
+        <div class="footer-col">
+          <div class="footer-title" data-i18n="footer.contactBrands">Контакт / За брандове</div>
+          <a class="footer-link" href="mailto:info@bulgaritam.bg">info@bulgaritam.bg</a>
+          <a class="footer-link" href="/partnyori/" data-i18n="nav.partner">Стани партньор</a>
+          <a class="footer-link" href="/politika-na-poveritelnost/" data-i18n="footer.privacy">Политика за поверителност</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div class="wrap footer-bottom-inner">
+          <span>© 2026 Българитъм</span>
+          <span class="footer-muted" data-i18n="footer.rights">Всички права запазени</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- COOKIE BANNER -->
+    <div id="cookie-banner" class="cookie" hidden>
+      <div class="cookie-card" role="dialog" aria-modal="true" aria-labelledby="cookie-title" aria-live="polite">
+        <div class="cookie-text">
+          <div class="cookie-title" id="cookie-title" data-i18n="cookie.title">Бисквитки</div>
+          <p class="cookie-p">
+            <span data-i18n="cookie.body">Използваме необходими бисквитки за да работи сайтът. С Ваше съгласие можем да използваме и аналитични бисквитки.</span>
+            <a class="cookie-link" href="/politika-na-poveritelnost/" data-i18n="footer.privacy">Политика за поверителност</a>.
+          </p>
+        </div>
+
+        <div class="cookie-actions">
+          <button class="cookie-btn cookie-btn--ghost" type="button" data-cookie="settings" data-i18n="cookie.settings">Настройки</button>
+          <button class="cookie-btn" data-cookie="necessary" data-i18n="cookie.necessary">Само необходими</button>
+          <button class="cookie-btn cookie-btn--primary" data-cookie="accept" data-i18n="cookie.accept">Приемам</button>
+        </div>
+
+        <div id="cookie-settings" class="cookie-settings" hidden>
+          <label class="cookie-row" for="cookie-analytics">
+            <input id="cookie-analytics" type="checkbox" />
+            <span>
+              <strong data-i18n="cookie.analytics">Аналитични бисквитки</strong><br />
+              <span class="cookie-muted" data-i18n="cookie.analyticsHint">Помагат ни да разбираме кои продукти, търсения и филтри използват хората най-често.</span>
+            </span>
+          </label>
+
+          <div class="cookie-actions cookie-actions--right">
+            <button class="cookie-btn cookie-btn--primary" type="button" data-cookie="save" data-i18n="cookie.save">Запази избора</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script is:inline>
+      const COOKIE_KEY = "bulgaritam_cookie_consent_v1";
+      const banner = document.getElementById("cookie-banner");
+      const settingsWrap = document.getElementById("cookie-settings");
+      const analyticsCheckbox = document.getElementById("cookie-analytics");
+
+      const applyCookieConsent = (consent) => {
+        document.documentElement.dataset.cookieAnalytics = consent?.analytics ? "1" : "0";
+        window.__cookieConsent = {
+          necessary: true,
+          analytics: Boolean(consent?.analytics),
+        };
+        window.dispatchEvent(new CustomEvent("cookie-consent", { detail: window.__cookieConsent }));
+      };
+
+      const readConsent = () => {
+        try {
+          const raw = localStorage.getItem(COOKIE_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      };
+
+      const writeConsent = (consent) => {
+        localStorage.setItem(COOKIE_KEY, JSON.stringify(consent));
+        applyCookieConsent(consent);
+        banner?.setAttribute("hidden", "");
+      };
+
+      const existingConsent = readConsent();
+      if (existingConsent) {
+        applyCookieConsent(existingConsent);
+        if (analyticsCheckbox) analyticsCheckbox.checked = Boolean(existingConsent.analytics);
+      } else if (banner) {
+        banner.removeAttribute("hidden");
+      }
+
+      banner?.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-cookie]");
+        if (!b) return;
+        const action = b.dataset.cookie;
+
+        if (action === "settings") {
+          settingsWrap?.toggleAttribute("hidden");
+          return;
+        }
+
+        if (action === "save") {
+          writeConsent({
+            necessary: true,
+            analytics: Boolean(analyticsCheckbox?.checked),
+          });
+          return;
+        }
+
+        writeConsent({
+          necessary: true,
+          analytics: action === "accept",
+        });
+      });
+    </script>
+
+    <script is:inline>
+      const lazyImages = Array.from(document.querySelectorAll("img[data-lazy-src]"));
+
+      const hydrateLazyImage = (img) => {
+        const nextSrc = img.getAttribute("data-lazy-src");
+        if (!nextSrc) return;
+
+        img.src = nextSrc;
+        img.removeAttribute("data-lazy-src");
+      };
+
+      let lazyImageObserver = null;
+      if ("IntersectionObserver" in window) {
+        lazyImageObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            hydrateLazyImage(entry.target);
+            observer.unobserve(entry.target);
+          });
+        }, { rootMargin: "640px 0px" });
+      }
+
+      window.bulgaritamHydrateLazyImages = (root = document) => {
+        const scopedImages = Array.from(root.querySelectorAll?.("img[data-lazy-src]") || []);
+        if (!scopedImages.length) return;
+        if (lazyImageObserver) {
+          scopedImages.forEach((img) => lazyImageObserver.observe(img));
+        } else {
+          scopedImages.forEach(hydrateLazyImage);
+        }
+      };
+
+      window.bulgaritamHydrateLazyImages(document);
+    </script>
+
+    <script is:inline>
+      const masonryGrids = Array.from(document.querySelectorAll("[data-masonry-grid]"));
+
+      const measureMasonryGrid = (grid) => {
+        const disableOnMobile = grid.dataset.masonryMobile === "off" && window.innerWidth <= 768;
+        const cards = Array.from(grid.querySelectorAll("[data-masonry-card]"));
+
+        if (disableOnMobile) {
+          cards.forEach((card) => card.style.removeProperty("--masonry-span"));
+          return;
+        }
+
+        const computed = window.getComputedStyle(grid);
+        const rowGap = Number.parseFloat(computed.rowGap || computed.gap || "0") || 0;
+        const autoRow = Number.parseFloat(computed.gridAutoRows || "1") || 1;
+
+        cards.forEach((card) => {
+          if (card.style.display === "none") {
+            card.style.removeProperty("--masonry-span");
+            return;
+          }
+
+          const span = Math.max(1, Math.ceil((card.getBoundingClientRect().height + rowGap) / (autoRow + rowGap)));
+          card.style.setProperty("--masonry-span", String(span));
+        });
+      };
+
+      const scheduleMasonry = (grid) => {
+        cancelAnimationFrame(grid.__masonryFrame || 0);
+        grid.__masonryFrame = requestAnimationFrame(() => measureMasonryGrid(grid));
+      };
+
+      masonryGrids.forEach((grid) => {
+        scheduleMasonry(grid);
+
+        Array.from(grid.querySelectorAll("img")).forEach((img) => {
+          if (img.complete) return;
+          img.addEventListener("load", () => scheduleMasonry(grid), { once: true });
+          img.addEventListener("error", () => scheduleMasonry(grid), { once: true });
+        });
+
+        if ("ResizeObserver" in window) {
+          const resizeObserver = new ResizeObserver(() => scheduleMasonry(grid));
+          resizeObserver.observe(grid);
+          Array.from(grid.querySelectorAll("[data-masonry-card]")).forEach((card) => resizeObserver.observe(card));
+        }
+      });
+
+      window.addEventListener("resize", () => {
+        masonryGrids.forEach((grid) => scheduleMasonry(grid));
+      });
+    </script>
+
+    
+  <div class="save-modal" id="save-modal" aria-hidden="true">
+  <div class="save-modal__backdrop" data-save-close></div>
+
+  <div class="save-modal__panel" role="dialog" aria-modal="true" aria-labelledby="save-modal-title">
+    <div class="save-modal__top">
+      <div class="save-modal__title" id="save-modal-title" data-i18n="save.title">Запази в колекция</div>
+      <button class="save-modal__close" type="button" aria-label="Затвори" data-save-close>×</button>
+    </div>
+
+      <div class="save-modal__body">
+        <div class="save-modal__hint" data-i18n="save.hint">Избери колекция или създай нова.</div>
+        <div class="save-modal__subhint" data-i18n="save.subhint">След това можеш да споделиш колекцията с линк.</div>
+
+      <div class="save-modal__boards" id="save-modal-boards"></div>
+
+      <div class="save-modal__new">
+        <input class="save-modal__input" id="save-modal-newname" type="text" placeholder="Нова колекция (напр. Подаръци за дома)" data-i18n-placeholder="save.placeholder" />
+        <button class="save-modal__btn" type="button" id="save-modal-create" data-i18n="save.create">Създай</button>
+      </div>
+
+      <div class="save-modal__actions">
+        <button class="save-modal__btn save-modal__btn--ghost" type="button" data-save-close data-i18n="save.cancel">Отказ</button>
+        <button class="save-modal__btn save-modal__btn--primary" type="button" id="save-modal-save" data-i18n="save.confirm">Запази</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <script is:inline define:vars={{ pageI18n: i18n }}>
+      const BULGARITAM_LANG_KEY = "bulgaritam_lang_v1";
+      const BULGARITAM_I18N = {
+        bg: {
+          "nav.home": "Начало",
+          "nav.saved": "Запазени",
+          "nav.recommended": "Препоръчано",
+          "nav.brands": "Брандове",
+          "nav.about": "За нас",
+          "nav.partner": "Стани партньор",
+          "nav.apply": "Кандидатствай",
+          "nav.menu": "Меню",
+          "footer.note": "Откривай български марки и продукти на едно място - представени по начин, който прави търсенето по-лесно, по-бързо и по-вдъхновяващо.",
+          "footer.made": "Създадено в България 🇧🇬",
+          "footer.explore": "Разгледай",
+          "footer.categories": "Категории",
+          "footer.contactBrands": "Контакт / За брандове",
+          "footer.privacy": "Политика за поверителност",
+          "footer.rights": "Всички права запазени",
+          "category.clothing": "Облекло",
+          "category.home": "Дом и интериор",
+          "category.cosmetics": "Козметика",
+          "category.gifts": "Подаръци",
+          "category.accessories": "Аксесоари",
+          "cookie.title": "Бисквитки",
+          "cookie.body": "Използваме необходими бисквитки за да работи сайтът. С Ваше съгласие можем да използваме и аналитични бисквитки.",
+          "cookie.necessary": "Само необходими",
+          "cookie.accept": "Приемам",
+          "cookie.settings": "Настройки",
+          "cookie.analytics": "Аналитични бисквитки",
+          "cookie.analyticsHint": "Помагат ни да разбираме кои продукти, търсения и филтри използват хората най-често.",
+          "cookie.save": "Запази избора",
+          "save.title": "Запази в колекция",
+          "save.hint": "Избери колекция или създай нова.",
+          "save.subhint": "След това можеш да споделиш колекцията с линк.",
+          "save.placeholder": "Нова колекция (напр. Подаръци за дома)",
+          "save.create": "Създай",
+          "save.cancel": "Отказ",
+          "save.confirm": "Запази",
+          "filters.clear": "Изчисти",
+          "filters.showResults": "Покажи резултатите"
+        },
+        en: {
+          "nav.home": "Home",
+          "nav.saved": "Saved",
+          "nav.recommended": "Recommended",
+          "nav.brands": "Brands",
+          "nav.about": "About",
+          "nav.partner": "Become a partner",
+          "nav.apply": "Apply",
+          "nav.menu": "Menu",
+          "footer.note": "Discover Bulgarian brands and products in one place, presented in a way that makes browsing easier, faster, and more inspiring.",
+          "footer.made": "Created in Bulgaria 🇧🇬",
+          "footer.explore": "Explore",
+          "footer.categories": "Categories",
+          "footer.contactBrands": "Contact / For brands",
+          "footer.privacy": "Privacy policy",
+          "footer.rights": "All rights reserved",
+          "category.clothing": "Clothing",
+          "category.home": "Home & interior",
+          "category.cosmetics": "Cosmetics",
+          "category.gifts": "Gifts",
+          "category.accessories": "Accessories",
+          "cookie.title": "Cookies",
+          "cookie.body": "We use essential cookies to make the site work. With your consent, we may also use analytics cookies.",
+          "cookie.necessary": "Necessary only",
+          "cookie.accept": "Accept",
+          "cookie.settings": "Settings",
+          "cookie.analytics": "Analytics cookies",
+          "cookie.analyticsHint": "They help us understand which products, searches and filters people use most often.",
+          "cookie.save": "Save choice",
+          "save.title": "Save to collection",
+          "save.hint": "Choose a collection or create a new one.",
+          "save.subhint": "Then you can share the collection with a link.",
+          "save.placeholder": "New collection (e.g. Gifts for home)",
+          "save.create": "Create",
+          "save.cancel": "Cancel",
+          "save.confirm": "Save",
+          "filters.clear": "Clear",
+          "filters.showResults": "Show results"
+        }
+      };
+
+      if (pageI18n && typeof pageI18n === "object") {
+        Object.entries(pageI18n).forEach(([lang, values]) => {
+          BULGARITAM_I18N[lang] = { ...(BULGARITAM_I18N[lang] || {}), ...(values || {}) };
+        });
+      }
+
+      const applyLanguage = (lang) => {
+        const nextLang = lang === "en" ? "en" : "bg";
+        localStorage.setItem(BULGARITAM_LANG_KEY, nextLang);
+        document.documentElement.lang = nextLang;
+        document.body.dataset.lang = nextLang;
+        window.__bulgaritamLang = nextLang;
+
+        document.querySelectorAll("[data-lang-switch]").forEach((button) => {
+          const active = button.getAttribute("data-lang-switch") === nextLang;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+
+        document.querySelectorAll("[data-i18n]").forEach((node) => {
+          const key = node.getAttribute("data-i18n");
+          const translated = BULGARITAM_I18N[nextLang]?.[key];
+          if (translated) node.textContent = translated;
+        });
+
+        document.querySelectorAll("[data-i18n-bg][data-i18n-en]").forEach((node) => {
+          const translated = nextLang === "en"
+            ? node.getAttribute("data-i18n-en")
+            : node.getAttribute("data-i18n-bg");
+          if (translated) node.textContent = translated;
+        });
+
+        document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+          const key = node.getAttribute("data-i18n-placeholder");
+          const translated = BULGARITAM_I18N[nextLang]?.[key];
+          if (translated) node.setAttribute("placeholder", translated);
+        });
+
+        window.dispatchEvent(new CustomEvent("bulgaritam:lang", { detail: { lang: nextLang } }));
+      };
+
+      const initialLang = localStorage.getItem(BULGARITAM_LANG_KEY) || "bg";
+      applyLanguage(initialLang);
+
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-lang-switch]");
+        if (!button) return;
+        applyLanguage(button.getAttribute("data-lang-switch"));
+      });
+    </script>
+
+
+  </body>
+</html>

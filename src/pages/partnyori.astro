@@ -1,0 +1,431 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { loadProducts } from "../lib/products";
+
+const title = "Партньори | Българитъм";
+const description =
+  "Кандидатствай за включване в Българитъм — платформа за откриване на български брандове и продукти с редакторски подход и премиум присъствие.";
+const canonical = "https://bulgaritam.bg/partnyori/";
+
+const FORM_URL =
+  "https://docs.google.com/forms/d/1spir88RH9xJpulSoeFwQCbOXVgejIsSWNx1tevvN2Gw/viewform";
+
+const SLOT_LIMIT = 150;
+const products = await loadProducts();
+const activeBrandSlugs = new Set(
+  products
+    .filter((product) => product.is_active)
+    .map((product) => String(product.brand_slug ?? "").trim())
+    .filter(Boolean),
+);
+const takenSlots = activeBrandSlugs.size;
+const remainingSlots = Math.max(SLOT_LIMIT - takenSlots, 0);
+const progressPercent = Math.min((takenSlots / SLOT_LIMIT) * 100, 100);
+---
+
+<BaseLayout
+  seo={{
+    title,
+    description,
+    data: {
+      breadcrumbs: [
+        { name: "Начало", item: "/" },
+        { name: "Стани партньор", item: "/partnyori/" },
+      ],
+    },
+  }}
+  canonical={canonical}
+  i18n={{
+    en: {
+      "partner.kicker": "For brands",
+      "partner.title": "Become a partner",
+      "partner.intro": "If you create quality Bulgarian products, Bulgaritam is the place where your brand can be discovered more easily by people already looking for Bulgarian brands, thoughtfully curated products, and a more personalized shopping experience.",
+      "partner.invite": "Limited invitation",
+      "partner.freeTitle": "The first 150 brands join for free",
+      "partner.free1": "At the moment, we are building the largest platform for discovering Bulgarian products. That is why the first 150 brands join completely free of charge.",
+      "partner.free2": "If you want to be among them, apply now. Spots are limited and depend on the brands already included.",
+      "partner.progressLabel": "Taken spots",
+      "partner.progressHelp": "Already on Bulgaritam: {taken} of 150 brands. Remaining: {remaining}.",
+      "partner.applyJoin": "Apply to join →",
+      "partner.howTitle": "How to apply",
+      "partner.howBody": "Fill out the short form with the basic information about your brand and products. This helps us prepare a presence that feels clear, beautiful, and useful for the people discovering you for the first time.",
+      "partner.note": "After we review the information, we will contact you if we need clarifications and prepare your brand's presence on the platform.",
+      "partner.pricing": "Pricing",
+      "partner.pricingIntro": "At the moment, we are gathering information and building the largest platform for discovering Bulgarian products.",
+      "partner.freeNow": "Free for now",
+      "partner.noFees": "No monthly fees",
+      "partner.directSite": "Direct to your site",
+      "partner.pricingNote": "At this stage, joining is free. This will change as the platform grows, but right now our focus is gathering the right information and building the strongest possible place for discovering Bulgarian brands.",
+      "partner.forWhom": "Who Bulgaritam is for",
+      "partner.forWhomIntro": "Bulgaritam is for brands that:",
+      "partner.li1": "produce in Bulgaria",
+      "partner.li2": "care about quality and authenticity",
+      "partner.li3": "want to be discovered by the right audience instead of chasing algorithms",
+      "partner.li4": "want a presence that looks premium and feels editorially curated",
+      "partner.fillForm": "Fill out the form →",
+      "partner.whyTitle": "Why joining helps your brand",
+      "partner.why1": "Bulgaritam is not only visibility. We build pages around search intent and keyword research, so category, gifting and discovery pages can rank in Google more easily than isolated product posts.",
+      "partner.why2": "Well-structured directories often build authority faster. When your brand site is connected to Bulgaritam, that creates extra signals, backlinks and contextual links that can support your own site in Google.",
+      "partner.why3": "At the same time, the audience arriving here is already actively interested in Bulgarian production, local brands and more meaningful discovery, so the visibility is closer to real intent.",
+      "partner.presenceTitle": "How your presence works",
+      "partner.presence1": "We upload the products ourselves. You do not need to create a profile, enter information or maintain content inside the platform.",
+      "partner.presence2": "We use publicly available information from your site such as images, descriptions and links, and every product leads directly back to your own website.",
+      "partner.presence3": "If a product changes or is removed from your site, we track that and update the information here so your presence stays accurate.",
+      "partner.presence4": "Orders happen entirely through your own site. Bulgaritam does not process sales and simply sends interested people directly to you.",
+    }
+  }}
+>
+  <main class="page-shell page-shell--narrow">
+    <header class="page-head">
+      <p class="page-kicker" data-i18n="partner.kicker">За брандове</p>
+      <h1 class="page-title" data-i18n="partner.title">Стани партньор</h1>
+      <p class="page-intro" data-i18n="partner.intro">
+        Ако създаваш качествени български продукти, Българитъм е мястото, където брандът ти може да бъде откриван по-лесно от хора, които вече търсят български марки, внимателно подбрани продукти и по-персонализирано преживяване в пазаруването.
+      </p>
+    </header>
+
+    <section class="page-card page-card--feature">
+      <p class="feature-kicker" data-i18n="partner.invite">Ограничена покана</p>
+      <h2 data-i18n="partner.freeTitle">Първите 150 бранда се включват безплатно</h2>
+
+      <div class="section-copy">
+        <p data-i18n="partner.free1">
+          В момента изграждаме най-голямата платформа за откриване на български продукти.
+          Затова първите 150 бранда се включват напълно безплатно.
+        </p>
+        <p data-i18n="partner.free2">
+          Ако искаш да бъдеш сред тях, кандидатствай сега.
+          Местата са ограничени и зависят от вече включените брандове.
+        </p>
+      </div>
+
+      <div class="slots-progress" aria-label={`Заети места: ${takenSlots} от ${SLOT_LIMIT}`}>
+        <div class="slots-progress__top">
+          <span class="slots-progress__label">Заети места</span>
+          <span class="slots-progress__value">{takenSlots} / {SLOT_LIMIT}</span>
+        </div>
+        <div class="slots-progress__track" aria-hidden="true">
+          <div class="slots-progress__fill" style={`width:${progressPercent}%;`} />
+        </div>
+        <p class="slots-progress__note">
+          Вече присъстват <strong>{takenSlots}</strong> от общо <strong>{SLOT_LIMIT}</strong> бранда.
+          Свободни остават <strong>{remainingSlots}</strong> места.
+        </p>
+      </div>
+
+    </section>
+
+    <section class="page-card page-card--muted">
+      <h2 data-i18n="partner.presenceTitle">Как работи присъствието ти в Българитъм</h2>
+      <div class="section-copy">
+        <p data-i18n="partner.presence1">
+          Качването на продуктите се извършва изцяло от наша страна. Не е необходимо да създаваш профил, да въвеждаш информация или да поддържаш съдържание в платформата.
+        </p>
+        <p data-i18n="partner.presence2">
+          Използваме публично достъпна информация от твоя сайт като снимки, описания и линкове, а продуктите водят директно към теб.
+        </p>
+        <p data-i18n="partner.presence3">
+          Ако даден продукт бъде премахнат или променен в сайта ти, следим това и актуализираме информацията при нас, така че съдържанието да остане коректно.
+        </p>
+        <p data-i18n="partner.presence4">
+          Поръчките се извършват изцяло през твоя сайт. Българитъм не участва в процеса на продажба, а единствено насочва потребители към теб.
+        </p>
+      </div>
+    </section>
+
+    <section class="page-card page-card--soft">
+      <h2 data-i18n="partner.howTitle">Как да кандидатстваш</h2>
+
+      <div class="section-copy">
+        <p data-i18n="partner.howBody">
+          Попълни краткия формуляр с основната информация за бранда и продуктите ти.
+          Това ни помага да подготвим присъствие, което е ясно, красиво и полезно за хората, които те откриват за първи път.
+        </p>
+      </div>
+
+      <div class="actions">
+        <a class="btn" href={FORM_URL} target="_blank" rel="noopener noreferrer" data-i18n="partner.applyJoin">
+          Кандидатствай за включване →
+        </a>
+      </div>
+
+      <p class="note" data-i18n="partner.note">
+        След като прегледаме информацията, ще се свържем с теб при нужда от уточнения и ще подготвим
+        присъствието на бранда ти в платформата.
+      </p>
+    </section>
+
+    <section class="page-card page-card--soft">
+      <h2 data-i18n="partner.whyTitle">Защо включването е полезно за бранда</h2>
+      <div class="section-copy">
+        <p data-i18n="partner.why1">
+          Българитъм не е само видимост. Подреждаме присъствието на брандовете около намерението за търсене, проучването на ключови думи и страници, които могат да се класират по-лесно в Google от изолирани продуктови публикации.
+        </p>
+        <p data-i18n="partner.why2">
+          Добре структурираните директории често изграждат авторитет по-бързо. Когато сайтът на бранда е свързан с Българитъм, това добавя още сигнали, контекстуални връзки и външни връзки, които могат да помогнат и на твоя собствен сайт да се вижда по-добре в Google.
+        </p>
+        <p data-i18n="partner.why3">
+          Освен това аудиторията тук вече е активно заинтересована от българско производство, локални марки и по-смислено откриване на продукти. Така присъствието не е просто масова видимост, а достигане до хора с реално намерение.
+        </p>
+      </div>
+    </section>
+
+    <section class="page-card page-card--muted">
+      <h2 data-i18n="partner.pricing">Ценообразуване</h2>
+      <p class="pricing-intro" data-i18n="partner.pricingIntro">
+        В момента събираме информация и изграждаме най-голямата платформа за откриване на български продукти.
+      </p>
+
+      <div class="pill-row">
+        <span class="pill" data-i18n="partner.freeNow">Безплатно засега</span>
+        <span class="pill" data-i18n="partner.noFees">Без месечни такси</span>
+        <span class="pill" data-i18n="partner.directSite">Директно към твоя сайт</span>
+      </div>
+
+      <p class="note" data-i18n="partner.pricingNote">
+        На този етап включването е безплатно. Това ще се промени с развитието на платформата, но сега фокусът ни е да съберем правилната информация и да изградим възможно най-силното място за откриване на български брандове.
+      </p>
+    </section>
+
+    <section class="page-card">
+      <h2 data-i18n="partner.forWhom">За кого е Българитъм</h2>
+      <div class="section-copy">
+        <p data-i18n="partner.forWhomIntro">Българитъм е за брандове, които:</p>
+      </div>
+
+      <ul class="list">
+        <li data-i18n="partner.li1">произвеждат в България</li>
+        <li data-i18n="partner.li2">държат на качеството и автентичността</li>
+        <li data-i18n="partner.li3">искат да бъдат откривани от правилната аудитория, а не да „гонят“ алгоритми</li>
+        <li data-i18n="partner.li4">искат присъствие, което изглежда премиум и се усеща редакторски подбрано</li>
+      </ul>
+
+      <div class="actions">
+        <a class="btn" href={FORM_URL} target="_blank" rel="noopener noreferrer" data-i18n="partner.fillForm">
+          Попълни формуляра →
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <style>
+    .page-shell--narrow {
+      max-width: 920px;
+    }
+
+    .page-head {
+      margin-bottom: 40px;
+    }
+
+    .page-card {
+      padding: 28px 30px;
+    }
+
+    .page-card + .page-card {
+      margin-top: 24px;
+    }
+
+    .intro-card {
+      margin-bottom: 24px;
+    }
+
+    .page-card--feature {
+      background: linear-gradient(180deg, rgba(95, 127, 107, 0.12), rgba(255, 255, 255, 0.84));
+      border-color: rgba(95, 127, 107, 0.18);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.06);
+    }
+
+    .page-card--soft {
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .page-card--muted {
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    .lead {
+      max-width: 680px;
+      margin: 0 auto;
+      font-size: 17px;
+      line-height: 1.72;
+      opacity: 0.9;
+      text-align: center;
+    }
+
+    .lead--secondary {
+      margin-top: 14px;
+      opacity: 0.82;
+    }
+
+    .feature-kicker {
+      margin: 0 0 10px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.54);
+    }
+
+    .slots-progress {
+      margin-top: 24px;
+      max-width: 680px;
+      padding: 16px 18px 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(95, 127, 107, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    }
+
+    .slots-progress__top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .slots-progress__label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.56);
+    }
+
+    .slots-progress__value {
+      font-size: 14px;
+      font-weight: 750;
+      color: rgba(48, 84, 63, 0.94);
+    }
+
+    .slots-progress__track {
+      position: relative;
+      overflow: hidden;
+      height: 12px;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(238, 236, 228, 0.95));
+      border: 1px solid rgba(95, 127, 107, 0.12);
+    }
+
+    .slots-progress__fill {
+      height: 100%;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg, rgba(116, 155, 109, 0.9), rgba(95, 127, 107, 0.98));
+      box-shadow: 0 4px 16px rgba(95, 127, 107, 0.25);
+    }
+
+    .slots-progress__note {
+      margin: 12px 0 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(26, 26, 26, 0.78);
+    }
+
+    h2 {
+      margin: 0 0 14px;
+    }
+
+    .section-copy {
+      max-width: 680px;
+    }
+
+    .section-copy p {
+      margin: 0;
+      line-height: 1.68;
+    }
+
+    .section-copy p + p {
+      margin-top: 12px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 750;
+      border: 1px solid rgba(0,0,0,.06);
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+    }
+
+    .btn:hover { background: var(--accent-strong); }
+    .btn:active { transform: translateY(1px); }
+
+    .pricing-intro {
+      max-width: 680px;
+      margin: 0;
+      line-height: 1.68;
+      opacity: 0.8;
+    }
+
+    .list {
+      max-width: 680px;
+      margin: 12px 0 0;
+      padding-left: 18px;
+      line-height: 1.8;
+    }
+
+    .note {
+      max-width: 680px;
+      margin-top: 12px;
+      opacity: .8;
+      line-height: 1.65;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.75);
+      opacity: .9;
+      font-weight: 650;
+    }
+
+    @media (max-width: 768px) {
+      .page-head {
+        margin-bottom: 30px;
+      }
+
+      .page-card {
+        padding: 24px 20px;
+      }
+
+      .actions .btn {
+        width: 100%;
+        min-height: 48px;
+      }
+
+      .slots-progress {
+        padding: 15px 14px 16px;
+      }
+
+      .slots-progress__top {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+      }
+    }
+  </style>
+</BaseLayout>

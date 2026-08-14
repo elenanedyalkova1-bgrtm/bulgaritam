@@ -7,11 +7,23 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "admin:dev": "npm --prefix admin-app run dev",
+    "admin:check": "npm --prefix admin-app run check",
+    "admin:password": "node scripts/generate-admin-password.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "audit:tags": "node scripts/audit-product-tags.mjs",
+    "health:products": "node scripts/check-product-health.mjs",
+    "health:products:apply": "node scripts/check-product-health.mjs --apply",
+    "verify:public-build": "node scripts/verify-public-build.mjs"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
     "astro": "^6.1.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^5.9.3"
   }
 }

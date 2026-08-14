@@ -1,0 +1,1086 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCuratedTagsForProduct } from "../../lib/curated-tags";
+import { getProductBadges } from "../../lib/product-badges";
+import { getProductUsageContext } from "../../lib/product-context";
+import { getCategoryKey, getCategoryLanding, getCanonicalPathForLanding, getDisplayCategoryForProduct, getRelevantLandingsForProduct } from "../../lib/seo-landings";
+import { getTaxonomyForProduct } from "../../lib/taxonomy";
+import { loadProducts } from "../../lib/products";
+
+/** Helpers */
+const clean = (v) => (v == null ? "" : String(v).trim());
+
+const normalizeTags = (tagsValue) => {
+  // Supports:
+  // - array: ["gift", "wood"]
+  // - string: "gift, wood"
+  // - null/undefined
+  if (Array.isArray(tagsValue)) {
+    return tagsValue.map((t) => String(t).trim()).filter(Boolean);
+  }
+  if (typeof tagsValue === "string") {
+    return tagsValue
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+export async function getStaticPaths() {
+  const products = await loadProducts();
+  return products.map((p) => ({ params: { slug: p.slug }, props: { product: p } }));
+}
+
+const { product } = Astro.props;
+
+// Load all products once for related
+const all = await loadProducts();
+
+// Normalize tags (important!)
+const tags = normalizeTags(product.tags);
+const tagSet = new Set(tags.map((t) => t.toLowerCase()));
+
+// Price text
+const priceText =
+  product.price_min_eur !== null && product.price_max_eur !== null
+    ? `${product.price_min_eur}–${product.price_max_eur} ${product.currency}`
+    : product.price_min_eur !== null
+      ? `${product.price_min_eur}+ ${product.currency}`
+      : "";
+
+// Breadcrumbs
+const categoryLanding = getCategoryLanding(getCategoryKey(product.category));
+const landingLinks = getRelevantLandingsForProduct(product, 3);
+const curatedTagLinks = getCuratedTagsForProduct(product, all, 4);
+const productCategoryLabel = getDisplayCategoryForProduct(product);
+const breadcrumbs = [
+  { label: "Начало", href: "/" },
+  { label: productCategoryLabel || "Категория", href: categoryLanding ? getCanonicalPathForLanding(categoryLanding) : undefined },
+  { label: product.brand_name || "Бранд", href: product.brand_slug ? `/brand/${product.brand_slug}/` : undefined },
+  { label: product.name_bg || "Продукт" },
+];
+const usageContext = getProductUsageContext(product);
+const sameBrandProducts = all
+  .filter((p) => p.slug !== product.slug)
+  .filter((p) => product.brand_slug && p.brand_slug === product.brand_slug)
+  .slice(0, 6);
+
+// Related products: score by shared tags + same category + same brand
+const productTaxonomy = getTaxonomyForProduct(product);
+const related = all
+  .filter((p) => p.slug !== product.slug)
+  .filter((p) => !product.brand_slug || p.brand_slug !== product.brand_slug)
+  .map((p) => {
+    const pTags = normalizeTags(p.tags);
+    const relatedTaxonomy = getTaxonomyForProduct(p);
+    const sharedCategoryCount = relatedTaxonomy.categoryKeys.filter((key) =>
+      productTaxonomy.categoryKeys.includes(key)
+    ).length;
+    const sameCategory = sharedCategoryCount ? 5 + (sharedCategoryCount - 1) * 2 : 0;
+
+    const sharedTags = pTags.reduce(
+      (acc, t) => acc + (tagSet.has(String(t).toLowerCase()) ? 3 : 0),
+      0
+    );
+
+    const score = sameCategory + sharedTags;
+    return { p, score };
+  })
+  .filter((x) => x.score > 0)
+  .sort((a, b) => b.score - a.score)
+  .slice(0, 8)
+  .map((x) => x.p);
+
+const relatedPrice = (p) =>
+  p.price_min_eur !== null && p.price_max_eur !== null
+    ? `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`
+    : p.price_min_eur !== null
+      ? `${p.price_min_eur}+ ${p.currency}`
+      : "";
+
+---
+<BaseLayout seo={{ type: "product", data: {
+  productName: product.name_bg,
+  brandName: product.brand_name,
+  description: product.short_desc_bg || product.long_desc_bg,
+  image: product.image_urls?.[0],
+  category: productCategoryLabel,
+  productUrl: product.product_url,
+  currency: product.currency,
+  price: product.price_min_eur ?? product.price_max_eur,
+  breadcrumbs: breadcrumbs.map((entry) => ({ name: entry.label, item: entry.href }))
+} }} i18n={{
+  en: {
+    "product.saveNote": "Collect your favorite products in a personal gallery and share it with a link.",
+    "product.category": "Category",
+    "product.price": "Price",
+    "product.cta": "Visit brand website →",
+    "product.moreIdeas": "More ideas",
+    "product.relatedTitle": "Explore more in similar selections",
+    "product.sameBrandKicker": "More from this brand",
+    "product.sameBrandTitle": "More from this brand",
+    "product.curatedKicker": "Curated suggestions",
+    "product.mightLike": "More products you may like",
+    "product.suitableFor": "Suitable for",
+    "product.perfectFor": "Perfect for"
+  }
+}}>
+  <main class="page-shell product-shell">
+    <div
+      class="sr-only"
+      aria-hidden="true"
+      data-tags={tags.join(",")}
+    ></div>
+    <div class="product-topbar">
+      <a href="/" class="back">← Назад</a>
+    </div>
+
+    <nav aria-label="breadcrumbs" class="breadcrumbs">
+      <ol>
+        {breadcrumbs.map((c, i) => (
+          <li>
+            {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            {i < breadcrumbs.length - 1 ? <span class="sep">→</span> : null}
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <section class="product-frame page-panel">
+      <div class="product-grid">
+        {product.image_urls?.length ? (
+          <div class="hero hero--relative product-media">
+            <button
+              class="save-btn save-btn--product"
+              type="button"
+              aria-label="Запази продукта"
+              aria-pressed="false"
+              data-save-id={product.slug}
+              data-save-url={`/p/${product.slug}/`}
+              data-save-title={product.name_bg}
+              data-save-brand={product.brand_name ?? ""}
+              data-save-price={priceText ?? ""}
+              data-save-image={product.image_urls?.[0] ?? ""}
+            >
+              <svg class="save-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  fill="none"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+
+            <img
+              src={product.image_urls[0]}
+              alt={product.name_bg}
+              class="hero-img"
+              loading="lazy"
+              decoding="async"
+              width="1200"
+              height="1500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1180px) 52vw, 620px"
+            />
+          </div>
+        ) : null}
+
+        <div class="product-copy">
+          {product.brand_slug ? (
+            <a class="brand" href={`/brand/${product.brand_slug}/`}>
+              {product.brand_name}
+            </a>
+          ) : product.brand_name ? (
+            <div class="brand brand--plain">{product.brand_name}</div>
+          ) : null}
+
+          <p class="save-note" data-i18n="product.saveNote">Събери любимите си продукти в лична галерия и я сподели с линк.</p>
+
+          <h1 class="title">{product.name_bg}</h1>
+
+          {product.short_desc_bg ? <p class="desc desc--lead">{product.short_desc_bg}</p> : null}
+
+          <div class="meta">
+            <div class="meta-item">
+              <span class="meta-label" data-i18n="product.category">Категория</span>
+              <span class="meta-value">{productCategoryLabel}</span>
+            </div>
+
+            {priceText ? (
+              <div class="meta-item meta-item--price">
+                <span class="meta-label" data-i18n="product.price">Цена</span>
+                <span class="price">{priceText}</span>
+              </div>
+            ) : null}
+
+            <div class="meta-item">
+              <span class="meta-label" data-i18n="product.suitableFor">Подходящо за</span>
+              <span class="meta-value">{usageContext.suitableFor}</span>
+            </div>
+
+            <div class="meta-item">
+              <span class="meta-label" data-i18n="product.perfectFor">Перфектно за</span>
+              <span class="meta-value">{usageContext.perfectFor}</span>
+            </div>
+          </div>
+
+          {curatedTagLinks.length ? (
+            <div class="product-tag-links" aria-label="Свързани колекции">
+              {curatedTagLinks.map((entry) => (
+                <a class="product-tag-links__pill" href={`/blog/${entry.slug}/`}>
+                  {entry.label}
+                </a>
+              ))}
+            </div>
+          ) : null}
+
+          <a
+            href={product.product_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn"
+            data-i18n="product.cta"
+            data-analytics-event="outbound_brand_click"
+            data-product-slug={product.slug}
+            data-product-name={product.name_bg}
+            data-brand-slug={product.brand_slug ?? ""}
+            data-brand-name={product.brand_name ?? ""}
+            data-product-url={product.product_url ?? ""}
+          >
+            Виж на сайта на бранда →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    {sameBrandProducts.length ? (
+      <section class="related">
+        <div class="related-head">
+          <p class="page-kicker" data-i18n="product.sameBrandKicker">Още от този бранд</p>
+          <h2 class="related-title" data-i18n="product.sameBrandTitle">Още от този бранд</h2>
+        </div>
+
+        <ul class="related-grid">
+          {sameBrandProducts.map((r) => {
+            const { isBio, isEco, isHandmade, isGift } = getProductBadges(r);
+            return (
+              <li
+                class="related-card"
+                data-masonry-card
+                data-product-slug={r.slug}
+                data-product-name={r.name_bg}
+                data-brand-slug={r.brand_slug ?? ""}
+                data-brand-name={r.brand_name ?? ""}
+                data-product-url={r.product_url ?? ""}
+              >
+                <button
+                  class="save-btn save-btn--related"
+                  type="button"
+                  aria-label="Запази продукта"
+                  aria-pressed="false"
+                  data-save-id={r.slug}
+                  data-save-url={`/p/${r.slug}/`}
+                  data-save-title={r.name_bg}
+                  data-save-brand={r.brand_name ?? ""}
+                  data-save-price={relatedPrice(r) ?? ""}
+                  data-save-image={r.image_urls?.[0] ?? ""}
+                >
+                  <svg class="save-ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z" />
+                  </svg>
+                </button>
+                <a href={`/p/${r.slug}/`} class="related-link">
+                  {r.image_urls?.length ? (
+                    <img src={r.image_urls[0]} alt={r.name_bg} class="related-img" loading="lazy" decoding="async" width="900" height="1125" sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 25vw" />
+                  ) : (
+                    <div class="related-img placeholder" aria-hidden="true"></div>
+                  )}
+
+                  <div class="related-body">
+                    <div class="related-badges">
+                      <span class="related-chip">{getDisplayCategoryForProduct(r)}</span>
+                      {isBio ? <span class="related-chip related-chip--bio">Био</span> : null}
+                      {isEco ? <span class="related-chip related-chip--eco">Еко</span> : null}
+                      {isHandmade ? <span class="related-chip related-chip--handmade">Ръчна изработка</span> : null}
+                      {isGift ? <span class="related-chip related-chip--gift">Подарък</span> : null}
+                    </div>
+                    <div class="related-name">{r.name_bg}</div>
+                    <div class="related-sub">{r.brand_name || ""}</div>
+                    {relatedPrice(r) ? <div class="related-price">{relatedPrice(r)}</div> : null}
+                  </div>
+                </a>
+                <div class="related-foot">
+                  <a
+                    href={r.product_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="related-cta"
+                  >
+                    Виж в сайта на бранда →
+                  </a>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ) : null}
+
+    {landingLinks.length ? (
+      <section class="landing-links">
+        <div class="landing-links__head">
+          <p class="page-kicker" data-i18n="product.moreIdeas">Още идеи</p>
+          <h2 class="landing-links__title" data-i18n="product.relatedTitle">Разгледай още в подобни селекции</h2>
+        </div>
+
+        <div class="landing-links__grid">
+          {landingLinks.map((landing) => (
+            <a class="landing-link-card" href={getCanonicalPathForLanding(landing)}>
+              <span class="landing-link-card__label">{landing.label}</span>
+              <span class="landing-link-card__cta">Виж всички →</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ) : null}
+
+    {related.length ? (
+      <section class="related">
+        <div class="related-head">
+          <p class="page-kicker" data-i18n="product.curatedKicker">Подбрани предложения</p>
+          <h2 class="related-title" data-i18n="product.mightLike">Още продукти, които може да ти допаднат</h2>
+        </div>
+
+        <ul class="related-grid">
+          {related.map((r) => {
+            const { isBio, isEco, isHandmade, isGift } = getProductBadges(r);
+            return (
+              <li
+                class="related-card"
+                data-masonry-card
+                data-product-slug={r.slug}
+                data-product-name={r.name_bg}
+                data-brand-slug={r.brand_slug ?? ""}
+                data-brand-name={r.brand_name ?? ""}
+                data-product-url={r.product_url ?? ""}
+              >
+                <button
+                  class="save-btn save-btn--related"
+                  type="button"
+                  aria-label="Запази продукта"
+                  aria-pressed="false"
+                  data-save-id={r.slug}
+                  data-save-url={`/p/${r.slug}/`}
+                  data-save-title={r.name_bg}
+                  data-save-brand={r.brand_name ?? ""}
+                  data-save-price={relatedPrice(r) ?? ""}
+                  data-save-image={r.image_urls?.[0] ?? ""}
+                >
+                  <svg class="save-ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z" />
+                  </svg>
+                </button>
+                <a href={`/p/${r.slug}/`} class="related-link">
+                  {r.image_urls?.length ? (
+                    <img
+                      src={r.image_urls[0]}
+                      alt={r.name_bg}
+                      class="related-img"
+                      loading="lazy"
+                      decoding="async"
+                      width="900"
+                      height="1125"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1080px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div class="related-img placeholder" aria-hidden="true"></div>
+                  )}
+
+                  <div class="related-body">
+                    <div class="related-badges">
+                      <span class="related-chip">{getDisplayCategoryForProduct(r)}</span>
+                      {isBio ? <span class="related-chip related-chip--bio">Био</span> : null}
+                      {isEco ? <span class="related-chip related-chip--eco">Еко</span> : null}
+                      {isHandmade ? <span class="related-chip related-chip--handmade">Ръчна изработка</span> : null}
+                      {isGift ? <span class="related-chip related-chip--gift">Подарък</span> : null}
+                    </div>
+                    <div class="related-name">{r.name_bg}</div>
+
+                    <div class="related-sub">
+                      {getDisplayCategoryForProduct(r)}
+                      {r.brand_name ? ` • ${r.brand_name}` : ""}
+                    </div>
+
+                    {relatedPrice(r) ? (
+                      <div class="related-price">{relatedPrice(r)}</div>
+                    ) : null}
+                  </div>
+                </a>
+                <div class="related-foot">
+                  <a
+                    href={r.product_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="related-cta"
+                  >
+                    Виж в сайта на бранда →
+                  </a>
+                </div>
+              </li>
+          )})}
+        </ul>
+      </section>
+    ) : null}
+  </main>
+
+  <style>
+    .product-shell {
+      max-width: 1180px;
+    }
+
+    .product-topbar {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--accent);
+      font-weight: 650;
+      font-size: 0.95rem;
+    }
+
+    .back:hover {
+      color: var(--accent-strong);
+    }
+
+    .breadcrumbs {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      margin-bottom: 20px;
+    }
+
+    .breadcrumbs ol {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .breadcrumbs a {
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      color: inherit;
+    }
+
+    .breadcrumbs a:hover {
+      border-bottom-color: currentColor;
+    }
+
+    .sep {
+      opacity: 0.6;
+      margin: 0 0.2rem;
+    }
+
+    .product-frame {
+      padding: 24px;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.85fr);
+      gap: 34px;
+      align-items: start;
+    }
+
+    .product-copy {
+      display: grid;
+      align-content: start;
+      gap: 16px;
+      padding-top: 10px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: var(--type-h1);
+      line-height: 1.06;
+      letter-spacing: -0.04em;
+      text-wrap: balance;
+    }
+
+    .brand {
+      display: inline-block;
+      margin: 0;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.62);
+    }
+
+    .brand:hover {
+      text-decoration: underline;
+    }
+
+    .brand--plain {
+      text-decoration: none;
+    }
+
+    .product-media {
+      margin: 0;
+    }
+
+    .hero-img {
+      width: 100%;
+      max-width: 680px;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      border-radius: 24px;
+      display: block;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: #fff;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.08);
+    }
+
+    .meta {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+    }
+
+    .product-tag-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 6px 0 0;
+    }
+
+    .product-tag-links__pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.74);
+      color: rgba(26, 26, 26, 0.78);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .product-tag-links__pill:hover {
+      background: rgba(95, 127, 107, 0.1);
+      border-color: rgba(95, 127, 107, 0.22);
+      color: rgba(26, 26, 26, 0.94);
+    }
+
+    .meta-item {
+      display: grid;
+      gap: 4px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+    }
+
+    .meta-label {
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.48);
+      font-weight: 700;
+    }
+
+    .meta-value {
+      color: rgba(26, 26, 26, 0.82);
+      font-size: 16px;
+    }
+
+    .price {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .desc {
+      font-size: 16px;
+      line-height: 1.75;
+      margin: 0;
+      color: rgba(26, 26, 26, 0.78);
+    }
+
+    .desc--lead {
+      font-size: 16px;
+      max-width: 54ch;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      padding: 13px 18px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      border: 1px solid rgba(0,0,0,.06);
+      margin-top: 6px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.08);
+      transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+    }
+
+    .btn:hover {
+      background: var(--accent-strong);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .save-note {
+      margin: 2px 0 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(26, 26, 26, 0.58);
+      max-width: none;
+      white-space: nowrap;
+    }
+
+    .landing-links {
+      margin-top: 42px;
+    }
+
+    .landing-links__head {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .landing-links__title {
+      margin: 0;
+      font-size: var(--type-h2);
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      max-width: 18ch;
+    }
+
+    .landing-links__grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .landing-link-card {
+      display: grid;
+      gap: 14px;
+      padding: 18px 20px;
+      border-radius: 22px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.72);
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .landing-link-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.08);
+      border-color: rgba(95, 127, 107, 0.18);
+    }
+
+    .landing-link-card__label {
+      font-family: var(--font-title);
+      font-size: var(--type-h2);
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+    }
+
+    .landing-link-card__cta {
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(26, 26, 26, 0.72);
+    }
+
+    .related {
+      margin-top: 46px;
+    }
+
+    .related-head {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .related-title {
+      font-size: var(--type-h2);
+      margin: 0;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      max-width: 16ch;
+    }
+
+    .related-grid {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+
+    .related-card {
+      display: block;
+      position: relative;
+      width: auto;
+      border: 1px solid rgba(26,26,26,.1);
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(255,255,255,.72);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.045);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .related-link {
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      height: 100%;
+      position: relative;
+    }
+
+    .related-img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      display: block;
+      background: #fff;
+    }
+
+    .placeholder {
+      background: linear-gradient(135deg, rgba(0,0,0,.06), rgba(0,0,0,.02));
+    }
+
+    .related-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .related-corner-badges {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .related-corner-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .related-body {
+      padding: 12px 14px 14px;
+      display: grid;
+      gap: 7px;
+      align-content: start;
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.88);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .related-chip {
+      display: inline-flex;
+      width: fit-content;
+      min-height: 28px;
+      align-items: center;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.1);
+      color: rgba(26, 26, 26, 0.7);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .related-chip--bio {
+      background: rgba(124, 141, 112, 0.13);
+      color: #5f7053;
+    }
+
+    .related-chip--eco {
+      background: rgba(109, 125, 99, 0.12);
+      color: #55624f;
+    }
+
+    .related-chip--handmade {
+      background: rgba(137, 96, 74, 0.12);
+      color: #6c4f3f;
+    }
+
+    .related-chip--gift {
+      background: rgba(123, 64, 59, 0.1);
+      color: #7b403b;
+    }
+
+    .related-name {
+      font-weight: 700;
+      font-size: clamp(17px, 1.35vw, 21px);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+    .related-sub {
+      font-size: 13px;
+      opacity: .7;
+    }
+
+    .related-price {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .related-foot {
+      padding: 0 14px 14px;
+      display: block;
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .related-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.12);
+      background: rgba(255,255,255,.72);
+      color: rgba(26,26,26,.82);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+
+    .related-cta:hover {
+      text-decoration: none;
+      background: rgba(95, 127, 107, 0.09);
+      border-color: rgba(95, 127, 107, 0.18);
+      color: rgba(26, 26, 26, 0.94);
+    }
+
+    .related-card:hover {
+      box-shadow: 0 18px 38px rgba(0,0,0,.08);
+      transform: translateY(-4px);
+      border-color: rgba(26, 26, 26, 0.14);
+    }
+
+    .save-btn--related {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.92);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .save-btn--related .save-ic {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+    }
+
+    .save-btn--related.is-saved .save-ic {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    @media (max-width: 1024px) {
+      .product-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .hero-img {
+        max-width: 100%;
+      }
+
+      .landing-links__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .related-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .product-topbar {
+        margin-bottom: 12px;
+      }
+
+      .product-frame {
+        padding: 16px;
+        border-radius: 24px;
+      }
+
+      .product-copy {
+        gap: 14px;
+        padding-top: 0;
+      }
+
+      .title {
+        font-size: clamp(30px, 8vw, 42px);
+        line-height: 1.08;
+      }
+
+      .hero-img {
+        border-radius: 22px;
+      }
+
+      .meta-item {
+        padding: 14px;
+      }
+
+      .btn {
+        width: 100%;
+        min-height: 48px;
+      }
+
+      .save-note {
+        white-space: normal;
+      }
+
+      .landing-links {
+        margin-top: 34px;
+      }
+
+      .related {
+        margin-top: 36px;
+      }
+
+      .related-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .related-card {
+        display: block;
+        width: auto;
+      }
+
+      .related-img {
+        aspect-ratio: 4 / 5;
+      }
+
+      .related-body {
+        padding: 13px 14px 14px;
+      }
+
+      .related-name {
+        font-size: clamp(16px, 4.2vw, 19px);
+      }
+
+      .related-sub,
+      .related-price {
+        font-size: 12px;
+      }
+
+      .related-chip {
+        min-height: 28px;
+        padding: 0 10px;
+        font-size: 11px;
+      }
+
+      .save-btn--related {
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .breadcrumbs {
+        margin-bottom: 16px;
+      }
+
+      .product-tag-links {
+        gap: 8px;
+      }
+
+      .product-tag-links__pill {
+        min-height: 42px;
+      }
+
+      .landing-link-card {
+        padding: 16px;
+        border-radius: 20px;
+      }
+
+      .related-grid {
+        gap: 12px;
+      }
+    }
+  </style>
+</BaseLayout>

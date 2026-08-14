@@ -1,0 +1,7 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro"; import ProductForm from "../../components/ProductForm.astro";
+import { listBrands, saveProduct, validateCsrf } from "../../lib/repositories";
+const brands = await listBrands(); let error=""; let draft:any={is_active:"false",currency:"EUR"};
+if(Astro.request.method==="POST"){const form=await Astro.request.formData();draft=Object.fromEntries(form.entries());try{validateCsrf(form,Astro.locals.admin.csrf);const id=(await saveProduct(form)).id;return Astro.redirect(`/products/${id}/?created=1`)}catch(e){error=e instanceof Error?e.message:"Could not create Product."}}
+---
+<AdminLayout title="New Product" active="products"><header class="head"><div><h1>New Product</h1><p class="muted">Create it hidden first if it is not ready for publication.</p></div><a class="btn secondary" href="/products/">Back</a></header><ProductForm product={draft} brands={brands} csrf={Astro.locals.admin.csrf} error={error} isNew={true}/></AdminLayout>

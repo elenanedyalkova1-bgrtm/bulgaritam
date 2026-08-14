@@ -1,0 +1,47 @@
+---
+import SeoProductLanding from "../components/SeoProductLanding.astro";
+import { getIntentLandingByKey, getProductsForIntentLanding, getSubcategoryLandings, getIntentLandingsForAudienceSubcategory, getProductsForLanding, getClothingEditorialForLanding } from "../lib/seo-landings";
+import { getSubcategoryLabelForLang } from "../lib/taxonomy";
+import { loadProducts } from "../lib/products";
+
+const allProducts = await loadProducts();
+const landing = getIntentLandingByKey("mens_tracksuits");
+
+if (!landing) throw new Error("Missing mens tracksuits landing");
+
+const products = getProductsForIntentLanding(allProducts, landing);
+const primaryPills = getSubcategoryLandings("clothing")
+  .map((entry) => ({ ...entry, productCount: getProductsForLanding(allProducts, entry).length }))
+  .filter((entry) => entry.productCount > 0)
+  .map((entry) => ({
+    label: entry.label,
+    labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
+    href: `/k/${entry.slug}/`,
+    isActive: entry.subcategoryKey === "clothing_men",
+  }));
+
+const secondaryPills = getIntentLandingsForAudienceSubcategory("clothing", "clothing_men", "clothing").map((entry) => ({
+  label: entry.label,
+  labelEn: entry.labelEn,
+  href: entry.path,
+  isActive: entry.path === landing.path,
+}));
+
+const clothingEditorial = getClothingEditorialForLanding(landing);
+---
+
+<SeoProductLanding
+  landing={landing}
+  products={products}
+  canonicalPath={landing.path}
+  breadcrumbs={[
+    { name: "Начало", item: "/" },
+    { name: "Мъжко", item: "/k/mazhko-obleklo/" },
+    { name: landing.label, item: landing.path },
+  ]}
+  primaryPills={primaryPills}
+  secondaryPills={secondaryPills}
+  secondaryPillsTitle="Най-търсени"
+  editorialHeader={clothingEditorial?.header}
+  editorialSections={clothingEditorial?.sections || []}
+/>

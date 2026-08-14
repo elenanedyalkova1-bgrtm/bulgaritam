@@ -1,0 +1,5 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";import BrandForm from "../../components/BrandForm.astro";import {saveBrand,validateCsrf} from "../../lib/repositories";
+let error="";let draft:any={is_active:false};if(Astro.request.method==="POST"){const form=await Astro.request.formData();draft=Object.fromEntries(form.entries());draft.is_active=form.get("is_active")==="true";try{validateCsrf(form,Astro.locals.admin.csrf);const id=(await saveBrand(form)).id;return Astro.redirect(`/brands/${id}/?created=1`)}catch(e){error=e instanceof Error?e.message:"Could not create Brand."}}
+---
+<AdminLayout title="New Brand" active="brands"><header class="head"><div><h1>New Brand</h1><p class="muted">Brand-level data is stored only in the Brands table.</p></div><a class="btn secondary" href="/brands/">Back</a></header><BrandForm brand={draft} csrf={Astro.locals.admin.csrf} error={error} isNew={true}/></AdminLayout>

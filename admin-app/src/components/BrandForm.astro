@@ -1,0 +1,12 @@
+---
+const { brand = {}, csrf, error = "", isNew = false } = Astro.props as { brand?: Record<string, any>; csrf: string; error?: string; isNew?: boolean };
+const fields: Array<{name:string;label:string;type:"text"|"url"|"textarea";required:boolean}> = [{name:"brand_name",label:"Brand name",type:"text",required:true},{name:"brand_slug",label:"Slug",type:"text",required:true},{name:"brand_url",label:"Website URL",type:"url",required:false},{name:"instagram_url",label:"Instagram URL",type:"url",required:false},{name:"logo_url",label:"Logo URL",type:"url",required:false},{name:"address",label:"Address",type:"text",required:false},{name:"description_bg",label:"Brand introduction / story",type:"textarea",required:false}];
+const siteOrigin = (import.meta.env.SITE_ORIGIN || "https://bulgaritam.bg").replace(/\/$/, "");
+---
+{error && <div class="error">{error}</div>}
+<form method="post" class="panel form-grid"><input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="_action" value="save"/>
+  <label class="check"><input type="checkbox" name="is_active" value="true" checked={brand.is_active === true}/> Published</label><span></span>
+  {fields.map(({name,label,type,required}) => type === "textarea" ? <label class="span-2">{label}<textarea name={name} required={required}>{brand[name] || ""}</textarea></label> : <label>{label}<input type={type} name={name} value={brand[name] || ""} required={required}/></label>)}
+  <div class="span-2 actions"><button>{isNew ? "Create Brand" : "Save Brand"}</button>{!isNew && <a class="btn secondary" href={`${siteOrigin}/brand/${brand.brand_slug}/`} target="_blank">Preview public page ↗</a>}</div>
+</form>
+{!isNew && <form method="post" class="panel"><input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="_action" value="visibility"/><input type="hidden" name="visible" value={brand.is_active ? "false" : "true"}/><h2>{brand.is_active ? "Hide Brand" : "Restore Brand"}</h2><p class="muted">Hiding a Brand also excludes its linked Products from the next public static build. Nothing is deleted.</p><button class={brand.is_active ? "danger" : ""}>{brand.is_active ? "Hide / unpublish" : "Restore / publish"}</button></form>}

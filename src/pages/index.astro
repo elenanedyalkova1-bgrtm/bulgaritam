@@ -1,11 +1,2283 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { Image } from "astro:assets";
+import { OCCASION_FILTERS, OCCASION_GROUPS, getOccasionKeysForProduct } from "../lib/occasions";
+import { CATEGORY_LANDINGS, SUBCATEGORY_LANDINGS } from "../lib/seo-landings";
+import { buildSearchDocument } from "../lib/search";
+import { getCategoryLabel, getCategoryLabelForLang, getSubcategoryViewAllLabelForLang, getTaxonomyForProduct, getTopLevelCategories } from "../lib/taxonomy";
+import { loadProducts } from "../lib/products";
+import { getProductBadges } from "../lib/product-badges";
+import homeHero from "../assets/home-hero-banner-2.png";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const products = await loadProducts();
+const displayProducts = products.filter((product) => product.image_urls?.[0]);
+const LAZY_IMAGE_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+const homeCategories = getTopLevelCategories();
+
+function priceLabel(p) {
+  if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
+  if (p.price_min_eur != null) return `${p.price_min_eur}+ ${p.currency}`;
+  return "";
+}
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<BaseLayout seo={{ type: "home" }} i18n={{
+  en: {
+    "home.freshNote": "New brands every week",
+    "home.searchLabel": "Find a Bulgarian product",
+    "home.searchPlaceholder": 'e.g. "silver earrings", "women\'s pajamas", "night cream"',
+    "home.searchHint": "Search starts automatically as you type",
+    "home.viewAll": "View all",
+    "home.occasion": "Occasion",
+    "home.filters": "Filters",
+    "home.sortLabel": "Sort",
+    "home.sort.featured": "Featured",
+    "home.sort.newest": "Newest",
+    "home.sort.priceAsc": "Price: low to high",
+    "home.sort.priceDesc": "Price: high to low",
+    "home.sort.alpha": "A–Z",
+    "home.cardCta": "See on brand site ↗",
+    "home.subcategories": "Subcategories",
+    "home.resultsFor": "Results for:"
+  }
+}}>
+  <main class="wrap">
+    <section class="home-hero home-hero--banner">
+      <div class="hero-media">
+        <Image
+          src={homeHero}
+          widths={[640, 960, 1280, 1600]}
+          sizes="(max-width: 768px) 100vw, (max-width: 1240px) 100vw, 1240px"
+          format="webp"
+          quality={82}
+          alt="Жена разглежда списание в спокоен интериор"
+          class="hero-media-img"
+          width={homeHero.width}
+          height={homeHero.height}
+          loading="eager"
+          fetchpriority="high"
+          priority
+          decoding="async"
+        />
+      </div>
+      <p class="home-fresh-note" data-i18n="home.freshNote">Нови брандове всяка седмица</p>
+    </section>
+
+    <section class="home-search" aria-label="Търсене и категории">
+      <div class="search search--home">
+        <label class="search-label" for="q" data-i18n="home.searchLabel">Търси български продукт</label>
+
+        <div class="search-row">
+          <input
+            id="q"
+            class="search-input"
+            type="search"
+            placeholder='напр. „сребърни обеци“, „дамска пижама“, „нощен крем“'
+            data-i18n-placeholder="home.searchPlaceholder"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="search-hint" data-i18n="home.searchHint">
+          Търсенето започва автоматично докато пишеш
+        </div>
+      </div>
+
+      <div class="chips chips--home" role="group" aria-label="Категории" id="mainChips"></div>
+      <p class="chips-section-label" id="subChipsLabel" hidden data-i18n="home.subcategories">Подкатегории</p>
+      <div class="chips chips-sub chips--home" role="group" aria-labelledby="subChipsLabel" id="subChips" hidden></div>
+      <div
+        id="homeLandingData"
+        data-landings={JSON.stringify(
+          [...CATEGORY_LANDINGS, ...SUBCATEGORY_LANDINGS].map((landing) => ({
+            slug: landing.slug,
+            categoryKey: landing.categoryKey,
+            subcategoryKey: landing.subcategoryKey,
+            kind: landing.kind,
+            label: landing.label,
+            viewAllLabel: landing.viewAllLabel,
+            viewAllLabelEn: landing.kind === "subcategory" && landing.subcategoryKey
+              ? getSubcategoryViewAllLabelForLang(landing.subcategoryKey, "en")
+              : `All ${getCategoryLabelForLang(landing.categoryKey, "en")}`,
+            queryAliases: landing.queryAliases || [],
+          }))
+        )}
+        hidden
+      ></div>
+      <div id="homeCategoriesData" data-categories={JSON.stringify(homeCategories)} hidden></div>
+      <div class="home-view-all" id="homeViewAll" hidden>
+        <a id="homeViewAllLink" class="home-view-all__link" href="#" data-i18n="home.viewAll">Виж всички</a>
+      </div>
+      <div class="discovery-tools" aria-label="Сортиране и филтри">
+        <button
+          id="occasionToggle"
+          class="discovery-btn discovery-btn--occasion"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="occasionModal"
+          aria-expanded="false"
+        >
+          <span data-i18n="home.occasion">Повод</span>
+          <span id="occasionBadge" class="discovery-btn__badge" hidden>1</span>
+        </button>
+
+        <button
+          id="filtersToggle"
+          class="discovery-btn discovery-btn--filters"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="filtersModal"
+          aria-expanded="false"
+        >
+          <span data-i18n="home.filters">Филтри</span>
+          <span id="filtersBadge" class="discovery-btn__badge" hidden>1</span>
+        </button>
+
+        <label class="sort-control" for="sortSelect">
+          <span class="sort-label" data-i18n="home.sortLabel">Подредба</span>
+          <select id="sortSelect" class="sort-select">
+            <option value="featured" data-i18n="home.sort.featured">Подбрани</option>
+            <option value="newest" data-i18n="home.sort.newest">Най-нови</option>
+            <option value="price-asc" data-i18n="home.sort.priceAsc">Цена: ниска към висока</option>
+            <option value="price-desc" data-i18n="home.sort.priceDesc">Цена: висока към ниска</option>
+            <option value="alpha" data-i18n="home.sort.alpha">A–Я</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <div id="filtersModal" class="filters-modal" hidden>
+      <div class="filters-modal__backdrop" data-filters-close></div>
+
+      <div
+        class="filters-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="filtersTitle"
+      >
+        <div class="filters-modal__head">
+          <div>
+            <p class="filters-modal__eyebrow">Още контрол</p>
+            <h3 id="filtersTitle" class="filters-modal__title">Филтри</h3>
+          </div>
+
+          <button class="filters-modal__close" type="button" aria-label="Затвори" data-filters-close>
+            ✕
+          </button>
+        </div>
+
+        <div class="filters-group">
+          <p class="filters-group__label">Цена</p>
+
+          <label class="filter-option">
+            <input type="radio" name="priceFilter" value="all" checked />
+            <span>Всички цени</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="priceFilter" value="0-50" />
+            <span>До 50 евро</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="priceFilter" value="50-100" />
+            <span>50–100 евро</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="priceFilter" value="100-200" />
+            <span>100–200 евро</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="priceFilter" value="200+" />
+            <span>200+ евро</span>
+          </label>
+        </div>
+
+        <div class="filters-group">
+          <p class="filters-group__label">Доставка</p>
+
+          <label class="filter-option filter-option--checkbox">
+            <input type="checkbox" id="deliveryOutsideHome" name="deliveryOutsideHome" />
+            <span>Доставя извън България</span>
+          </label>
+        </div>
+
+        <div class="filters-modal__actions">
+          <button id="filtersReset" class="filters-action filters-action--ghost" type="button">
+            Изчисти
+          </button>
+          <button id="filtersApply" class="filters-action" type="button">
+            Покажи резултатите
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="occasionModal" class="filters-modal" hidden>
+      <div class="filters-modal__backdrop" data-occasion-close></div>
+
+      <div
+        class="filters-modal__panel filters-modal__panel--occasion"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="occasionTitle"
+      >
+        <div class="filters-modal__head">
+          <div>
+            <p class="filters-modal__eyebrow">Подбор по настроение</p>
+            <h3 id="occasionTitle" class="filters-modal__title">Повод</h3>
+          </div>
+
+          <button class="filters-modal__close" type="button" aria-label="Затвори" data-occasion-close>
+            ✕
+          </button>
+        </div>
+
+        <div class="occasion-sheet">
+          {OCCASION_GROUPS.map((group) => (
+            <section class="occasion-group">
+              <h4 class="occasion-group__title" data-i18n-bg={group.label} data-i18n-en={group.labelEn}>{group.label}</h4>
+              <div class="occasion-options">
+                {OCCASION_FILTERS.filter((occasion) => occasion.group === group.key).map((occasion) => (
+                  <label class="occasion-option">
+                    <input type="checkbox" name="occasionFilter" value={occasion.key} />
+                    <span data-i18n-bg={occasion.label} data-i18n-en={occasion.labelEn}>{occasion.label}</span>
+                  </label>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <div class="filters-modal__actions">
+          <button id="occasionReset" class="filters-action filters-action--ghost" type="button">
+            Изчисти
+          </button>
+          <button id="occasionApply" class="filters-action" type="button">
+            Покажи резултатите
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <section class="section section--feed">
+      <div class="section-head section-head--centered">
+        <h2 class="h2">Продукти (<span id="count">{displayProducts.length}</span>)</h2>
+        <div class="hint" id="hint"></div>
+      </div>
+
+      <ul class="grid" id="grid">
+        {displayProducts.map((p, index) => {
+          const taxonomy = getTaxonomyForProduct(p);
+          const occasionKeys = getOccasionKeysForProduct(p);
+          const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
+          const shouldEagerLoad = index < 4;
+          const categoryLabelBg = taxonomy.categoryLabel;
+          const categoryLabelEn = getCategoryLabelForLang(taxonomy.categoryKey, "en");
+          return (
+            <li
+              class="card"
+              data-product-slug={p.slug}
+              data-product-name={p.name_bg}
+              data-brand-slug={p.brand_slug}
+              data-brand-name={p.brand_name}
+              data-product-url={p.product_url}
+              data-category-key={taxonomy.categoryKey}
+              data-category-keys={taxonomy.categoryKeys.join(",")}
+              data-subcategory-keys={taxonomy.subcategoryKeys.join(",")}
+              data-occasion-keys={occasionKeys.join(",")}
+              data-search={buildSearchDocument([
+                p.name_bg,
+                p.brand_name,
+                p.category,
+                ...(p.tags || []),
+                p.short_desc_bg,
+                p.long_desc_bg,
+              ])}
+              data-search-raw={[
+                p.name_bg,
+                p.brand_name,
+                p.category,
+                ...(p.tags || []),
+                p.short_desc_bg,
+                p.long_desc_bg,
+              ].filter(Boolean).join(" ")}
+              data-tags={(p.tags || []).join(",")}
+              data-brand={p.brand_slug}
+              data-delivers-abroad={p.delivers_abroad ? "1" : "0"}
+              data-price-min={p.price_min_eur ?? ""}
+              data-price-max={p.price_max_eur ?? ""}
+              data-created-at={p.created_at ?? ""}
+            >
+              <div class="card-top">
+                <a class="card-imglink" href={`/p/${p.slug}/`}>
+                  <div class="thumb">
+                    {p.image_urls?.[0] ? (
+                      <img
+                        class="thumb-img"
+                        src={shouldEagerLoad ? p.image_urls[0] : LAZY_IMAGE_PLACEHOLDER}
+                        data-lazy-src={shouldEagerLoad ? undefined : p.image_urls[0]}
+                        alt={p.name_bg}
+                        loading={shouldEagerLoad ? "eager" : undefined}
+                        fetchpriority={index < 4 ? "high" : undefined}
+                        decoding="async"
+                        width="800"
+                        height="1000"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <div class="thumb-ph" aria-hidden="true"></div>
+                    )}
+                  </div>
+                </a>
+
+                <button
+                  class="save-btn save-btn--card"
+                  type="button"
+                  aria-label="Запази продукта"
+                  aria-pressed="false"
+                  data-save-id={p.slug}
+                  data-save-url={`/p/${p.slug}/`}
+                  data-save-title={p.name_bg}
+                  data-save-brand={p.brand_name}
+                  data-save-price={priceLabel(p)}
+                  data-save-image={p.image_urls?.[0] || ""}
+                >
+                  <svg class="save-ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="card-body">
+                <div class="card-meta-row">
+                  <div class="card-badges">
+                    <span class="cat" data-i18n-bg={categoryLabelBg} data-i18n-en={categoryLabelEn}>{categoryLabelBg}</span>
+                    {isBio ? <span class="cat cat--bio">Био</span> : null}
+                    {isEco ? <span class="cat cat--eco">Еко</span> : null}
+                    {isHandmade ? <span class="cat cat--handmade">Ръчна изработка</span> : null}
+                    {isGift ? <span class="cat cat--gift">Подарък</span> : null}
+                  </div>
+                  {priceLabel(p) ? <span class="price price--inline">{priceLabel(p)}</span> : null}
+                </div>
+
+                <a class="card-titlelink" href={`/p/${p.slug}/`}>{p.name_bg}</a>
+
+                <div class="card-sub">
+                  {p.brand_name && p.brand_slug ? (
+                    <a class="brand-link" href={`/brand/${p.brand_slug}/`}>
+                      {p.brand_name}
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+
+              <div class="card-foot">
+                <a
+                  class="cta-out"
+                  href={p.product_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-i18n="home.cardCta"
+                >
+                  Виж в сайта на бранда ↗
+                </a>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div class="feed-meta">
+        <p class="feed-status" id="feedStatus" aria-live="polite"></p>
+        <div class="feed-sentinel" id="feedSentinel" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+
+  <style>
+    .home-hero--banner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 0 22px;
+    }
+
+    .hero-media {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 28px;
+      overflow: hidden;
+      background: transparent;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.08);
+    }
+
+    .hero-media-img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .home-search {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 4px 0 22px;
+    }
+
+    .home-fresh-note {
+      margin: 14px auto 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.54);
+    }
+
+    .search--home {
+      max-width: 760px;
+      margin: 0 auto 20px;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+    }
+
+    .search--home .search-label {
+      margin-bottom: 12px;
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.62);
+    }
+
+    .search--home .search-row {
+      justify-content: flex-start;
+    }
+
+    .search--home .search-input {
+      max-width: 640px;
+      width: 100%;
+      height: 58px;
+      border-radius: 999px;
+      padding: 0 22px;
+      font-size: 16px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .search--home .search-hint {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .chips--home {
+      max-width: 940px;
+      margin: 0 auto;
+      justify-content: center;
+      min-height: 60px;
+    }
+
+    .chips--home .chip,
+    .chips--home .chip-sub {
+      min-height: 48px;
+      padding: 12px 18px;
+      font-weight: 800;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+    }
+
+    .chips-section-label {
+      margin: 14px 0 0;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.48);
+    }
+
+    .chips-sub {
+      margin-top: 8px;
+      opacity: 0.95;
+      padding: 10px 12px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px dashed rgba(26, 26, 26, 0.08);
+      min-height: 64px;
+    }
+
+    .chip-sub {
+      border-style: dashed;
+    }
+
+    .home-view-all {
+      display: flex;
+      justify-content: center;
+      margin-top: 14px;
+      min-height: 42px;
+    }
+
+    .home-view-all__link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.72);
+      color: rgba(26, 26, 26, 0.8);
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+    }
+
+    .home-view-all__link:hover {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .chip.is-active {
+      border-color: rgba(95, 127, 107, 0.42);
+      background: rgba(95, 127, 107, 0.12);
+      color: rgba(26, 26, 26, 0.92);
+    }
+
+    .discovery-tools {
+      display: grid;
+      grid-template-columns: auto auto auto;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      min-height: 52px;
+    }
+
+    .discovery-btn,
+    .sort-select {
+      min-height: 48px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.05);
+      color: rgba(26, 26, 26, 0.86);
+    }
+
+    .discovery-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 18px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .discovery-btn__badge {
+      display: inline-grid;
+      place-items: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.14);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .sort-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 330px;
+      padding-left: 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.05);
+    }
+
+    .sort-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.54);
+    }
+
+    .sort-select {
+      min-width: 214px;
+      padding: 0 18px 0 8px;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      font-weight: 600;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .sort-select:focus,
+    .discovery-btn:focus-visible,
+    .filters-modal__close:focus-visible,
+    .filters-action:focus-visible {
+      outline: 2px solid rgba(26, 26, 26, 0.3);
+      outline-offset: 2px;
+    }
+
+    .filters-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+    }
+
+    .filters-modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(22, 18, 12, 0.18);
+      backdrop-filter: blur(6px);
+    }
+
+    .filters-modal__panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(92vw, 460px);
+      padding: 24px;
+      border-radius: 28px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(250, 247, 242, 0.96);
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.16);
+      transform: translate(-50%, -50%);
+    }
+
+    .filters-modal__panel--occasion {
+      width: min(94vw, 760px);
+      max-height: min(82vh, 760px);
+      overflow: auto;
+    }
+
+    .filters-modal__head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .filters-modal__eyebrow {
+      margin: 0 0 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.5);
+    }
+
+    .filters-modal__title {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .filters-modal__close {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.88);
+      cursor: pointer;
+      color: #7b403b;
+    }
+
+    .filters-group__label {
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.58);
+    }
+
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(26, 26, 26, 0.07);
+    }
+
+    .filter-option + .filter-option {
+      margin-top: 10px;
+    }
+
+    .filter-option input {
+      width: 16px;
+      height: 16px;
+      accent-color: #7b403b;
+    }
+
+    .occasion-sheet {
+      display: grid;
+      gap: 18px;
+      margin-top: 8px;
+    }
+
+    .occasion-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .occasion-group__title {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.52);
+    }
+
+    .occasion-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .occasion-option {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .occasion-option input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .occasion-option span {
+      font-size: 14px;
+      font-weight: 650;
+      color: rgba(26, 26, 26, 0.82);
+    }
+
+    .occasion-option:has(input:checked) {
+      border-color: rgba(95, 127, 107, 0.34);
+      background: rgba(95, 127, 107, 0.1);
+    }
+
+    .filters-modal__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .filters-action {
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(26, 26, 26, 0.9);
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .filters-action--ghost {
+      background: rgba(255, 255, 255, 0.82);
+      color: rgba(26, 26, 26, 0.82);
+    }
+
+    .section--feed {
+      padding-top: 10px;
+    }
+
+    .section-head--centered {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .section-head--centered .h2 {
+      margin-bottom: 0;
+      font-size: 22px;
+      opacity: 0.86;
+    }
+
+    .section-head--centered .hint {
+      min-height: 20px;
+    }
+
+    .feed-meta {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .feed-status {
+      min-height: 20px;
+      margin: 0;
+      font-size: 13px;
+      color: rgba(26, 26, 26, 0.58);
+    }
+
+    .feed-sentinel {
+      width: 100%;
+      height: 2px;
+    }
+
+    .grid.is-updated {
+      animation: homeResultsPulse 0.55s ease;
+    }
+
+    @keyframes homeResultsPulse {
+      0% { transform: translateY(0); opacity: 0.92; }
+      40% { transform: translateY(3px); opacity: 1; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .grid {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      column-count: 4;
+      column-gap: 18px;
+    }
+
+    .card {
+      display: inline-block;
+      vertical-align: top;
+      width: 100%;
+      margin: 0;
+      margin-bottom: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      border-radius: 22px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.045);
+      overflow: hidden;
+      transform: translateY(0);
+      transition:
+        transform 0.22s ease,
+        box-shadow 0.22s ease,
+        border-color 0.22s ease,
+        background 0.22s ease;
+      break-inside: avoid;
+      -webkit-column-break-inside: avoid;
+      page-break-inside: avoid;
+      contain: layout paint;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .card:nth-child(9n + 1) {
+      width: 100%;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+      border-color: rgba(26, 26, 26, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .card-top {
+      position: relative;
+    }
+
+    .thumb {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      isolation: isolate;
+      border-bottom: 0;
+      border-radius: 22px 22px 0 0;
+      background: linear-gradient(180deg, rgba(95, 127, 107, 0.1), rgba(26, 26, 26, 0.04));
+    }
+
+    .card:nth-child(8n + 2) .thumb {
+      aspect-ratio: 4 / 6;
+    }
+
+    .card:nth-child(8n + 3) .thumb {
+      aspect-ratio: 1 / 1;
+    }
+
+    .card:nth-child(8n + 5) .thumb {
+      aspect-ratio: 4 / 4.6;
+    }
+
+    .card:nth-child(8n + 7) .thumb {
+      aspect-ratio: 4 / 5.8;
+    }
+
+    .card:nth-child(9n + 1) .thumb {
+      aspect-ratio: 16 / 11;
+    }
+
+    .thumb-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transition: transform 0.38s ease, filter 0.38s ease;
+    }
+
+    .thumb-ph {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .card:hover .thumb-img {
+      transform: translateZ(0) scale(1.045);
+      filter: saturate(1.02) contrast(1.01);
+    }
+
+    .save-btn--card {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.92);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .save-btn--card .save-ic {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+    }
+
+    .save-btn--card.is-saved {
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+
+    .save-btn--card.is-saved .save-ic {
+      fill: currentColor;
+      stroke: none;
+    }
+
+    .save-btn--card:focus-visible {
+      outline: 2px solid rgba(0, 0, 0, 0.35);
+      outline-offset: 2px;
+    }
+
+    .card-corner-badges {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .badge-corner {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .card-body {
+      padding: 12px 14px 8px;
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.88);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .card-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .card-badges {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cat {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.1);
+      color: rgba(26, 26, 26, 0.72);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .cat--bio {
+      background: rgba(87, 112, 88, 0.12);
+      color: rgba(68, 93, 70, 0.92);
+      border: 1px solid rgba(87, 112, 88, 0.1);
+    }
+
+    .cat--eco {
+      background: rgba(111, 129, 112, 0.11);
+      color: rgba(84, 103, 85, 0.9);
+      border: 1px solid rgba(111, 129, 112, 0.12);
+    }
+
+    .cat--handmade {
+      background: rgba(137, 96, 74, 0.12);
+      color: #6c4f3f;
+      border: 1px solid rgba(137, 96, 74, 0.14);
+      font-size: 10px;
+    }
+
+    .cat--gift {
+      background: rgba(123, 64, 59, 0.1);
+      color: #7b403b;
+      border: 1px solid rgba(123, 64, 59, 0.12);
+    }
+
+    .price--inline {
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.62);
+    }
+
+    .card-titlelink {
+      display: block;
+      font-size: clamp(17px, 1.4vw, 21px);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      text-wrap: balance;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+
+    .card-titlelink:hover {
+      text-decoration: none;
+      opacity: 0.88;
+    }
+
+    .card-sub {
+      margin-top: 6px;
+      min-height: 20px;
+      font-size: 13px;
+      color: rgba(26, 26, 26, 0.62);
+    }
+
+    .brand-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand-link:hover {
+      text-decoration: underline;
+    }
+
+    .card-foot {
+      padding: 0 14px 14px;
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.88);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .cta-out {
+      width: 100%;
+      min-height: 38px;
+      padding: 9px 12px;
+      justify-content: center;
+      background: transparent;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      color: rgba(26, 26, 26, 0.76);
+      font-size: 12px;
+    }
+
+    .cta-out:hover {
+      background: rgba(95, 127, 107, 0.08);
+      border-color: rgba(95, 127, 107, 0.22);
+      color: rgba(26, 26, 26, 0.92);
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        column-count: 3;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .section--feed {
+        margin-inline: 0;
+      }
+
+      .home-hero--banner {
+        padding-top: 12px;
+        padding-bottom: 14px;
+      }
+
+      .hero-media {
+        border-radius: 24px;
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.08);
+      }
+
+      .hero-media-img {
+        width: 100%;
+        height: auto;
+      }
+
+      .home-search {
+        padding: 0 0 18px;
+      }
+
+      .search--home {
+        margin-bottom: 12px;
+        padding: 14px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.78);
+      }
+
+      .search--home .search-label {
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .search--home .search-input {
+        height: 54px;
+        padding: 0 18px;
+        border-radius: 18px;
+        font-size: 16px;
+      }
+
+      .search--home .search-hint {
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      .chips--home {
+        justify-content: center;
+        gap: 8px;
+        min-height: 96px;
+      }
+
+      .chip,
+      .chip-sub {
+        min-height: 42px;
+        padding: 10px 14px;
+        font-size: 13px;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.035);
+      }
+
+      .chips-section-label {
+        margin-top: 12px;
+      }
+
+      .chips-sub {
+        justify-content: center;
+        margin-top: 8px;
+        padding: 10px;
+        border-radius: 18px;
+      }
+
+      .home-view-all {
+        justify-content: center;
+        margin-top: 12px;
+      }
+
+      .discovery-tools {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .discovery-btn {
+        width: 100%;
+        min-height: 50px;
+        justify-content: space-between;
+        padding: 0 16px;
+      }
+
+      .sort-control {
+        grid-column: 1 / -1;
+        width: 100%;
+        padding: 0 10px 0 14px;
+        min-height: 50px;
+        justify-content: space-between;
+      }
+
+      .sort-select {
+        width: 100%;
+        min-height: 48px;
+      }
+
+      .filters-modal__panel--occasion {
+        width: min(94vw, 560px);
+        max-height: min(84vh, 720px);
+      }
+
+      .occasion-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .occasion-option {
+        min-height: 48px;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .grid {
+        display: block;
+        width: 100%;
+        max-width: none;
+        column-count: 2;
+        column-gap: 12px;
+      }
+
+      .card {
+        display: inline-block;
+        width: 100%;
+        max-width: none;
+        margin: 0 0 12px;
+        border-radius: 22px;
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.05);
+        break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .card:nth-child(9n + 1) {
+        width: 100%;
+      }
+
+      .thumb {
+        border-radius: 22px 22px 0 0;
+        aspect-ratio: 4 / 5.7;
+      }
+
+      .card:nth-child(6n + 1) .thumb {
+        aspect-ratio: 4 / 5.45;
+      }
+
+      .card:nth-child(6n + 2) .thumb {
+        aspect-ratio: 4 / 6;
+      }
+
+      .card:nth-child(6n + 3) .thumb {
+        aspect-ratio: 4 / 5.55;
+      }
+
+      .card:nth-child(6n + 4) .thumb {
+        aspect-ratio: 4 / 6.1;
+      }
+
+      .card:nth-child(6n + 5) .thumb {
+        aspect-ratio: 4 / 5.5;
+      }
+
+      .card:nth-child(6n + 6) .thumb {
+        aspect-ratio: 4 / 5.85;
+      }
+
+      .save-btn--card {
+        top: 14px;
+        right: 14px;
+        width: 40px;
+        height: 40px;
+      }
+
+      .card-corner-badges {
+        top: 10px;
+        left: 10px;
+      }
+
+      .badge-corner {
+        min-height: 22px;
+        padding: 0 8px;
+        font-size: 9px;
+      }
+
+      .card-body {
+        padding: 8px 10px 4px;
+      }
+
+      .card-titlelink {
+        font-size: clamp(15px, 4.1vw, 18px);
+        line-height: 1.08;
+        -webkit-line-clamp: 2;
+      }
+
+      .card-sub {
+        margin-top: 4px;
+        min-height: 0;
+        font-size: 11px;
+        line-height: 1.25;
+        color: rgba(26, 26, 26, 0.56);
+      }
+
+      .card-foot {
+        padding: 0 10px 8px;
+      }
+
+      .cat {
+        min-height: 22px;
+        padding: 0 7px;
+        font-size: 9px;
+      }
+
+      .price--inline {
+        font-size: 10px;
+        letter-spacing: 0.03em;
+      }
+
+      .card-meta-row {
+        margin-bottom: 8px;
+        gap: 6px;
+      }
+
+      .card-badges {
+        gap: 5px;
+      }
+
+      .card-badges .cat:nth-child(n + 4) {
+        display: none;
+      }
+
+      .cta-out {
+        min-height: 32px;
+        padding: 6px 10px;
+        border-width: 1px;
+        font-size: 10px;
+        line-height: 1.2;
+        background: rgba(255, 255, 255, 0.36);
+        box-shadow: none;
+      }
+
+      .section-head--centered {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin-bottom: 16px;
+      }
+
+      .section-head--centered .hint {
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .section--feed {
+        margin-inline: 0;
+      }
+
+      .chips--home {
+        gap: 8px;
+      }
+
+      .chip {
+        min-width: auto;
+      }
+
+      .filters-modal__panel {
+        width: min(100vw - 24px, 460px);
+        padding: 18px;
+        border-radius: 24px;
+      }
+
+      .filters-modal__actions {
+        flex-direction: column-reverse;
+      }
+
+      .filters-action {
+        width: 100%;
+      }
+
+      .grid {
+        width: 100%;
+        max-width: none;
+        column-count: 2;
+        column-gap: 12px;
+      }
+
+      .card {
+        border-radius: 20px;
+      }
+
+      .thumb {
+        border-radius: 20px 20px 0 0;
+      }
+
+      .card-body {
+        padding: 8px 10px 4px;
+      }
+
+      .card-foot {
+        padding: 0 10px 8px;
+      }
+    }
+  </style>
+
+  <script>
+    const q = document.getElementById("q");
+    const grid = document.getElementById("grid");
+    const count = document.getElementById("count");
+    const hint = document.getElementById("hint");
+    const btn = document.getElementById("searchBtn");
+
+    const mainChips = document.getElementById("mainChips");
+    const subChips = document.getElementById("subChips");
+    const subChipsLabel = document.getElementById("subChipsLabel");
+    const feedStatus = document.getElementById("feedStatus");
+    const feedSentinel = document.getElementById("feedSentinel");
+    const homeLandingData = document.getElementById("homeLandingData");
+    const homeCategoriesData = document.getElementById("homeCategoriesData");
+    const homeViewAll = document.getElementById("homeViewAll");
+    const homeViewAllLink = document.getElementById("homeViewAllLink");
+    const occasionToggle = document.getElementById("occasionToggle");
+    const occasionModal = document.getElementById("occasionModal");
+    const occasionBadge = document.getElementById("occasionBadge");
+    const occasionApply = document.getElementById("occasionApply");
+    const occasionReset = document.getElementById("occasionReset");
+    const sortSelect = document.getElementById("sortSelect");
+    const filtersToggle = document.getElementById("filtersToggle");
+    const filtersModal = document.getElementById("filtersModal");
+    const filtersBadge = document.getElementById("filtersBadge");
+    const filtersApply = document.getElementById("filtersApply");
+    const filtersReset = document.getElementById("filtersReset");
+    const allCards = Array.from(grid.querySelectorAll("li.card"));
+
+    const createShuffledOrder = (items) => {
+      const shuffled = [...items];
+      for (let i = shuffled.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    };
+
+    allCards.forEach((card, index) => {
+      card.dataset.originalIndex = String(index);
+    });
+
+    createShuffledOrder(allCards).forEach((card, index) => {
+      card.dataset.featuredIndex = String(index);
+    });
+
+    const getBatchSize = () => {
+      if (window.innerWidth <= 640) return 8;
+      if (window.innerWidth <= 768) return 10;
+      return 16;
+    };
+
+    let visibleCount = getBatchSize();
+    let matchedCards = [...allCards];
+    let gridPulseFrame = 0;
+    let activeCategoryKey = "";
+    let activeSubcategoryKey = "";
+    let selectedPriceRange = "all";
+    let selectedDeliveryOutside = false;
+    let selectedSort = "featured";
+    let selectedOccasionKeys = [];
+    let searchTrackTimer = 0;
+    let lastTrackedSearchSignature = "";
+    const SEO_LANDING_LINKS = homeLandingData?.dataset.landings
+      ? JSON.parse(homeLandingData.dataset.landings)
+      : [];
+    const CATEGORIES = homeCategoriesData?.dataset.categories
+      ? JSON.parse(homeCategoriesData.dataset.categories)
+      : [];
+    const getCurrentLang = () => localStorage.getItem("bulgaritam_lang_v1") === "en" ? "en" : "bg";
+
+    const pulseResults = () => {
+      if (!grid) return;
+      grid.classList.remove("is-updated");
+      cancelAnimationFrame(gridPulseFrame);
+      gridPulseFrame = requestAnimationFrame(() => {
+        grid.classList.add("is-updated");
+        window.setTimeout(() => grid.classList.remove("is-updated"), 650);
+      });
+    };
+
+    const parseComparablePrice = (card) => {
+      const min = Number(card.dataset.priceMin);
+      const max = Number(card.dataset.priceMax);
+      if (!Number.isNaN(min) && min > 0) return min;
+      if (!Number.isNaN(max) && max > 0) return max;
+      return Number.POSITIVE_INFINITY;
+    };
+
+    const parseCreatedAt = (card) => {
+      const raw = card.dataset.createdAt || "";
+      const value = raw ? Date.parse(raw) : 0;
+      return Number.isNaN(value) ? 0 : value;
+    };
+
+    const matchesPriceRange = (card, range) => {
+      if (!range || range === "all") return true;
+
+      const min = Number(card.dataset.priceMin);
+      const max = Number(card.dataset.priceMax);
+      const low = Number.isNaN(min) ? null : min;
+      const high = Number.isNaN(max) ? null : max;
+
+      if (range === "0-50") {
+        return (low !== null && low <= 50) || (high !== null && high <= 50);
+      }
+
+      if (range === "50-100") {
+        return (low !== null && low <= 100 && low >= 50) ||
+          (high !== null && high >= 50 && high <= 100) ||
+          (low !== null && high !== null && low < 50 && high > 100) ||
+          (low !== null && high !== null && low <= 100 && high >= 50);
+      }
+
+      if (range === "100-200") {
+        return (low !== null && low <= 200 && low >= 100) ||
+          (high !== null && high >= 100 && high <= 200) ||
+          (low !== null && high !== null && low < 100 && high > 200) ||
+          (low !== null && high !== null && low <= 200 && high >= 100);
+      }
+
+      if (range === "200+") {
+        return (low !== null && low >= 200) || (high !== null && high >= 200);
+      }
+
+      return true;
+    };
+
+    const CYRILLIC_TO_LATIN = {
+      "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ж": "zh", "з": "z",
+      "и": "i", "й": "y", "к": "k", "л": "l", "м": "m", "н": "n", "о": "o", "п": "p",
+      "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "h", "ц": "ts", "ч": "ch",
+      "ш": "sh", "щ": "sht", "ъ": "a", "ь": "y", "ю": "yu", "я": "ya",
+    };
+
+    const BG_SUFFIXES = [
+      "овете", "евете", "анията", "ението", "енията", "ищата", "ите", "ове", "еве",
+      "ата", "ята", "ният", "ната", "ното", "ните", "ски", "ска", "ско", "чен", "чна",
+      "чно", "чни", "ен", "на", "но", "ни", "ът", "та", "то", "те", "ия", "ие", "а",
+      "я", "и", "е", "о", "у",
+    ];
+
+    const SPECIAL_EQUIVALENTS = [
+      [/^памуч/, ["памук"]],
+      [/^pamuch/, ["pamuk"]],
+      [/^ленен/, ["лен"]],
+      [/^lenen/, ["len"]],
+      [/^вълнен/, ["вълна"]],
+      [/^valnen|^vulnen/, ["valna"]],
+    ];
+
+    const SEMANTIC_GROUPS = [
+      ["gift", "gifts", "подарък", "подаръци"],
+      ["baby", "babies", "бебе", "бебешки", "бебешко"],
+      ["kid", "kids", "children", "дете", "деца", "детски", "детско"],
+      ["clothing", "apparel", "outfit", "outfits", "облекло", "дреха", "дрехи"],
+      ["cotton", "памук", "памучен", "памучна", "памучно"],
+      ["linen", "лен", "ленен", "ленена"],
+      ["wool", "вълна", "вълнен", "вълнена"],
+      ["night", "нощен", "нощна", "нощно"],
+      ["day", "дневен", "дневна", "дневно"],
+      ["cream", "крем"],
+      ["serum", "серум"],
+      ["shampoo", "шампоан"],
+      ["mask", "маска"],
+      ["soap", "sapun", "сапун"],
+      ["body", "тяло"],
+      ["face", "лице"],
+      ["hair", "коса"],
+      ["lip", "lips", "устни"],
+      ["candle", "candles", "свещ", "свещи"],
+      ["bag", "bags", "чанта", "чанти"],
+      ["earring", "earrings", "обеци"],
+      ["jewelry", "бижута", "бижу"],
+      ["dress", "рокля", "рокли"],
+      ["shirt", "shirts", "риза", "ризи"],
+      ["tshirt", "t-shirt", "tshirt", "tee", "тениска", "тениски"],
+      ["home", "дом"],
+      ["interior", "интериор"],
+      ["decor", "dekor", "декор"],
+      ["cleaning", "почистване"],
+      ["book", "books", "книга", "книги"],
+      ["toy", "toys", "играчка", "играчки"],
+      ["tea", "чай"],
+      ["herbs", "herb", "билки", "билка"],
+      ["supplement", "supplements", "добавка", "добавки"],
+      ["extract", "extracts", "екстракт", "екстракти", "тинктура"],
+      ["sport", "sports", "спорт"],
+      ["cosmetics", "козметика"],
+      ["natural", "натурален", "натурална", "натурално"],
+      ["organic", "органичен", "органична", "органично", "bio", "био"],
+      ["eco", "еко", "sustainable", "устойчив", "reusable", "многократен", "biodegradable", "биоразградим"],
+    ];
+
+    const normalizeSearchText = (value) =>
+      String(value || "")
+        .toLowerCase()
+        .replace(/&/g, " ")
+        .replace(/['\"`´’‘]/g, "")
+        .replace(/[.,/#!$%^*;:{}=\\-_~()@\\[\\]+<>?\\\\|]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const transliterateBulgarianToLatin = (value) =>
+      Array.from(normalizeSearchText(value))
+        .map((char) => CYRILLIC_TO_LATIN[char] || char)
+        .join("");
+
+    const tokenizeSearchText = (value) =>
+      normalizeSearchText(value)
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+
+    const expandSearchToken = (token) => {
+      const forms = new Set();
+      const normalized = normalizeSearchText(token);
+      if (!normalized) return Array.from(forms);
+      forms.add(normalized);
+      if (normalized.length >= 4) forms.add(normalized.slice(0, 4));
+      if (normalized.length >= 6) forms.add(normalized.slice(0, 5));
+
+      BG_SUFFIXES.forEach((suffix) => {
+        if (normalized.length - suffix.length >= 3 && normalized.endsWith(suffix)) {
+          forms.add(normalized.slice(0, -suffix.length));
+        }
+      });
+
+      SPECIAL_EQUIVALENTS.forEach(([pattern, equivalents]) => {
+        if (pattern.test(normalized)) equivalents.forEach((entry) => forms.add(entry));
+      });
+
+      SEMANTIC_GROUPS.forEach((group) => {
+        if (group.includes(normalized)) group.forEach((entry) => forms.add(entry));
+      });
+
+      return Array.from(forms);
+    };
+
+    const buildSearchGroups = (value) => {
+      const normalized = normalizeSearchText(value);
+      const transliterated = transliterateBulgarianToLatin(normalized);
+      const rawTokens = [...new Set([
+        ...tokenizeSearchText(normalized),
+        ...tokenizeSearchText(transliterated),
+      ])];
+
+      return rawTokens.map((token) => expandSearchToken(token));
+    };
+
+    const buildSearchDocumentString = (value) => {
+      const tokens = new Set();
+      [normalizeSearchText(value), transliterateBulgarianToLatin(value)].forEach((entry) => {
+        tokenizeSearchText(entry).forEach((token) => {
+          expandSearchToken(token).forEach((form) => tokens.add(form));
+        });
+      });
+      return Array.from(tokens).join(" ");
+    };
+
+    const scheduleSearchTracking = (value) => {
+      window.clearTimeout(searchTrackTimer);
+      const normalized = normalizeSearchText(value);
+      if (normalized.length < 2) {
+        lastTrackedSearchSignature = "";
+        return;
+      }
+
+      searchTrackTimer = window.setTimeout(() => {
+        const signature = [
+          normalized,
+          activeCategoryKey || "all",
+          activeSubcategoryKey || "all",
+          selectedSort || "featured",
+          matchedCards.length,
+        ].join("|");
+
+        if (signature === lastTrackedSearchSignature) return;
+        lastTrackedSearchSignature = signature;
+
+        window.bulgaritamTrack?.("homepage_search", {
+          search_query: normalized,
+          results_count: matchedCards.length,
+          active_category: activeCategoryKey || "all",
+          active_subcategory: activeSubcategoryKey || "all",
+          sort_mode: selectedSort || "featured",
+        });
+      }, 700);
+    };
+
+    const docTokenCache = new WeakMap();
+
+    const getDocumentTokens = (card) => {
+      if (!docTokenCache.has(card)) {
+        const raw = normalizeSearchText(card?.dataset?.searchRaw || "");
+        const rawLatin = transliterateBulgarianToLatin(raw);
+        const structured = String(card.dataset.search || "");
+        docTokenCache.set(
+          card,
+          new Set([
+            ...structured.split(/\s+/).filter(Boolean),
+            ...tokenizeSearchText(raw),
+            ...tokenizeSearchText(rawLatin),
+          ])
+        );
+      }
+      return docTokenCache.get(card);
+    };
+
+    const matchesSearchDocument = (card, value) => {
+      const normalizedQuery = normalizeSearchText(value);
+      if (!normalizedQuery) return true;
+      const raw = normalizeSearchText(card?.dataset?.searchRaw || "");
+      const searchDocument = String(card?.dataset?.search || "");
+      const searchable = `${raw} ${searchDocument}`.trim();
+      const searchableLatin = transliterateBulgarianToLatin(searchable);
+      const rawLatin = transliterateBulgarianToLatin(raw);
+      const queryLatin = transliterateBulgarianToLatin(normalizedQuery);
+      if (
+        raw.includes(normalizedQuery) ||
+        raw.includes(queryLatin) ||
+        rawLatin.includes(normalizedQuery) ||
+        rawLatin.includes(queryLatin) ||
+        searchable.includes(normalizedQuery) ||
+        searchable.includes(queryLatin) ||
+        searchableLatin.includes(normalizedQuery) ||
+        searchableLatin.includes(queryLatin)
+      ) {
+        return true;
+      }
+      const groups = buildSearchGroups(value);
+      if (!groups.length) return true;
+      return groups.every((group) =>
+        group.some((token) => {
+          if (!token) return false;
+          if (token.length < 3) return false;
+          const docTokens = getDocumentTokens(card);
+          if (docTokens.has(token)) return true;
+          for (const docToken of docTokens) {
+            if (docToken.startsWith(token)) return true;
+          }
+          return false;
+        })
+      );
+    };
+
+    const getSearchRelevanceScore = (card, value) => {
+      const normalizedQuery = normalizeSearchText(value);
+      if (!normalizedQuery) return 0;
+
+      const queryLatin = transliterateBulgarianToLatin(normalizedQuery);
+      const productName = normalizeSearchText(card?.dataset?.productName || "");
+      const productNameLatin = transliterateBulgarianToLatin(productName);
+      const brandName = normalizeSearchText(card?.dataset?.brandName || "");
+      const brandNameLatin = transliterateBulgarianToLatin(brandName);
+      const raw = normalizeSearchText(card?.dataset?.searchRaw || "");
+      const rawLatin = transliterateBulgarianToLatin(raw);
+      const searchDocument = String(card?.dataset?.search || "");
+      const searchable = `${raw} ${searchDocument}`.trim();
+      const searchableLatin = transliterateBulgarianToLatin(searchable);
+      const queryGroups = buildSearchGroups(value);
+      let score = 0;
+
+      if (productName === normalizedQuery || productNameLatin === queryLatin) score += 260;
+      if (productName.startsWith(normalizedQuery) || productNameLatin.startsWith(queryLatin)) score += 190;
+      if (productName.includes(normalizedQuery) || productName.includes(queryLatin) || productNameLatin.includes(normalizedQuery) || productNameLatin.includes(queryLatin)) score += 150;
+      if (brandName === normalizedQuery || brandNameLatin === queryLatin) score += 130;
+      if (brandName.includes(normalizedQuery) || brandNameLatin.includes(queryLatin)) score += 75;
+      if (raw.includes(normalizedQuery) || rawLatin.includes(queryLatin)) score += 60;
+      if (searchable.includes(normalizedQuery) || searchable.includes(queryLatin) || searchableLatin.includes(normalizedQuery) || searchableLatin.includes(queryLatin)) score += 45;
+
+      queryGroups.forEach((group) => {
+        const bestTokenScore = group.reduce((best, token) => {
+          if (!token) return best;
+          if (productName.includes(token) || productNameLatin.includes(token)) return Math.max(best, 42);
+          if (brandName.includes(token) || brandNameLatin.includes(token)) return Math.max(best, 30);
+          if (searchable.includes(token) || searchableLatin.includes(token)) return Math.max(best, 18);
+          return best;
+        }, 0);
+        score += bestTokenScore;
+      });
+
+      return score;
+    };
+
+    const sortCardsForSearch = (cards, value) =>
+      [...cards].sort((a, b) => {
+        const scoreDiff = getSearchRelevanceScore(b, value) - getSearchRelevanceScore(a, value);
+        if (scoreDiff !== 0) return scoreDiff;
+        return Number(a.dataset.featuredIndex) - Number(b.dataset.featuredIndex);
+      });
+
+    const findLandingByQuery = (value) => {
+      const query = normalizeSearchText(value);
+      if (!query) return null;
+      return SEO_LANDING_LINKS.find((item) =>
+        (item.queryAliases || []).some((term) =>
+          matchesSearchDocument({ search: buildSearchDocumentString(term) }, query)
+        )
+      ) || null;
+    };
+
+    const sortCards = (cards, sortValue) => {
+      const sorted = [...cards];
+
+      switch (sortValue) {
+        case "newest":
+          sorted.sort((a, b) => parseCreatedAt(b) - parseCreatedAt(a));
+          break;
+        case "price-asc":
+          sorted.sort((a, b) => parseComparablePrice(a) - parseComparablePrice(b));
+          break;
+        case "price-desc":
+          sorted.sort((a, b) => parseComparablePrice(b) - parseComparablePrice(a));
+          break;
+        case "alpha":
+          sorted.sort((a, b) =>
+            String(a.dataset.productName || "").localeCompare(
+              String(b.dataset.productName || ""),
+              "bg"
+            )
+          );
+          break;
+        case "featured":
+        default:
+          sorted.sort((a, b) => Number(a.dataset.featuredIndex) - Number(b.dataset.featuredIndex));
+          break;
+      }
+
+      return sorted;
+    };
+
+    matchedCards = sortCards([...allCards], "featured");
+
+    const syncGridOrder = () => {
+      matchedCards.forEach((card) => grid.appendChild(card));
+    };
+
+    const updateGridLayoutState = () => {
+      if (!grid) return;
+      grid.classList.remove("is-filtered");
+    };
+
+    function updateFeedVisibility() {
+      syncGridOrder();
+      updateGridLayoutState();
+      allCards.forEach((card, index) => {
+        const shouldShow = matchedCards.includes(card) && matchedCards.indexOf(card) < visibleCount;
+        card.style.display = shouldShow ? "" : "none";
+      });
+
+      if (feedStatus) {
+        const shown = Math.min(visibleCount, matchedCards.length);
+        feedStatus.textContent =
+          matchedCards.length > shown ? `Показани ${shown} от ${matchedCards.length}` : "";
+      }
+
+      if (feedSentinel) {
+        feedSentinel.hidden = matchedCards.length <= visibleCount;
+      }
+
+      window.bulgaritamHydrateLazyImages?.(grid);
+      if (typeof window.syncSaveButtons === "function") window.syncSaveButtons();
+    }
+
+    function loadMore() {
+      if (visibleCount >= matchedCards.length) return;
+      visibleCount += getBatchSize();
+      updateFeedVisibility();
+    }
+
+    function updateActiveChips() {
+      mainChips.querySelectorAll(".chip").forEach((chip) => {
+        chip.classList.toggle("is-active", chip.dataset.categoryKey === activeCategoryKey);
+      });
+
+      subChips.querySelectorAll(".chip").forEach((chip) => {
+        chip.classList.toggle("is-active", chip.dataset.subcategoryKey === activeSubcategoryKey);
+      });
+    }
+
+    function updateFiltersBadge() {
+      const total = (selectedPriceRange !== "all" ? 1 : 0) + (selectedDeliveryOutside ? 1 : 0);
+      if (!filtersBadge) return;
+      if (total > 0) {
+        filtersBadge.textContent = String(total);
+        filtersBadge.removeAttribute("hidden");
+      } else {
+        filtersBadge.setAttribute("hidden", "");
+      }
+    }
+
+    function updateOccasionBadge() {
+      if (!occasionBadge) return;
+      if (selectedOccasionKeys.length) {
+        occasionBadge.textContent = String(selectedOccasionKeys.length);
+        occasionBadge.removeAttribute("hidden");
+      } else {
+        occasionBadge.setAttribute("hidden", "");
+      }
+    }
+
+    function updateViewAllLink() {
+      if (!homeViewAll || !homeViewAllLink) return;
+
+      const exactQueryLanding = findLandingByQuery(q.value || "");
+      const landing =
+        (activeSubcategoryKey
+          ? SEO_LANDING_LINKS.find((item) => item.subcategoryKey === activeSubcategoryKey)
+          : null) ||
+        (!activeCategoryKey && exactQueryLanding?.subcategoryKey ? exactQueryLanding : null);
+
+      if (!landing) {
+        homeViewAll.setAttribute("hidden", "");
+        homeViewAllLink.setAttribute("href", "#");
+        return;
+      }
+
+      homeViewAllLink.textContent =
+        getCurrentLang() === "en" ? (landing.viewAllLabelEn || landing.viewAllLabel) : landing.viewAllLabel;
+      homeViewAllLink.setAttribute(
+        "href",
+        landing.categoryKey === "gifts" ? `/bulgarski-podaratsi/${landing.slug}/` : `/k/${landing.slug}/`
+      );
+      homeViewAll.removeAttribute("hidden");
+    }
+
+    function applyDiscovery(value = q.value) {
+      const v = value || "";
+      const categoryFilterKey = activeCategoryKey || "";
+      const subcategoryFilterKey = activeSubcategoryKey || "";
+      const filteredCards = [];
+
+      allCards.forEach((card) => {
+        const categoryKeys = (card.dataset.categoryKeys || "").split(",").filter(Boolean);
+        const subcategoryKeys = (card.dataset.subcategoryKeys || "").split(",").filter(Boolean);
+        const occasionKeys = (card.dataset.occasionKeys || "").split(",").filter(Boolean);
+        const matchesText = matchesSearchDocument(card, v);
+        const matchesCategory = !categoryFilterKey || categoryKeys.includes(categoryFilterKey);
+        const matchesSubcategory = !subcategoryFilterKey || subcategoryKeys.includes(subcategoryFilterKey);
+        const matchesOccasion = !selectedOccasionKeys.length || selectedOccasionKeys.some((key) => occasionKeys.includes(key));
+        const matchesDelivery = !selectedDeliveryOutside || card.dataset.deliversAbroad === "1";
+
+        if (matchesText && matchesCategory && matchesSubcategory && matchesOccasion && matchesPriceRange(card, selectedPriceRange) && matchesDelivery) {
+          filteredCards.push(card);
+        }
+      });
+
+      matchedCards = v.trim() ? sortCardsForSearch(filteredCards, v) : sortCards(filteredCards, selectedSort);
+      count.textContent = matchedCards.length;
+      if (activeSubcategoryKey) {
+        const activeCategory = CATEGORIES.find((cat) => cat.key === activeCategoryKey);
+        const activeSubcategory = activeCategory?.subcategories.find((sub) => sub.key === activeSubcategoryKey);
+        hint.textContent = activeSubcategory ? (getCurrentLang() === "en" ? (activeSubcategory.labelEn || activeSubcategory.label) : activeSubcategory.label) : "";
+      } else if (activeCategoryKey) {
+        const activeCategory = CATEGORIES.find((cat) => cat.key === activeCategoryKey);
+        hint.textContent = activeCategory ? (getCurrentLang() === "en" ? (activeCategory.labelEn || activeCategory.label) : activeCategory.label) : "";
+      } else {
+        hint.textContent = v.trim()
+          ? `${getCurrentLang() === "en" ? "Results for:" : "Резултати за:"} “${value.trim()}”`
+          : "";
+      }
+      visibleCount = v.trim()
+        ? Math.min(matchedCards.length, Math.max(getBatchSize() * 2, 24))
+        : getBatchSize();
+      updateFeedVisibility();
+      updateActiveChips();
+      updateFiltersBadge();
+      updateOccasionBadge();
+      updateViewAllLink();
+      if (!v && !activeCategoryKey) {
+        subChips.hidden = true;
+        if (subChipsLabel) subChipsLabel.hidden = true;
+        subChips.innerHTML = "";
+        updateViewAllLink();
+      }
+
+      if (!v && !activeCategoryKey) {
+        activeSubcategoryKey = "";
+        updateViewAllLink();
+      }
+    }
+
+    function renderMainChips() {
+      mainChips.innerHTML = "";
+
+      CATEGORIES.forEach((cat) => {
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.type = "button";
+        b.textContent = getCurrentLang() === "en"
+          ? (cat.chipLabelEn || cat.labelEn || cat.chipLabel || cat.label)
+          : (cat.chipLabel || cat.label);
+        b.dataset.categoryKey = cat.key;
+
+        b.addEventListener("click", () => {
+          window.bulgaritamTrack?.("category_pill_click", {
+            surface: "home",
+            category_key: cat.key,
+            category_label: cat.label,
+          });
+          activeCategoryKey = cat.key;
+          activeSubcategoryKey = "";
+          q.value = "";
+          applyDiscovery("");
+          renderSubChips(cat);
+          pulseResults();
+        });
+
+        mainChips.appendChild(b);
+      });
+    }
+
+    function renderSubChips(cat) {
+      if (subChipsLabel) subChipsLabel.hidden = false;
+      subChips.hidden = false;
+      subChips.innerHTML = "";
+
+      cat.subcategories.forEach((s) => {
+        const b = document.createElement("button");
+        b.className = "chip chip-sub";
+        b.type = "button";
+        b.textContent = getCurrentLang() === "en" ? (s.labelEn || s.label) : s.label;
+        b.dataset.subcategoryKey = s.key;
+
+        b.addEventListener("click", () => {
+          window.bulgaritamTrack?.("subcategory_pill_click", {
+            surface: "home",
+            category_key: cat.key,
+            subcategory_key: s.key,
+            subcategory_label: s.label,
+          });
+          activeCategoryKey = cat.key;
+          activeSubcategoryKey = s.key;
+          q.value = "";
+          applyDiscovery("");
+          pulseResults();
+        });
+
+        subChips.appendChild(b);
+      });
+    }
+
+    function openFilters() {
+      if (!filtersModal) return;
+      filtersModal.removeAttribute("hidden");
+      filtersToggle?.setAttribute("aria-expanded", "true");
+      document.documentElement.classList.add("no-scroll");
+    }
+
+    function closeFilters() {
+      if (!filtersModal) return;
+      filtersModal.setAttribute("hidden", "");
+      filtersToggle?.setAttribute("aria-expanded", "false");
+      document.documentElement.classList.remove("no-scroll");
+    }
+
+    function syncOccasionInputs() {
+      occasionModal?.querySelectorAll('input[name="occasionFilter"]').forEach((input) => {
+        input.checked = selectedOccasionKeys.includes(input.value);
+      });
+    }
+
+    function openOccasions() {
+      if (!occasionModal) return;
+      syncOccasionInputs();
+      occasionModal.removeAttribute("hidden");
+      occasionToggle?.setAttribute("aria-expanded", "true");
+      document.documentElement.classList.add("no-scroll");
+    }
+
+    function closeOccasions() {
+      if (!occasionModal) return;
+      occasionModal.setAttribute("hidden", "");
+      occasionToggle?.setAttribute("aria-expanded", "false");
+      document.documentElement.classList.remove("no-scroll");
+    }
+
+    // Initial setup
+    renderMainChips();
+    updateFeedVisibility();
+    updateFiltersBadge();
+    updateOccasionBadge();
+    window.addEventListener("bulgaritam:lang", () => {
+      renderMainChips();
+      const activeCategory = CATEGORIES.find((cat) => cat.key === activeCategoryKey);
+      if (activeCategoryKey && activeCategory) {
+        renderSubChips(activeCategory);
+      }
+      applyDiscovery(q.value || "");
+    });
+
+    // Existing listeners
+    const handleHomeSearchInput = (value) => {
+      const nextValue = value || "";
+      if (nextValue) {
+        activeSubcategoryKey = "";
+        activeCategoryKey = "";
+      }
+      applyDiscovery(nextValue);
+      scheduleSearchTracking(nextValue);
+      if (nextValue) pulseResults();
+    };
+
+    q.addEventListener("input", (e) => {
+      handleHomeSearchInput(e.target.value || "");
+    });
+
+    q.addEventListener("search", (e) => {
+      const nextValue = e.target.value || "";
+      handleHomeSearchInput(nextValue);
+    });
+    if (btn) btn.addEventListener("click", () => {
+      applyDiscovery(q.value);
+      scheduleSearchTracking(q.value);
+    });
+    sortSelect?.addEventListener("change", (e) => {
+      selectedSort = e.target.value || "featured";
+      applyDiscovery(q.value);
+      window.bulgaritamTrack?.("sort_change", {
+        surface: "home",
+        sort_mode: selectedSort,
+        active_category: activeCategoryKey || "all",
+        active_subcategory: activeSubcategoryKey || "all",
+      });
+      pulseResults();
+    });
+
+    occasionToggle?.addEventListener("click", openOccasions);
+    occasionModal?.addEventListener("click", (e) => {
+      if (e.target.closest("[data-occasion-close]")) closeOccasions();
+    });
+
+    occasionApply?.addEventListener("click", () => {
+      selectedOccasionKeys = Array.from(
+        occasionModal?.querySelectorAll('input[name="occasionFilter"]:checked') || []
+      ).map((input) => input.value);
+      closeOccasions();
+      applyDiscovery(q.value);
+      window.bulgaritamTrack?.("occasion_filter_apply", {
+        surface: "home",
+        occasion_keys: selectedOccasionKeys,
+        results_count: matchedCards.length,
+      });
+      pulseResults();
+    });
+
+    occasionReset?.addEventListener("click", () => {
+      selectedOccasionKeys = [];
+      syncOccasionInputs();
+      closeOccasions();
+      applyDiscovery(q.value);
+      pulseResults();
+    });
+
+    filtersToggle?.addEventListener("click", openFilters);
+    filtersModal?.addEventListener("click", (e) => {
+      if (e.target.closest("[data-filters-close]")) closeFilters();
+    });
+
+    filtersApply?.addEventListener("click", () => {
+      const checked = filtersModal?.querySelector('input[name="priceFilter"]:checked');
+      selectedPriceRange = checked?.value || "all";
+      selectedDeliveryOutside = Boolean(document.getElementById("deliveryOutsideHome")?.checked);
+      closeFilters();
+      applyDiscovery(q.value);
+      window.bulgaritamTrack?.("filter_apply", {
+        surface: "home",
+        price_range: selectedPriceRange,
+        delivers_outside_bulgaria: selectedDeliveryOutside,
+        results_count: matchedCards.length,
+      });
+      pulseResults();
+    });
+
+    filtersReset?.addEventListener("click", () => {
+      selectedPriceRange = "all";
+      selectedDeliveryOutside = false;
+      const first = filtersModal?.querySelector('input[name="priceFilter"][value="all"]');
+      if (first) first.checked = true;
+      const deliveryCheckbox = document.getElementById("deliveryOutsideHome");
+      if (deliveryCheckbox) deliveryCheckbox.checked = false;
+      closeFilters();
+      applyDiscovery(q.value);
+      pulseResults();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (filtersModal && !filtersModal.hasAttribute("hidden")) closeFilters();
+      if (occasionModal && !occasionModal.hasAttribute("hidden")) closeOccasions();
+    });
+
+    if ("IntersectionObserver" in window && feedSentinel) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) loadMore();
+        });
+      }, { rootMargin: "320px 0px" });
+
+      observer.observe(feedSentinel);
+    }
+
+    window.addEventListener("resize", () => {
+      const minimumVisible = Math.max(visibleCount, getBatchSize());
+      visibleCount = minimumVisible;
+      updateFeedVisibility();
+    });
+  </script>
+</BaseLayout>

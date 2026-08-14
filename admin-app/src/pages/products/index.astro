@@ -1,0 +1,13 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { isProductActive, listBrands, listProducts } from "../../lib/repositories";
+const [allProducts, brands] = await Promise.all([listProducts(), listBrands()]);
+const q = (Astro.url.searchParams.get("q") || "").trim().toLowerCase();
+const status = Astro.url.searchParams.get("status") || "all";
+const brandId = Number(Astro.url.searchParams.get("brand") || 0);
+const brandMap = new Map(brands.map((b) => [b.id, b]));
+const products = allProducts.filter((p) => p.name_bg && p.slug).filter((p) => !q || `${p.name_bg} ${p.slug} ${p.brand_name}`.toLowerCase().includes(q)).filter((p) => status === "all" || (status === "active" ? isProductActive(p.is_active) : !isProductActive(p.is_active))).filter((p) => !brandId || Number(p.brand_ref?.[0]?.id) === brandId);
+---
+<AdminLayout title="Products" active="products"><header class="head"><div><h1>Products</h1><p class="muted">{products.length} of {allProducts.filter((p) => p.name_bg && p.slug).length} Products</p></div><a class="btn" href="/products/new/">New Product</a></header>
+<form class="panel filters" method="get"><input type="search" name="q" value={q} placeholder="Search name, slug or Brand"/><select name="status"><option value="all" selected={status === "all"}>All statuses</option><option value="active" selected={status === "active"}>Active</option><option value="hidden" selected={status === "hidden"}>Hidden</option></select><select name="brand"><option value="">All Brands</option>{brands.filter((b) => b.brand_name).map((b) => <option value={b.id} selected={b.id === brandId}>{b.brand_name}</option>)}</select><button>Filter</button><a class="btn secondary" href="/products/">Clear</a></form>
+<section class="panel table-wrap"><table><thead><tr><th>Product</th><th>Brand</th><th>Category</th><th>Status</th><th>Price</th></tr></thead><tbody>{products.map((p) => {const brand=brandMap.get(Number(p.brand_ref?.[0]?.id));return <tr><td><a class="row-link" href={`/products/${p.id}/`}>{p.name_bg}</a><div class="muted">/{p.slug}</div></td><td>{brand?.brand_name || p.brand_name || "—"}</td><td>{p.category || "—"}</td><td><span class={`status ${isProductActive(p.is_active) ? "" : "hidden"}`}>{isProductActive(p.is_active) ? "Active" : "Hidden"}</span></td><td>{p.price_min_eur || "—"}{p.price_max_eur ? `–${p.price_max_eur}` : ""} {p.currency}</td></tr>})}</tbody></table>{!products.length && <div class="empty">No Products match these filters.</div>}</section></AdminLayout>

@@ -1,0 +1,5 @@
+---
+import { sessionCookie } from "../lib/auth";
+if (Astro.request.method === "POST") Astro.cookies.delete(sessionCookie.name, { path: "/" });
+return Astro.redirect("/login/");
+---

@@ -1,0 +1,88 @@
+---
+import SeoProductLanding from "../../components/SeoProductLanding.astro";
+import {
+  getCanonicalPathForLanding,
+  getClothingEditorialForLanding,
+  getProductsForLanding,
+  getSubcategoryLandings,
+  getIntentLandingsForCategory,
+  getIntentLandingsForAudienceSubcategory,
+  SEO_LANDINGS,
+} from "../../lib/seo-landings";
+import { getSubcategoryLabelForLang } from "../../lib/taxonomy";
+import { MEN_CLOTHING_TYPE_OPTIONS, WOMEN_CLOTHING_TYPE_OPTIONS } from "../../lib/clothing-types";
+import { loadProducts } from "../../lib/products";
+
+const allProducts = await loadProducts();
+
+export async function getStaticPaths() {
+  const products = await loadProducts();
+
+  return SEO_LANDINGS.map((landing) => ({
+    params: { slug: landing.slug },
+    props: {
+      landing,
+      products: getProductsForLanding(products, landing),
+    },
+  })).filter((entry) => entry.props.products.length > 0);
+}
+
+const { landing, products } = Astro.props;
+
+if (!landing) {
+  throw new Error(`Unknown SEO landing page: ${Astro.params.slug}`);
+}
+
+const primaryPills = getSubcategoryLandings(landing.categoryKey)
+  .map((entry) => ({
+    ...entry,
+    productCount: getProductsForLanding(allProducts, entry).length,
+  }))
+  .filter((entry) => entry.productCount > 0)
+  .map((entry) => ({
+    label: entry.label,
+    labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
+    href: `/k/${entry.slug}/`,
+    isActive: Boolean(entry.subcategoryKey && entry.subcategoryKey === landing.subcategoryKey),
+  }));
+
+const secondaryPills = (
+  landing.subcategoryKey === "clothing_women" || landing.subcategoryKey === "clothing_men"
+    ? getIntentLandingsForAudienceSubcategory(landing.categoryKey, landing.subcategoryKey, "clothing")
+    : getIntentLandingsForCategory(landing.categoryKey)
+).filter((entry) => !entry.path.startsWith("/bulgarski-podaratsi/"))
+  .map((entry) => ({
+    label: entry.label,
+    labelEn: entry.labelEn,
+    href: entry.path,
+    isActive: getCanonicalPathForLanding(landing) === entry.path,
+  }));
+
+const breadcrumbs = [
+  { name: "Начало", item: "/" },
+  { name: landing.h1, item: getCanonicalPathForLanding(landing) },
+];
+
+const refinementOptions =
+  landing.subcategoryKey === "clothing_women"
+    ? WOMEN_CLOTHING_TYPE_OPTIONS
+    : landing.subcategoryKey === "clothing_men"
+      ? MEN_CLOTHING_TYPE_OPTIONS
+      : [];
+
+const clothingEditorial = getClothingEditorialForLanding(landing);
+---
+
+<SeoProductLanding
+  landing={landing}
+  products={products}
+  canonicalPath={getCanonicalPathForLanding(landing)}
+  breadcrumbs={breadcrumbs}
+  primaryPills={primaryPills}
+  secondaryPills={secondaryPills}
+  secondaryPillsTitle={landing.subcategoryKey === "clothing_women" || landing.subcategoryKey === "clothing_men" ? "Най-търсени" : ""}
+  refinementOptions={refinementOptions}
+  refinementTitle="Вид облекло"
+  editorialHeader={clothingEditorial?.header}
+  editorialSections={clothingEditorial?.sections || []}
+/>

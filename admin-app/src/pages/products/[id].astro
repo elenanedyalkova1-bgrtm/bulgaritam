@@ -1,0 +1,8 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro"; import ProductForm from "../../components/ProductForm.astro";
+import { findProduct,listBrands,saveProduct,setProductVisibility,validateCsrf } from "../../lib/repositories";
+const id=Number(Astro.params.id);if(!id)return new Response("Not found",{status:404});let product=await findProduct(id);let error="";
+if(Astro.request.method==="POST"){const form=await Astro.request.formData();try{validateCsrf(form,Astro.locals.admin.csrf);if(form.get("_action")==="visibility")product=await setProductVisibility(id,form.get("visible")==="true");else product=await saveProduct(form,id);return Astro.redirect(`/products/${id}/?saved=1`)}catch(e){error=e instanceof Error?e.message:"Could not save Product."}}
+const brands=await listBrands();const success=Astro.url.searchParams.has("saved")||Astro.url.searchParams.has("created");
+---
+<AdminLayout title={product.name_bg || "Product"} active="products"><header class="head"><div><h1>{product.name_bg || "Product"}</h1><p class="muted">Baserow row #{id}</p></div><a class="btn secondary" href="/products/">Back</a></header>{success&&<div class="notice">Product saved and verified in Baserow. Public deployment is still required.</div>}<ProductForm product={product} brands={brands} csrf={Astro.locals.admin.csrf} error={error}/></AdminLayout>

@@ -1,0 +1,291 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Споделена колекция | Българитъм";
+const description = "Разгледай споделена колекция с подбрани български продукти в Българитъм.";
+const canonical = "https://bulgaritam.bg/spodelena-kolekciya/";
+---
+
+<BaseLayout
+  seo={{
+    type: "blog",
+    title,
+    description,
+    data: {
+      blogTitle: "Споделена колекция",
+      description,
+      breadcrumbs: [
+        { name: "Начало", item: "/" },
+        { name: "Споделена колекция", item: "/spodelena-kolekciya/" },
+      ],
+    },
+  }}
+  canonical={canonical}
+  robots="noindex,follow,max-image-preview:large"
+  i18n={{
+    en: {
+      "shared.kicker": "Shared gallery",
+      "shared.title": "Collection",
+      "shared.intro": "Curated products gathered in one shared gallery for inspiration.",
+      "shared.createOwn": "Create your own collection",
+      "shared.emptyTitle": "This collection is not available.",
+      "shared.emptyCopy": "The link may be incomplete or the collection may not have any saved products.",
+      "shared.cta": "Open product ↗"
+    }
+  }}
+>
+  <main class="page-shell shared-shell">
+    <header class="page-head shared-head">
+      <p class="page-kicker" data-i18n="shared.kicker">Споделена галерия</p>
+      <h1 class="page-title" id="shared-title" data-i18n="shared.title">Колекция</h1>
+      <p class="page-intro" id="shared-intro" data-i18n="shared.intro">
+        Подбрани продукти, събрани в една споделена галерия за вдъхновение.
+      </p>
+    </header>
+
+    <section class="shared-toolbar" id="shared-toolbar" hidden>
+      <p class="shared-toolbar__note" id="shared-count"></p>
+      <a class="shared-toolbar__link" href="/zapazeni/" data-i18n="shared.createOwn">Създай своя колекция</a>
+    </section>
+
+    <div class="shared-empty" id="shared-empty" hidden>
+      <h2 class="shared-empty__title" data-i18n="shared.emptyTitle">Тази колекция не е налична.</h2>
+      <p class="shared-empty__copy" data-i18n="shared.emptyCopy">
+        Възможно е линкът да е непълен или колекцията да няма запазени продукти.
+      </p>
+    </div>
+
+    <section class="shared-grid-wrap" id="shared-grid-wrap" hidden>
+      <div class="shared-grid" id="shared-grid"></div>
+    </section>
+  </main>
+
+  <style>
+    .shared-shell {
+      max-width: 1220px;
+    }
+
+    .shared-head {
+      padding-bottom: 10px;
+    }
+
+    .shared-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      width: min(100%, 960px);
+      margin: 0 auto 24px;
+      padding: 16px 18px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+    }
+
+    .shared-toolbar__note {
+      margin: 0;
+      color: rgba(26, 26, 26, 0.68);
+      line-height: 1.6;
+    }
+
+    .shared-toolbar__link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(255, 255, 255, 0.88);
+      color: rgba(26, 26, 26, 0.84);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .shared-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .shared-card {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      border-radius: 24px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.78);
+      overflow: hidden;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.045);
+    }
+
+    .shared-card__media {
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(95, 127, 107, 0.12), rgba(26, 26, 26, 0.04));
+    }
+
+    .shared-card__media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .shared-card__body {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+    }
+
+    .shared-card__title {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: clamp(20px, 2vw, 28px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .shared-card__meta {
+      margin: 0;
+      color: rgba(26, 26, 26, 0.62);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .shared-card__price {
+      margin: 0;
+      font-weight: 700;
+      color: rgba(68, 93, 70, 0.92);
+      font-size: 13px;
+    }
+
+    .shared-card__cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      margin: 0 14px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      color: rgba(26, 26, 26, 0.82);
+      text-decoration: none;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .shared-empty {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      padding: 34px 26px;
+      border-radius: 24px;
+      border: 1px dashed rgba(26, 26, 26, 0.14);
+      background: rgba(255, 255, 255, 0.56);
+      text-align: center;
+    }
+
+    .shared-empty__title {
+      margin: 0 0 8px;
+      font-family: var(--font-title);
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.04;
+    }
+
+    .shared-empty__copy {
+      margin: 0;
+      color: rgba(26, 26, 26, 0.68);
+      line-height: 1.65;
+    }
+
+    @media (max-width: 1024px) {
+      .shared-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .shared-toolbar {
+        display: grid;
+        justify-items: start;
+      }
+
+      .shared-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+  </style>
+
+  <script is:inline>
+    const SHARED_GRID = document.getElementById("shared-grid");
+    const SHARED_GRID_WRAP = document.getElementById("shared-grid-wrap");
+    const SHARED_EMPTY = document.getElementById("shared-empty");
+    const SHARED_TITLE = document.getElementById("shared-title");
+    const SHARED_INTRO = document.getElementById("shared-intro");
+    const SHARED_TOOLBAR = document.getElementById("shared-toolbar");
+    const SHARED_COUNT = document.getElementById("shared-count");
+
+    const decodeBase64Url = (value) => {
+      const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+      try {
+        const binary = window.atob(padded);
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      } catch {
+        return "";
+      }
+    };
+
+    const escapeHtml = (value) =>
+      String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+    const params = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const encodedCollection =
+      params.get("collection") ||
+      params.get("c") ||
+      hashParams.get("collection") ||
+      hashParams.get("c");
+
+    let payload = null;
+    if (encodedCollection) {
+      try {
+        payload = JSON.parse(decodeBase64Url(encodedCollection));
+      } catch {
+        payload = null;
+      }
+    }
+
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+
+    if (!payload?.name || !items.length) {
+      SHARED_EMPTY?.removeAttribute("hidden");
+    } else {
+      SHARED_TITLE.textContent = payload.name;
+      SHARED_INTRO.textContent = `Колекция, споделена от приятел, с ${items.length} подбрани ${items.length === 1 ? "продукт" : "продукта"}.`;
+      SHARED_COUNT.textContent = `В тази споделена галерия има ${items.length} ${items.length === 1 ? "продукт" : "продукта"}.`;
+      SHARED_TOOLBAR?.removeAttribute("hidden");
+      SHARED_GRID_WRAP?.removeAttribute("hidden");
+
+      SHARED_GRID.innerHTML = items.map((item) => `
+        <article class="shared-card">
+          <a class="shared-card__media" href="${escapeHtml(item.url || "#")}">
+            ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title || "Продукт")}" loading="lazy" />` : ""}
+          </a>
+          <div class="shared-card__body">
+            <h2 class="shared-card__title">${escapeHtml(item.title || "Продукт")}</h2>
+            <p class="shared-card__meta">${escapeHtml(item.brand || "")}</p>
+            ${item.price ? `<p class="shared-card__price">${escapeHtml(item.price)}</p>` : ""}
+          </div>
+          <a class="shared-card__cta" href="${escapeHtml(item.url || "#")}">Разгледай продукта</a>
+        </article>
+      `).join("");
+    }
+  </script>
+</BaseLayout>

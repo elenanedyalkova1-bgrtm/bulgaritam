@@ -1,0 +1,31 @@
+---
+const target = "/bulgarski-podaratsi/";
+---
+
+<!doctype html>
+<html lang="bg">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <link rel="canonical" href={`https://bulgaritam.bg${target}`} />
+    <meta name="robots" content="noindex,follow" />
+    <title>Пренасочване…</title>
+    <link rel="icon" type="image/svg+xml" sizes="any" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="msapplication-TileImage" content="/mstile-150x150.png" />
+    <meta name="msapplication-TileColor" content="#f4eee6" />
+    <meta name="theme-color" content="#f4eee6" />
+  </head>
+  <body>
+    <script is:inline>
+      window.location.replace("/bulgarski-podaratsi/");
+    </script>
+    <p>
+      Ако не бъдеш пренасочен автоматично, отвори
+      <a href={target}>{target}</a>.
+    </p>
+  </body>
+</html>

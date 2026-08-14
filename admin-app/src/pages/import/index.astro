@@ -1,0 +1,37 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { executeImport, parseCsv, prepareImport, type ImportPlan } from "../../lib/csv-import";
+import { signServerPayload } from "../../lib/auth";
+import { validateCsrf } from "../../lib/repositories";
+let error=""; let plan:ImportPlan|null=null; let signedPayload=""; let result:any=null;
+const encode=(value:string)=>{const bytes=new TextEncoder().encode(value);let binary="";bytes.forEach(byte=>binary+=String.fromCharCode(byte));return btoa(binary);};
+const decode=(value:string)=>{const binary=atob(value);return new TextDecoder().decode(Uint8Array.from(binary,char=>char.charCodeAt(0)));};
+if(Astro.request.method==="POST"){
+  const form=await Astro.request.formData();
+  try{
+    validateCsrf(form,Astro.locals.admin.csrf); const action=String(form.get("_action")||"");
+    if(action==="preview"){
+      const file=form.get("csv"); if(!(file instanceof File)||!file.size)throw new Error("Choose a CSV file."); if(file.size>2_000_000)throw new Error("CSV must be smaller than 2 MB.");
+      const rows=parseCsv(await file.text()); plan=await prepareImport(rows); const body=JSON.stringify(rows); signedPayload=encode(body)+"."+await signServerPayload(body);
+    } else if(action==="confirm"){
+      const token=String(form.get("payload")||""); const split=token.lastIndexOf("."); if(split<1)throw new Error("Invalid import confirmation.");
+      const body=decode(token.slice(0,split)); if(await signServerPayload(body)!==token.slice(split+1))throw new Error("Import confirmation has expired or was changed.");
+      plan=await prepareImport(JSON.parse(body)); if(plan.invalid)throw new Error("Import stopped because rows became invalid. Upload the CSV again."); result=await executeImport(plan);
+    }
+  }catch(e){error=e instanceof Error?e.message:"CSV import failed.";}
+}
+const metrics=plan?[['Total rows',plan.total],['New Products',plan.created],['Updates',plan.updated],['Unchanged',plan.unchanged],['Invalid',plan.invalid],['Unknown Brands',plan.unknownBrands.length],['Duplicate slugs',plan.duplicateSlugs.length],['Missing required',plan.missingRequired]]:[];
+---
+<AdminLayout title="Import Products" active="import">
+  <header class="head"><div><h1>Import Products</h1><p class="muted">Upload → validate → preview → confirm → import. Nothing is written before confirmation.</p></div><a class="btn secondary" href="/import/template.csv">Download CSV template</a></header>
+  {error&&<div class="error">{error}</div>}
+  {result&&<><div class={result.failed?"error":"notice"}>{result.failed?"Import completed with errors.":"Import completed successfully."}</div><div class="cards"><div class="metric">Created<b>{result.created}</b></div><div class="metric">Updated<b>{result.updated}</b></div><div class="metric">Skipped<b>{result.skipped}</b></div><div class="metric">Failed<b>{result.failed}</b></div></div>{result.errors?.length>0&&<div class="panel"><h2>Errors</h2><ul>{result.errors.map((e:string)=><li>{e}</li>)}</ul></div>}</>}
+  {!result&&<form method="post" enctype="multipart/form-data" class="panel"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><input type="hidden" name="_action" value="preview"/><label>Products CSV<input type="file" name="csv" accept=".csv,text/csv" required/></label><p class="hint">Maximum file size: 2 MB. UTF-8 CSV with a header row.</p><button>Parse and validate</button></form>}
+  {plan&&!result&&<>
+    <div class="cards import-cards">{metrics.map(([label,value])=><div class="metric"><span>{label}</span><b>{value}</b></div>)}</div>
+    {(plan.unknownBrands.length>0||plan.duplicateSlugs.length>0||plan.warnings.length>0)&&<div class="panel warning"><h2>Warnings and conflicts</h2>{plan.unknownBrands.length>0&&<p><b>Unknown Brands:</b> {plan.unknownBrands.join(', ')}</p>}{plan.duplicateSlugs.length>0&&<p><b>Duplicate slugs:</b> {plan.duplicateSlugs.join(', ')}</p>}{plan.warnings.map(w=><p>{w}</p>)}</div>}
+    <div class="panel table-wrap"><table><thead><tr><th>Line</th><th>Product</th><th>Slug</th><th>Brand</th><th>Action</th><th>Issues</th></tr></thead><tbody>{plan.items.map(item=><tr><td>{item.line}</td><td>{item.row.name_bg||'—'}</td><td>{item.row.slug||'—'}</td><td>{item.row.brand_slug||item.row.brand_ref||'—'}</td><td><span class={`status ${item.action==='invalid'?'bad':item.action}`}>{item.action}</span></td><td>{[...item.errors,...item.warnings].join('; ')||'—'}</td></tr>)}</tbody></table></div>
+    <form method="post" class="panel"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><input type="hidden" name="_action" value="confirm"/><input type="hidden" name="payload" value={signedPayload}/><p><b>This is the only step that writes to Baserow.</b> Invalid rows cannot be imported.</p><button disabled={plan.invalid>0}>Confirm and import {plan.created+plan.updated} Products</button>{plan.invalid>0&&<p class="error">Fix all invalid rows and upload the CSV again.</p>}</form>
+  </>}
+</AdminLayout>
+<style>.import-cards{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:20px}.status.create{background:#e5f3eb}.status.update{background:#e8eefb;color:#294f86}.status.unchanged{background:#eeeae5;color:#6d655c}.status.bad{background:#fbe9e7;color:#842b27}button:disabled{opacity:.45;cursor:not-allowed}@media(max-width:850px){.import-cards{grid-template-columns:repeat(2,1fr)}}</style>

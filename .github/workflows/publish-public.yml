@@ -1,0 +1,121 @@
+name: Publish public Bulgaritam site
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Build only, or build and publish to SuperHosting
+        required: true
+        default: dry-run
+        type: choice
+        options:
+          - dry-run
+          - deploy
+
+concurrency:
+  group: bulgaritam-public-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-verify:
+    name: Build and verify static site
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.manifest.outputs.artifact-name }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install public-site dependencies
+        run: npm ci
+
+      - name: Build latest Baserow catalog
+        run: npm run build
+        env:
+          BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
+          BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
+          BASEROW_BRANDS_TABLE_ID: ${{ vars.BASEROW_BRANDS_TABLE_ID }}
+
+      - name: Verify generated pages and stale routes
+        id: manifest
+        run: |
+          node scripts/verify-public-build.mjs
+          echo "artifact-name=bulgaritam-public-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+        env:
+          BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
+          BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
+          BASEROW_BRANDS_TABLE_ID: ${{ vars.BASEROW_BRANDS_TABLE_ID }}
+          BUILD_COMMIT_SHA: ${{ github.sha }}
+
+      - name: Upload verified static artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.manifest.outputs.artifact-name }}
+          path: dist/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+
+  deploy-superhosting:
+    name: Publish verified artifact to SuperHosting
+    if: ${{ inputs.mode == 'deploy' }}
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    environment: public-production
+    steps:
+      - name: Download verified artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-and-verify.outputs.artifact-name }}
+          path: dist
+
+      - name: Validate deployment path
+        env:
+          REMOTE_PATH: ${{ secrets.SUPERHOSTING_REMOTE_PATH }}
+        run: |
+          case "$REMOTE_PATH" in
+            ""|"/"|"."|"~")
+              echo "Unsafe or missing SUPERHOSTING_REMOTE_PATH" >&2
+              exit 1
+              ;;
+          esac
+          test -f dist/index.html
+          test -f dist/deploy-manifest.json
+
+      - name: Install SFTP client
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Upload site and remove stale Product/Brand pages
+        env:
+          SFTP_HOST: ${{ secrets.SUPERHOSTING_SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SUPERHOSTING_SFTP_PORT }}
+          SFTP_USERNAME: ${{ secrets.SUPERHOSTING_SFTP_USERNAME }}
+          SFTP_PASSWORD: ${{ secrets.SUPERHOSTING_SFTP_PASSWORD }}
+          REMOTE_PATH: ${{ secrets.SUPERHOSTING_REMOTE_PATH }}
+        run: |
+          lftp -u "$SFTP_USERNAME","$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" <<LFTP
+          set cmd:fail-exit true
+          set net:max-retries 2
+          set net:timeout 20
+          set sftp:auto-confirm yes
+          mkdir -p "$REMOTE_PATH"
+          mirror --reverse --verbose --exclude-glob 'p/**' --exclude-glob 'brand/**' dist/ "$REMOTE_PATH/"
+          mirror --reverse --delete --verbose dist/p/ "$REMOTE_PATH/p/"
+          mirror --reverse --delete --verbose dist/brand/ "$REMOTE_PATH/brand/"
+          bye
+          LFTP
+
+      - name: Verify public origin
+        run: |
+          curl --fail --silent --show-error --retry 3 https://bulgaritam.bg/ > /dev/null
+          curl --fail --silent --show-error --retry 3 https://bulgaritam.bg/deploy-manifest.json > /tmp/live-manifest.json
+          node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("/tmp/live-manifest.json","utf8"));if(m.commit!==process.env.GITHUB_SHA)process.exit(1)'

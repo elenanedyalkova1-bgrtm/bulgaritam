@@ -1,0 +1,68 @@
+---
+import SeoProductLanding from "../../components/SeoProductLanding.astro";
+import { SEO_INTENT_LANDINGS, getProductsForIntentLanding, getProductsForLanding, getSubcategoryLandings, getIntentLandingsForCategory, getIntentLandingsForAudienceSubcategory, getClothingEditorialForLanding } from "../../lib/seo-landings";
+import { getSubcategoryLabelForLang } from "../../lib/taxonomy";
+import { loadProducts } from "../../lib/products";
+
+const allProducts = await loadProducts();
+
+export async function getStaticPaths() {
+  const products = await loadProducts();
+  return SEO_INTENT_LANDINGS.filter((entry) => entry.group === "clothing" && entry.path.startsWith("/bulgarski-drehi/")).map((landing) => ({
+    params: { slug: landing.path.split("/").filter(Boolean).pop()! },
+    props: {
+      landing,
+      products: getProductsForIntentLanding(products, landing),
+    },
+  }));
+}
+
+const { landing, products } = Astro.props;
+
+const primaryPills = (
+  landing.audienceSubcategoryKey === "clothing_women"
+    ? [{ label: "Дамско", labelEn: "Women", href: "/k/damsko-obleklo/", isActive: true }]
+    : landing.audienceSubcategoryKey === "clothing_men"
+      ? [{ label: "Мъжко", labelEn: "Men", href: "/k/mazhko-obleklo/", isActive: true }]
+      : getSubcategoryLandings("clothing")
+          .map((entry) => ({
+            ...entry,
+            productCount: getProductsForLanding(allProducts, entry).length,
+          }))
+          .filter((entry) => entry.productCount > 0)
+          .map((entry) => ({
+            label: entry.label,
+            labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
+            href: `/k/${entry.slug}/`,
+            isActive: false,
+          }))
+);
+
+const secondaryPills = (
+  landing.audienceSubcategoryKey
+    ? getIntentLandingsForAudienceSubcategory("clothing", landing.audienceSubcategoryKey, "clothing")
+    : getIntentLandingsForCategory("clothing", "clothing")
+).map((entry) => ({
+  label: entry.label,
+  labelEn: entry.labelEn,
+  href: entry.path,
+  isActive: entry.path === landing.path,
+}));
+
+const clothingEditorial = getClothingEditorialForLanding(landing);
+---
+
+<SeoProductLanding
+  landing={landing}
+  products={products}
+  canonicalPath={landing.path}
+  breadcrumbs={[
+    { name: "Начало", item: "/" },
+    { name: "Български дрехи", item: "/bulgarski-drehi/" },
+    { name: landing.label, item: landing.path },
+  ]}
+  primaryPills={primaryPills}
+  secondaryPills={secondaryPills}
+  editorialHeader={clothingEditorial?.header}
+  editorialSections={clothingEditorial?.sections || []}
+/>

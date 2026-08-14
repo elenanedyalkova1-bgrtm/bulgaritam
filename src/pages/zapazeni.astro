@@ -1,0 +1,967 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const title = "Запазени | Българитъм";
+const description = "Запазени продукти и колекции – твоят личен списък за по-късно.";
+---
+
+<BaseLayout title={title} description={description} canonical="https://bulgaritam.bg/zapazeni/" robots="noindex,nofollow,max-image-preview:large" i18n={{
+  en: {
+    "saved.kicker": "Your finds",
+    "saved.title": "Collections",
+    "saved.intro": "Start saving products and create your gallery of inspiration. Then you can share a collection with a link.",
+    "saved.newCollection": "+ New collection",
+    "saved.newCollectionLabel": "Name of new collection",
+    "saved.newCollectionPlaceholder": "E.g. Gifts, Summer, Home",
+    "saved.create": "Create",
+    "saved.private": "Private collection",
+    "saved.shareCopy": "Share this collection with a friend through a link.",
+    "saved.copyLink": "Copy link",
+    "saved.share": "Share",
+    "saved.emptyTitle": "It is quiet here for now.",
+    "saved.emptyCopy": "Start saving products and create your gallery of inspiration."
+  }
+}}>
+  <main class="page-shell">
+    <header class="page-head">
+      <p class="page-kicker" data-i18n="saved.kicker">Твоите находки</p>
+      <h1 class="page-title" data-i18n="saved.title">Колекции</h1>
+      <p class="page-intro" data-i18n="saved.intro">
+        Започни да запазваш продукти и създай своя галерия за вдъхновение. После можеш да споделиш отделна колекция с линк.
+      </p>
+    </header>
+
+    <section class="collections-top">
+      <div class="collections-row">
+        <div id="collections-list" class="collections-list" aria-label="Колекции"></div>
+        <button id="collection-toggle" class="collection-toggle" type="button" aria-expanded="false" aria-controls="collection-create-wrap" data-i18n="saved.newCollection">
+          + Нова колекция
+        </button>
+      </div>
+
+      <div id="collection-create-wrap" class="collection-create-wrap" hidden>
+        <div class="collection-create">
+          <label class="sr-only" for="collection-name" data-i18n="saved.newCollectionLabel">Име на нова колекция</label>
+          <input id="collection-name" class="collection-input" type="text" placeholder="Напр. Подаръци, Лято, Дом" data-i18n-placeholder="saved.newCollectionPlaceholder" />
+          <button id="collection-create" class="collection-create-btn" type="button" data-i18n="saved.create">Създай</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="saved-content saved-content--gallery">
+      <div class="saved-toolbar">
+        <p class="saved-kicker" id="selected-privacy" data-i18n="saved.private">Лична колекция</p>
+        <h2 class="saved-titlebar" id="selected-title">Всички запазени</h2>
+        <p class="saved-summary" id="saved-summary"></p>
+        <div class="saved-share" id="saved-share" hidden>
+          <p class="saved-share__copy" id="saved-share-copy" data-i18n="saved.shareCopy">
+            Сподели тази колекция с приятел чрез линк.
+          </p>
+          <div class="saved-share__actions">
+            <button class="saved-share__btn saved-share__btn--ghost" id="saved-share-copy-btn" type="button" data-i18n="saved.copyLink">
+              Копирай линк
+            </button>
+            <button class="saved-share__btn" id="saved-share-native-btn" type="button" data-i18n="saved.share">
+              Сподели
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="saved-grid" class="saved-grid"></div>
+
+      <div id="saved-empty" class="saved-empty" hidden>
+        <p class="saved-empty-title" data-i18n="saved.emptyTitle">Тук е тихо засега.</p>
+        <p class="saved-empty-copy" id="saved-empty-copy" data-i18n="saved.emptyCopy">
+          Започни да запазваш продукти и създай своя галерия за вдъхновение.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script is:inline>
+    const SAVED_PAGE_KEY = "bulgaritam_saved_boards_v1";
+    const SAVED_PAGE_DEFAULT_ID = "all";
+    const SAVED_PAGE_DEFAULT_NAME = "Всички запазени";
+    const SAVED_PAGE_COPY = {
+      bg: {
+        newCollectionFallback: "Нова колекция",
+        defaultPrivacy: "Всичко запазено на това устройство",
+        private: "Лична колекция",
+        productSingle: "продукт",
+        productPlural: "продукта",
+        shareNamed: (name) => `Сподели колекцията „${name}“ с приятел чрез линк.`,
+        emptyDefault: "Започни да запазваш продукти и създай своя галерия за вдъхновение.",
+        emptyBoard: "Тази колекция е празна засега. Можеш да запазиш продукт в нея от страницата му.",
+        savedProduct: "Запазен продукт",
+        removeEverywhere: "Премахни отвсякъде",
+        removeFromCollection: "Махни от колекцията",
+        copied: "Линкът е копиран",
+        shareTitle: (name) => `Колекция: ${name}`,
+        shareText: "Разгледай тази подбрана колекция в Българитъм.",
+      },
+      en: {
+        newCollectionFallback: "New collection",
+        defaultPrivacy: "Everything saved on this device",
+        private: "Private collection",
+        productSingle: "product",
+        productPlural: "products",
+        shareNamed: (name) => `Share the collection “${name}” with a friend via link.`,
+        emptyDefault: "Start saving products and create your gallery of inspiration.",
+        emptyBoard: "This collection is empty for now. You can save a product to it from its page.",
+        savedProduct: "Saved product",
+        removeEverywhere: "Remove everywhere",
+        removeFromCollection: "Remove from collection",
+        copied: "Link copied",
+        shareTitle: (name) => `Collection: ${name}`,
+        shareText: "Explore this curated collection on Bulgaritam.",
+      }
+    };
+    const getSavedPageLang = () => localStorage.getItem("bulgaritam_lang_v1") === "en" ? "en" : "bg";
+    const tSaved = () => SAVED_PAGE_COPY[getSavedPageLang()];
+
+    let activeBoardId = SAVED_PAGE_DEFAULT_ID;
+    let isCreateOpen = false;
+
+    function safeParseSavedPage(raw) {
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function slugIdSavedPage() {
+      return "b_" + Math.random().toString(36).slice(2, 10);
+    }
+
+    function defaultSavedPageState() {
+      return {
+        boards: [{ id: SAVED_PAGE_DEFAULT_ID, name: SAVED_PAGE_DEFAULT_NAME, visibility: "private", shareKey: null }],
+        items: { [SAVED_PAGE_DEFAULT_ID]: [] },
+      };
+    }
+
+    function readSavedPageState() {
+      const raw = localStorage.getItem(SAVED_PAGE_KEY);
+      const state = raw ? safeParseSavedPage(raw) : null;
+      if (!state?.boards || !state?.items) return defaultSavedPageState();
+
+      state.boards = state.boards
+        .map((board) => ({
+          id: String(board?.id || ""),
+          name: String(board?.name || "").trim() || tSaved().newCollectionFallback,
+          visibility: board?.visibility || "private",
+          shareKey: board?.shareKey ?? null,
+        }))
+        .filter((board) => board.id);
+
+      if (!state.boards.find((board) => board.id === SAVED_PAGE_DEFAULT_ID)) {
+        state.boards.unshift({ id: SAVED_PAGE_DEFAULT_ID, name: SAVED_PAGE_DEFAULT_NAME, visibility: "private", shareKey: null });
+      } else {
+        state.boards = state.boards.map((board) =>
+          board.id === SAVED_PAGE_DEFAULT_ID
+            ? { ...board, name: SAVED_PAGE_DEFAULT_NAME, visibility: "private", shareKey: null }
+            : board
+        );
+      }
+
+      state.items[SAVED_PAGE_DEFAULT_ID] = Array.isArray(state.items[SAVED_PAGE_DEFAULT_ID]) ? state.items[SAVED_PAGE_DEFAULT_ID] : [];
+      return state;
+    }
+
+    function writeSavedPageState(state) {
+      localStorage.setItem(SAVED_PAGE_KEY, JSON.stringify(state));
+      window.dispatchEvent(new CustomEvent("bulgaritam:saved", { detail: state }));
+    }
+
+    function escapeSavedPageHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function isSavedInOtherCollections(state, itemId, currentBoardId) {
+      return (state.boards || [])
+        .filter((board) => board.id !== SAVED_PAGE_DEFAULT_ID && board.id !== currentBoardId)
+        .some((board) => (state.items?.[board.id] || []).some((item) => String(item?.id) === String(itemId)));
+    }
+
+    function removeFromBoard(state, boardId, itemId) {
+      const pid = String(itemId);
+
+      if (boardId === SAVED_PAGE_DEFAULT_ID) {
+        Object.keys(state.items).forEach((key) => {
+          state.items[key] = (state.items[key] || []).filter((item) => String(item?.id) !== pid);
+        });
+        return;
+      }
+
+      state.items[boardId] = (state.items[boardId] || []).filter((item) => String(item?.id) !== pid);
+
+      if (!isSavedInOtherCollections(state, pid, boardId)) {
+        state.items[SAVED_PAGE_DEFAULT_ID] = (state.items[SAVED_PAGE_DEFAULT_ID] || []).filter((item) => String(item?.id) !== pid);
+      }
+    }
+
+    function getBoardById(state, boardId) {
+      return (state.boards || []).find((board) => board.id === boardId) || state.boards?.[0] || defaultSavedPageState().boards[0];
+    }
+
+    function getItemsForBoard(state, boardId) {
+      return Array.isArray(state.items?.[boardId]) ? state.items[boardId] : [];
+    }
+
+    function renderCollections(state) {
+      const list = document.getElementById("collections-list");
+      const toggle = document.getElementById("collection-toggle");
+      const createWrap = document.getElementById("collection-create-wrap");
+      if (!list) return;
+
+      list.innerHTML = (state.boards || []).map((board) => {
+        const count = getItemsForBoard(state, board.id).length;
+        const active = board.id === activeBoardId ? " is-active" : "";
+
+        return `
+          <button class="collection-chip${active}" type="button" data-board-id="${escapeSavedPageHtml(board.id)}">
+            <span class="collection-chip__name">${escapeSavedPageHtml(board.name)}</span>
+            <span class="collection-chip__count">${count}</span>
+          </button>
+        `;
+      }).join("");
+
+      if (toggle) toggle.setAttribute("aria-expanded", isCreateOpen ? "true" : "false");
+      if (createWrap) createWrap.hidden = !isCreateOpen;
+    }
+
+    function renderItems(state) {
+      const board = getBoardById(state, activeBoardId);
+      const items = getItemsForBoard(state, board.id);
+      const grid = document.getElementById("saved-grid");
+      const empty = document.getElementById("saved-empty");
+      const title = document.getElementById("selected-title");
+      const summary = document.getElementById("saved-summary");
+      const privacy = document.getElementById("selected-privacy");
+      const emptyCopy = document.getElementById("saved-empty-copy");
+      const shareWrap = document.getElementById("saved-share");
+      const shareCopy = document.getElementById("saved-share-copy");
+
+      if (!grid || !empty || !title || !summary || !privacy || !emptyCopy) return;
+
+      title.textContent = board.id === SAVED_PAGE_DEFAULT_ID && getSavedPageLang() === "en" ? "All saved" : board.name;
+      privacy.textContent = board.id === SAVED_PAGE_DEFAULT_ID ? tSaved().defaultPrivacy : tSaved().private;
+      summary.textContent = items.length ? `${items.length} ${items.length === 1 ? tSaved().productSingle : tSaved().productPlural}` : "";
+
+      if (shareWrap && shareCopy) {
+        if (board.id !== SAVED_PAGE_DEFAULT_ID && items.length) {
+          shareWrap.removeAttribute("hidden");
+          shareCopy.textContent = tSaved().shareNamed(board.name);
+        } else {
+          shareWrap.setAttribute("hidden", "");
+        }
+      }
+
+      if (!items.length) {
+        empty.removeAttribute("hidden");
+        grid.innerHTML = "";
+        emptyCopy.textContent =
+          board.id === SAVED_PAGE_DEFAULT_ID
+            ? tSaved().emptyDefault
+            : tSaved().emptyBoard;
+        return;
+      }
+
+      empty.setAttribute("hidden", "");
+
+      grid.innerHTML = items.map((item) => {
+        const url = item?.url || "#";
+        const itemTitle = item?.title || tSaved().savedProduct;
+        const brand = item?.brand || "";
+        const price = item?.price || "";
+        const image = item?.image || "";
+        const id = item?.id || "";
+        const buttonLabel = board.id === SAVED_PAGE_DEFAULT_ID ? tSaved().removeEverywhere : tSaved().removeFromCollection;
+
+        return `
+          <article class="saved-card">
+            <a class="saved-link" href="${escapeSavedPageHtml(url)}">
+              <div class="saved-media">
+                ${image ? `<img src="${escapeSavedPageHtml(image)}" alt="${escapeSavedPageHtml(itemTitle)}" loading="lazy" />` : ""}
+              </div>
+
+              <div class="saved-body">
+                <div class="saved-title">${escapeSavedPageHtml(itemTitle)}</div>
+                <div class="saved-meta-row">
+                  ${brand ? `<div class="saved-meta">${escapeSavedPageHtml(brand)}</div>` : `<div class="saved-meta"></div>`}
+                  ${price ? `<div class="saved-price">${escapeSavedPageHtml(price)}</div>` : ""}
+                </div>
+              </div>
+            </a>
+
+            <button
+              class="saved-remove"
+              type="button"
+              aria-label="${escapeSavedPageHtml(buttonLabel)}"
+              data-item-id="${escapeSavedPageHtml(id)}"
+              data-board-id="${escapeSavedPageHtml(board.id)}"
+            >
+              ${escapeSavedPageHtml(buttonLabel)}
+            </button>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function render() {
+      const state = readSavedPageState();
+      if (!(state.boards || []).find((board) => board.id === activeBoardId)) {
+        activeBoardId = SAVED_PAGE_DEFAULT_ID;
+      }
+
+      renderCollections(state);
+      renderItems(state);
+    }
+
+    function createCollection() {
+      const input = document.getElementById("collection-name");
+      if (!input) return;
+
+      const name = String(input.value || "").trim();
+      if (!name) return;
+
+      const state = readSavedPageState();
+      const id = slugIdSavedPage();
+
+      state.boards.push({ id, name, visibility: "private", shareKey: null });
+      state.items[id] = state.items[id] || [];
+
+      activeBoardId = id;
+      writeSavedPageState(state);
+      input.value = "";
+      isCreateOpen = false;
+      render();
+    }
+
+    function encodeCollectionPayload(value) {
+      const json = JSON.stringify(value);
+      const bytes = new TextEncoder().encode(json);
+      let binary = "";
+      bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+      });
+      return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+    }
+
+    function getSharePayload(state, boardId) {
+      const board = getBoardById(state, boardId);
+      const items = getItemsForBoard(state, boardId);
+      if (!board || board.id === SAVED_PAGE_DEFAULT_ID || !items.length) return null;
+
+      return {
+        name: board.name,
+        items: items.map((item) => ({
+          id: item?.id || "",
+          url: item?.url || "",
+          title: item?.title || "Запазен продукт",
+          brand: item?.brand || "",
+          price: item?.price || "",
+          image: item?.image || "",
+        })),
+      };
+    }
+
+    function getShareUrl() {
+      const state = readSavedPageState();
+      const payload = getSharePayload(state, activeBoardId);
+      if (!payload) return "";
+      const encoded = encodeCollectionPayload(payload);
+      return `${window.location.origin}/spodelena-kolekciya/?collection=${encodeURIComponent(encoded)}`;
+    }
+
+    async function copyShareLink() {
+      const state = readSavedPageState();
+      const payload = getSharePayload(state, activeBoardId);
+      const shareUrl = getShareUrl();
+      if (!shareUrl || !payload) return;
+
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+        } else {
+          throw new Error("Clipboard API unavailable");
+        }
+      } catch {
+        const helper = document.createElement("textarea");
+        helper.value = shareUrl;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "absolute";
+        helper.style.left = "-9999px";
+        document.body.appendChild(helper);
+        helper.select();
+        helper.setSelectionRange(0, helper.value.length);
+        document.execCommand("copy");
+        helper.remove();
+      }
+
+      const copyBtn = document.getElementById("saved-share-copy-btn");
+      if (copyBtn) {
+        const original = copyBtn.textContent;
+        copyBtn.textContent = tSaved().copied;
+        window.setTimeout(() => {
+          copyBtn.textContent = original;
+        }, 1800);
+      }
+
+      window.bulgaritamTrack?.("copy_collection_link", {
+        board_id: payload.id,
+        board_name: payload.name,
+        items_count: payload.items?.length || 0,
+      });
+    }
+
+    async function nativeShareCollection() {
+      const state = readSavedPageState();
+      const payload = getSharePayload(state, activeBoardId);
+      const shareUrl = getShareUrl();
+      if (!payload || !shareUrl) return;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: tSaved().shareTitle(payload.name),
+            text: tSaved().shareText,
+            url: shareUrl,
+          });
+          window.bulgaritamTrack?.("share_collection", {
+            board_id: payload.id,
+            board_name: payload.name,
+            items_count: payload.items?.length || 0,
+            method: "native",
+          });
+          return;
+        } catch {}
+      }
+
+      await copyShareLink();
+    }
+
+    document.addEventListener("click", (event) => {
+      const boardBtn = event.target.closest("[data-board-id]");
+      if (boardBtn && boardBtn.classList.contains("collection-chip")) {
+        activeBoardId = boardBtn.getAttribute("data-board-id") || SAVED_PAGE_DEFAULT_ID;
+        render();
+        return;
+      }
+
+      const toggleBtn = event.target.closest("#collection-toggle");
+      if (toggleBtn) {
+        isCreateOpen = !isCreateOpen;
+        renderCollections(readSavedPageState());
+        if (isCreateOpen) {
+          requestAnimationFrame(() => document.getElementById("collection-name")?.focus());
+        }
+        return;
+      }
+
+      const removeBtn = event.target.closest(".saved-remove[data-item-id]");
+      if (removeBtn) {
+        const itemId = removeBtn.getAttribute("data-item-id");
+        const boardId = removeBtn.getAttribute("data-board-id") || SAVED_PAGE_DEFAULT_ID;
+        const state = readSavedPageState();
+        removeFromBoard(state, boardId, itemId);
+        writeSavedPageState(state);
+        render();
+        return;
+      }
+
+    });
+
+    document.getElementById("collection-create")?.addEventListener("click", createCollection);
+    document.getElementById("collection-name")?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") createCollection();
+    });
+    document.getElementById("saved-share-copy-btn")?.addEventListener("click", () => {
+      copyShareLink();
+    });
+    document.getElementById("saved-share-native-btn")?.addEventListener("click", () => {
+      nativeShareCollection();
+    });
+
+    render();
+
+    window.addEventListener("bulgaritam:saved", render);
+    window.addEventListener("storage", render);
+    window.addEventListener("bulgaritam:lang", render);
+  </script>
+
+  <style>
+    .page-shell {
+      max-width: 1260px;
+    }
+
+    .collections-top {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 30px;
+      justify-items: start;
+    }
+
+    .collections-row {
+      width: min(100%, 1040px);
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .collections-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-start;
+    }
+
+    .collection-chip,
+    .collection-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 54px;
+      padding: 0 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(95, 127, 107, 0.12);
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.76) 68%),
+        linear-gradient(135deg, rgba(95, 127, 107, 0.05), rgba(213, 183, 148, 0.06));
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.78);
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease,
+        color 0.18s ease;
+      position: relative;
+    }
+
+    .collection-chip:hover,
+    .collection-toggle:hover {
+      transform: translateY(-2px);
+      border-color: rgba(95, 127, 107, 0.22);
+      box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.84);
+    }
+
+    .collection-chip.is-active {
+      border-color: rgba(95, 127, 107, 0.22);
+      background:
+        linear-gradient(135deg, rgba(95, 127, 107, 0.22), rgba(95, 127, 107, 0.1)),
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1) 72%);
+      color: var(--accent-strong);
+      box-shadow:
+        0 18px 34px rgba(95, 127, 107, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    }
+
+    .collection-chip::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      pointer-events: none;
+    }
+
+    .collection-chip__name {
+      font-family: var(--font-title);
+      font-size: 19px;
+      line-height: 1;
+      letter-spacing: -0.025em;
+    }
+
+    .collection-chip__count {
+      display: inline-flex;
+      min-width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: rgba(26, 26, 26, 0.06);
+      color: rgba(26, 26, 26, 0.56);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+    }
+
+    .collection-chip.is-active .collection-chip__count {
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--accent-strong);
+    }
+
+    .collection-toggle {
+      padding: 0 26px;
+      font-size: 17px;
+      font-weight: 700;
+      color: rgba(26, 26, 26, 0.88);
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.82) 70%),
+        linear-gradient(135deg, rgba(213, 183, 148, 0.12), rgba(95, 127, 107, 0.06));
+    }
+
+    .collection-toggle::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      pointer-events: none;
+    }
+
+    .collection-create-wrap {
+      width: min(100%, 520px);
+    }
+
+    .collection-create {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 22px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.04);
+    }
+
+    .collection-input {
+      height: 46px;
+      border-radius: 14px;
+      border: 1px solid rgba(26, 26, 26, 0.12);
+      padding: 0 14px;
+      background: rgba(255, 255, 255, 0.9);
+      font-family: var(--font-body);
+      font-size: 14px;
+    }
+
+    .collection-create-btn {
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.12);
+      background: rgba(255, 255, 255, 0.92);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .saved-content--gallery {
+      display: grid;
+      gap: 18px;
+      justify-items: start;
+    }
+
+    .saved-toolbar {
+      display: grid;
+      gap: 8px;
+      text-align: left;
+      justify-items: start;
+      width: min(100%, 720px);
+    }
+
+    .saved-kicker {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(26, 26, 26, 0.5);
+    }
+
+    .saved-titlebar {
+      margin: 0;
+      font-size: clamp(28px, 3vw, 44px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 600;
+      white-space: normal;
+      text-wrap: balance;
+    }
+
+    .saved-summary {
+      margin: 0;
+      font-size: 16px;
+      color: rgba(26, 26, 26, 0.58);
+    }
+
+    .saved-share {
+      display: grid;
+      gap: 10px;
+      width: min(100%, 560px);
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .saved-share__copy {
+      margin: 0;
+      color: rgba(26, 26, 26, 0.68);
+      line-height: 1.6;
+    }
+
+    .saved-share__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .saved-share__btn {
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      background: rgba(95, 127, 107, 0.12);
+      color: rgba(26, 26, 26, 0.86);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .saved-share__btn--ghost {
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .saved-grid {
+      width: min(100%, 1180px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .saved-card {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      width: 100%;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      border-radius: 24px;
+      background: rgba(255,255,255,0.76);
+      padding: 10px;
+      overflow: hidden;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.045);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+
+    .saved-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 42px rgba(0, 0, 0, 0.08);
+      border-color: rgba(26, 26, 26, 0.12);
+    }
+
+    .saved-link {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+      width: 100%;
+      min-width: 0;
+    }
+
+    .saved-media {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(95, 127, 107, 0.12), rgba(26, 26, 26, 0.04));
+    }
+
+    .saved-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.38s ease;
+    }
+
+    .saved-card:hover .saved-media img {
+      transform: scale(1.04);
+    }
+
+    .saved-body {
+      display: grid;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+      padding: 2px 6px 6px;
+    }
+
+    .saved-title {
+      display: block;
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: var(--type-h2);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+      overflow-wrap: anywhere;
+    }
+
+    .saved-meta-row {
+      display: grid;
+      gap: 4px;
+      align-items: start;
+    }
+
+    .saved-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .saved-price {
+      font-weight: 700;
+      color: var(--accent-strong);
+      font-size: 13px;
+    }
+
+    .saved-remove {
+      width: calc(100% - 12px);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 4px 6px 6px;
+      min-height: 38px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(26, 26, 26, 0.12);
+      background: rgba(255, 255, 255, 0.78);
+      color: rgba(26, 26, 26, 0.72);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .saved-remove:hover {
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(26, 26, 26, 0.18);
+      color: rgba(26, 26, 26, 0.92);
+    }
+
+    .saved-empty {
+      width: min(100%, 760px);
+      border: 1px dashed var(--border);
+      border-radius: 22px;
+      padding: 36px 28px;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(255,255,255,0.5);
+    }
+
+    .saved-empty-title {
+      margin: 0 0 8px;
+      font-family: var(--font-title);
+      font-size: 28px;
+      line-height: 1.05;
+      color: var(--text);
+    }
+
+    .saved-empty-copy {
+      margin: 0;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 1024px) {
+      .saved-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .collections-row {
+        gap: 10px;
+      }
+
+      .collections-list {
+        gap: 10px;
+      }
+
+      .collection-chip,
+      .collection-toggle {
+        min-height: 48px;
+      }
+
+      .collection-create {
+        grid-template-columns: 1fr;
+      }
+
+      .saved-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .saved-share__actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .saved-card {
+        border-radius: 22px;
+        padding: 10px;
+      }
+
+      .saved-media {
+        aspect-ratio: 4 / 5;
+      }
+
+      .saved-title {
+        font-size: clamp(20px, 5vw, 24px);
+      }
+
+      .saved-remove {
+        min-height: 44px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .collection-chip,
+      .collection-toggle {
+        min-height: 46px;
+        padding: 0 14px;
+      }
+
+      .collection-chip__name {
+        font-size: 16px;
+      }
+
+      .saved-card {
+        border-radius: 20px;
+        padding: 8px;
+      }
+
+      .saved-media {
+        border-radius: 14px;
+      }
+
+      .saved-title {
+        font-size: 18px;
+      }
+    }
+  </style>
+</BaseLayout>

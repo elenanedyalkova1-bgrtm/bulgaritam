@@ -1,0 +1,14 @@
+---
+import AdminLayout from "../layouts/AdminLayout.astro";
+import { isProductActive, listBrands, listProducts } from "../lib/repositories";
+const [products, brands] = await Promise.all([listProducts(), listBrands()]);
+const validProducts = products.filter((p) => p.name_bg && p.slug);
+const validBrands = brands.filter((b) => b.brand_name && b.brand_slug);
+const metrics = [
+  ["Products", validProducts.length], ["Active Products", validProducts.filter((p) => isProductActive(p.is_active)).length],
+  ["Brands", validBrands.length], ["Active Brands", validBrands.filter((b) => b.is_active === true).length],
+  ["Hidden Products", validProducts.filter((p) => !isProductActive(p.is_active)).length], ["Hidden Brands", validBrands.filter((b) => b.is_active !== true).length],
+  ["Missing images", validProducts.filter((p) => !String(p.image_urls || "").trim()).length], ["Missing Brand link", validProducts.filter((p) => !p.brand_ref?.length).length],
+];
+---
+<AdminLayout title="Overview" active="overview"><header class="head"><div><h1>Overview</h1><p class="muted">Catalog status from Baserow</p></div><a class="btn" href="/publish/">Publish website</a></header><section class="cards">{metrics.map(([label,value]) => <div class="metric"><span class="muted">{label}</span><b>{value}</b></div>)}</section><section class="panel warning" style="margin-top:20px"><strong>Changes require publication.</strong><p class="muted">Admin saves update Baserow immediately. Use Publish website to run a verified static build before sending changes to SuperHosting.</p></section></AdminLayout>

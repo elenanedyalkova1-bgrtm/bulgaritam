@@ -1,4 +1,4 @@
-name: Diagnose FTPS connectivity
+name: Diagnose authenticated FTPS
 
 on:
   workflow_dispatch:
@@ -9,16 +9,36 @@ permissions:
 jobs:
   diagnose:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
+    environment: public-production
     steps:
-      - name: DNS resolution
-        run: getent hosts ftp.ferforge.shop
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: TCP connectivity by hostname
-        run: nc -vz -w 15 ftp.ferforge.shop 21
+      - name: Map verified TLS hostname
+        env:
+          FTPS_SERVER_IP: ${{ vars.SUPERHOSTING_FTPS_SERVER_IP }}
+          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
+        run: echo "$FTPS_SERVER_IP $FTPS_TLS_HOST" | sudo tee -a /etc/hosts > /dev/null
 
-      - name: TCP connectivity by IP
-        run: nc -vz -w 15 185.80.2.210 21
-
-      - name: FTP banner and connectivity
-        run: curl -v --connect-timeout 15 ftp://ftp.ferforge.shop:21/
+      - name: Authenticate and list jailed root read-only
+        env:
+          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
+          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
+          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
+          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
+        run: |
+          lftp -d -u "$FTPS_USERNAME","$FTPS_PASSWORD" -p "$FTPS_PORT" "ftp://$FTPS_TLS_HOST" <<LFTP
+          set cmd:fail-exit true
+          set net:max-retries 2
+          set net:timeout 20
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ftp:passive-mode true
+          set ssl:verify-certificate true
+          set ssl:check-hostname true
+          cd /
+          pwd
+          cls -la /
+          bye
+          LFTP

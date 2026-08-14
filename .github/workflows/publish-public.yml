@@ -78,39 +78,53 @@ jobs:
           name: ${{ needs.build-and-verify.outputs.artifact-name }}
           path: dist
 
-      - name: Validate deployment path
+      - name: Validate restricted FTPS configuration
         env:
-          REMOTE_PATH: ${{ secrets.SUPERHOSTING_REMOTE_PATH }}
+          FTPS_SERVER_IP: ${{ vars.SUPERHOSTING_FTPS_SERVER_IP }}
+          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
+          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
+          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
+          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
         run: |
-          case "$REMOTE_PATH" in
-            ""|"/"|"."|"~")
-              echo "Unsafe or missing SUPERHOSTING_REMOTE_PATH" >&2
-              exit 1
-              ;;
-          esac
+          test -n "$FTPS_SERVER_IP"
+          test -n "$FTPS_TLS_HOST"
+          test "$FTPS_PORT" = "21"
+          test -n "$FTPS_USERNAME"
+          test -n "$FTPS_PASSWORD"
+          case "$FTPS_TLS_HOST" in *.superhosting.bg) ;; *) echo "FTPS TLS hostname must be a SuperHosting hostname" >&2; exit 1;; esac
           test -f dist/index.html
           test -f dist/deploy-manifest.json
+          test -f dist/.htaccess
 
       - name: Install SFTP client
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Upload site and remove stale Product/Brand pages
+      - name: Map the verified certificate hostname
         env:
-          SFTP_HOST: ${{ secrets.SUPERHOSTING_SFTP_HOST }}
-          SFTP_PORT: ${{ secrets.SUPERHOSTING_SFTP_PORT }}
-          SFTP_USERNAME: ${{ secrets.SUPERHOSTING_SFTP_USERNAME }}
-          SFTP_PASSWORD: ${{ secrets.SUPERHOSTING_SFTP_PASSWORD }}
-          REMOTE_PATH: ${{ secrets.SUPERHOSTING_REMOTE_PATH }}
+          FTPS_SERVER_IP: ${{ vars.SUPERHOSTING_FTPS_SERVER_IP }}
+          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
+        run: echo "$FTPS_SERVER_IP $FTPS_TLS_HOST" | sudo tee -a /etc/hosts > /dev/null
+
+      - name: Upload site over strict FTPS and remove stale Product/Brand pages
+        env:
+          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
+          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
+          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
+          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
         run: |
-          lftp -u "$SFTP_USERNAME","$SFTP_PASSWORD" -p "$SFTP_PORT" "sftp://$SFTP_HOST" <<LFTP
+          lftp -u "$FTPS_USERNAME","$FTPS_PASSWORD" -p "$FTPS_PORT" "ftp://$FTPS_TLS_HOST" <<LFTP
           set cmd:fail-exit true
           set net:max-retries 2
           set net:timeout 20
-          set sftp:auto-confirm yes
-          mkdir -p "$REMOTE_PATH"
-          mirror --reverse --verbose --exclude-glob 'p/**' --exclude-glob 'brand/**' dist/ "$REMOTE_PATH/"
-          mirror --reverse --delete --verbose dist/p/ "$REMOTE_PATH/p/"
-          mirror --reverse --delete --verbose dist/brand/ "$REMOTE_PATH/brand/"
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ftp:passive-mode true
+          set ssl:verify-certificate true
+          set ssl:check-hostname true
+          cd /
+          mirror --reverse --verbose --exclude-glob 'p/**' --exclude-glob 'brand/**' dist/ /
+          mirror --reverse --delete --verbose dist/p/ /p/
+          mirror --reverse --delete --verbose dist/brand/ /brand/
           bye
           LFTP
 

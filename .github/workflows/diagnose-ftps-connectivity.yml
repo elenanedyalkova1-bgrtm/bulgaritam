@@ -1,0 +1,24 @@
+name: Diagnose FTPS connectivity
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: DNS resolution
+        run: getent hosts ftp.ferforge.shop
+
+      - name: TCP connectivity by hostname
+        run: nc -vz -w 15 ftp.ferforge.shop 21
+
+      - name: TCP connectivity by IP
+        run: nc -vz -w 15 185.80.2.210 21
+
+      - name: FTP banner and connectivity
+        run: curl -v --connect-timeout 15 ftp://ftp.ferforge.shop:21/

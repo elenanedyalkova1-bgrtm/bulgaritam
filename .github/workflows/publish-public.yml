@@ -27,10 +27,10 @@ jobs:
       artifact-name: ${{ steps.manifest.outputs.artifact-name }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -57,7 +57,7 @@ jobs:
           BUILD_COMMIT_SHA: ${{ github.sha }}
 
       - name: Upload verified static artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.manifest.outputs.artifact-name }}
           path: dist/
@@ -73,7 +73,7 @@ jobs:
     environment: public-production
     steps:
       - name: Download verified artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: ${{ needs.build-and-verify.outputs.artifact-name }}
           path: dist

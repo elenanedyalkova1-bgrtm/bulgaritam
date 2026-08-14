@@ -103,7 +103,7 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
     "brand.cardCta": "Visit brand website →"
   }
 }}>
-  <main class="wrap">
+  <main class="wrap" data-page-brand data-brand data-brand-id={brandRow?.id ?? ""} data-brand-slug={brandSlug} data-brand-name={brandName} data-list-context="brand_page">
     <a class="back" href="/">← Начало</a>
 
     <div class="brand-hero-bar">
@@ -188,6 +188,11 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
                     href={brandRow.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-analytics-event="outbound_brand_click"
+                    data-brand
+                    data-brand-id={brandRow.id}
+                    data-brand-slug={brandSlug}
+                    data-brand-name={brandName}
                     data-i18n="brand.visitWebsite"
                   >
                     Виж сайта на бранда →
@@ -230,15 +235,22 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
         return (
           <article
             class="card"
+            data-analytics-kind="product"
+            data-list-context="brand_page"
+            data-list-name={brandName}
+            data-position={index + 1}
+            data-product-id={product.id}
             data-brand-card
             data-masonry-card
             data-product-slug={product.slug}
             data-product-name={product.name_bg}
             data-brand-slug={product.brand_slug ?? ""}
+            data-brand-id={product.brand_id ?? brandRow?.id ?? ""}
             data-brand-name={brandName}
             data-product-url={product.product_url ?? ""}
             data-category-key={taxonomy.categoryKey || ""}
             data-subcategory-keys={taxonomy.subcategoryKeys.join(",")}
+            data-product-type={product.product_type || ""}
           >
             <div class="card-media">
               <a class="card-link" href={`/p/${product.slug}/`}>

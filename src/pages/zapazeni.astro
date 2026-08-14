@@ -336,6 +336,7 @@ const description = "Запазени продукти и колекции – �
 
       activeBoardId = id;
       writeSavedPageState(state);
+      window.bulgaritamTrack?.("create_collection", { collection_id: id, source_context: "saved_page" });
       input.value = "";
       isCreateOpen = false;
       render();
@@ -414,10 +415,10 @@ const description = "Запазени продукти и колекции – �
         }, 1800);
       }
 
-      window.bulgaritamTrack?.("copy_collection_link", {
-        board_id: payload.id,
-        board_name: payload.name,
-        items_count: payload.items?.length || 0,
+      window.bulgaritamTrack?.("share_collection", {
+        collection_id: activeBoardId,
+        item_count: payload.items?.length || 0,
+        method: "copy_link",
       });
     }
 
@@ -435,9 +436,8 @@ const description = "Запазени продукти и колекции – �
             url: shareUrl,
           });
           window.bulgaritamTrack?.("share_collection", {
-            board_id: payload.id,
-            board_name: payload.name,
-            items_count: payload.items?.length || 0,
+            collection_id: activeBoardId,
+            item_count: payload.items?.length || 0,
             method: "native",
           });
           return;
@@ -472,6 +472,11 @@ const description = "Запазени продукти и колекции – �
         const state = readSavedPageState();
         removeFromBoard(state, boardId, itemId);
         writeSavedPageState(state);
+        window.bulgaritamTrack?.(boardId === SAVED_PAGE_DEFAULT_ID ? "remove_saved_product" : "remove_from_collection", {
+          product_slug: itemId,
+          collection_id: boardId,
+          source_context: "saved_page",
+        });
         render();
         return;
       }
@@ -490,6 +495,7 @@ const description = "Запазени продукти и колекции – �
     });
 
     render();
+    window.bulgaritamTrack?.("view_collection", { collection_id: activeBoardId, source_context: "saved_page" });
 
     window.addEventListener("bulgaritam:saved", render);
     window.addEventListener("storage", render);

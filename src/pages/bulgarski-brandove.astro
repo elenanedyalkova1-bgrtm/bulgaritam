@@ -19,6 +19,7 @@ for (const p of products) {
   if (!taxonomy.categoryKeys.length) continue;
 
   const entry = brandsMap.get(p.brand_slug) || {
+    id: p.brand_id,
     name: p.brand_name || p.brand_slug,
     slug: p.brand_slug,
     keys: new Set(),
@@ -241,7 +242,12 @@ const editorialSections = [
         {brands.map((b, index) => (
           <li
             class="brand-card"
+            data-analytics-kind="brand"
+            data-list-context="brand_directory"
+            data-list-name="Български брандове"
+            data-position={index + 1}
             data-brand
+            data-brand-id={b.id ?? ""}
             data-brand-slug={b.slug}
             data-keys={b.keys.join(",")}
             data-occasion-keys={b.occasionKeys.join(",")}

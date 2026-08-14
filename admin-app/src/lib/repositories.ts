@@ -1,6 +1,6 @@
-import { BRANDS_TABLE, PRODUCTS_TABLE, createRow, getRow, listRows, updateRow } from "./baserow";
+import { BRANDS_TABLE, PRODUCTS_TABLE, createRow, getRow, listFields, listRows, updateRow } from "./baserow";
 
-export const productFields = ["name_bg","slug","category","tags","price_min_eur","price_max_eur","currency","short_desc_bg","long_desc_bg","product_url","image_urls","created_at","meta_title_bg","meta_desc_bg","rating"] as const;
+export const productFields = ["name_bg","slug","category","subcategory","product_type","tags","price_min_eur","price_max_eur","currency","short_desc_bg","long_desc_bg","product_url","image_urls","created_at","meta_title_bg","meta_desc_bg","rating"] as const;
 export const brandFields = ["brand_name","brand_slug","brand_url","description_bg","instagram_url","logo_url","address"] as const;
 const text = (value: FormDataEntryValue | null) => String(value ?? "").trim();
 const isProductActive = (value: unknown) => ["true","1","yes","y"].includes(String(value ?? "").trim().toLowerCase());
@@ -9,6 +9,7 @@ export async function listProducts() { return listRows(PRODUCTS_TABLE); }
 export async function listBrands() { return listRows(BRANDS_TABLE); }
 export async function findProduct(id: number) { return getRow(PRODUCTS_TABLE, id); }
 export async function findBrand(id: number) { return getRow(BRANDS_TABLE, id); }
+export async function getProductFieldSchema() { return listFields(PRODUCTS_TABLE); }
 
 export function validateCsrf(form: FormData, expected: string) {
   if (!expected || text(form.get("csrf")) !== expected) throw new Error("Invalid CSRF token");
@@ -30,7 +31,7 @@ export async function saveProduct(form: FormData, rowId?: number) {
   validateUrl(values.product_url, "Product URL", true);
   const brandId = Number(text(form.get("brand_ref")));
   if (!brandId) throw new Error("Brand is required.");
-  const [products, brand] = await Promise.all([listProducts(), findBrand(brandId)]);
+  const [products, brand, schema] = await Promise.all([listProducts(), findBrand(brandId), getProductFieldSchema()]);
   if (products.some((row) => row.id !== rowId && String(row.slug).trim() === values.slug)) throw new Error("A Product with this slug already exists.");
   if (!brand?.brand_slug || !brand?.brand_name) throw new Error("Selected Brand is invalid.");
   const fields: Record<string, unknown> = {
@@ -44,6 +45,17 @@ export async function saveProduct(form: FormData, rowId?: number) {
     intro_bg: brand.description_bg || "",
     address: brand.address || "",
   };
+  const optionIds = (fieldName: string, submitted: string[]) => {
+    const field = schema.find((item: any) => item.name === fieldName);
+    if (!field) throw new Error(`Baserow field ${fieldName} is missing.`);
+    return submitted.map((value) => field.select_options?.find((option: any) => option.value === value)?.id).filter(Number.isFinite);
+  };
+  fields.subcategory = optionIds("subcategory", [values.subcategory])[0] || null;
+  fields.product_type = optionIds("product_type", [values.product_type])[0] || null;
+  fields.giftable = form.get("giftable") === "true";
+  fields.recipient = optionIds("recipient", form.getAll("recipient").map(text));
+  fields.gift_occasion = optionIds("gift_occasion", form.getAll("gift_occasion").map(text));
+  fields.attributes = optionIds("attributes", form.getAll("attributes").map(text));
   if (!rowId) {
     const legacyIds = products.map((row) => Number(row["id 2"])).filter(Number.isFinite);
     fields["id 2"] = String(Math.max(0, ...legacyIds) + 1);

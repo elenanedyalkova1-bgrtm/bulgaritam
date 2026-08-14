@@ -1038,6 +1038,13 @@ body.page .lead {
   z-index: 120;
 }
 
+/* Keep consent pending and unchanged while a discovery dialog is open, but do
+   not let the banner cover or intercept that dialog. */
+html.discovery-modal-open .cookie {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .cookie-card {
   max-width: 820px;
   margin: 0 auto;

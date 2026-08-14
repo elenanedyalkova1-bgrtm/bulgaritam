@@ -1,0 +1,134 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-08-14 00:00:00",
+  "containerVersion": {
+    "path": "accounts/6320901564/containers/233513387/versions/0",
+    "accountId": "6320901564",
+    "containerId": "233513387",
+    "containerVersionId": "0",
+    "container": {
+      "path": "accounts/6320901564/containers/233513387",
+      "accountId": "6320901564",
+      "containerId": "233513387",
+      "name": "Bulgaritam",
+      "publicId": "GTM-58MC374T",
+      "usageContext": ["WEB"],
+      "fingerprint": "0",
+      "tagManagerUrl": "https://tagmanager.google.com/"
+    },
+    "tag": [
+      {
+        "accountId": "6320901564",
+        "containerId": "233513387",
+        "tagId": "100",
+        "name": "GA4 - Google tag - Consent granted page view",
+        "type": "googtag",
+        "parameter": [
+          {"type": "TEMPLATE", "key": "tagId", "value": "G-7XT69Z6DKS"}
+        ],
+        "firingTriggerId": ["10"],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "consentSettings": {
+          "consentStatus": "NEEDED",
+          "consentType": {"type": "LIST", "list": [{"type": "TEMPLATE", "value": "analytics_storage"}]}
+        }
+      },
+      {
+        "accountId": "6320901564",
+        "containerId": "233513387",
+        "tagId": "101",
+        "name": "GA4 - Bulgaritam discovery events",
+        "type": "gaawe",
+        "parameter": [
+          {"type": "BOOLEAN", "key": "sendEcommerceData", "value": "false"},
+          {"type": "TEMPLATE", "key": "eventName", "value": "{{Event}}"},
+          {"type": "TEMPLATE", "key": "measurementIdOverride", "value": "G-7XT69Z6DKS"},
+          {"type": "LIST", "key": "eventParameters", "list": [
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"product_id"},{"type":"TEMPLATE","key":"value","value":"{{DLV - product_id}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"product_slug"},{"type":"TEMPLATE","key":"value","value":"{{DLV - product_slug}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"product_name"},{"type":"TEMPLATE","key":"value","value":"{{DLV - product_name}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"brand_id"},{"type":"TEMPLATE","key":"value","value":"{{DLV - brand_id}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"brand_slug"},{"type":"TEMPLATE","key":"value","value":"{{DLV - brand_slug}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"brand_name"},{"type":"TEMPLATE","key":"value","value":"{{DLV - brand_name}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"category"},{"type":"TEMPLATE","key":"value","value":"{{DLV - category}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"subcategory"},{"type":"TEMPLATE","key":"value","value":"{{DLV - subcategory}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"product_type"},{"type":"TEMPLATE","key":"value","value":"{{DLV - product_type}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"list_context"},{"type":"TEMPLATE","key":"value","value":"{{DLV - list_context}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"list_name"},{"type":"TEMPLATE","key":"value","value":"{{DLV - list_name}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"position"},{"type":"TEMPLATE","key":"value","value":"{{DLV - position}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"query"},{"type":"TEMPLATE","key":"value","value":"{{DLV - query}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"normalized_query"},{"type":"TEMPLATE","key":"value","value":"{{DLV - normalized_query}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"structured_intent"},{"type":"TEMPLATE","key":"value","value":"{{DLV - structured_intent}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"used_fallback"},{"type":"TEMPLATE","key":"value","value":"{{DLV - used_fallback}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"gift_recipient"},{"type":"TEMPLATE","key":"value","value":"{{DLV - gift_recipient}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"gift_occasion"},{"type":"TEMPLATE","key":"value","value":"{{DLV - gift_occasion}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"active_filters"},{"type":"TEMPLATE","key":"value","value":"{{DLV - active_filters}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"source_context"},{"type":"TEMPLATE","key":"value","value":"{{DLV - source_context}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"destination_domain"},{"type":"TEMPLATE","key":"value","value":"{{DLV - destination_domain}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"page_path"},{"type":"TEMPLATE","key":"value","value":"{{DLV - page_path}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"page_title"},{"type":"TEMPLATE","key":"value","value":"{{DLV - page_title}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"language"},{"type":"TEMPLATE","key":"value","value":"{{DLV - language}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"device_type"},{"type":"TEMPLATE","key":"value","value":"{{DLV - device_type}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"result_count"},{"type":"TEMPLATE","key":"value","value":"{{DLV - result_count}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"selected_value"},{"type":"TEMPLATE","key":"value","value":"{{DLV - selected_value}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"collection_id"},{"type":"TEMPLATE","key":"value","value":"{{DLV - collection_id}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"item_count"},{"type":"TEMPLATE","key":"value","value":"{{DLV - item_count}}"}]},
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"method"},{"type":"TEMPLATE","key":"value","value":"{{DLV - method}}"}]}
+          ]}
+        ],
+        "firingTriggerId": ["11", "12", "13", "14", "15", "16"],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "consentSettings": {
+          "consentStatus": "NEEDED",
+          "consentType": {"type": "LIST", "list": [{"type": "TEMPLATE", "value": "analytics_storage"}]}
+        }
+      }
+    ],
+    "trigger": [
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"10","name":"CE - Page view after analytics consent","type":"CUSTOM_EVENT","customEventFilter":[{"type":"EQUALS","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"page_view"}]}]},
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"11","name":"CE - Search","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(search|search_results_view|search_no_results)$"}]}]},
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"12","name":"CE - Browse and filters","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(select_category|select_subcategory|select_product_type|select_gift_recipient|select_gift_occasion|apply_filter|remove_filter|clear_filters|change_sort)$"}]}]},
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"13","name":"CE - Visibility","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(product_impression|brand_impression)$"}]}]},
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"14","name":"CE - Engagement","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(view_product|save_product|remove_saved_product|share_product|view_brand|save_brand)$"}]}]},
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"15","name":"CE - Outbound","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(outbound_product_click|outbound_brand_click)$"}]}]},
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"16","name":"CE - Collections","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(create_collection|add_to_collection|remove_from_collection|view_collection|share_collection)$"}]}]}
+    ],
+    "variable": [
+      {"accountId":"6320901564","containerId":"233513387","variableId":"200","name":"DLV - product_id","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"product_id"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"201","name":"DLV - product_slug","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"product_slug"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"202","name":"DLV - product_name","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"product_name"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"203","name":"DLV - brand_id","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"brand_id"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"204","name":"DLV - brand_slug","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"brand_slug"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"205","name":"DLV - brand_name","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"brand_name"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"206","name":"DLV - category","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"category"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"207","name":"DLV - subcategory","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"subcategory"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"208","name":"DLV - product_type","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"product_type"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"209","name":"DLV - list_context","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"list_context"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"210","name":"DLV - list_name","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"list_name"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"211","name":"DLV - position","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"position"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"212","name":"DLV - query","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"query"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"213","name":"DLV - normalized_query","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"normalized_query"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"214","name":"DLV - structured_intent","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"structured_intent"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"215","name":"DLV - used_fallback","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"used_fallback"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"216","name":"DLV - gift_recipient","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"gift_recipient"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"217","name":"DLV - gift_occasion","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"gift_occasion"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"218","name":"DLV - active_filters","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"active_filters"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"219","name":"DLV - source_context","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"source_context"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"220","name":"DLV - destination_domain","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"destination_domain"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"221","name":"DLV - page_path","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"page_path"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"222","name":"DLV - page_title","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"page_title"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"223","name":"DLV - language","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"language"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"224","name":"DLV - device_type","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"device_type"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"225","name":"DLV - result_count","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"result_count"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"226","name":"DLV - selected_value","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"selected_value"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"227","name":"DLV - collection_id","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"collection_id"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"228","name":"DLV - item_count","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"item_count"}]},
+      {"accountId":"6320901564","containerId":"233513387","variableId":"229","name":"DLV - method","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"method"}]}
+    ],
+    "builtInVariable": [
+      {"accountId":"6320901564","containerId":"233513387","type":"EVENT","name":"Event"}
+    ],
+    "fingerprint": "0",
+    "tagManagerUrl": "https://tagmanager.google.com/"
+  }
+}

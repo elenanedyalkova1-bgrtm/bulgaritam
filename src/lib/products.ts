@@ -13,6 +13,11 @@ export type Product = {
 
   category: string;
   tags: string[];
+  subcategory: string;
+  product_type: string;
+  recipient: string[];
+  gift_occasion: string[];
+  attributes: string[];
   giftable: boolean;
   gift_targets: GiftTarget[];
   gift_match_score: number;
@@ -86,6 +91,12 @@ type BaserowRow = {
   slug?: string;
   category?: string;
   tags?: string;
+  subcategory?: { value?: string } | string;
+  product_type?: { value?: string } | string;
+  giftable?: boolean;
+  recipient?: Array<{ value?: string }>;
+  gift_occasion?: Array<{ value?: string }>;
+  attributes?: Array<{ value?: string }>;
   price_min_eur?: string;
   price_max_eur?: string;
   currency?: string;
@@ -143,8 +154,15 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
       ? true
       : toBool(row.is_active);
 
+  const legacyGiftMeta = getGiftMeta({ tags });
+  const structuredGiftable = row.giftable === true;
+  const selectValue = (value: BaserowRow["subcategory"]) =>
+    norm(typeof value === "object" && value !== null ? value.value : value);
+  const multiSelectValues = (value: Array<{ value?: string }> | undefined) =>
+    Array.isArray(value) ? value.map((item) => norm(item?.value)).filter(Boolean) : [];
+
   return {
-    ...getGiftMeta({ tags }),
+    ...legacyGiftMeta,
     id,
     row_id: Number(row.id),
     brand_id: Number(brand?.id) || null,
@@ -154,6 +172,12 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
 
     category: norm(row.category),
     tags,
+    subcategory: selectValue(row.subcategory),
+    product_type: selectValue(row.product_type),
+    recipient: multiSelectValues(row.recipient),
+    gift_occasion: multiSelectValues(row.gift_occasion),
+    attributes: multiSelectValues(row.attributes),
+    giftable: structuredGiftable || (!row.subcategory && legacyGiftMeta.giftable),
 
     price_min_eur: toNum(row.price_min_eur),
     price_max_eur: toNum(row.price_max_eur),

@@ -1,18 +1,23 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { Image } from "astro:assets";
-import { OCCASION_FILTERS, OCCASION_GROUPS, getOccasionKeysForProduct } from "../lib/occasions";
 import { CATEGORY_LANDINGS, SUBCATEGORY_LANDINGS } from "../lib/seo-landings";
 import { buildSearchDocument } from "../lib/search";
-import { getCategoryLabel, getCategoryLabelForLang, getSubcategoryViewAllLabelForLang, getTaxonomyForProduct, getTopLevelCategories } from "../lib/taxonomy";
+import { getCategoryLabelForLang, getSubcategoryViewAllLabelForLang, getTaxonomyForProduct } from "../lib/taxonomy";
 import { loadProducts } from "../lib/products";
 import { getProductBadges } from "../lib/product-badges";
+import { getAvailablePublicBrowse, getPublicBrowseForProduct, PUBLIC_GIFT_OCCASIONS } from "../lib/public-browse-taxonomy";
 import homeHero from "../assets/home-hero-banner-2.png";
 
 const products = await loadProducts();
 const displayProducts = products.filter((product) => product.image_urls?.[0]);
 const LAZY_IMAGE_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-const homeCategories = getTopLevelCategories();
+const homeCategories = getAvailablePublicBrowse(displayProducts);
+const attributeOptions = Array.from(new Set(displayProducts.flatMap((product) => product.attributes))).sort((a, b) => a.localeCompare(b, "bg"));
+const recipientOptions = Array.from(new Set(displayProducts.filter((product) => product.giftable).flatMap((product) => product.recipient))).sort((a, b) => a.localeCompare(b, "bg"));
+const structuredGiftOccasions = new Set(displayProducts.filter((product) => product.giftable).flatMap((product) => product.gift_occasion));
+const giftOccasionOptions = PUBLIC_GIFT_OCCASIONS.filter((value) => value === "Сватба" || structuredGiftOccasions.has(value));
+const giftAttributeOptions = attributeOptions.filter((value) => ["Персонализируем", "Ръчна изработка"].includes(value));
 
 function priceLabel(p) {
   if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
@@ -28,7 +33,7 @@ function priceLabel(p) {
     "home.searchPlaceholder": 'e.g. "silver earrings", "women\'s pajamas", "night cream"',
     "home.searchHint": "Search starts automatically as you type",
     "home.viewAll": "View all",
-    "home.occasion": "Occasion",
+    "home.occasion": "Gift & occasion",
     "home.filters": "Filters",
     "home.sortLabel": "Sort",
     "home.sort.featured": "Featured",
@@ -86,6 +91,8 @@ function priceLabel(p) {
       <div class="chips chips--home" role="group" aria-label="Категории" id="mainChips"></div>
       <p class="chips-section-label" id="subChipsLabel" hidden data-i18n="home.subcategories">Подкатегории</p>
       <div class="chips chips-sub chips--home" role="group" aria-labelledby="subChipsLabel" id="subChips" hidden></div>
+      <p class="chips-section-label" id="typeChipsLabel" hidden>Тип продукт</p>
+      <div class="chips chips-types chips--home" role="group" aria-labelledby="typeChipsLabel" id="typeChips" hidden></div>
       <div
         id="homeLandingData"
         data-landings={JSON.stringify(
@@ -117,7 +124,7 @@ function priceLabel(p) {
           aria-controls="occasionModal"
           aria-expanded="false"
         >
-          <span data-i18n="home.occasion">Повод</span>
+          <span data-i18n="home.occasion">Подарък и повод</span>
           <span id="occasionBadge" class="discovery-btn__badge" hidden>1</span>
         </button>
 
@@ -191,6 +198,20 @@ function priceLabel(p) {
           </label>
         </div>
 
+        {attributeOptions.length ? (
+          <div class="filters-group filters-group--spaced">
+            <p class="filters-group__label">Характеристики</p>
+            <div class="filter-options-grid">
+              {attributeOptions.map((attribute) => (
+                <label class="filter-option filter-option--checkbox">
+                  <input type="checkbox" name="attributeFilter" value={attribute} />
+                  <span>{attribute}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div class="filters-group">
           <p class="filters-group__label">Доставка</p>
 
@@ -222,8 +243,8 @@ function priceLabel(p) {
       >
         <div class="filters-modal__head">
           <div>
-            <p class="filters-modal__eyebrow">Подбор по настроение</p>
-            <h3 id="occasionTitle" class="filters-modal__title">Повод</h3>
+            <p class="filters-modal__eyebrow">Подходящ избор за подарък</p>
+            <h3 id="occasionTitle" class="filters-modal__title">Подарък и повод</h3>
           </div>
 
           <button class="filters-modal__close" type="button" aria-label="Затвори" data-occasion-close>
@@ -232,19 +253,25 @@ function priceLabel(p) {
         </div>
 
         <div class="occasion-sheet">
-          {OCCASION_GROUPS.map((group) => (
-            <section class="occasion-group">
-              <h4 class="occasion-group__title" data-i18n-bg={group.label} data-i18n-en={group.labelEn}>{group.label}</h4>
-              <div class="occasion-options">
-                {OCCASION_FILTERS.filter((occasion) => occasion.group === group.key).map((occasion) => (
-                  <label class="occasion-option">
-                    <input type="checkbox" name="occasionFilter" value={occasion.key} />
-                    <span data-i18n-bg={occasion.label} data-i18n-en={occasion.labelEn}>{occasion.label}</span>
-                  </label>
-                ))}
-              </div>
-            </section>
-          ))}
+          <section class="occasion-group">
+            <h4 class="occasion-group__title">За кого</h4>
+            <div class="occasion-options">
+              {recipientOptions.map((value) => <label class="occasion-option"><input type="checkbox" name="giftFilter" value={`recipient:${value}`} /><span>{value}</span></label>)}
+            </div>
+          </section>
+          <section class="occasion-group">
+            <h4 class="occasion-group__title">По повод</h4>
+            <div class="occasion-options">
+              {giftOccasionOptions.map((value) => <label class="occasion-option"><input type="checkbox" name="giftFilter" value={`occasion:${value}`} /><span>{value}</span></label>)}
+            </div>
+          </section>
+          <section class="occasion-group">
+            <h4 class="occasion-group__title">Още</h4>
+            <div class="occasion-options">
+              <label class="occasion-option"><input type="checkbox" name="giftFilter" value="giftable:true" /><span>Подходящ за подарък</span></label>
+              {giftAttributeOptions.map((value) => <label class="occasion-option"><input type="checkbox" name="giftFilter" value={`attribute:${value}`} /><span>{value}</span></label>)}
+            </div>
+          </section>
         </div>
 
         <div class="filters-modal__actions">
@@ -259,15 +286,17 @@ function priceLabel(p) {
     </div>
 
     <section class="section section--feed">
+      <div id="activeSelections" class="active-selections" aria-live="polite" hidden></div>
       <div class="section-head section-head--centered">
         <h2 class="h2">Продукти (<span id="count">{displayProducts.length}</span>)</h2>
         <div class="hint" id="hint"></div>
+        <p class="intent-status" id="intentStatus" hidden></p>
       </div>
 
       <ul class="grid" id="grid">
         {displayProducts.map((p, index) => {
           const taxonomy = getTaxonomyForProduct(p);
-          const occasionKeys = getOccasionKeysForProduct(p);
+          const publicBrowse = getPublicBrowseForProduct(p);
           const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
           const shouldEagerLoad = index < 4;
           const categoryLabelBg = taxonomy.categoryLabel;
@@ -275,19 +304,34 @@ function priceLabel(p) {
           return (
             <li
               class="card"
+              data-analytics-kind="product"
+              data-list-context="homepage_default"
+              data-list-name="Начална discovery мрежа"
+              data-position={index + 1}
+              data-product-id={p.id}
               data-product-slug={p.slug}
               data-product-name={p.name_bg}
               data-brand-slug={p.brand_slug}
+              data-brand-id={p.brand_id ?? ""}
               data-brand-name={p.brand_name}
               data-product-url={p.product_url}
               data-category-key={taxonomy.categoryKey}
               data-category-keys={taxonomy.categoryKeys.join(",")}
               data-subcategory-keys={taxonomy.subcategoryKeys.join(",")}
-              data-occasion-keys={occasionKeys.join(",")}
+              data-public-category={publicBrowse.categoryKey}
+              data-public-subcategory={publicBrowse.subcategoryKey}
+              data-product-type={p.product_type}
+              data-giftable={p.giftable ? "1" : "0"}
+              data-recipients={p.recipient.join("|")}
+              data-gift-occasions={p.gift_occasion.join("|")}
+              data-attributes={p.attributes.join("|")}
               data-search={buildSearchDocument([
                 p.name_bg,
                 p.brand_name,
                 p.category,
+                p.subcategory,
+                p.product_type,
+                ...p.attributes,
                 ...(p.tags || []),
                 p.short_desc_bg,
                 p.long_desc_bg,
@@ -296,6 +340,9 @@ function priceLabel(p) {
                 p.name_bg,
                 p.brand_name,
                 p.category,
+                p.subcategory,
+                p.product_type,
+                ...p.attributes,
                 ...(p.tags || []),
                 p.short_desc_bg,
                 p.long_desc_bg,
@@ -510,6 +557,19 @@ function priceLabel(p) {
       border-style: dashed;
     }
 
+    .chips-types {
+      margin-top: 8px;
+      min-height: 52px;
+    }
+
+    .chips-types .chip-type {
+      min-height: 42px;
+      padding: 9px 15px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: none;
+    }
+
     .home-view-all {
       display: flex;
       justify-content: center;
@@ -584,6 +644,13 @@ function priceLabel(p) {
       line-height: 1;
     }
 
+    .discovery-btn__badge[hidden],
+    .active-selections[hidden],
+    .chips[hidden],
+    .chips-section-label[hidden] {
+      display: none !important;
+    }
+
     .sort-control {
       display: inline-flex;
       align-items: center;
@@ -647,12 +714,14 @@ function priceLabel(p) {
       background: rgba(250, 247, 242, 0.96);
       box-shadow: 0 28px 70px rgba(0, 0, 0, 0.16);
       transform: translate(-50%, -50%);
+      max-height: min(88dvh, 760px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     .filters-modal__panel--occasion {
       width: min(94vw, 760px);
-      max-height: min(82vh, 760px);
-      overflow: auto;
+      max-height: min(88dvh, 760px);
     }
 
     .filters-modal__head {
@@ -699,6 +768,20 @@ function priceLabel(p) {
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.58);
+    }
+
+    .filters-group--spaced {
+      margin-top: 22px;
+    }
+
+    .filter-options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .filter-options-grid .filter-option + .filter-option {
+      margin-top: 0;
     }
 
     .filter-option {
@@ -783,6 +866,14 @@ function priceLabel(p) {
       justify-content: flex-end;
       gap: 10px;
       margin-top: 22px;
+      position: sticky;
+      z-index: 2;
+      bottom: -24px;
+      margin-inline: -24px;
+      margin-bottom: -24px;
+      padding: 16px 24px 24px;
+      border-top: 1px solid rgba(26, 26, 26, 0.07);
+      background: rgba(250, 247, 242, 0.98);
     }
 
     .filters-action {
@@ -804,6 +895,48 @@ function priceLabel(p) {
 
     .section--feed {
       padding-top: 10px;
+    }
+
+    .intent-status {
+      max-width: 720px;
+      margin: 2px auto 0;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(123, 64, 59, 0.08);
+      color: rgba(83, 48, 44, 0.9);
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .active-selections {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      max-width: 1100px;
+      margin: 0 auto 18px;
+    }
+
+    .active-selection {
+      min-height: 36px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(95, 127, 107, 0.25);
+      background: rgba(95, 127, 107, 0.1);
+      color: rgba(26, 26, 26, 0.84);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .active-selection--clear {
+      border-color: transparent;
+      background: transparent;
+      color: #7b403b;
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
 
     .section-head--centered {
@@ -1209,9 +1342,19 @@ function priceLabel(p) {
       }
 
       .chips--home {
-        justify-content: center;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
         gap: 8px;
-        min-height: 96px;
+        min-height: 56px;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: none;
+        scroll-snap-type: inline proximity;
+        padding: 4px 2px 8px;
+      }
+
+      .chips--home::-webkit-scrollbar {
+        display: none;
       }
 
       .chip,
@@ -1220,6 +1363,8 @@ function priceLabel(p) {
         padding: 10px 14px;
         font-size: 13px;
         box-shadow: 0 8px 18px rgba(0, 0, 0, 0.035);
+        flex: 0 0 auto;
+        scroll-snap-align: start;
       }
 
       .chips-section-label {
@@ -1227,7 +1372,7 @@ function priceLabel(p) {
       }
 
       .chips-sub {
-        justify-content: center;
+        justify-content: flex-start;
         margin-top: 8px;
         padding: 10px;
         border-radius: 18px;
@@ -1278,6 +1423,22 @@ function priceLabel(p) {
         min-height: 48px;
         justify-content: center;
         text-align: center;
+      }
+
+      .filter-options-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .active-selections {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        scrollbar-width: none;
+      }
+
+      .active-selection {
+        flex: 0 0 auto;
       }
 
       .grid {
@@ -1440,6 +1601,10 @@ function priceLabel(p) {
 
       .filters-modal__actions {
         flex-direction: column-reverse;
+        bottom: -18px;
+        margin-inline: -18px;
+        margin-bottom: -18px;
+        padding: 14px 18px 18px;
       }
 
       .filters-action {
@@ -1472,15 +1637,21 @@ function priceLabel(p) {
   </style>
 
   <script>
+    import { parseBulgarianShoppingIntent } from "../lib/search-intent";
+
     const q = document.getElementById("q");
     const grid = document.getElementById("grid");
     const count = document.getElementById("count");
     const hint = document.getElementById("hint");
+    const intentStatus = document.getElementById("intentStatus");
     const btn = document.getElementById("searchBtn");
 
     const mainChips = document.getElementById("mainChips");
     const subChips = document.getElementById("subChips");
     const subChipsLabel = document.getElementById("subChipsLabel");
+    const typeChips = document.getElementById("typeChips");
+    const typeChipsLabel = document.getElementById("typeChipsLabel");
+    const activeSelections = document.getElementById("activeSelections");
     const feedStatus = document.getElementById("feedStatus");
     const feedSentinel = document.getElementById("feedSentinel");
     const homeLandingData = document.getElementById("homeLandingData");
@@ -1528,10 +1699,14 @@ function priceLabel(p) {
     let gridPulseFrame = 0;
     let activeCategoryKey = "";
     let activeSubcategoryKey = "";
+    let activeProductType = "";
     let selectedPriceRange = "all";
     let selectedDeliveryOutside = false;
     let selectedSort = "featured";
-    let selectedOccasionKeys = [];
+    let selectedGiftFilters = [];
+    let selectedAttributes = [];
+    let currentSearchIntent = null;
+    let searchFallbackRequired = false;
     let searchTrackTimer = 0;
     let lastTrackedSearchSignature = "";
     const SEO_LANDING_LINKS = homeLandingData?.dataset.landings
@@ -1751,13 +1926,21 @@ function priceLabel(p) {
         if (signature === lastTrackedSearchSignature) return;
         lastTrackedSearchSignature = signature;
 
-        window.bulgaritamTrack?.("homepage_search", {
-          search_query: normalized,
-          results_count: matchedCards.length,
-          active_category: activeCategoryKey || "all",
-          active_subcategory: activeSubcategoryKey || "all",
-          sort_mode: selectedSort || "featured",
-        });
+        const intent = currentSearchIntent;
+        const searchParams = {
+          query: String(value || "").trim(),
+          normalized_query: normalized,
+          result_count: matchedCards.length,
+          structured_intent: intent?.labels?.join(" > ") || "",
+          used_fallback: searchFallbackRequired,
+          category: intent?.categoryKey || activeCategoryKey || "",
+          subcategory: intent?.subcategoryKey || activeSubcategoryKey || "",
+          product_type: intent?.productType || activeProductType || "",
+          gift_recipient: intent?.recipients?.join(",") || "",
+          gift_occasion: intent?.occasions?.join(",") || "",
+        };
+        window.bulgaritamTrack?.("search", searchParams);
+        window.bulgaritamTrack?.(matchedCards.length ? "search_results_view" : "search_no_results", searchParams);
       }, 700);
     };
 
@@ -1767,7 +1950,7 @@ function priceLabel(p) {
       if (!docTokenCache.has(card)) {
         const raw = normalizeSearchText(card?.dataset?.searchRaw || "");
         const rawLatin = transliterateBulgarianToLatin(raw);
-        const structured = String(card.dataset.search || "");
+        const structured = String(card?.dataset?.search || card?.search || "");
         docTokenCache.set(
           card,
           new Set([
@@ -1784,7 +1967,7 @@ function priceLabel(p) {
       const normalizedQuery = normalizeSearchText(value);
       if (!normalizedQuery) return true;
       const raw = normalizeSearchText(card?.dataset?.searchRaw || "");
-      const searchDocument = String(card?.dataset?.search || "");
+      const searchDocument = String(card?.dataset?.search || card?.search || "");
       const searchable = `${raw} ${searchDocument}`.trim();
       const searchableLatin = transliterateBulgarianToLatin(searchable);
       const rawLatin = transliterateBulgarianToLatin(raw);
@@ -1950,10 +2133,13 @@ function priceLabel(p) {
       subChips.querySelectorAll(".chip").forEach((chip) => {
         chip.classList.toggle("is-active", chip.dataset.subcategoryKey === activeSubcategoryKey);
       });
+      typeChips?.querySelectorAll(".chip").forEach((chip) => {
+        chip.classList.toggle("is-active", chip.dataset.productType === activeProductType);
+      });
     }
 
     function updateFiltersBadge() {
-      const total = (selectedPriceRange !== "all" ? 1 : 0) + (selectedDeliveryOutside ? 1 : 0);
+      const total = (selectedPriceRange !== "all" ? 1 : 0) + (selectedDeliveryOutside ? 1 : 0) + selectedAttributes.length;
       if (!filtersBadge) return;
       if (total > 0) {
         filtersBadge.textContent = String(total);
@@ -1965,12 +2151,75 @@ function priceLabel(p) {
 
     function updateOccasionBadge() {
       if (!occasionBadge) return;
-      if (selectedOccasionKeys.length) {
-        occasionBadge.textContent = String(selectedOccasionKeys.length);
+      if (selectedGiftFilters.length) {
+        occasionBadge.textContent = String(selectedGiftFilters.length);
         occasionBadge.removeAttribute("hidden");
       } else {
         occasionBadge.setAttribute("hidden", "");
       }
+    }
+
+    const splitPipeValues = (value) => String(value || "").split("|").map((item) => item.trim()).filter(Boolean);
+    const categoryLabel = (key) => {
+      const item = CATEGORIES.find((category) => category.key === key);
+      return item ? (getCurrentLang() === "en" ? item.labelEn || item.label : item.label) : "";
+    };
+    const subcategoryLabel = (categoryKey, subcategoryKey) => {
+      const item = CATEGORIES.find((category) => category.key === categoryKey)?.subcategories.find((subcategory) => subcategory.key === subcategoryKey);
+      return item ? (getCurrentLang() === "en" ? item.labelEn || item.label : item.label) : "";
+    };
+
+    function renderActiveSelections() {
+      if (!activeSelections) return;
+      const chips = [];
+      if (activeCategoryKey) chips.push({ key: "category", label: categoryLabel(activeCategoryKey) });
+      if (activeSubcategoryKey) chips.push({ key: "subcategory", label: subcategoryLabel(activeCategoryKey, activeSubcategoryKey) });
+      if (activeProductType) chips.push({ key: "productType", label: activeProductType });
+      currentSearchIntent?.labels.forEach((label) => chips.push({ key: `intent:${label}`, label }));
+      if (q.value.trim()) chips.push({ key: "search", label: `“${q.value.trim()}”` });
+      if (selectedPriceRange !== "all") chips.push({ key: "price", label: selectedPriceRange === "0-50" ? "До 50 EUR" : selectedPriceRange === "200+" ? "200+ EUR" : `${selectedPriceRange} EUR` });
+      if (selectedDeliveryOutside) chips.push({ key: "delivery", label: "Доставка извън България" });
+      selectedAttributes.forEach((label) => chips.push({ key: `attribute:${label}`, label }));
+      selectedGiftFilters.forEach((value) => chips.push({ key: `gift:${value}`, label: value.split(":").slice(1).join(":") || "Подарък" }));
+      activeSelections.innerHTML = "";
+      chips.forEach(({ key, label }) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "active-selection";
+        button.textContent = `${label} ×`;
+        button.addEventListener("click", () => clearSelection(key));
+        activeSelections.appendChild(button);
+      });
+      if (chips.length > 1) {
+        const clear = document.createElement("button");
+        clear.type = "button";
+        clear.className = "active-selection active-selection--clear";
+        clear.textContent = "Изчисти всички";
+        clear.addEventListener("click", clearAllSelections);
+        activeSelections.appendChild(clear);
+      }
+      activeSelections.hidden = chips.length === 0;
+    }
+
+    function clearSelection(key) {
+      window.bulgaritamTrack?.("remove_filter", { selected_value: key, ...(window.__bulgaritamDiscoveryContext || {}) });
+      if (key === "category") { activeCategoryKey = ""; activeSubcategoryKey = ""; activeProductType = ""; renderSubChips(null); renderTypeChips(); }
+      else if (key === "subcategory") { activeSubcategoryKey = ""; activeProductType = ""; renderTypeChips(); }
+      else if (key === "productType") activeProductType = "";
+      else if (key === "search") q.value = "";
+      else if (key.startsWith("intent:")) q.value = "";
+      else if (key === "price") selectedPriceRange = "all";
+      else if (key === "delivery") selectedDeliveryOutside = false;
+      else if (key.startsWith("attribute:")) selectedAttributes = selectedAttributes.filter((value) => value !== key.slice(10));
+      else if (key.startsWith("gift:")) selectedGiftFilters = selectedGiftFilters.filter((value) => value !== key.slice(5));
+      applyDiscovery(q.value || "");
+    }
+
+    function clearAllSelections() {
+      window.bulgaritamTrack?.("clear_filters", window.__bulgaritamDiscoveryContext || {});
+      activeCategoryKey = ""; activeSubcategoryKey = ""; activeProductType = "";
+      selectedPriceRange = "all"; selectedDeliveryOutside = false; selectedAttributes = []; selectedGiftFilters = []; q.value = "";
+      renderSubChips(null); renderTypeChips(); syncFilterInputs(); syncOccasionInputs(); applyDiscovery("");
     }
 
     function updateViewAllLink() {
@@ -2000,38 +2249,136 @@ function priceLabel(p) {
 
     function applyDiscovery(value = q.value) {
       const v = value || "";
+      currentSearchIntent = parseBulgarianShoppingIntent(v);
+      searchFallbackRequired = false;
       const categoryFilterKey = activeCategoryKey || "";
       const subcategoryFilterKey = activeSubcategoryKey || "";
       const filteredCards = [];
 
-      allCards.forEach((card) => {
-        const categoryKeys = (card.dataset.categoryKeys || "").split(",").filter(Boolean);
-        const subcategoryKeys = (card.dataset.subcategoryKeys || "").split(",").filter(Boolean);
-        const occasionKeys = (card.dataset.occasionKeys || "").split(",").filter(Boolean);
-        const matchesText = matchesSearchDocument(card, v);
-        const matchesCategory = !categoryFilterKey || categoryKeys.includes(categoryFilterKey);
-        const matchesSubcategory = !subcategoryFilterKey || subcategoryKeys.includes(subcategoryFilterKey);
-        const matchesOccasion = !selectedOccasionKeys.length || selectedOccasionKeys.some((key) => occasionKeys.includes(key));
+      const matchesManualFilters = (card) => {
+        const attributes = splitPipeValues(card.dataset.attributes);
+        const recipients = splitPipeValues(card.dataset.recipients);
+        const giftOccasions = splitPipeValues(card.dataset.giftOccasions);
+        const matchesCategory = !categoryFilterKey || card.dataset.publicCategory === categoryFilterKey;
+        const matchesSubcategory = !subcategoryFilterKey || card.dataset.publicSubcategory === subcategoryFilterKey;
+        const matchesProductType = !activeProductType || card.dataset.productType === activeProductType;
+        const matchesAttributes = !selectedAttributes.length || selectedAttributes.every((entry) => attributes.includes(entry));
+        const matchesGift = !selectedGiftFilters.length || (card.dataset.giftable === "1" && selectedGiftFilters.every((filter) => {
+          const [kind, ...rest] = filter.split(":");
+          const filterValue = rest.join(":");
+          if (kind === "giftable") return true;
+          if (kind === "recipient") return recipients.includes(filterValue);
+          if (kind === "occasion") return giftOccasions.includes(filterValue);
+          if (kind === "attribute") return attributes.includes(filterValue);
+          return false;
+        }));
         const matchesDelivery = !selectedDeliveryOutside || card.dataset.deliversAbroad === "1";
+        return matchesCategory && matchesSubcategory && matchesProductType && matchesAttributes && matchesGift && matchesPriceRange(card, selectedPriceRange) && matchesDelivery;
+      };
 
-        if (matchesText && matchesCategory && matchesSubcategory && matchesOccasion && matchesPriceRange(card, selectedPriceRange) && matchesDelivery) {
+      const matchesIntent = (card) => {
+        if (!currentSearchIntent) return true;
+        const attributes = splitPipeValues(card.dataset.attributes);
+        const recipients = splitPipeValues(card.dataset.recipients);
+        const giftOccasions = splitPipeValues(card.dataset.giftOccasions);
+        if (currentSearchIntent.categoryKey && card.dataset.publicCategory !== currentSearchIntent.categoryKey) return false;
+        if (currentSearchIntent.subcategoryKey && card.dataset.publicSubcategory !== currentSearchIntent.subcategoryKey) return false;
+        if (currentSearchIntent.productType && card.dataset.productType !== currentSearchIntent.productType) return false;
+        if (currentSearchIntent.giftable && card.dataset.giftable !== "1") return false;
+        if (currentSearchIntent.recipients.some((entry) => !recipients.includes(entry))) return false;
+        if (currentSearchIntent.occasions.some((entry) => !giftOccasions.includes(entry))) return false;
+        if (currentSearchIntent.attributes.some((entry) => !attributes.includes(entry))) return false;
+        return true;
+      };
+
+      allCards.forEach((card) => {
+        const textQuery = currentSearchIntent ? currentSearchIntent.residualQuery : v;
+        if (matchesSearchDocument(card, textQuery) && matchesIntent(card) && matchesManualFilters(card)) {
           filteredCards.push(card);
         }
       });
 
+      if (currentSearchIntent && filteredCards.length === 0) {
+        const fallbackQuery = normalizeSearchText(v).replace(/(^|\s)за(?=\s|$)/g, " ").replace(/\s+/g, " ").trim();
+        allCards.forEach((card) => {
+          const attributes = splitPipeValues(card.dataset.attributes);
+          const recipients = splitPipeValues(card.dataset.recipients);
+          const giftOccasions = splitPipeValues(card.dataset.giftOccasions);
+          const isCompatibleLegacyFallback =
+            (!currentSearchIntent.categoryKey || card.dataset.publicCategory === currentSearchIntent.categoryKey) &&
+            (!currentSearchIntent.subcategoryKey || card.dataset.publicSubcategory === currentSearchIntent.subcategoryKey) &&
+            (!currentSearchIntent.productType || !card.dataset.productType || card.dataset.productType === currentSearchIntent.productType) &&
+            (!currentSearchIntent.giftable || card.dataset.giftable === "1") &&
+            currentSearchIntent.recipients.every((entry) => !recipients.length || recipients.includes(entry)) &&
+            currentSearchIntent.occasions.every((entry) => !giftOccasions.length || giftOccasions.includes(entry)) &&
+            currentSearchIntent.attributes.every((entry) => !attributes.length || attributes.includes(entry));
+          if (isCompatibleLegacyFallback && matchesManualFilters(card) && matchesSearchDocument(card, fallbackQuery)) filteredCards.push(card);
+        });
+        searchFallbackRequired = filteredCards.length > 0;
+      }
+
       matchedCards = v.trim() ? sortCardsForSearch(filteredCards, v) : sortCards(filteredCards, selectedSort);
+      const derivedListContext = currentSearchIntent?.giftable || currentSearchIntent?.recipients?.length || currentSearchIntent?.occasions?.length || selectedGiftFilters.length
+        ? "gift_discovery"
+        : v.trim()
+          ? "search_results"
+          : activeProductType
+            ? "product_type"
+            : activeSubcategoryKey
+              ? "subcategory"
+              : activeCategoryKey
+                ? "category"
+                : "homepage_default";
+      window.__bulgaritamDiscoveryContext = {
+        query: v.trim(),
+        normalized_query: normalizeSearchText(v),
+        structured_intent: currentSearchIntent?.labels?.join(" > ") || "",
+        used_fallback: searchFallbackRequired ? "1" : "0",
+        category: currentSearchIntent?.categoryKey || activeCategoryKey || "",
+        subcategory: currentSearchIntent?.subcategoryKey || activeSubcategoryKey || "",
+        product_type: currentSearchIntent?.productType || activeProductType || "",
+        gift_recipient: currentSearchIntent?.recipients?.join(",") || selectedGiftFilters.filter((entry) => entry.startsWith("recipient:")).map((entry) => entry.slice(10)).join(","),
+        gift_occasion: currentSearchIntent?.occasions?.join(",") || selectedGiftFilters.filter((entry) => entry.startsWith("occasion:")).map((entry) => entry.slice(9)).join(","),
+        active_filters: [...selectedAttributes, selectedPriceRange !== "all" ? selectedPriceRange : "", selectedDeliveryOutside ? "delivery_abroad" : ""].filter(Boolean).join(","),
+        list_context: derivedListContext,
+        list_name: "Начална discovery мрежа",
+      };
+      matchedCards.forEach((card, position) => {
+        card.dataset.listContext = derivedListContext;
+        card.dataset.position = String(position + 1);
+      });
       count.textContent = matchedCards.length;
-      if (activeSubcategoryKey) {
-        const activeCategory = CATEGORIES.find((cat) => cat.key === activeCategoryKey);
-        const activeSubcategory = activeCategory?.subcategories.find((sub) => sub.key === activeSubcategoryKey);
-        hint.textContent = activeSubcategory ? (getCurrentLang() === "en" ? (activeSubcategory.labelEn || activeSubcategory.label) : activeSubcategory.label) : "";
-      } else if (activeCategoryKey) {
-        const activeCategory = CATEGORIES.find((cat) => cat.key === activeCategoryKey);
-        hint.textContent = activeCategory ? (getCurrentLang() === "en" ? (activeCategory.labelEn || activeCategory.label) : activeCategory.label) : "";
-      } else {
-        hint.textContent = v.trim()
-          ? `${getCurrentLang() === "en" ? "Results for:" : "Резултати за:"} “${value.trim()}”`
-          : "";
+      const contextParts = [];
+      if (activeCategoryKey) contextParts.push(categoryLabel(activeCategoryKey));
+      if (activeSubcategoryKey) contextParts.push(subcategoryLabel(activeCategoryKey, activeSubcategoryKey));
+      if (activeProductType) contextParts.push(activeProductType);
+      const context = contextParts.filter(Boolean).join(" › ");
+      const searchContext = v.trim() ? `${getCurrentLang() === "en" ? "Results for:" : "Резултати за:"} “${value.trim()}”` : "";
+      hint.textContent = [context, searchContext].filter(Boolean).join(" · ");
+      if (intentStatus) {
+        const cardsInIntentContext = currentSearchIntent ? allCards.filter((card) =>
+          (!currentSearchIntent.categoryKey || card.dataset.publicCategory === currentSearchIntent.categoryKey) &&
+          (!currentSearchIntent.subcategoryKey || card.dataset.publicSubcategory === currentSearchIntent.subcategoryKey)
+        ) : allCards;
+        const missingStructuredFacet = Boolean(currentSearchIntent && (
+          (currentSearchIntent.productType && !cardsInIntentContext.some((card) => card.dataset.productType === currentSearchIntent.productType)) ||
+          currentSearchIntent.recipients.some((entry) => !allCards.some((card) => splitPipeValues(card.dataset.recipients).includes(entry))) ||
+          currentSearchIntent.occasions.some((entry) => !allCards.some((card) => splitPipeValues(card.dataset.giftOccasions).includes(entry))) ||
+          currentSearchIntent.attributes.some((entry) => !allCards.some((card) => splitPipeValues(card.dataset.attributes).includes(entry)))
+        ));
+        if (searchFallbackRequired) {
+          intentStatus.textContent = "Показваме текстови съвпадения, защото част от структурираната класификация в каталога липсва.";
+          intentStatus.hidden = false;
+        } else if (currentSearchIntent && !filteredCards.length && missingStructuredFacet) {
+          intentStatus.textContent = "Разпознахме търсенето, но каталогът още няма попълнена структурирана класификация за този тип или повод.";
+          intentStatus.hidden = false;
+        } else if (currentSearchIntent && !filteredCards.length) {
+          intentStatus.textContent = "Няма продукти, които отговарят на избраната комбинация.";
+          intentStatus.hidden = false;
+        } else {
+          intentStatus.hidden = true;
+          intentStatus.textContent = "";
+        }
       }
       visibleCount = v.trim()
         ? Math.min(matchedCards.length, Math.max(getBatchSize() * 2, 24))
@@ -2041,10 +2388,13 @@ function priceLabel(p) {
       updateFiltersBadge();
       updateOccasionBadge();
       updateViewAllLink();
+      renderActiveSelections();
       if (!v && !activeCategoryKey) {
         subChips.hidden = true;
         if (subChipsLabel) subChipsLabel.hidden = true;
         subChips.innerHTML = "";
+        if (typeChips) { typeChips.hidden = true; typeChips.innerHTML = ""; }
+        if (typeChipsLabel) typeChipsLabel.hidden = true;
         updateViewAllLink();
       }
 
@@ -2067,16 +2417,17 @@ function priceLabel(p) {
         b.dataset.categoryKey = cat.key;
 
         b.addEventListener("click", () => {
-          window.bulgaritamTrack?.("category_pill_click", {
-            surface: "home",
-            category_key: cat.key,
-            category_label: cat.label,
+          window.bulgaritamTrack?.("select_category", {
+            selected_value: cat.label,
+            category: cat.key,
+            source_context: "homepage_discovery",
           });
           activeCategoryKey = cat.key;
           activeSubcategoryKey = "";
-          q.value = "";
-          applyDiscovery("");
+          activeProductType = "";
+          applyDiscovery(q.value || "");
           renderSubChips(cat);
+          renderTypeChips();
           pulseResults();
         });
 
@@ -2085,6 +2436,12 @@ function priceLabel(p) {
     }
 
     function renderSubChips(cat) {
+      if (!cat) {
+        if (subChipsLabel) subChipsLabel.hidden = true;
+        subChips.hidden = true;
+        subChips.innerHTML = "";
+        return;
+      }
       if (subChipsLabel) subChipsLabel.hidden = false;
       subChips.hidden = false;
       subChips.innerHTML = "";
@@ -2097,16 +2454,17 @@ function priceLabel(p) {
         b.dataset.subcategoryKey = s.key;
 
         b.addEventListener("click", () => {
-          window.bulgaritamTrack?.("subcategory_pill_click", {
-            surface: "home",
-            category_key: cat.key,
-            subcategory_key: s.key,
-            subcategory_label: s.label,
+          window.bulgaritamTrack?.("select_subcategory", {
+            selected_value: s.label,
+            category: cat.key,
+            subcategory: s.key,
+            source_context: "homepage_discovery",
           });
           activeCategoryKey = cat.key;
           activeSubcategoryKey = s.key;
-          q.value = "";
-          applyDiscovery("");
+          activeProductType = "";
+          renderTypeChips();
+          applyDiscovery(q.value || "");
           pulseResults();
         });
 
@@ -2114,24 +2472,77 @@ function priceLabel(p) {
       });
     }
 
+    function renderTypeChips() {
+      if (!typeChips || !typeChipsLabel || !activeSubcategoryKey) {
+        if (typeChips) { typeChips.hidden = true; typeChips.innerHTML = ""; }
+        if (typeChipsLabel) typeChipsLabel.hidden = true;
+        return;
+      }
+      const counts = new Map();
+      allCards
+        .filter((card) => card.dataset.publicCategory === activeCategoryKey && card.dataset.publicSubcategory === activeSubcategoryKey)
+        .forEach((card) => {
+          const value = card.dataset.productType || "";
+          if (value) counts.set(value, (counts.get(value) || 0) + 1);
+        });
+      const types = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "bg"));
+      typeChips.innerHTML = "";
+      types.forEach(([value, productCount]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "chip chip-type";
+        button.dataset.productType = value;
+        button.textContent = `${value} (${productCount})`;
+        button.addEventListener("click", () => {
+          activeProductType = activeProductType === value ? "" : value;
+          window.bulgaritamTrack?.("select_product_type", { selected_value: value, ...(window.__bulgaritamDiscoveryContext || {}) });
+          applyDiscovery(q.value || "");
+          pulseResults();
+        });
+        typeChips.appendChild(button);
+      });
+      typeChips.hidden = types.length === 0;
+      typeChipsLabel.hidden = types.length === 0;
+    }
+
+    function syncDiscoveryModalState() {
+      const isOpen = Boolean(
+        (filtersModal && !filtersModal.hasAttribute("hidden")) ||
+        (occasionModal && !occasionModal.hasAttribute("hidden"))
+      );
+      document.documentElement.classList.toggle("discovery-modal-open", isOpen);
+      document.documentElement.classList.toggle("no-scroll", isOpen);
+    }
+
     function openFilters() {
       if (!filtersModal) return;
+      syncFilterInputs();
       filtersModal.removeAttribute("hidden");
       filtersToggle?.setAttribute("aria-expanded", "true");
-      document.documentElement.classList.add("no-scroll");
+      syncDiscoveryModalState();
     }
 
     function closeFilters() {
       if (!filtersModal) return;
       filtersModal.setAttribute("hidden", "");
       filtersToggle?.setAttribute("aria-expanded", "false");
-      document.documentElement.classList.remove("no-scroll");
+      syncDiscoveryModalState();
     }
 
     function syncOccasionInputs() {
-      occasionModal?.querySelectorAll('input[name="occasionFilter"]').forEach((input) => {
-        input.checked = selectedOccasionKeys.includes(input.value);
+      occasionModal?.querySelectorAll('input[name="giftFilter"]').forEach((input) => {
+        input.checked = selectedGiftFilters.includes(input.value);
       });
+    }
+
+    function syncFilterInputs() {
+      filtersModal?.querySelectorAll('input[name="attributeFilter"]').forEach((input) => {
+        input.checked = selectedAttributes.includes(input.value);
+      });
+      const priceInput = filtersModal?.querySelector(`input[name="priceFilter"][value="${selectedPriceRange}"]`);
+      if (priceInput) priceInput.checked = true;
+      const deliveryInput = document.getElementById("deliveryOutsideHome");
+      if (deliveryInput) deliveryInput.checked = selectedDeliveryOutside;
     }
 
     function openOccasions() {
@@ -2139,14 +2550,14 @@ function priceLabel(p) {
       syncOccasionInputs();
       occasionModal.removeAttribute("hidden");
       occasionToggle?.setAttribute("aria-expanded", "true");
-      document.documentElement.classList.add("no-scroll");
+      syncDiscoveryModalState();
     }
 
     function closeOccasions() {
       if (!occasionModal) return;
       occasionModal.setAttribute("hidden", "");
       occasionToggle?.setAttribute("aria-expanded", "false");
-      document.documentElement.classList.remove("no-scroll");
+      syncDiscoveryModalState();
     }
 
     // Initial setup
@@ -2160,16 +2571,13 @@ function priceLabel(p) {
       if (activeCategoryKey && activeCategory) {
         renderSubChips(activeCategory);
       }
+      renderTypeChips();
       applyDiscovery(q.value || "");
     });
 
     // Existing listeners
     const handleHomeSearchInput = (value) => {
       const nextValue = value || "";
-      if (nextValue) {
-        activeSubcategoryKey = "";
-        activeCategoryKey = "";
-      }
       applyDiscovery(nextValue);
       scheduleSearchTracking(nextValue);
       if (nextValue) pulseResults();
@@ -2190,11 +2598,9 @@ function priceLabel(p) {
     sortSelect?.addEventListener("change", (e) => {
       selectedSort = e.target.value || "featured";
       applyDiscovery(q.value);
-      window.bulgaritamTrack?.("sort_change", {
-        surface: "home",
-        sort_mode: selectedSort,
-        active_category: activeCategoryKey || "all",
-        active_subcategory: activeSubcategoryKey || "all",
+      window.bulgaritamTrack?.("change_sort", {
+        selected_value: selectedSort,
+        ...(window.__bulgaritamDiscoveryContext || {}),
       });
       pulseResults();
     });
@@ -2205,21 +2611,24 @@ function priceLabel(p) {
     });
 
     occasionApply?.addEventListener("click", () => {
-      selectedOccasionKeys = Array.from(
-        occasionModal?.querySelectorAll('input[name="occasionFilter"]:checked') || []
+      selectedGiftFilters = Array.from(
+        occasionModal?.querySelectorAll('input[name="giftFilter"]:checked') || []
       ).map((input) => input.value);
+      selectedGiftFilters.forEach((filter) => {
+        const [kind, ...parts] = filter.split(":");
+        const selectedValue = parts.join(":");
+        window.bulgaritamTrack?.(kind === "recipient" ? "select_gift_recipient" : kind === "occasion" ? "select_gift_occasion" : "apply_filter", {
+          selected_value: selectedValue || filter,
+          ...(window.__bulgaritamDiscoveryContext || {}),
+        });
+      });
       closeOccasions();
       applyDiscovery(q.value);
-      window.bulgaritamTrack?.("occasion_filter_apply", {
-        surface: "home",
-        occasion_keys: selectedOccasionKeys,
-        results_count: matchedCards.length,
-      });
       pulseResults();
     });
 
     occasionReset?.addEventListener("click", () => {
-      selectedOccasionKeys = [];
+      selectedGiftFilters = [];
       syncOccasionInputs();
       closeOccasions();
       applyDiscovery(q.value);
@@ -2235,13 +2644,15 @@ function priceLabel(p) {
       const checked = filtersModal?.querySelector('input[name="priceFilter"]:checked');
       selectedPriceRange = checked?.value || "all";
       selectedDeliveryOutside = Boolean(document.getElementById("deliveryOutsideHome")?.checked);
+      selectedAttributes = Array.from(filtersModal?.querySelectorAll('input[name="attributeFilter"]:checked') || []).map((input) => input.value);
       closeFilters();
       applyDiscovery(q.value);
-      window.bulgaritamTrack?.("filter_apply", {
-        surface: "home",
+      window.bulgaritamTrack?.("apply_filter", {
         price_range: selectedPriceRange,
         delivers_outside_bulgaria: selectedDeliveryOutside,
-        results_count: matchedCards.length,
+        attributes: selectedAttributes,
+        result_count: matchedCards.length,
+        ...(window.__bulgaritamDiscoveryContext || {}),
       });
       pulseResults();
     });
@@ -2249,10 +2660,12 @@ function priceLabel(p) {
     filtersReset?.addEventListener("click", () => {
       selectedPriceRange = "all";
       selectedDeliveryOutside = false;
+      selectedAttributes = [];
       const first = filtersModal?.querySelector('input[name="priceFilter"][value="all"]');
       if (first) first.checked = true;
       const deliveryCheckbox = document.getElementById("deliveryOutsideHome");
       if (deliveryCheckbox) deliveryCheckbox.checked = false;
+      filtersModal?.querySelectorAll('input[name="attributeFilter"]').forEach((input) => { input.checked = false; });
       closeFilters();
       applyDiscovery(q.value);
       pulseResults();

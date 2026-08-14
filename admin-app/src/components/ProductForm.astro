@@ -1,14 +1,26 @@
 ---
-const { product = {}, brands = [], csrf, error = "", isNew = false } = Astro.props as { product?: Record<string, any>; brands?: any[]; csrf: string; error?: string; isNew?: boolean };
+import { GIFT_OCCASIONS, MANUAL_CLASSIFICATION_GUIDANCE, multiSelectValues, PRODUCT_ATTRIBUTES, PRODUCT_SUBCATEGORIES, PRODUCT_TYPES, RECIPIENTS, selectValue, structuredCategoryForSubcategory } from "../lib/product-taxonomy";
+const { product = {}, brands = [], taxonomyFields = [], csrf, error = "", isNew = false } = Astro.props as { product?: Record<string, any>; brands?: any[]; taxonomyFields?: any[]; csrf: string; error?: string; isNew?: boolean };
 const linkedBrandId = Number(product.brand_ref?.[0]?.id || 0);
 const fields: Array<{name:string;label:string;type:"text"|"url"|"textarea";required:boolean}> = [
-  {name:"name_bg",label:"Product name",type:"text",required:true},{name:"slug",label:"Slug",type:"text",required:true},{name:"category",label:"Category",type:"text",required:false},{name:"tags",label:"Tags (comma separated)",type:"text",required:false},
+  {name:"name_bg",label:"Product name",type:"text",required:true},{name:"slug",label:"Slug",type:"text",required:true},{name:"tags",label:"Tags (comma separated)",type:"text",required:false},
   {name:"price_min_eur",label:"Minimum price (EUR)",type:"text",required:false},{name:"price_max_eur",label:"Maximum price (EUR)",type:"text",required:false},{name:"currency",label:"Currency",type:"text",required:false},
   {name:"product_url",label:"Merchant Product URL",type:"url",required:true},{name:"image_urls",label:"Image URLs (comma separated)",type:"textarea",required:false},
   {name:"short_desc_bg",label:"Short description",type:"textarea",required:false},{name:"long_desc_bg",label:"Long description",type:"textarea",required:false},
   {name:"meta_title_bg",label:"SEO title",type:"text",required:false},{name:"meta_desc_bg",label:"SEO description",type:"textarea",required:false},{name:"rating",label:"Rating",type:"text",required:false},{name:"created_at",label:"Created at",type:"text",required:false},
 ];
 const active = String(product.is_active ?? "").toLowerCase() === "true" || String(product.is_active) === "TRUE";
+const giftable = product.giftable === true || String(product.giftable).toLowerCase() === "true";
+const selectedRecipients = new Set(multiSelectValues(product.recipient));
+const selectedOccasions = new Set(multiSelectValues(product.gift_occasion));
+const selectedAttributes = new Set(multiSelectValues(product.attributes));
+const fieldOptions = (name: string, fallback: string[]) => taxonomyFields.find((field) => field.name === name)?.select_options?.map((option: any) => option.value) || fallback;
+const subcategoryOptions = fieldOptions("subcategory", PRODUCT_SUBCATEGORIES);
+const productTypeOptions = fieldOptions("product_type", PRODUCT_TYPES);
+const guidance = MANUAL_CLASSIFICATION_GUIDANCE[product.slug];
+const recommendedParts = guidance?.recommended.split("→").map((part) => part.trim()) || [];
+const missingRecommendedSubcategory = recommendedParts[1] && !subcategoryOptions.some((value: string) => value.trim().toLocaleLowerCase("bg") === recommendedParts[1].toLocaleLowerCase("bg")) ? recommendedParts[1] : "";
+const missingRecommendedType = recommendedParts[2] && !productTypeOptions.some((value: string) => value.trim().toLocaleLowerCase("bg") === recommendedParts[2].toLocaleLowerCase("bg")) ? recommendedParts[2] : "";
 const siteOrigin = (import.meta.env.SITE_ORIGIN || "https://bulgaritam.bg").replace(/\/$/, "");
 ---
 {error && <div class="error">{error}</div>}
@@ -16,8 +28,38 @@ const siteOrigin = (import.meta.env.SITE_ORIGIN || "https://bulgaritam.bg").repl
   <input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="_action" value="save"/>
   <label>Brand<select name="brand_ref" required><option value="">Select Brand</option>{brands.filter((b) => b.brand_name && b.brand_slug).map((b) => <option value={b.id} selected={b.id === linkedBrandId}>{b.brand_name}{b.is_active ? "" : " (hidden)"}</option>)}</select></label>
   <label class="check"><input type="checkbox" name="is_active" value="true" checked={active}/> Published</label>
+  <input type="hidden" name="category" value={selectValue(product.category)}/>
+  <div><strong>Structured primary category</strong><p class="hint">{structuredCategoryForSubcategory(product.subcategory) || "Determined from the selected subcategory"}</p></div>
+  <div><strong>Current public category</strong><p class="hint">{selectValue(product.category) || "—"} — preserved unchanged</p></div>
+  <label>Subcategory<select name="subcategory" data-taxonomy-select="subcategory" required><option value="">Select subcategory</option>{subcategoryOptions.map((value: string) => <option value={value} selected={selectValue(product.subcategory) === value}>{value}</option>)}</select><button type="button" class="btn secondary taxonomy-add" data-field="subcategory">+ Добави нова подкатегория</button>{missingRecommendedSubcategory&&<span class="error taxonomy-missing" data-missing-field="subcategory"><strong>{missingRecommendedSubcategory}</strong> липсва от подкатегориите → Добави подкатегория</span>}</label>
+  <label>Product type<select name="product_type" data-taxonomy-select="product_type" required><option value="">Select product type</option>{productTypeOptions.map((value: string) => <option value={value} selected={selectValue(product.product_type) === value}>{value}</option>)}</select><button type="button" class="btn secondary taxonomy-add" data-field="product_type">+ Добави нов тип</button>{missingRecommendedType&&<span class="error taxonomy-missing" data-missing-field="product_type"><strong>{missingRecommendedType}</strong> липсва от типовете → Добави тип</span>}</label>
+  <label class="check"><input type="checkbox" name="giftable" value="true" checked={giftable}/> Suitable as a gift</label>
+  <fieldset><legend>Recipient</legend>{RECIPIENTS.map((value) => <label class="check"><input type="checkbox" name="recipient" value={value} checked={selectedRecipients.has(value)}/>{value}</label>)}</fieldset>
+  <fieldset><legend>Gift occasion</legend>{GIFT_OCCASIONS.map((value) => <label class="check"><input type="checkbox" name="gift_occasion" value={value} checked={selectedOccasions.has(value)}/>{value}</label>)}</fieldset>
+  <fieldset class="span-2"><legend>Attributes</legend>{PRODUCT_ATTRIBUTES.map((value) => <label class="check"><input type="checkbox" name="attributes" value={value} checked={selectedAttributes.has(value)}/>{value}</label>)}</fieldset>
   {fields.map(({name,label,type,required}) => type === "textarea" ? <label class="span-2">{label}<textarea name={name} required={required}>{product[name] || ""}</textarea></label> : <label>{label}<input type={type} name={name} value={product[name] || (name === "currency" ? "EUR" : "")} required={required}/></label>)}
   {!isNew && <div class="span-2 panel warning"><strong>System-managed compatibility fields</strong><p class="hint">Legacy ID: {product["id 2"] || "—"}. Brand name, slug, URL, introduction and address are refreshed from the selected Brands row when this Product is saved. Brand editing always uses the Brands table.</p></div>}
   <div class="span-2 actions"><button type="submit">{isNew ? "Create Product" : "Save Product"}</button>{!isNew && <a class="btn secondary" href={`${siteOrigin}/p/${product.slug}/`} target="_blank">Preview public page ↗</a>}</div>
 </form>
+<script define:vars={{ csrf }}>
+  document.querySelectorAll('.taxonomy-add').forEach((button) => button.addEventListener('click', async () => {
+    const field = button.dataset.field;
+    const label = field === 'product_type' ? 'нов продуктов тип' : 'нова подкатегория';
+    const value = window.prompt(`Въведи ${label}:`);
+    if (value === null) return;
+    button.disabled = true;
+    try {
+      const response = await fetch('/api/taxonomy-options', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ csrf, field, value }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Стойността не беше добавена.');
+      const select = document.querySelector(`[data-taxonomy-select="${field}"]`);
+      const normalized = result.option.value.trim().toLocaleLowerCase('bg');
+      let option = [...select.options].find((item) => item.value.trim().toLocaleLowerCase('bg') === normalized);
+      if (!option) { option = new Option(result.option.value, result.option.value); select.add(option); }
+      select.value = option.value;
+      document.querySelector(`[data-missing-field="${field}"]`)?.remove();
+    } catch (error) { window.alert(error instanceof Error ? error.message : 'Стойността не беше добавена.'); }
+    finally { button.disabled = false; }
+  }));
+</script>
 {!isNew && <form method="post" class="panel"><input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="_action" value="visibility"/><input type="hidden" name="visible" value={active ? "false" : "true"}/><h2>{active ? "Hide Product" : "Restore Product"}</h2><p class="muted">No data will be deleted. Public visibility changes after the next static deployment.</p><button class={active ? "danger" : ""}>{active ? "Hide / unpublish" : "Restore / publish"}</button></form>}

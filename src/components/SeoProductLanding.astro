@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCategoryLabel, getCategoryLabelForLang, getSubcategoryLabelForLang, getTaxonomyForProduct } from "../lib/taxonomy";
 import { getProductBadges } from "../lib/product-badges";
 import { getClothingTypeMatches } from "../lib/clothing-types";
+import { getPublicBrowseForProduct } from "../lib/public-browse-taxonomy";
 
 const {
   landing,
@@ -15,9 +16,10 @@ const {
   secondaryPillsAriaLabel = "Още филтри",
   editorialSections = [],
   editorialHeader = null,
-  refinementOptions = [],
+  refinementOptions: passedRefinementOptions = [],
   refinementTitle = "Вид облекло",
   secondaryPillsTitle = "",
+  browseProducts = [],
 } = Astro.props;
 
 const clean = (value) => String(value ?? "").trim();
@@ -26,7 +28,39 @@ const getPrimaryImage = (product) =>
     ? product.image_urls.find((url) => /^https?:\/\//i.test(clean(url))) || product.image_urls.find((url) => clean(url))
     : "";
 
-const displayProducts = products.filter((product) => getPrimaryImage(product));
+const initialProductSlugs = new Set(products.map((product) => product.slug));
+const browseCategoryKey = landing.categoryKey || "";
+const browseSubcategoryKey = landing.audienceSubcategoryKey || landing.subcategoryKey || "";
+const contextualProducts = browseSubcategoryKey
+  ? browseProducts.filter((product) => {
+      const context = getPublicBrowseForProduct(product);
+      return context.categoryKey === browseCategoryKey && context.subcategoryKey === browseSubcategoryKey;
+    })
+  : [];
+const displayProducts = Array.from(new Map([...products, ...contextualProducts].map((product) => [product.slug, product])).values())
+  .filter((product) => getPrimaryImage(product));
+const initialDisplayCount = displayProducts.filter((product) => initialProductSlugs.has(product.slug)).length;
+const structuredTypeCounts = new Map();
+displayProducts.forEach((product) => {
+  const value = clean(product.product_type);
+  if (value && getPrimaryImage(product)) structuredTypeCounts.set(value, (structuredTypeCounts.get(value) || 0) + 1);
+});
+const structuredRefinementOptions = Array.from(structuredTypeCounts.entries())
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "bg"))
+  .map(([value, productCount]) => ({ key: value, label: `${value} (${productCount})`, baseLabel: value }));
+const legacyRefinementOptions = passedRefinementOptions
+  .map((option) => ({ ...option, productCount: displayProducts.filter((product) => getClothingTypeMatches(product, [option]).length > 0).length }))
+  .filter((option) => option.productCount > 0)
+  .map((option) => ({ key: option.key, label: `${option.label} (${option.productCount})`, baseLabel: option.label }));
+const normalizedPublicLabel = (value) => clean(value).toLocaleLowerCase("bg");
+const refinementOptions = [
+  ...legacyRefinementOptions,
+  ...structuredRefinementOptions.filter((structured) => !legacyRefinementOptions.some((legacy) => {
+    const legacyLabel = normalizedPublicLabel(legacy.baseLabel);
+    const structuredLabel = normalizedPublicLabel(structured.baseLabel);
+    return legacyLabel === structuredLabel || legacyLabel.startsWith(structuredLabel) || structuredLabel.startsWith(legacyLabel);
+  })),
+];
 
 function priceLabel(p) {
   if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
@@ -128,7 +162,7 @@ function priceLabel(p) {
       ) : null}
 
       <div class="section-head section-head--centered">
-        <h2 class="h2"><span data-i18n="landing.products">Продукти</span> (<span id="count">{displayProducts.length}</span>)</h2>
+        <h2 class="h2"><span data-i18n="landing.products">Продукти</span> (<span id="count">{initialDisplayCount}</span>)</h2>
         <a class="landing-back" href="/" data-i18n="landing.backHome">Към началото</a>
       </div>
 
@@ -138,20 +172,28 @@ function priceLabel(p) {
           const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
           const taxonomy = getTaxonomyForProduct(p);
           const shouldEagerLoad = index < 4;
-          const refinementKeys = refinementOptions.length ? getClothingTypeMatches(p, refinementOptions).join(",") : "";
+          const refinementKeys = [clean(p.product_type), ...getClothingTypeMatches(p, passedRefinementOptions)].filter(Boolean).join(",");
 
           return (
           <li
             class="card"
+            data-analytics-kind="product"
+            data-list-context="seo_landing_page"
+            data-list-name={landing.h1}
+            data-position={index + 1}
+            data-product-id={p.id}
             data-masonry-card
             data-refinement-keys={refinementKeys}
+            data-initial-match={initialProductSlugs.has(p.slug) ? "1" : "0"}
             data-product-slug={p.slug}
             data-product-name={p.name_bg}
             data-brand-slug={p.brand_slug ?? ""}
+            data-brand-id={p.brand_id ?? ""}
             data-brand-name={p.brand_name ?? ""}
             data-product-url={p.product_url ?? ""}
             data-category-key={taxonomy.categoryKey || ""}
             data-subcategory-keys={taxonomy.subcategoryKeys.join(",")}
+            data-product-type={p.product_type || ""}
           >
             <div class="card-top">
               <a class="card-imglink" href={`/p/${p.slug}/`}>
@@ -972,7 +1014,7 @@ function priceLabel(p) {
         .filter((input) => input.checked)
         .map((input) => input.value);
 
-      if (!activeFilters.length) return allCards;
+      if (!activeFilters.length) return allCards.filter((card) => card.dataset.initialMatch === "1");
 
       return allCards.filter((card) => {
         const keys = String(card.dataset.refinementKeys || "")

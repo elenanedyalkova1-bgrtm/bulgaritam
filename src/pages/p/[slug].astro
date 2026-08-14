@@ -126,7 +126,20 @@ const relatedPrice = (p) =>
     "product.perfectFor": "Perfect for"
   }
 }}>
-  <main class="page-shell product-shell">
+  <main
+    class="page-shell product-shell"
+    data-page-product
+    data-product-id={product.id}
+    data-product-slug={product.slug}
+    data-product-name={product.name_bg}
+    data-brand-id={product.brand_id ?? ""}
+    data-brand-slug={product.brand_slug ?? ""}
+    data-brand-name={product.brand_name ?? ""}
+    data-category-key={productTaxonomy.categoryKey || ""}
+    data-subcategory-keys={productTaxonomy.subcategoryKeys.join(",")}
+    data-product-type={product.product_type || ""}
+    data-list-context="product_page"
+  >
     <div
       class="sr-only"
       aria-hidden="true"
@@ -244,8 +257,10 @@ const relatedPrice = (p) =>
             data-i18n="product.cta"
             data-analytics-event="outbound_brand_click"
             data-product-slug={product.slug}
+            data-product-id={product.id}
             data-product-name={product.name_bg}
             data-brand-slug={product.brand_slug ?? ""}
+            data-brand-id={product.brand_id ?? ""}
             data-brand-name={product.brand_name ?? ""}
             data-product-url={product.product_url ?? ""}
           >

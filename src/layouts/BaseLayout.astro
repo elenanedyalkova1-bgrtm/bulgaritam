@@ -183,6 +183,7 @@ const robotsDirective = normalizeText(robots) || "index,follow,max-image-preview
 const socialImage = normalizeUrl(seoData.image) || `${SITE_URL}/social-preview.png`;
 const openGraphType = seoType === "product" ? "product" : "website";
 const gaMeasurementId = normalizeText(import.meta.env.PUBLIC_GA_MEASUREMENT_ID) || "G-7XT69Z6DKS";
+const gtmContainerId = normalizeText(import.meta.env.PUBLIC_GTM_CONTAINER_ID) || "GTM-58MC374T";
 const faviconSvg = "/favicon.svg";
 const faviconPng48 = "/favicon-48x48.png";
 const faviconPng192 = "/favicon-192x192.png";
@@ -359,39 +360,64 @@ if (seoType === "category" && seoData.category) {
       })();
     </script>
 
-    {gaMeasurementId ? (
+    {gtmContainerId ? (
+      <script is:inline define:vars={{ gtmContainerId }}>
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer',gtmContainerId);
+      </script>
+    ) : null}
+    {!gtmContainerId && gaMeasurementId ? (
       <script async src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaMeasurementId)}`}></script>
     ) : null}
-    <script is:inline define:vars={{ gaMeasurementId }}>
+    <script is:inline define:vars={{ gaMeasurementId, gtmContainerId }}>
       (() => {
         const measurementId = String(gaMeasurementId || "").trim();
+        const containerId = String(gtmContainerId || "").trim();
         const queue = [];
+
+        // The shared event transport must exist before consent state or any
+        // hydrated component can attempt to emit an analytics event.
+        window.dataLayer = window.dataLayer || [];
 
         const hasAnalyticsConsent = () =>
           Boolean(window.__cookieConsent?.analytics || document.documentElement.dataset.cookieAnalytics === "1");
 
-        const getLanguage = () => (localStorage.getItem("bulgaritam_lang_v1") === "en" ? "en" : "bg");
+        const getLanguage = () => {
+          try {
+            return window.localStorage?.getItem("bulgaritam_lang_v1") === "en" ? "en" : "bg";
+          } catch {
+            // Storage can be unavailable in privacy-restricted/preview contexts.
+            // Analytics must still work without reading it.
+            return "bg";
+          }
+        };
         const getDeviceType = () => (window.matchMedia("(max-width: 768px)").matches ? "mobile" : "desktop");
 
-        const sanitizeValue = (value) => {
+        const redactPotentialPii = (value) => {
+          const text = String(value || "");
+          if (/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(text)) return "[redacted]";
+          if (/(?:\+?359|0)[\s.-]?[0-9]{2}[\s.-]?[0-9]{3}[\s.-]?[0-9]{3,4}/.test(text)) return "[redacted]";
+          return text;
+        };
+
+        const sanitizeValue = (value, key = "") => {
           if (Array.isArray(value)) return value.filter(Boolean).join(",");
           if (value == null) return undefined;
           if (typeof value === "boolean") return value ? "1" : "0";
-          const stringValue = String(value).trim();
+          if (["board_name", "collection_name", "email", "phone", "destination_url"].includes(key)) return undefined;
+          const stringValue = redactPotentialPii(value).trim();
           return stringValue ? stringValue.slice(0, 240) : undefined;
         };
 
         const sanitizeParams = (params = {}) =>
           Object.fromEntries(
             Object.entries(params)
-              .map(([key, value]) => [key, sanitizeValue(value)])
+              .map(([key, value]) => [key, sanitizeValue(value, key)])
               .filter(([, value]) => value !== undefined)
           );
 
         const ensureGa = () => {
-          if (!measurementId) return;
+          if (!measurementId && !containerId) return;
 
-          window.dataLayer = window.dataLayer || [];
           window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
           if (!window.__bulgaritamGaInitialized) {
             window.gtag("js", new Date());
@@ -401,10 +427,9 @@ if (seoType === "category" && seoData.category) {
               ad_user_data: "denied",
               ad_personalization: "denied",
             });
-            window.gtag("config", measurementId, {
-              anonymize_ip: true,
-              send_page_view: false,
-            });
+            if (!containerId && measurementId) {
+              window.gtag("config", measurementId, { anonymize_ip: true, send_page_view: false });
+            }
             window.__bulgaritamGaInitialized = true;
           }
         };
@@ -413,12 +438,12 @@ if (seoType === "category" && seoData.category) {
           if (typeof window.gtag !== "function") return;
           while (queue.length) {
             const next = queue.shift();
-            if (next) window.gtag("event", next.eventName, next.params);
+            if (next && !containerId) window.gtag("event", next.eventName, next.params);
           }
         };
 
         const applyConsentToGa = () => {
-          if (!measurementId || typeof window.gtag !== "function") return;
+          if ((!measurementId && !containerId) || typeof window.gtag !== "function") return;
           const granted = hasAnalyticsConsent();
           window.gtag("consent", "update", {
             analytics_storage: granted ? "granted" : "denied",
@@ -428,9 +453,8 @@ if (seoType === "category" && seoData.category) {
           });
 
           if (granted && !window.__bulgaritamInitialPageviewSent) {
-            window.gtag("event", "page_view", {
+            window.bulgaritamTrack?.("page_view", {
               page_path: window.location.pathname,
-              page_location: window.location.href,
               page_title: document.title,
               language: getLanguage(),
               device_type: getDeviceType(),
@@ -443,41 +467,55 @@ if (seoType === "category" && seoData.category) {
 
         const buildCommonParams = () => ({
           page_path: window.location.pathname,
-          page_location: window.location.href,
+          page_location: `${window.location.origin}${window.location.pathname}`,
           page_title: document.title,
           language: getLanguage(),
           device_type: getDeviceType(),
         });
 
         window.bulgaritamTrack = (eventName, params = {}) => {
-          if (!measurementId || !hasAnalyticsConsent() || !eventName) return;
+          if ((!measurementId && !containerId) || !hasAnalyticsConsent() || !eventName) return;
 
           const payload = {
             ...buildCommonParams(),
             ...sanitizeParams(params),
           };
 
-          ensureGa();
-          applyConsentToGa();
+          window.dataLayer = window.dataLayer || [];
+          const dataLayerEvent = { event: eventName, ...payload };
+          window.dataLayer.push(dataLayerEvent);
 
-          if (typeof window.gtag === "function") {
+          if (!containerId && typeof window.gtag === "function") {
             window.gtag("event", eventName, payload);
-          } else {
+          } else if (!containerId) {
             queue.push({ eventName, params: payload });
           }
         };
+
+        const destinationDomain = (href) => {
+          try { return new URL(href, window.location.href).hostname.replace(/^www\./, ""); }
+          catch { return ""; }
+        };
+
+        const getDiscoveryContext = () => window.__bulgaritamDiscoveryContext || {};
 
         const getProductContext = (node) => {
           const scope = node?.closest?.("[data-product-slug]");
           if (!scope) return {};
           return sanitizeParams({
             product_slug: scope.dataset.productSlug,
+            product_id: scope.dataset.productId,
             product_name: scope.dataset.productName,
+            brand_id: scope.dataset.brandId,
             brand_slug: scope.dataset.brandSlug,
             brand_name: scope.dataset.brandName,
-            category_key: scope.dataset.categoryKey,
-            subcategory_keys: scope.dataset.subcategoryKeys,
-            destination_url: scope.dataset.productUrl,
+            category: scope.dataset.publicCategory || scope.dataset.categoryKey,
+            subcategory: scope.dataset.publicSubcategory || scope.dataset.subcategoryKeys,
+            product_type: scope.dataset.productType,
+            list_context: scope.dataset.listContext,
+            list_name: scope.dataset.listName,
+            position: scope.dataset.position,
+            ...getDiscoveryContext(),
           });
         };
 
@@ -488,35 +526,44 @@ if (seoType === "category" && seoData.category) {
           const inferredSlug = href.startsWith("/brand/") ? href.replace(/^\/brand\//, "").replace(/\/$/, "") : "";
           return sanitizeParams({
             brand_slug: scope.dataset.brandSlug || inferredSlug,
+            brand_id: scope.dataset.brandId,
             brand_name: scope.dataset.brandName,
-            category_keys: scope.dataset.keys,
+            category: scope.dataset.keys,
             delivers_abroad: scope.dataset.deliversAbroad,
+            list_context: scope.dataset.listContext,
+            position: scope.dataset.position,
+            ...getDiscoveryContext(),
           });
         };
 
         document.addEventListener("click", (event) => {
-          const outboundLink = event.target.closest("a.cta-out, a[data-analytics-event='outbound_brand_click']");
+          const target = event.target instanceof Element ? event.target : null;
+          if (!target) return;
+
+          const outboundLink = target.closest("a.cta-out, a[data-analytics-event='outbound_brand_click']");
           if (outboundLink) {
-            window.bulgaritamTrack?.("outbound_brand_click", {
-              ...getProductContext(outboundLink),
-              destination_url: outboundLink.getAttribute("href") || "",
-              link_text: outboundLink.textContent || "",
+            const productContext = getProductContext(outboundLink);
+            window.bulgaritamTrack?.(productContext.product_slug ? "outbound_product_click" : "outbound_brand_click", {
+              ...productContext,
+              ...getBrandContext(outboundLink),
+              destination_domain: destinationDomain(outboundLink.getAttribute("href") || ""),
+              source_context: productContext.list_context || window.location.pathname,
             });
             return;
           }
 
-          const productLink = event.target.closest("a.card-titlelink, a.card-imglink, a.related-link");
+          const productLink = target.closest("a.card-titlelink, a.card-imglink, a.related-link");
           if (productLink) {
-            window.bulgaritamTrack?.("product_open", {
+            window.bulgaritamTrack?.("view_product", {
               ...getProductContext(productLink),
               target_path: productLink.getAttribute("href") || "",
             });
             return;
           }
 
-          const brandLink = event.target.closest("a.brand-link, a.brand[href^='/brand/']");
+          const brandLink = target.closest("a.brand-link, a.brand[href^='/brand/']");
           if (brandLink) {
-            window.bulgaritamTrack?.("brand_open", {
+            window.bulgaritamTrack?.("view_brand", {
               ...getBrandContext(brandLink),
               target_path: brandLink.getAttribute("href") || "",
             });
@@ -530,6 +577,39 @@ if (seoType === "category" && seoData.category) {
 
         ensureGa();
         applyConsentToGa();
+
+        const impressionSeen = new WeakMap();
+        const observeImpressions = () => {
+          if (!("IntersectionObserver" in window)) return;
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
+              const node = entry.target;
+              const context = getDiscoveryContext();
+              const signature = JSON.stringify([context.query || "", context.category || "", context.subcategory || "", context.product_type || "", node.dataset.listContext || ""]);
+              const seen = impressionSeen.get(node) || new Set();
+              if (seen.has(signature)) return;
+              seen.add(signature);
+              impressionSeen.set(node, seen);
+              if (node.dataset.analyticsKind === "brand") {
+                window.bulgaritamTrack?.("brand_impression", getBrandContext(node));
+              } else {
+                window.bulgaritamTrack?.("product_impression", getProductContext(node));
+              }
+            });
+          }, { threshold: [0.5] });
+          document.querySelectorAll("[data-analytics-kind]").forEach((node) => observer.observe(node));
+        };
+
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", observeImpressions, { once: true });
+        else observeImpressions();
+
+        window.addEventListener("load", () => {
+          const productPage = document.querySelector("[data-page-product]");
+          const brandPage = document.querySelector("[data-page-brand]");
+          if (productPage) window.bulgaritamTrack?.("view_product", { ...getProductContext(productPage), source_context: "product_page" });
+          if (brandPage) window.bulgaritamTrack?.("view_brand", { ...getBrandContext(brandPage), source_context: "brand_page" });
+        }, { once: true });
       })();
     </script>
     <script is:inline>
@@ -886,6 +966,7 @@ const createBoardFromModal = () => {
   state.boards.push({ id, name, visibility: "private", shareKey: null });
   state.items[id] = state.items[id] || [];
   writeState(state);
+  window.bulgaritamTrack?.("create_collection", { collection_id: id, source_context: "save_modal" });
 
   selectedBoardId = id;
   renderBoards(state);
@@ -899,14 +980,22 @@ const savePendingItemToBoard = () => {
   addToBoard(state, selectedBoardId, pendingItem);
   writeState(state);
 
-  const board = (state.boards || []).find((entry) => entry.id === selectedBoardId);
   window.bulgaritamTrack?.("save_product", {
+    product_id: pendingItem?.productId || "",
     product_slug: pendingItem?.id || "",
     product_name: pendingItem?.title || "",
+    brand_id: pendingItem?.brandId || "",
+    brand_slug: pendingItem?.brandSlug || "",
     brand_name: pendingItem?.brand || "",
-    destination_url: pendingItem?.url || "",
-    board_id: selectedBoardId || "",
-    board_name: board?.name || "",
+    collection_id: selectedBoardId || "",
+    ...(window.__bulgaritamDiscoveryContext || {}),
+  });
+  window.bulgaritamTrack?.("add_to_collection", {
+    product_id: pendingItem?.productId || "",
+    product_slug: pendingItem?.id || "",
+    brand_id: pendingItem?.brandId || "",
+    brand_slug: pendingItem?.brandSlug || "",
+    collection_id: selectedBoardId || "",
   });
 
   syncSaveButtons();
@@ -964,8 +1053,12 @@ document.addEventListener("keydown", (e) => {
     // data-save-id, data-save-url
     // Optional:
     // data-save-title, data-save-image, data-save-brand, data-save-price
+    const scope = btn.closest("[data-product-slug]");
     return {
       id: btn.getAttribute("data-save-id"),
+      productId: scope?.dataset.productId || "",
+      brandId: scope?.dataset.brandId || "",
+      brandSlug: scope?.dataset.brandSlug || "",
       url: btn.getAttribute("data-save-url"),
       title: btn.getAttribute("data-save-title") || "Запазен продукт",
       image: btn.getAttribute("data-save-image") || "",

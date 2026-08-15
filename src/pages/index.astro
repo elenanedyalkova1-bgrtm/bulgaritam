@@ -7,7 +7,7 @@ import { getCategoryLabelForLang, getSubcategoryViewAllLabelForLang, getTaxonomy
 import { loadProducts } from "../lib/products";
 import { getProductBadges } from "../lib/product-badges";
 import { getAvailablePublicBrowse, getPublicBrowseForProduct, PUBLIC_GIFT_OCCASIONS } from "../lib/public-browse-taxonomy";
-import homeHero from "../assets/home-hero-banner-2.png";
+import homeHero from "../assets/home-hero-fashion-collage.webp";
 
 const products = await loadProducts();
 const displayProducts = products.filter((product) => product.image_urls?.[0]);
@@ -55,7 +55,7 @@ function priceLabel(p) {
           sizes="(max-width: 768px) 100vw, (max-width: 1240px) 100vw, 1240px"
           format="webp"
           quality={82}
-          alt="Жена разглежда списание в спокоен интериор"
+          alt="Колаж с български модни и лайфстайл продукти"
           class="hero-media-img"
           width={homeHero.width}
           height={homeHero.height}
@@ -1929,8 +1929,10 @@ function priceLabel(p) {
         const intent = currentSearchIntent;
         const searchParams = {
           query: String(value || "").trim(),
+          search_term: String(value || "").trim(),
           normalized_query: normalized,
           result_count: matchedCards.length,
+          search_results_count: matchedCards.length,
           structured_intent: intent?.labels?.join(" > ") || "",
           used_fallback: searchFallbackRequired,
           category: intent?.categoryKey || activeCategoryKey || "",
@@ -2202,7 +2204,7 @@ function priceLabel(p) {
     }
 
     function clearSelection(key) {
-      window.bulgaritamTrack?.("remove_filter", { selected_value: key, ...(window.__bulgaritamDiscoveryContext || {}) });
+      window.bulgaritamTrack?.("remove_filter", { selected_value: key, filter_name: key.split(":")[0], filter_value: key.split(":").slice(1).join(":") || key, ...(window.__bulgaritamDiscoveryContext || {}) });
       if (key === "category") { activeCategoryKey = ""; activeSubcategoryKey = ""; activeProductType = ""; renderSubChips(null); renderTypeChips(); }
       else if (key === "subcategory") { activeSubcategoryKey = ""; activeProductType = ""; renderTypeChips(); }
       else if (key === "productType") activeProductType = "";
@@ -2331,6 +2333,7 @@ function priceLabel(p) {
                 : "homepage_default";
       window.__bulgaritamDiscoveryContext = {
         query: v.trim(),
+        search_term: v.trim(),
         normalized_query: normalizeSearchText(v),
         structured_intent: currentSearchIntent?.labels?.join(" > ") || "",
         used_fallback: searchFallbackRequired ? "1" : "0",
@@ -2419,6 +2422,8 @@ function priceLabel(p) {
         b.addEventListener("click", () => {
           window.bulgaritamTrack?.("select_category", {
             selected_value: cat.label,
+            filter_name: "category",
+            filter_value: cat.key,
             category: cat.key,
             source_context: "homepage_discovery",
           });
@@ -2456,6 +2461,8 @@ function priceLabel(p) {
         b.addEventListener("click", () => {
           window.bulgaritamTrack?.("select_subcategory", {
             selected_value: s.label,
+            filter_name: "subcategory",
+            filter_value: s.key,
             category: cat.key,
             subcategory: s.key,
             source_context: "homepage_discovery",
@@ -2495,7 +2502,7 @@ function priceLabel(p) {
         button.textContent = `${value} (${productCount})`;
         button.addEventListener("click", () => {
           activeProductType = activeProductType === value ? "" : value;
-          window.bulgaritamTrack?.("select_product_type", { selected_value: value, ...(window.__bulgaritamDiscoveryContext || {}) });
+          window.bulgaritamTrack?.("select_product_type", { selected_value: value, filter_name: "product_type", filter_value: value, ...(window.__bulgaritamDiscoveryContext || {}) });
           applyDiscovery(q.value || "");
           pulseResults();
         });
@@ -2619,6 +2626,8 @@ function priceLabel(p) {
         const selectedValue = parts.join(":");
         window.bulgaritamTrack?.(kind === "recipient" ? "select_gift_recipient" : kind === "occasion" ? "select_gift_occasion" : "apply_filter", {
           selected_value: selectedValue || filter,
+          filter_name: kind,
+          filter_value: selectedValue || filter,
           ...(window.__bulgaritamDiscoveryContext || {}),
         });
       });
@@ -2648,6 +2657,8 @@ function priceLabel(p) {
       closeFilters();
       applyDiscovery(q.value);
       window.bulgaritamTrack?.("apply_filter", {
+        filter_name: "product_constraints",
+        filter_value: [selectedPriceRange, selectedDeliveryOutside ? "delivery_abroad" : "", ...selectedAttributes].filter(Boolean).join(","),
         price_range: selectedPriceRange,
         delivers_outside_bulgaria: selectedDeliveryOutside,
         attributes: selectedAttributes,

@@ -274,7 +274,16 @@ const canonical = "https://bulgaritam.bg/spodelena-kolekciya/";
       SHARED_GRID_WRAP?.removeAttribute("hidden");
 
       SHARED_GRID.innerHTML = items.map((item) => `
-        <article class="shared-card">
+        <article
+          class="shared-card"
+          data-product-slug="${escapeHtml(item.id || "")}"
+          data-product-id="${escapeHtml(item.productId || "")}"
+          data-product-name="${escapeHtml(item.title || "Продукт")}"
+          data-brand-id="${escapeHtml(item.brandId || "")}"
+          data-brand-slug="${escapeHtml(item.brandSlug || "")}"
+          data-brand-name="${escapeHtml(item.brand || "")}"
+          data-list-context="shared_collection"
+        >
           <a class="shared-card__media" href="${escapeHtml(item.url || "#")}">
             ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title || "Продукт")}" loading="lazy" />` : ""}
           </a>
@@ -286,6 +295,13 @@ const canonical = "https://bulgaritam.bg/spodelena-kolekciya/";
           <a class="shared-card__cta" href="${escapeHtml(item.url || "#")}">Разгледай продукта</a>
         </article>
       `).join("");
+
+      window.bulgaritamTrack?.("view_collection", {
+        collection_id: payload.id || "",
+        collection_product_count: items.length,
+        item_count: items.length,
+        source_context: "shared_collection",
+      });
     }
   </script>
 </BaseLayout>

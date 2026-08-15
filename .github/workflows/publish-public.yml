@@ -44,6 +44,7 @@ jobs:
           BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
           BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
           BASEROW_BRANDS_TABLE_ID: ${{ vars.BASEROW_BRANDS_TABLE_ID }}
+          PUBLIC_ANALYTICS_ENDPOINT: https://admin.bulgaritam.bg/api/events/
 
       - name: Verify generated pages and stale routes
         id: manifest

@@ -1337,12 +1337,18 @@ const editorialSections = [
         if (signature === lastBrandSearchSignature) return;
         lastBrandSearchSignature = signature;
 
-        window.bulgaritamTrack?.("brands_search", {
-          search_query: normalized,
-          active_category: activeFilter,
-          sort_mode: activeSort,
-          results_count: visibleCount,
-        });
+        const searchPayload = {
+          query: String(value || "").trim(),
+          search_term: String(value || "").trim(),
+          normalized_query: normalized,
+          category: activeFilter,
+          selected_value: activeSort,
+          result_count: visibleCount,
+          search_results_count: visibleCount,
+          source_context: "brand_directory",
+        };
+        window.bulgaritamTrack?.("search", searchPayload);
+        window.bulgaritamTrack?.(visibleCount ? "search_results_view" : "search_no_results", searchPayload);
       }, 700);
     };
 
@@ -1460,10 +1466,12 @@ const editorialSections = [
       activeFilter = key;
       setActive(btn);
       applyDiscovery();
-      window.bulgaritamTrack?.("category_pill_click", {
-        surface: "brands",
-        category_key: key,
-        category_label: btn.textContent || "",
+      window.bulgaritamTrack?.("select_category", {
+        source_context: "brand_directory",
+        category: key,
+        selected_value: btn.textContent || key,
+        filter_name: "category",
+        filter_value: key,
       });
       pulseResults();
     });
@@ -1495,10 +1503,10 @@ const editorialSections = [
     brandSortSelect?.addEventListener("change", (e) => {
       activeSort = e.target.value || "featured";
       applyDiscovery();
-      window.bulgaritamTrack?.("sort_change", {
-        surface: "brands",
-        sort_mode: activeSort,
-        active_category: activeFilter,
+      window.bulgaritamTrack?.("change_sort", {
+        source_context: "brand_directory",
+        selected_value: activeSort,
+        category: activeFilter,
       });
       pulseResults();
     });
@@ -1506,8 +1514,10 @@ const editorialSections = [
     brandDeliveryOutside?.addEventListener("change", (e) => {
       activeDeliveryOutside = Boolean(e.target.checked);
       applyDiscovery();
-      window.bulgaritamTrack?.("filter_apply", {
-        surface: "brands",
+      window.bulgaritamTrack?.("apply_filter", {
+        source_context: "brand_directory",
+        filter_name: "delivery_abroad",
+        filter_value: activeDeliveryOutside ? "1" : "0",
         delivers_outside_bulgaria: activeDeliveryOutside,
       });
       pulseResults();
@@ -1525,10 +1535,13 @@ const editorialSections = [
       closeOccasionModal();
       updateOccasionBadge();
       applyDiscovery();
-      window.bulgaritamTrack?.("occasion_filter_apply", {
-        surface: "brands",
-        occasion_keys: activeOccasionKeys,
-      });
+      activeOccasionKeys.forEach((occasion) => window.bulgaritamTrack?.("select_gift_occasion", {
+        source_context: "brand_directory",
+        selected_value: occasion,
+        gift_occasion: occasion,
+        filter_name: "gift_occasion",
+        filter_value: occasion,
+      }));
       pulseResults();
     });
 

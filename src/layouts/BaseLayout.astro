@@ -5,6 +5,7 @@ const SITE_URL = (
   (Astro.site ? String(Astro.site) : "") ||
   "https://bulgaritam.bg"
 ).replace(/\/+$/, "");
+const ANALYTICS_ENDPOINT = String(import.meta.env.PUBLIC_ANALYTICS_ENDPOINT || "").trim();
 
 const HOME_SEO = {
   title: "Българитъм | Подбрани български марки и продукти",
@@ -368,10 +369,11 @@ if (seoType === "category" && seoData.category) {
     {!gtmContainerId && gaMeasurementId ? (
       <script async src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaMeasurementId)}`}></script>
     ) : null}
-    <script is:inline define:vars={{ gaMeasurementId, gtmContainerId }}>
+    <script is:inline define:vars={{ gaMeasurementId, gtmContainerId, analyticsEndpoint: ANALYTICS_ENDPOINT }}>
       (() => {
         const measurementId = String(gaMeasurementId || "").trim();
         const containerId = String(gtmContainerId || "").trim();
+        const firstPartyEndpoint = String(analyticsEndpoint || "").trim();
         const queue = [];
 
         // The shared event transport must exist before consent state or any
@@ -391,6 +393,33 @@ if (seoType === "category" && seoData.category) {
           }
         };
         const getDeviceType = () => (window.matchMedia("(max-width: 768px)").matches ? "mobile" : "desktop");
+
+        const safeStorage = (storage, key, fallbackFactory) => {
+          try {
+            const existing = storage?.getItem(key);
+            if (existing) return existing;
+            const next = fallbackFactory();
+            storage?.setItem(key, next);
+            return next;
+          } catch { return fallbackFactory(); }
+        };
+        const randomId = () => globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+        const getSessionId = () => safeStorage(window.sessionStorage, "bulgaritam_analytics_session_v1", randomId);
+        const getJourneyId = () => safeStorage(window.localStorage, "bulgaritam_analytics_journey_v1", randomId);
+        const safeReferrerDomain = () => {
+          try { return document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, "") : ""; }
+          catch { return ""; }
+        };
+        const initialAcquisition = (() => {
+          const query = new URLSearchParams(window.location.search);
+          return {
+            landing_page: window.location.pathname,
+            referrer_domain: safeReferrerDomain(),
+            utm_source: query.get("utm_source") || "",
+            utm_medium: query.get("utm_medium") || "",
+            utm_campaign: query.get("utm_campaign") || "",
+          };
+        })();
 
         const redactPotentialPii = (value) => {
           const text = String(value || "");
@@ -471,19 +500,66 @@ if (seoType === "category" && seoData.category) {
           page_title: document.title,
           language: getLanguage(),
           device_type: getDeviceType(),
+          page_type: document.body?.dataset?.pageType || (window.location.pathname.startsWith("/p/") ? "product" : window.location.pathname.startsWith("/brand/") ? "brand" : window.location.pathname === "/" ? "discovery" : "content"),
+          ...initialAcquisition,
         });
+
+        const readPersistedDiscoveryContext = () => {
+          try { return JSON.parse(window.sessionStorage?.getItem("bulgaritam_discovery_context_v1") || "{}"); }
+          catch { return {}; }
+        };
+
+        const persistDiscoveryContext = (payload) => {
+          const searchTerm = payload.search_term || payload.query;
+          if (!searchTerm && !payload.category && !payload.subcategory && !payload.active_filters) return;
+          const context = sanitizeParams({
+            search_term: searchTerm,
+            normalized_query: payload.normalized_query,
+            structured_intent: payload.structured_intent,
+            category: payload.category,
+            subcategory: payload.subcategory,
+            product_type: payload.product_type,
+            gift_recipient: payload.gift_recipient,
+            gift_occasion: payload.gift_occasion,
+            active_filters: payload.active_filters,
+            source_context: payload.source_context || payload.list_context,
+          });
+          try { window.sessionStorage?.setItem("bulgaritam_discovery_context_v1", JSON.stringify(context)); } catch {}
+        };
+
+        const sendFirstParty = (eventName, payload) => {
+          if (!firstPartyEndpoint) return;
+          const body = JSON.stringify({
+            event_name: eventName,
+            occurred_at: new Date().toISOString(),
+            anonymous_session_id: getSessionId(),
+            anonymous_journey_id: getJourneyId(),
+            ...payload,
+          });
+          try {
+            if (navigator.sendBeacon) {
+              navigator.sendBeacon(firstPartyEndpoint, new Blob([body], { type: "application/json" }));
+            } else {
+              fetch(firstPartyEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true, credentials: "omit" }).catch(() => {});
+            }
+          } catch {}
+        };
 
         window.bulgaritamTrack = (eventName, params = {}) => {
           if ((!measurementId && !containerId) || !hasAnalyticsConsent() || !eventName) return;
 
           const payload = {
             ...buildCommonParams(),
+            ...readPersistedDiscoveryContext(),
             ...sanitizeParams(params),
           };
+
+          if (eventName === "search" || eventName === "search_results_view" || eventName === "search_no_results") persistDiscoveryContext(payload);
 
           window.dataLayer = window.dataLayer || [];
           const dataLayerEvent = { event: eventName, ...payload };
           window.dataLayer.push(dataLayerEvent);
+          sendFirstParty(eventName, payload);
 
           if (!containerId && typeof window.gtag === "function") {
             window.gtag("event", eventName, payload);
@@ -512,6 +588,7 @@ if (seoType === "category" && seoData.category) {
             category: scope.dataset.publicCategory || scope.dataset.categoryKey,
             subcategory: scope.dataset.publicSubcategory || scope.dataset.subcategoryKeys,
             product_type: scope.dataset.productType,
+            price: scope.dataset.price || scope.dataset.priceMin,
             list_context: scope.dataset.listContext,
             list_name: scope.dataset.listName,
             position: scope.dataset.position,
@@ -552,7 +629,7 @@ if (seoType === "category" && seoData.category) {
             return;
           }
 
-          const productLink = target.closest("a.card-titlelink, a.card-imglink, a.related-link");
+          const productLink = target.closest("a.card-titlelink, a.card-imglink, a.related-link, a.shared-card__media, a.shared-card__cta");
           if (productLink) {
             window.bulgaritamTrack?.("view_product", {
               ...getProductContext(productLink),
@@ -996,6 +1073,9 @@ const savePendingItemToBoard = () => {
     brand_id: pendingItem?.brandId || "",
     brand_slug: pendingItem?.brandSlug || "",
     collection_id: selectedBoardId || "",
+    collection_product_count: (state.items?.[selectedBoardId] || []).length,
+    source_context: "save_modal",
+    ...(window.__bulgaritamDiscoveryContext || {}),
   });
 
   syncSaveButtons();

@@ -361,9 +361,13 @@ const description = "Запазени продукти и колекции – �
       if (!board || board.id === SAVED_PAGE_DEFAULT_ID || !items.length) return null;
 
       return {
+        id: board.id,
         name: board.name,
         items: items.map((item) => ({
           id: item?.id || "",
+          productId: item?.productId || "",
+          brandId: item?.brandId || "",
+          brandSlug: item?.brandSlug || "",
           url: item?.url || "",
           title: item?.title || "Запазен продукт",
           brand: item?.brand || "",
@@ -418,7 +422,10 @@ const description = "Запазени продукти и колекции – �
       window.bulgaritamTrack?.("share_collection", {
         collection_id: activeBoardId,
         item_count: payload.items?.length || 0,
+        collection_product_count: payload.items?.length || 0,
         method: "copy_link",
+        share_method: "copy_link",
+        source_context: "saved_page",
       });
     }
 
@@ -438,7 +445,10 @@ const description = "Запазени продукти и колекции – �
           window.bulgaritamTrack?.("share_collection", {
             collection_id: activeBoardId,
             item_count: payload.items?.length || 0,
+            collection_product_count: payload.items?.length || 0,
             method: "native",
+            share_method: "native",
+            source_context: "saved_page",
           });
           return;
         } catch {}

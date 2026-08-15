@@ -10,11 +10,12 @@ Transport: consent-gated `window.dataLayer.push({ event, ...parameters })` → G
 | `brand_id`, `brand_slug`, `brand_name` | Stable Baserow Brand ID plus readable context |
 | `category`, `subcategory`, `product_type` | Structured taxonomy context |
 | `list_context`, `list_name`, `position` | Placement and approximate 1-based result position |
-| `query`, `normalized_query`, `structured_intent`, `used_fallback` | Search attribution |
+| `query`, `search_term`, `normalized_query`, `structured_intent`, `used_fallback` | Search attribution; `query` remains for backwards compatibility |
 | `gift_recipient`, `gift_occasion`, `active_filters` | Active discovery facets |
 | `source_context` | UI/page surface that caused the action |
 | `destination_domain` | Merchant hostname only; URL paths/query parameters are excluded |
-| `page_path`, `page_title`, `language`, `device_type` | Non-identifying page/session context |
+| `page_path`, `page_title`, `page_type`, `language`, `device_type` | Non-identifying page/session context |
+| `landing_page`, `referrer_domain`, `utm_source`, `utm_medium`, `utm_campaign` | Acquisition context without full referrer URLs |
 
 `list_context` values: `homepage_default`, `search_results`, `category`, `subcategory`, `product_type`, `gift_discovery`, `brand_page`, `recommended`, `saved_collection`, `seo_landing_page`, `brand_directory`.
 
@@ -22,7 +23,7 @@ Transport: consent-gated `window.dataLayer.push({ event, ...parameters })` → G
 
 ### Search
 
-- `search`: shared context plus `query`, `normalized_query`, `result_count`, `structured_intent`, `used_fallback`, taxonomy and gift facets.
+- `search`: shared context plus `query`, `search_term`, `normalized_query`, `result_count`, `search_results_count`, `structured_intent`, `used_fallback`, taxonomy and gift facets.
 - `search_results_view`: same schema, emitted for a non-zero settled result set.
 - `search_no_results`: same schema, emitted for a zero-result settled result set.
 
@@ -52,7 +53,15 @@ Outbound events include `destination_domain`, never the full merchant URL.
 
 - `create_collection`, `add_to_collection`, `remove_from_collection`, `view_collection`, `share_collection`
 
-Allowed collection parameters: opaque local `collection_id`, `item_count`, `method`, and relevant Product/Brand IDs. User-entered collection names are prohibited.
+Allowed collection parameters: opaque local `collection_id`, `item_count`/`collection_product_count`, `method`/`share_method`, and relevant Product/Brand IDs. User-entered collection names are prohibited.
+
+## First-party event store
+
+After analytics consent, the same sanitized event is optionally sent to `PUBLIC_ANALYTICS_ENDPOINT`. The implementation endpoint is `https://admin.bulgaritam.bg/api/events/` and stores rows server-side in the Baserow table configured as `BASEROW_ANALYTICS_EVENTS_TABLE_ID`. The public browser never receives a Baserow token.
+
+The store uses an opaque per-tab/session ID in `sessionStorage` and an opaque journey ID in `localStorage`; both are created only after consent when an event is sent. Search/discovery context is retained in `sessionStorage` and added to downstream product, save, collection and outbound events. No account identity, IP-derived field, email, phone, collection name, full destination URL or URL query string is stored.
+
+Required Analytics Events fields: `event_name`, `occurred_at`, `anonymous_session_id`, `anonymous_journey_id`, `product_id`, `product_name`, `brand_id`, `brand_name`, `category`, `subcategory`, `product_type`, `search_term`, `search_results_count`, `collection_id`, `source_context`, `destination_domain`, and `payload_json`.
 
 ## GTM workspace specification
 

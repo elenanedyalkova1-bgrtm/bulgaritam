@@ -138,6 +138,7 @@ const relatedPrice = (p) =>
     data-category-key={productTaxonomy.categoryKey || ""}
     data-subcategory-keys={productTaxonomy.subcategoryKeys.join(",")}
     data-product-type={product.product_type || ""}
+    data-price={product.price_min_eur ?? ""}
     data-list-context="product_page"
   >
     <div

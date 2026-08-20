@@ -7,16 +7,20 @@ import { getCategoryLabelForLang, getSubcategoryViewAllLabelForLang, getTaxonomy
 import { loadProducts } from "../lib/products";
 import { getProductBadges } from "../lib/product-badges";
 import { getAvailablePublicBrowse, getPublicBrowseForProduct, PUBLIC_GIFT_OCCASIONS } from "../lib/public-browse-taxonomy";
-import homeHero from "../assets/home-hero-fashion-collage.webp";
+import { loadHomepageSettings } from "../lib/site-settings";
+import defaultHomeHero from "../assets/home-hero-fashion-collage.webp";
 
-const products = await loadProducts();
+const [products, homepageSettings] = await Promise.all([loadProducts(), loadHomepageSettings()]);
 const displayProducts = products.filter((product) => product.image_urls?.[0]);
 const LAZY_IMAGE_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 const homeCategories = getAvailablePublicBrowse(displayProducts);
-const attributeOptions = Array.from(new Set(displayProducts.flatMap((product) => product.attributes))).sort((a, b) => a.localeCompare(b, "bg"));
-const recipientOptions = Array.from(new Set(displayProducts.filter((product) => product.giftable).flatMap((product) => product.recipient))).sort((a, b) => a.localeCompare(b, "bg"));
-const structuredGiftOccasions = new Set(displayProducts.filter((product) => product.giftable).flatMap((product) => product.gift_occasion));
-const giftOccasionOptions = PUBLIC_GIFT_OCCASIONS.filter((value) => value === "Сватба" || structuredGiftOccasions.has(value));
+const structuredAttributes = new Set(displayProducts.flatMap((product) => product.attributes));
+const attributeOptions = ["Веган", "Еко", "Натурален", "Органичен памук", "Ръчна изработка", "Персонализируем"].filter((value) => structuredAttributes.has(value));
+const structuredRecipients = new Set(displayProducts.filter((product) => product.giftable).flatMap((product) => product.recipient));
+const recipientOptions = ["За бебе", "За двойка", "За дете", "За жена", "За мъж"].filter((value) => structuredRecipients.has(value));
+const giftOccasionOptions = ["Рожден ден", "Сватба", "Новородено", "Свети Валентин"].filter((value) =>
+  PUBLIC_GIFT_OCCASIONS.includes(value)
+);
 const giftAttributeOptions = attributeOptions.filter((value) => ["Персонализируем", "Ръчна изработка"].includes(value));
 
 function priceLabel(p) {
@@ -49,26 +53,35 @@ function priceLabel(p) {
   <main class="wrap">
     <section class="home-hero home-hero--banner">
       <div class="hero-media">
-        <Image
-          src={homeHero}
+        {homepageSettings?.heroUrl ? <img
+          src={homepageSettings.heroUrl}
+          alt={homepageSettings.heroAltBg}
+          class="hero-media-img"
+          width="1600"
+          height="900"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        /> : <Image
+          src={defaultHomeHero}
           widths={[640, 960, 1280, 1600]}
           sizes="(max-width: 768px) 100vw, (max-width: 1240px) 100vw, 1240px"
           format="webp"
           quality={82}
           alt="Колаж с български модни и лайфстайл продукти"
           class="hero-media-img"
-          width={homeHero.width}
-          height={homeHero.height}
+          width={defaultHomeHero.width}
+          height={defaultHomeHero.height}
           loading="eager"
           fetchpriority="high"
           priority
           decoding="async"
-        />
+        />}
       </div>
       <p class="home-fresh-note" data-i18n="home.freshNote">Нови брандове всяка седмица</p>
     </section>
 
-    <section class="home-search" aria-label="Търсене и категории">
+    <section class="home-search" id="product-search" aria-label="Търсене и категории">
       <div class="search search--home">
         <label class="search-label" for="q" data-i18n="home.searchLabel">Търси български продукт</label>
 
@@ -87,6 +100,20 @@ function priceLabel(p) {
           Търсенето започва автоматично докато пишеш
         </div>
       </div>
+
+      <div class="discovery-shortcuts" role="group" aria-label="Бързо откриване">
+        <button class="discovery-shortcut" type="button" data-discovery-category="home">🏠 <span>Търся нещо за дома</span></button>
+        <button class="discovery-shortcut" type="button" data-discovery-self aria-expanded="false" aria-controls="selfCategoryChoices">✨ <span>Търся нещо за себе си</span></button>
+        <button class="discovery-shortcut" type="button" data-discovery-gift>🎁 <span>Търся нещо за подарък</span></button>
+        <button class="discovery-shortcut" type="button" data-discovery-surprise>🎲 <span>Изненадай ме</span></button>
+      </div>
+      <div class="self-category-choices" id="selfCategoryChoices" role="group" aria-label="Избери категория" hidden>
+        {[["clothing","Облекло"],["accessories","Аксесоари"],["cosmetics","Козметика"],["health","Здраве и грижа"],["books","Книги, игри и творчество"]].map(([key,label]) =>
+          <button class="chip chip-sub" type="button" data-self-category={key}>{label}</button>
+        )}
+      </div>
+
+      <p class="chips-section-label chips-section-label--category">Търси по категория</p>
 
       <div class="chips chips--home" role="group" aria-label="Категории" id="mainChips"></div>
       <p class="chips-section-label" id="subChipsLabel" hidden data-i18n="home.subcategories">Подкатегории</p>
@@ -112,9 +139,6 @@ function priceLabel(p) {
         hidden
       ></div>
       <div id="homeCategoriesData" data-categories={JSON.stringify(homeCategories)} hidden></div>
-      <div class="home-view-all" id="homeViewAll" hidden>
-        <a id="homeViewAllLink" class="home-view-all__link" href="#" data-i18n="home.viewAll">Виж всички</a>
-      </div>
       <div class="discovery-tools" aria-label="Сортиране и филтри">
         <button
           id="occasionToggle"
@@ -181,20 +205,20 @@ function priceLabel(p) {
             <span>Всички цени</span>
           </label>
           <label class="filter-option">
-            <input type="radio" name="priceFilter" value="0-50" />
-            <span>До 50 евро</span>
+            <input type="radio" name="priceFilter" value="0-25" />
+            <span>До €25</span>
+          </label>
+          <label class="filter-option">
+            <input type="radio" name="priceFilter" value="25-50" />
+            <span>€25–50</span>
           </label>
           <label class="filter-option">
             <input type="radio" name="priceFilter" value="50-100" />
-            <span>50–100 евро</span>
+            <span>€50–100</span>
           </label>
           <label class="filter-option">
-            <input type="radio" name="priceFilter" value="100-200" />
-            <span>100–200 евро</span>
-          </label>
-          <label class="filter-option">
-            <input type="radio" name="priceFilter" value="200+" />
-            <span>200+ евро</span>
+            <input type="radio" name="priceFilter" value="100+" />
+            <span>€100+</span>
           </label>
         </div>
 
@@ -268,8 +292,17 @@ function priceLabel(p) {
           <section class="occasion-group">
             <h4 class="occasion-group__title">Още</h4>
             <div class="occasion-options">
-              <label class="occasion-option"><input type="checkbox" name="giftFilter" value="giftable:true" /><span>Подходящ за подарък</span></label>
               {giftAttributeOptions.map((value) => <label class="occasion-option"><input type="checkbox" name="giftFilter" value={`attribute:${value}`} /><span>{value}</span></label>)}
+            </div>
+          </section>
+          <section class="occasion-group">
+            <h4 class="occasion-group__title">Бюджет</h4>
+            <div class="occasion-options">
+              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="all" checked /><span>Без ограничение</span></label>
+              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="0-25" /><span>До €25</span></label>
+              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="25-50" /><span>€25–50</span></label>
+              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="50-100" /><span>€50–100</span></label>
+              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="100+" /><span>€100+</span></label>
             </div>
           </section>
         </div>
@@ -285,7 +318,7 @@ function priceLabel(p) {
       </div>
     </div>
 
-    <section class="section section--feed">
+    <section class="section section--feed" id="products">
       <div id="activeSelections" class="active-selections" aria-live="polite" hidden></div>
       <div class="section-head section-head--centered">
         <h2 class="h2">Продукти (<span id="count">{displayProducts.length}</span>)</h2>
@@ -518,8 +551,58 @@ function priceLabel(p) {
       text-align: center;
     }
 
+    .discovery-shortcuts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      max-width: 920px;
+      margin: 18px auto 10px;
+    }
+
+    .discovery-shortcut {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-width: 0;
+      max-width: 100%;
+      min-height: 44px;
+      height: auto;
+      padding: 10px 15px;
+      border: 1px solid rgba(95, 127, 107, 0.3);
+      border-radius: 15px;
+      background: rgba(95, 127, 107, 0.09);
+      color: var(--text);
+      font: 700 14px/1.25 var(--font-body);
+      text-align: center;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      text-wrap: balance;
+      cursor: pointer;
+    }
+
+    .discovery-shortcut span { min-width: 0; }
+
+    .discovery-shortcut:hover,
+    .discovery-shortcut:focus-visible {
+      border-color: rgba(95, 127, 107, 0.48);
+      background: #fff;
+    }
+
+    .self-category-choices {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      max-width: 820px;
+      margin: 0 auto 12px;
+    }
+
+    .self-category-choices[hidden] { display: none; }
+
     .chips--home {
-      max-width: 940px;
+      max-width: 1180px;
       margin: 0 auto;
       justify-content: center;
       min-height: 60px;
@@ -529,6 +612,7 @@ function priceLabel(p) {
     .chips--home .chip-sub {
       min-height: 48px;
       padding: 12px 18px;
+      font-size: 16px;
       font-weight: 800;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
     }
@@ -543,12 +627,14 @@ function priceLabel(p) {
       color: rgba(26, 26, 26, 0.48);
     }
 
+    .chips-section-label--category{display:flex;align-items:center;gap:12px;margin:16px auto 8px;max-width:980px}.chips-section-label--category::before,.chips-section-label--category::after{content:"";height:1px;flex:1;background:rgba(26,26,26,.09)}
+
     .chips-sub {
       margin-top: 8px;
       opacity: 0.95;
       padding: 10px 12px;
       border-radius: 22px;
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(95, 127, 107, 0.055);
       border: 1px dashed rgba(26, 26, 26, 0.08);
       min-height: 64px;
     }
@@ -568,31 +654,6 @@ function priceLabel(p) {
       font-size: 14px;
       font-weight: 700;
       box-shadow: none;
-    }
-
-    .home-view-all {
-      display: flex;
-      justify-content: center;
-      margin-top: 14px;
-      min-height: 42px;
-    }
-
-    .home-view-all__link {
-      display: inline-flex;
-      align-items: center;
-      min-height: 42px;
-      padding: 0 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(26, 26, 26, 0.1);
-      background: rgba(255, 255, 255, 0.72);
-      color: rgba(26, 26, 26, 0.8);
-      text-decoration: none;
-      font-weight: 700;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
-    }
-
-    .home-view-all__link:hover {
-      background: rgba(255, 255, 255, 0.9);
     }
 
     .chip.is-active {
@@ -1342,14 +1403,11 @@ function priceLabel(p) {
       }
 
       .chips--home {
-        justify-content: flex-start;
-        flex-wrap: nowrap;
+        justify-content: center;
+        flex-wrap: wrap;
         gap: 8px;
         min-height: 56px;
-        overflow-x: auto;
-        overscroll-behavior-inline: contain;
-        scrollbar-width: none;
-        scroll-snap-type: inline proximity;
+        overflow-x: visible;
         padding: 4px 2px 8px;
       }
 
@@ -1363,8 +1421,26 @@ function priceLabel(p) {
         padding: 10px 14px;
         font-size: 13px;
         box-shadow: 0 8px 18px rgba(0, 0, 0, 0.035);
-        flex: 0 0 auto;
-        scroll-snap-align: start;
+        flex: 1 1 142px;
+        max-width: 100%;
+        height: auto;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+        line-height: 1.25;
+      }
+
+      .discovery-shortcuts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .discovery-shortcut {
+        width: 100%;
+        min-height: 48px;
+        padding: 10px 11px;
+        font-size: 13px;
       }
 
       .chips-section-label {
@@ -1372,15 +1448,10 @@ function priceLabel(p) {
       }
 
       .chips-sub {
-        justify-content: flex-start;
+        justify-content: center;
         margin-top: 8px;
         padding: 10px;
         border-radius: 18px;
-      }
-
-      .home-view-all {
-        justify-content: center;
-        margin-top: 12px;
       }
 
       .discovery-tools {
@@ -1593,6 +1664,8 @@ function priceLabel(p) {
         min-width: auto;
       }
 
+      .discovery-shortcut { font-size: 13px; }
+
       .filters-modal__panel {
         width: min(100vw - 24px, 460px);
         padding: 18px;
@@ -1639,7 +1712,7 @@ function priceLabel(p) {
   <script>
     import { parseBulgarianShoppingIntent } from "../lib/search-intent";
 
-    const q = document.getElementById("q");
+    const q = document.getElementById("q") as HTMLInputElement;
     const grid = document.getElementById("grid");
     const count = document.getElementById("count");
     const hint = document.getElementById("hint");
@@ -1656,8 +1729,6 @@ function priceLabel(p) {
     const feedSentinel = document.getElementById("feedSentinel");
     const homeLandingData = document.getElementById("homeLandingData");
     const homeCategoriesData = document.getElementById("homeCategoriesData");
-    const homeViewAll = document.getElementById("homeViewAll");
-    const homeViewAllLink = document.getElementById("homeViewAllLink");
     const occasionToggle = document.getElementById("occasionToggle");
     const occasionModal = document.getElementById("occasionModal");
     const occasionBadge = document.getElementById("occasionBadge");
@@ -1708,6 +1779,7 @@ function priceLabel(p) {
     let currentSearchIntent = null;
     let searchFallbackRequired = false;
     let searchTrackTimer = 0;
+    let resultFocusTimer = 0;
     let lastTrackedSearchSignature = "";
     const SEO_LANDING_LINKS = homeLandingData?.dataset.landings
       ? JSON.parse(homeLandingData.dataset.landings)
@@ -1716,6 +1788,23 @@ function priceLabel(p) {
       ? JSON.parse(homeCategoriesData.dataset.categories)
       : [];
     const getCurrentLang = () => localStorage.getItem("bulgaritam_lang_v1") === "en" ? "en" : "bg";
+
+    const focusResults = (delay = 0) => {
+      window.clearTimeout(resultFocusTimer);
+      resultFocusTimer = window.setTimeout(() => {
+        document.getElementById("products")?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start",
+        });
+      }, delay);
+    };
+
+    const removeStructuredTermsFromSearch = () => {
+      const intent = parseBulgarianShoppingIntent(q.value || "");
+      if (!intent || (!intent.categoryKey && !intent.subcategoryKey && !intent.productType)) return;
+      q.value = intent.residualQuery || "";
+      currentSearchIntent = null;
+    };
 
     const pulseResults = () => {
       if (!grid) return;
@@ -1749,26 +1838,20 @@ function priceLabel(p) {
       const low = Number.isNaN(min) ? null : min;
       const high = Number.isNaN(max) ? null : max;
 
-      if (range === "0-50") {
-        return (low !== null && low <= 50) || (high !== null && high <= 50);
+      if (range === "0-25") {
+        return (low !== null && low <= 25) || (high !== null && high <= 25);
+      }
+
+      if (range === "25-50") {
+        return (low !== null && low <= 50 && low >= 25) || (high !== null && high >= 25 && high <= 50) || (low !== null && high !== null && low <= 50 && high >= 25);
       }
 
       if (range === "50-100") {
-        return (low !== null && low <= 100 && low >= 50) ||
-          (high !== null && high >= 50 && high <= 100) ||
-          (low !== null && high !== null && low < 50 && high > 100) ||
-          (low !== null && high !== null && low <= 100 && high >= 50);
+        return (low !== null && low <= 100 && low >= 50) || (high !== null && high >= 50 && high <= 100) || (low !== null && high !== null && low <= 100 && high >= 50);
       }
 
-      if (range === "100-200") {
-        return (low !== null && low <= 200 && low >= 100) ||
-          (high !== null && high >= 100 && high <= 200) ||
-          (low !== null && high !== null && low < 100 && high > 200) ||
-          (low !== null && high !== null && low <= 200 && high >= 100);
-      }
-
-      if (range === "200+") {
-        return (low !== null && low >= 200) || (high !== null && high >= 200);
+      if (range === "100+") {
+        return (low !== null && low >= 100) || (high !== null && high >= 100);
       }
 
       return true;
@@ -2179,10 +2262,10 @@ function priceLabel(p) {
       if (activeProductType) chips.push({ key: "productType", label: activeProductType });
       currentSearchIntent?.labels.forEach((label) => chips.push({ key: `intent:${label}`, label }));
       if (q.value.trim()) chips.push({ key: "search", label: `“${q.value.trim()}”` });
-      if (selectedPriceRange !== "all") chips.push({ key: "price", label: selectedPriceRange === "0-50" ? "До 50 EUR" : selectedPriceRange === "200+" ? "200+ EUR" : `${selectedPriceRange} EUR` });
+      if (selectedPriceRange !== "all") chips.push({ key: "price", label: selectedPriceRange === "0-25" ? "До €25" : selectedPriceRange === "100+" ? "€100+" : `€${selectedPriceRange}` });
       if (selectedDeliveryOutside) chips.push({ key: "delivery", label: "Доставка извън България" });
       selectedAttributes.forEach((label) => chips.push({ key: `attribute:${label}`, label }));
-      selectedGiftFilters.forEach((value) => chips.push({ key: `gift:${value}`, label: value.split(":").slice(1).join(":") || "Подарък" }));
+      selectedGiftFilters.forEach((value) => chips.push({ key: `gift:${value}`, label: value === "giftable:true" ? "Подарък" : value.split(":").slice(1).join(":") || "Подарък" }));
       activeSelections.innerHTML = "";
       chips.forEach(({ key, label }) => {
         const button = document.createElement("button");
@@ -2215,6 +2298,7 @@ function priceLabel(p) {
       else if (key.startsWith("attribute:")) selectedAttributes = selectedAttributes.filter((value) => value !== key.slice(10));
       else if (key.startsWith("gift:")) selectedGiftFilters = selectedGiftFilters.filter((value) => value !== key.slice(5));
       applyDiscovery(q.value || "");
+      focusResults();
     }
 
     function clearAllSelections() {
@@ -2222,31 +2306,7 @@ function priceLabel(p) {
       activeCategoryKey = ""; activeSubcategoryKey = ""; activeProductType = "";
       selectedPriceRange = "all"; selectedDeliveryOutside = false; selectedAttributes = []; selectedGiftFilters = []; q.value = "";
       renderSubChips(null); renderTypeChips(); syncFilterInputs(); syncOccasionInputs(); applyDiscovery("");
-    }
-
-    function updateViewAllLink() {
-      if (!homeViewAll || !homeViewAllLink) return;
-
-      const exactQueryLanding = findLandingByQuery(q.value || "");
-      const landing =
-        (activeSubcategoryKey
-          ? SEO_LANDING_LINKS.find((item) => item.subcategoryKey === activeSubcategoryKey)
-          : null) ||
-        (!activeCategoryKey && exactQueryLanding?.subcategoryKey ? exactQueryLanding : null);
-
-      if (!landing) {
-        homeViewAll.setAttribute("hidden", "");
-        homeViewAllLink.setAttribute("href", "#");
-        return;
-      }
-
-      homeViewAllLink.textContent =
-        getCurrentLang() === "en" ? (landing.viewAllLabelEn || landing.viewAllLabel) : landing.viewAllLabel;
-      homeViewAllLink.setAttribute(
-        "href",
-        landing.categoryKey === "gifts" ? `/bulgarski-podaratsi/${landing.slug}/` : `/k/${landing.slug}/`
-      );
-      homeViewAll.removeAttribute("hidden");
+      focusResults();
     }
 
     function applyDiscovery(value = q.value) {
@@ -2390,7 +2450,6 @@ function priceLabel(p) {
       updateActiveChips();
       updateFiltersBadge();
       updateOccasionBadge();
-      updateViewAllLink();
       renderActiveSelections();
       if (!v && !activeCategoryKey) {
         subChips.hidden = true;
@@ -2398,12 +2457,10 @@ function priceLabel(p) {
         subChips.innerHTML = "";
         if (typeChips) { typeChips.hidden = true; typeChips.innerHTML = ""; }
         if (typeChipsLabel) typeChipsLabel.hidden = true;
-        updateViewAllLink();
       }
 
       if (!v && !activeCategoryKey) {
         activeSubcategoryKey = "";
-        updateViewAllLink();
       }
     }
 
@@ -2414,9 +2471,10 @@ function priceLabel(p) {
         const b = document.createElement("button");
         b.className = "chip";
         b.type = "button";
-        b.textContent = getCurrentLang() === "en"
+        const categoryText = getCurrentLang() === "en"
           ? (cat.chipLabelEn || cat.labelEn || cat.chipLabel || cat.label)
           : (cat.chipLabel || cat.label);
+        b.textContent = `${cat.emoji || ""} ${categoryText}`.trim();
         b.dataset.categoryKey = cat.key;
 
         b.addEventListener("click", () => {
@@ -2427,13 +2485,7 @@ function priceLabel(p) {
             category: cat.key,
             source_context: "homepage_discovery",
           });
-          activeCategoryKey = cat.key;
-          activeSubcategoryKey = "";
-          activeProductType = "";
-          applyDiscovery(q.value || "");
-          renderSubChips(cat);
-          renderTypeChips();
-          pulseResults();
+          selectCategory(cat);
         });
 
         mainChips.appendChild(b);
@@ -2470,9 +2522,11 @@ function priceLabel(p) {
           activeCategoryKey = cat.key;
           activeSubcategoryKey = s.key;
           activeProductType = "";
+          removeStructuredTermsFromSearch();
           renderTypeChips();
           applyDiscovery(q.value || "");
           pulseResults();
+          focusResults();
         });
 
         subChips.appendChild(b);
@@ -2502,9 +2556,11 @@ function priceLabel(p) {
         button.textContent = `${value} (${productCount})`;
         button.addEventListener("click", () => {
           activeProductType = activeProductType === value ? "" : value;
+          removeStructuredTermsFromSearch();
           window.bulgaritamTrack?.("select_product_type", { selected_value: value, filter_name: "product_type", filter_value: value, ...(window.__bulgaritamDiscoveryContext || {}) });
           applyDiscovery(q.value || "");
           pulseResults();
+          focusResults();
         });
         typeChips.appendChild(button);
       });
@@ -2540,6 +2596,8 @@ function priceLabel(p) {
       occasionModal?.querySelectorAll('input[name="giftFilter"]').forEach((input) => {
         input.checked = selectedGiftFilters.includes(input.value);
       });
+      const giftPriceInput = occasionModal?.querySelector(`input[name="giftPriceFilter"][value="${selectedPriceRange}"]`) || occasionModal?.querySelector('input[name="giftPriceFilter"][value="all"]');
+      if (giftPriceInput) giftPriceInput.checked = true;
     }
 
     function syncFilterInputs() {
@@ -2567,6 +2625,27 @@ function priceLabel(p) {
       syncDiscoveryModalState();
     }
 
+    function selectCategory(category, sourceContext = "homepage_discovery") {
+      removeStructuredTermsFromSearch();
+      activeCategoryKey = category.key;
+      activeSubcategoryKey = "";
+      activeProductType = "";
+      renderSubChips(category);
+      renderTypeChips();
+      applyDiscovery(q.value || "");
+      pulseResults();
+      focusResults();
+      if (sourceContext !== "homepage_discovery") {
+        window.bulgaritamTrack?.("select_category", {
+          selected_value: category.label,
+          filter_name: "category",
+          filter_value: category.key,
+          category: category.key,
+          source_context: sourceContext,
+        });
+      }
+    }
+
     // Initial setup
     renderMainChips();
     updateFeedVisibility();
@@ -2588,6 +2667,7 @@ function priceLabel(p) {
       applyDiscovery(nextValue);
       scheduleSearchTracking(nextValue);
       if (nextValue) pulseResults();
+      if (nextValue.trim().length >= 2) focusResults(450);
     };
 
     q.addEventListener("input", (e) => {
@@ -2598,10 +2678,60 @@ function priceLabel(p) {
       const nextValue = e.target.value || "";
       handleHomeSearchInput(nextValue);
     });
+    document.querySelectorAll("[data-discovery-category]").forEach((shortcut) => {
+      shortcut.addEventListener("click", () => {
+        const categoryKey = shortcut.dataset.discoveryCategory || "";
+        const category = CATEGORIES.find((entry) => entry.key === categoryKey);
+        if (!category) return;
+        q.value = "";
+        selectCategory(category, "discovery_shortcut");
+      });
+    });
+    const selfToggle = document.querySelector("[data-discovery-self]");
+    const selfChoices = document.getElementById("selfCategoryChoices");
+    selfToggle?.addEventListener("click", () => {
+      const willOpen = selfChoices?.hasAttribute("hidden");
+      selfChoices?.toggleAttribute("hidden", !willOpen);
+      selfToggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    });
+    selfChoices?.querySelectorAll("[data-self-category]").forEach((choice) => {
+      choice.addEventListener("click", () => {
+        const category = CATEGORIES.find((entry) => entry.key === choice.dataset.selfCategory);
+        if (!category) return;
+        q.value = "";
+        selfChoices.setAttribute("hidden", "");
+        selfToggle?.setAttribute("aria-expanded", "false");
+        selectCategory(category, "self_discovery");
+      });
+    });
+    document.querySelector("[data-discovery-gift]")?.addEventListener("click", () => {
+      openOccasions();
+      window.bulgaritamTrack?.("open_gift_discovery", { source_context: "discovery_shortcut" });
+    });
+    document.querySelector("[data-discovery-surprise]")?.addEventListener("click", () => {
+      const candidates = matchedCards.length ? matchedCards : allCards;
+      const selected = candidates[Math.floor(Math.random() * candidates.length)];
+      const link = selected?.querySelector("a.card-titlelink, a.card-imglink");
+      if (!link) return;
+      window.bulgaritamTrack?.("surprise_me", {
+        product_id: selected.dataset.productId,
+        product_slug: selected.dataset.productSlug,
+        brand_id: selected.dataset.brandId,
+        brand_slug: selected.dataset.brandSlug,
+        source_context: "discovery_shortcut",
+      });
+      window.location.assign(link.href);
+    });
     if (btn) btn.addEventListener("click", () => {
       applyDiscovery(q.value);
       scheduleSearchTracking(q.value);
     });
+
+    const initialQuery = new URLSearchParams(window.location.search).get("q")?.trim() || "";
+    if (initialQuery) {
+      q.value = initialQuery;
+      handleHomeSearchInput(initialQuery);
+    }
     sortSelect?.addEventListener("change", (e) => {
       selectedSort = e.target.value || "featured";
       applyDiscovery(q.value);
@@ -2621,6 +2751,8 @@ function priceLabel(p) {
       selectedGiftFilters = Array.from(
         occasionModal?.querySelectorAll('input[name="giftFilter"]:checked') || []
       ).map((input) => input.value);
+      selectedGiftFilters.unshift("giftable:true");
+      selectedPriceRange = occasionModal?.querySelector('input[name="giftPriceFilter"]:checked')?.value || "all";
       selectedGiftFilters.forEach((filter) => {
         const [kind, ...parts] = filter.split(":");
         const selectedValue = parts.join(":");
@@ -2634,10 +2766,12 @@ function priceLabel(p) {
       closeOccasions();
       applyDiscovery(q.value);
       pulseResults();
+      focusResults();
     });
 
     occasionReset?.addEventListener("click", () => {
       selectedGiftFilters = [];
+      selectedPriceRange = "all";
       syncOccasionInputs();
       closeOccasions();
       applyDiscovery(q.value);
@@ -2666,6 +2800,7 @@ function priceLabel(p) {
         ...(window.__bulgaritamDiscoveryContext || {}),
       });
       pulseResults();
+      focusResults();
     });
 
     filtersReset?.addEventListener("click", () => {

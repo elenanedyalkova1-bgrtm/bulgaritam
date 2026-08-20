@@ -77,6 +77,7 @@ const description = "Запазени продукти и колекции – �
         </p>
       </div>
     </section>
+    <div class="saved-toast" id="saved-copy-toast" role="status" aria-live="polite" hidden></div>
   </main>
 
   <script is:inline>
@@ -122,6 +123,7 @@ const description = "Запазени продукти и колекции – �
 
     let activeBoardId = SAVED_PAGE_DEFAULT_ID;
     let isCreateOpen = false;
+    let savedCopyToastTimer = 0;
 
     function safeParseSavedPage(raw) {
       try { return JSON.parse(raw); } catch { return null; }
@@ -417,6 +419,13 @@ const description = "Запазени продукти и колекции – �
         window.setTimeout(() => {
           copyBtn.textContent = original;
         }, 1800);
+      }
+      const toast = document.getElementById("saved-copy-toast");
+      if (toast) {
+        toast.textContent = tSaved().copied;
+        toast.removeAttribute("hidden");
+        window.clearTimeout(savedCopyToastTimer);
+        savedCopyToastTimer = window.setTimeout(() => toast.setAttribute("hidden", ""), 2200);
       }
 
       window.bulgaritamTrack?.("share_collection", {
@@ -757,6 +766,24 @@ const description = "Запазени продукти и колекции – �
     .saved-share__btn--ghost {
       background: rgba(255, 255, 255, 0.88);
     }
+
+    .saved-toast {
+      position: fixed;
+      left: 50%;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      z-index: 80;
+      transform: translateX(-50%);
+      max-width: calc(100vw - 32px);
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: #263d34;
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 12px 30px rgba(0,0,0,.2);
+      pointer-events: none;
+    }
+
+    .saved-toast[hidden] { display: none; }
 
     .saved-grid {
       width: min(100%, 1180px);

@@ -101,11 +101,22 @@ async function confirmGone(url) {
   return { confirmed: attempts.length === 3 && attempts.every((item) => item.state === "gone"), attempts };
 }
 
+async function confirmBrokenImage(url, initial) {
+  if (!url) return { confirmed: true, attempts: [initial], reason: "missing" };
+  if (initial.state === "invalid_url") return { confirmed: true, attempts: [initial], reason: "invalid_url" };
+  if (!["gone", "not_image"].includes(initial.state)) return { confirmed: false, attempts: [initial], reason: initial.state };
+  const attempts = [initial];
+  for (let index = 1; index < 3; index += 1) attempts.push(await probe(url, "image"));
+  const confirmed = attempts.length === 3 && attempts.every((item) => item.state === initial.state);
+  return { confirmed, attempts, reason: confirmed ? initial.state : "inconsistent_response" };
+}
+
 async function checkProduct(row) {
   const productUrl = clean(row.product_url);
   const imageUrl = splitUrls(row.image_urls)[0] || "";
   const product = await probe(productUrl, "product");
   const image = imageUrl ? await probe(imageUrl, "image") : { status: 0, state: "missing", finalUrl: "" };
+  const imageConfirmation = await confirmBrokenImage(imageUrl, image);
   let confirmedGone = false;
   let productAttempts = [product];
 
@@ -115,9 +126,7 @@ async function checkProduct(row) {
     productAttempts = confirmation.attempts;
   }
 
-  const needsReview = !confirmedGone && (
-    product.state !== "ok" || image.state !== "ok"
-  );
+  const needsReview = !confirmedGone && (product.state !== "ok" || image.state !== "ok");
 
   return {
     id: row.id,
@@ -129,6 +138,9 @@ async function checkProduct(row) {
     product,
     product_attempts: productAttempts,
     image,
+    image_attempts: imageConfirmation.attempts,
+    image_confirmed_broken: imageConfirmation.confirmed,
+    image_reason: imageConfirmation.reason,
     confirmed_gone: confirmedGone,
     needs_review: needsReview,
   };
@@ -170,6 +182,7 @@ const checked = await mapConcurrent(rows, checkProduct, CONCURRENCY);
 const gone = checked.filter((item) => item.confirmed_gone);
 const review = checked.filter((item) => item.needs_review);
 const brokenImages = checked.filter((item) => item.image.state !== "ok");
+const confirmedBrokenImages = checked.filter((item) => item.image_confirmed_broken);
 const deactivated = [];
 
 if (APPLY) {
@@ -186,10 +199,12 @@ const report = {
   healthy: checked.filter((item) => !item.needs_review && !item.confirmed_gone).length,
   confirmed_gone: gone.length,
   broken_images: brokenImages.length,
+  confirmed_broken_images: confirmedBrokenImages.length,
   needs_review: review.length,
   deactivated,
   gone,
   review,
+  confirmed_broken_image_products: confirmedBrokenImages,
 };
 
 if (REPORT_PATH) {

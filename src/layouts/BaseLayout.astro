@@ -323,18 +323,18 @@ if (seoType === "category" && seoData.category) {
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
     />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
       media="print"
       onload="this.media='all'"
     />
     <noscript>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
       />
     </noscript>
 
@@ -382,6 +382,8 @@ if (seoType === "category" && seoData.category) {
 
         const hasAnalyticsConsent = () =>
           Boolean(window.__cookieConsent?.analytics || document.documentElement.dataset.cookieAnalytics === "1");
+        const isAnalyticsExcluded = () =>
+          document.cookie.split(";").some((part) => part.trim() === "bulgaritam_analytics_excluded=1");
 
         const getLanguage = () => {
           try {
@@ -473,7 +475,7 @@ if (seoType === "category" && seoData.category) {
 
         const applyConsentToGa = () => {
           if ((!measurementId && !containerId) || typeof window.gtag !== "function") return;
-          const granted = hasAnalyticsConsent();
+          const granted = hasAnalyticsConsent() && !isAnalyticsExcluded();
           window.gtag("consent", "update", {
             analytics_storage: granted ? "granted" : "denied",
             ad_storage: "denied",
@@ -546,7 +548,7 @@ if (seoType === "category" && seoData.category) {
         };
 
         window.bulgaritamTrack = (eventName, params = {}) => {
-          if ((!measurementId && !containerId) || !hasAnalyticsConsent() || !eventName) return;
+          if ((!measurementId && !containerId) || !hasAnalyticsConsent() || isAnalyticsExcluded() || !eventName) return;
 
           const payload = {
             ...buildCommonParams(),
@@ -720,7 +722,7 @@ if (seoType === "category" && seoData.category) {
     <!-- HEADER -->
     <header class="topbar">
       <div class="wrap topbar-inner">
-        <a class="brand" href="/">Българитъм</a>
+        <a class="brand" href="/" aria-label="Българитъм – начало">БЪЛГАРИТЪМ</a>
 
         <!-- Desktop nav -->
         <nav class="nav nav-desktop" aria-label="Основна навигация">
@@ -745,7 +747,6 @@ if (seoType === "category" && seoData.category) {
 
           <a class="nav-link" href="/bulgarski-brandove/" data-i18n="nav.brands">Брандове</a>
 
-
           <a
             href="/za-nas/"
             class:list={{ "nav-link": true, "is-active": isActive("/za-nas") }}
@@ -759,6 +760,7 @@ if (seoType === "category" && seoData.category) {
           >Стани партньор</a>
         </nav>
 
+        <button class="header-search-toggle" type="button" aria-expanded="false" aria-controls="header-search-panel">⌕ <span>Търси продукт</span></button>
         <div class="lang-switch nav-lang-switch" aria-label="Език">
           <button class="lang-switch__btn is-active" type="button" data-lang-switch="bg" aria-pressed="true">BG</button>
           <button class="lang-switch__btn" type="button" data-lang-switch="en" aria-pressed="false">EN</button>
@@ -811,6 +813,14 @@ if (seoType === "category" && seoData.category) {
         </aside>
       </div>
 
+      <div id="header-search-panel" class="header-search-panel" hidden>
+        <form class="header-search-form" action="/" method="get" role="search">
+          <label class="sr-only" for="header-product-search">Търси български продукт</label>
+          <input id="header-product-search" name="q" type="search" placeholder="Търси български продукт…" autocomplete="off" />
+          <button type="submit">Търси</button>
+        </form>
+      </div>
+
       <script is:inline>
         const btn = document.querySelector(".nav-toggle");
         const overlay = document.getElementById("mobile-overlay");
@@ -841,6 +851,18 @@ if (seoType === "category" && seoData.category) {
             if (e.key === "Escape" && !overlay.hasAttribute("hidden")) setOpen(false);
           });
         }
+
+        const searchToggle = document.querySelector(".header-search-toggle");
+        const searchPanel = document.getElementById("header-search-panel");
+        const searchInput = document.getElementById("header-product-search");
+        const setSearchOpen = (open) => {
+          if (!searchToggle || !searchPanel) return;
+          searchPanel.toggleAttribute("hidden", !open);
+          searchToggle.setAttribute("aria-expanded", String(open));
+          if (open) window.setTimeout(() => searchInput?.focus(), 0);
+        };
+        searchToggle?.addEventListener("click", () => setSearchOpen(searchPanel?.hasAttribute("hidden")));
+        document.addEventListener("keydown", (event) => { if (event.key === "Escape") setSearchOpen(false); });
       </script>
     </header>
 

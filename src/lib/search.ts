@@ -129,7 +129,7 @@ const SEMANTIC_GROUPS = [
   ["eco", "еко", "sustainable", "устойчив", "reusable", "многократен", "biodegradable", "биоразградим"],
 ];
 
-const normalizeText = (value: unknown) =>
+export const normalizeSearchText = (value: unknown) =>
   String(value ?? "")
     .toLowerCase()
     .replace(/&/g, " ")
@@ -144,14 +144,14 @@ const transliterateBulgarianToLatin = (value: string) =>
     .join("");
 
 const tokenize = (value: string) =>
-  normalizeText(value)
+  normalizeSearchText(value)
     .split(/\s+/)
     .map((token) => token.trim())
     .filter(Boolean);
 
 const expandToken = (token: string) => {
   const forms = new Set<string>();
-  const normalized = normalizeText(token);
+  const normalized = normalizeSearchText(token);
   if (!normalized) return forms;
 
   forms.add(normalized);
@@ -191,7 +191,7 @@ const collectTokenForms = (value: string) => {
 
 export const buildSearchDocument = (...values: unknown[]) => {
   const forms = new Set<string>();
-  const normalized = normalizeText(values.flat().join(" "));
+  const normalized = normalizeSearchText(values.flat().join(" "));
   const transliterated = transliterateBulgarianToLatin(normalized);
 
   collectTokenForms(normalized).forEach((form) => forms.add(form));
@@ -201,7 +201,7 @@ export const buildSearchDocument = (...values: unknown[]) => {
 };
 
 export const buildSearchGroups = (value: unknown) => {
-  const normalized = normalizeText(value);
+  const normalized = normalizeSearchText(value);
   const transliterated = transliterateBulgarianToLatin(normalized);
   const rawTokens = unique([...tokenize(normalized), ...tokenize(transliterated)]);
 

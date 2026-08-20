@@ -1,6 +1,7 @@
 // src/lib/products.ts
 
 import { getGiftMeta, type GiftTarget } from "./gifts";
+import fs from "node:fs";
 
 export type Product = {
   id: string;
@@ -59,6 +60,17 @@ export type Product = {
 const BASEROW_API_TOKEN = import.meta.env.BASEROW_API_TOKEN;
 const BASEROW_TABLE_ID = import.meta.env.BASEROW_TABLE_ID || "906650";
 const BASEROW_API_URL = `https://api.baserow.io/api/database/rows/table/${BASEROW_TABLE_ID}/?user_field_names=true&size=200`;
+
+function healthExcludedSlugs() {
+  const reportPath = import.meta.env.PRODUCT_HEALTH_REPORT_PATH;
+  if (!reportPath) return new Set<string>();
+  try {
+    const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+    return new Set<string>((report.confirmed_broken_image_products || []).map((item: any) => String(item.slug || "").trim()).filter(Boolean));
+  } catch (error) {
+    throw new Error(`Product health report could not be read: ${error instanceof Error ? error.message : error}`);
+  }
+}
 
 function norm(value: unknown): string {
   return String(value ?? "").trim();
@@ -260,11 +272,12 @@ export async function loadProducts(): Promise<Product[]> {
   const [rows, brandRows] = await Promise.all([fetchAllRows(), fetchAllBrandRows()]);
   const brandsById = new Map(brandRows.map((brand) => [Number(brand.id), brand]));
 
+  const excludedSlugs = healthExcludedSlugs();
   const products = rows
     .map((row) => {
       const brandId = Number(row.brand_ref?.[0]?.id);
       const brand = brandsById.get(brandId);
-      if (!brand || brand.is_active !== true) return null;
+      if (!brand || brand.is_active !== true || !String(row.image_urls || "").trim() || excludedSlugs.has(String(row.slug || "").trim())) return null;
       return parseRow(row, brand);
     })
     .filter((p): p is Product => Boolean(p && p.is_active));

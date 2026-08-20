@@ -1,6 +1,9 @@
 name: Publish public Bulgaritam site
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       mode:
@@ -23,6 +26,7 @@ jobs:
   build-and-verify:
     name: Build and verify static site
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     outputs:
       artifact-name: ${{ steps.manifest.outputs.artifact-name }}
     steps:
@@ -38,13 +42,29 @@ jobs:
       - name: Install public-site dependencies
         run: npm ci
 
+      - name: Check Product and image health
+        run: npm run health:products -- --report=/tmp/product-health-report.json
+        env:
+          BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
+          BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
+
+      - name: Store Product health report
+        uses: actions/upload-artifact@v6
+        with:
+          name: product-health-report-${{ github.run_id }}
+          path: /tmp/product-health-report.json
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Build latest Baserow catalog
         run: npm run build
         env:
           BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
           BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
           BASEROW_BRANDS_TABLE_ID: ${{ vars.BASEROW_BRANDS_TABLE_ID }}
+          BASEROW_SITE_SETTINGS_TABLE_ID: ${{ vars.BASEROW_SITE_SETTINGS_TABLE_ID }}
           PUBLIC_ANALYTICS_ENDPOINT: https://admin.bulgaritam.bg/api/events/
+          PRODUCT_HEALTH_REPORT_PATH: /tmp/product-health-report.json
 
       - name: Verify generated pages and stale routes
         id: manifest
@@ -55,7 +75,9 @@ jobs:
           BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
           BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
           BASEROW_BRANDS_TABLE_ID: ${{ vars.BASEROW_BRANDS_TABLE_ID }}
+          BASEROW_SITE_SETTINGS_TABLE_ID: ${{ vars.BASEROW_SITE_SETTINGS_TABLE_ID }}
           BUILD_COMMIT_SHA: ${{ github.sha }}
+          PRODUCT_HEALTH_REPORT_PATH: /tmp/product-health-report.json
 
       - name: Upload verified static artifact
         uses: actions/upload-artifact@v6
@@ -68,9 +90,10 @@ jobs:
 
   deploy-superhosting:
     name: Publish verified artifact to SuperHosting
-    if: ${{ inputs.mode == 'deploy' }}
+    if: ${{ github.event_name == 'push' || inputs.mode == 'deploy' }}
     needs: build-and-verify
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     environment: public-production
     steps:
       - name: Download verified artifact
@@ -97,7 +120,7 @@ jobs:
           test -f dist/deploy-manifest.json
           test -f dist/.htaccess
 
-      - name: Install SFTP client
+      - name: Prepare secure FTPS client
         run: sudo apt-get update && sudo apt-get install -y lftp
 
       - name: Map the verified certificate hostname
@@ -126,11 +149,15 @@ jobs:
           mirror --reverse --verbose --exclude-glob 'p/**' --exclude-glob 'brand/**' dist/ /
           mirror --reverse --delete --verbose dist/p/ /p/
           mirror --reverse --delete --verbose dist/brand/ /brand/
+          get /.htaccess -o /tmp/live-htaccess
           bye
           LFTP
 
+      - name: Confirm protected hosting file remains present
+        run: test -s /tmp/live-htaccess
+
       - name: Verify public origin
         run: |
-          curl --fail --silent --show-error --retry 3 https://bulgaritam.bg/ > /dev/null
+          curl --fail --silent --show-error --retry 3 https://bulgaritam.bg/ > /tmp/live-index.html
           curl --fail --silent --show-error --retry 3 https://bulgaritam.bg/deploy-manifest.json > /tmp/live-manifest.json
-          node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("/tmp/live-manifest.json","utf8"));if(m.commit!==process.env.GITHUB_SHA)process.exit(1)'
+          node -e 'const fs=require("fs"),crypto=require("crypto");const m=JSON.parse(fs.readFileSync("/tmp/live-manifest.json","utf8"));const h=crypto.createHash("sha256").update(fs.readFileSync("/tmp/live-index.html")).digest("hex");if(m.commit!==process.env.GITHUB_SHA||m.index_sha256!==h)process.exit(1)'

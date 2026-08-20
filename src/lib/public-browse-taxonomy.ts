@@ -10,6 +10,7 @@ export type PublicBrowseSubcategory = {
 
 export type PublicBrowseCategory = {
   key: string;
+  emoji: string;
   label: string;
   labelEn: string;
   legacyCategories: string[];
@@ -30,7 +31,7 @@ export const PUBLIC_GIFT_OCCASIONS = [
 
 export const PUBLIC_BROWSE_CATEGORIES: PublicBrowseCategory[] = [
   {
-    key: "accessories", label: "Аксесоари", labelEn: "Accessories", legacyCategories: ["Аксесоари"],
+    key: "accessories", emoji: "👜", label: "Аксесоари", labelEn: "Accessories", legacyCategories: ["Аксесоари"],
     subcategories: [
       { key: "accessories_jewelry", label: "Бижута", labelEn: "Jewelry", values: ["Бижута"] },
       { key: "accessories_bags", label: "Чанти и портфейли", labelEn: "Bags & wallets", values: ["Чанти и портфейли"] },
@@ -40,7 +41,7 @@ export const PUBLIC_BROWSE_CATEGORIES: PublicBrowseCategory[] = [
     ],
   },
   {
-    key: "kids", label: "Деца и бебе", labelEn: "Kids & baby", legacyCategories: ["Деца", "Деца и бебе"],
+    key: "kids", emoji: "👶", label: "Деца и бебе", labelEn: "Kids & baby", legacyCategories: ["Деца", "Деца и бебе"],
     subcategories: [
       { key: "kids_care", label: "Бебешка грижа", labelEn: "Baby care", values: ["Бебешка грижа"] },
       { key: "kids_textiles", label: "Бебешки текстил и комплекти", labelEn: "Baby textiles & sets", values: ["Бебешки текстил", "Бебешки комплекти"] },
@@ -50,7 +51,7 @@ export const PUBLIC_BROWSE_CATEGORIES: PublicBrowseCategory[] = [
     ],
   },
   {
-    key: "home", label: "Дом и интериор", labelEn: "Home & interior", legacyCategories: ["Дом и интериор"],
+    key: "home", emoji: "🏠", label: "Дом и интериор", labelEn: "Home & interior", legacyCategories: ["Дом и интериор"],
     subcategories: [
       { key: "home_decor", label: "Декорация и изкуство", labelEn: "Decor & art", values: ["Декорация"] },
       { key: "home_fragrance", label: "Аромати за дома", labelEn: "Home fragrance", values: ["Аромати за дома"] },
@@ -61,11 +62,11 @@ export const PUBLIC_BROWSE_CATEGORIES: PublicBrowseCategory[] = [
     ],
   },
   {
-    key: "pets", label: "Домашни любимци", labelEn: "Pets", legacyCategories: ["Домашни любимци"],
+    key: "pets", emoji: "🐾", label: "Домашни любимци", labelEn: "Pets", legacyCategories: ["Домашни любимци"],
     subcategories: [{ key: "pets_care", label: "Грижа и хигиена", labelEn: "Care & hygiene", values: ["Грижа и хигиена"] }],
   },
   {
-    key: "books", label: "Книги, игри и творчество", labelEn: "Books, games & creativity", legacyCategories: ["Забавление", "Книги, игри и творчество"],
+    key: "books", emoji: "📚", label: "Книги, игри и творчество", labelEn: "Books, games & creativity", legacyCategories: ["Забавление", "Книги, игри и творчество"],
     subcategories: [
       { key: "books_journals", label: "Книги и дневници", labelEn: "Books & journals", values: ["Книги", "Книги и дневници"] },
       { key: "books_paper", label: "Планери и хартиени продукти", labelEn: "Planners & paper goods", values: ["Книги и планери", "Албуми и хартиени продукти"] },
@@ -74,7 +75,7 @@ export const PUBLIC_BROWSE_CATEGORIES: PublicBrowseCategory[] = [
     ],
   },
   {
-    key: "health", label: "Здраве и грижа", labelEn: "Health & care", legacyCategories: ["Здраве и грижа"],
+    key: "health", emoji: "🌿", label: "Здраве и грижа", labelEn: "Health & care", legacyCategories: ["Здраве и грижа"],
     subcategories: [
       { key: "health_tea", label: "Чай и билки", labelEn: "Tea & herbs", values: ["Чай и билки"] },
       { key: "health_supplements", label: "Добавки и екстракти", labelEn: "Supplements & extracts", values: ["Добавки и екстракти"] },
@@ -82,7 +83,7 @@ export const PUBLIC_BROWSE_CATEGORIES: PublicBrowseCategory[] = [
     ],
   },
   {
-    key: "cosmetics", label: "Козметика", labelEn: "Cosmetics", legacyCategories: ["Козметика"],
+    key: "cosmetics", emoji: "💄", label: "Козметика", labelEn: "Cosmetics", legacyCategories: ["Козметика"],
     subcategories: [
       { key: "cosmetics_face", label: "Грижа за лицето", labelEn: "Face care", values: ["Грижа за лицето"] },
       { key: "cosmetics_body", label: "Грижа за тялото", labelEn: "Body care", values: ["Грижа за тялото"] },
@@ -94,7 +95,7 @@ export const PUBLIC_BROWSE_CATEGORIES: PublicBrowseCategory[] = [
     ],
   },
   {
-    key: "clothing", label: "Облекло", labelEn: "Clothing", legacyCategories: ["Облекло"],
+    key: "clothing", emoji: "👕", label: "Облекло", labelEn: "Clothing", legacyCategories: ["Облекло"],
     subcategories: [
       { key: "clothing_women", label: "Дамско облекло", labelEn: "Women", values: ["Дамско облекло"] },
       { key: "clothing_men", label: "Мъжко облекло", labelEn: "Men", values: ["Мъжко облекло"] },
@@ -138,6 +139,7 @@ export function getAvailablePublicBrowse(products: Product[]) {
   const contexts = products.map((product) => ({ product, ...getPublicBrowseForProduct(product) }));
   return PUBLIC_BROWSE_CATEGORIES.map((category) => ({
     key: category.key,
+    emoji: category.emoji,
     label: category.label,
     labelEn: category.labelEn,
     count: contexts.filter((item) => item.categoryKey === category.key).length,

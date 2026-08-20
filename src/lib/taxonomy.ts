@@ -750,7 +750,7 @@ export const TAXONOMY_CATEGORIES: TaxonomyCategory[] = [
         key: "pets_care",
         label: "Грижа",
         slug: "grizha-za-domashni-lyubimci",
-        viewAllLabel: "Грижа",
+        viewAllLabel: "Всички продукти",
         queryAliases: ["грижа за домашни любимци", "pet care"],
         matchAny: ["pet care", "грижа за куче", "грижа за котка", "шампоан за куче", "козметика за домашни любимци"],
       },

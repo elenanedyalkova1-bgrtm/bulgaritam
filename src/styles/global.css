@@ -7,6 +7,8 @@
 /* ---------- Design tokens ---------- */
 :root {
   --font-title: "Fraunces", Georgia, serif;
+  --font-display: "Forum", "Fraunces", Georgia, serif;
+  --font-wordmark: var(--font-display);
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --type-h1: clamp(32px, 3.8vw, 56px);
   --type-h2: clamp(28px, 3vw, 36px);
@@ -75,17 +77,15 @@ a:active {
 
 h1,
 h2,
-h3,
-.brand,
 .h2,
 .brands-title {
-  font-family: var(--font-title);
+  font-family: var(--font-display);
 }
 
 h1,
 .h1,
 .page-title {
-  font-family: var(--font-title);
+  font-family: var(--font-display);
   font-size: var(--type-h1);
   line-height: 1.06;
   letter-spacing: -0.035em;
@@ -163,13 +163,23 @@ h2,
 }
 
 .brand {
-  font-weight: 800;
+  font-family: var(--font-wordmark);
+  font-weight: 400;
   text-decoration: none;
   color: var(--text);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.055em;
   font-size: 20px;
   line-height: 1;
 }
+
+.page-title,
+.section-title,
+.brands-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.header-search-toggle{border:0;background:transparent;color:var(--text);font:650 var(--type-ui)/1 var(--font-body);display:inline-flex;align-items:center;gap:6px;padding:9px 10px;border-radius:999px;cursor:pointer;white-space:nowrap}.header-search-toggle:hover,.header-search-toggle[aria-expanded="true"]{background:rgba(255,255,255,.72)}.header-search-panel{border-top:1px solid rgba(26,26,26,.07);padding:10px 20px 14px}.header-search-panel[hidden]{display:none}.header-search-form{display:flex;gap:8px;width:min(680px,100%);margin:0 auto}.header-search-form input{min-width:0;flex:1;height:46px;border:1px solid var(--border);border-radius:999px;padding:0 18px;font:16px var(--font-body);background:#fff}.header-search-form button{border:0;border-radius:999px;padding:0 20px;background:var(--accent-strong);color:#fff;font:700 14px var(--font-body);cursor:pointer}
 
 .nav,
 .nav-desktop {
@@ -374,6 +384,13 @@ body.page .lead {
   color: var(--text);
   text-decoration: none;
   cursor: pointer;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  line-height: 1.25;
 }
 
 .chip:hover,
@@ -1359,11 +1376,7 @@ html.discovery-modal-open .cookie {
   }
 
   .topbar-inner::before {
-    content: "";
-    display: block;
-    width: 48px;
-    height: 48px;
-    grid-column: 1;
+    display: none;
   }
 
   .topbar .brand {
@@ -1387,6 +1400,8 @@ html.discovery-modal-open .cookie {
   .nav-lang-switch {
     display: none;
   }
+
+  .header-search-toggle{grid-column:1;grid-row:1;justify-self:start;width:48px;height:48px;justify-content:center;font-size:20px}.header-search-toggle span{display:none}.header-search-panel{padding-inline:16px}.header-search-form button{padding-inline:15px}
 
   .nav-toggle {
     display: inline-flex;
@@ -1732,8 +1747,5 @@ html.discovery-modal-open .cookie {
 .has-broken-product-image {
   min-height: 180px;
   background-color: #f3eee8 !important;
-  background-image: url("/favicon.svg") !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-  background-size: clamp(44px, 16%, 76px) auto !important;
+  background-image: none !important;
 }

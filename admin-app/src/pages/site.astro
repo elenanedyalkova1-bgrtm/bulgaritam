@@ -1,0 +1,76 @@
+---
+import AdminLayout from "../layouts/AdminLayout.astro";
+import { createRow, listRows, SITE_SETTINGS_TABLE, updateRow, uploadFile } from "../lib/baserow";
+
+let error = "";
+let saved = Astro.url.searchParams.has("saved");
+if (!SITE_SETTINGS_TABLE) error = "BASEROW_SITE_SETTINGS_TABLE_ID is not configured.";
+let rows: any[] = [];
+if (!error) {
+  try { rows = await listRows(SITE_SETTINGS_TABLE); }
+  catch (cause) { error = cause instanceof Error ? cause.message : "Could not load Site Settings."; }
+}
+let settings = rows.find((row) => String(row.key || row.Name || "").trim() === "homepage") || null;
+
+if (Astro.request.method === "POST" && !error) {
+  try {
+    const form = await Astro.request.formData();
+    if (String(form.get("csrf") || "") !== Astro.locals.admin.csrf) throw new Error("Invalid form session.");
+    const image = form.get("hero_image");
+    const fields: Record<string, unknown> = {
+      key: "homepage",
+      hero_alt_bg: String(form.get("hero_alt_bg") || "").trim(),
+      hero_alt_en: String(form.get("hero_alt_en") || "").trim(),
+    };
+    if (image instanceof File && image.size > 0) {
+      if (!image.type.startsWith("image/")) throw new Error("The selected file is not an image.");
+      if (image.size > 8 * 1024 * 1024) throw new Error("The hero image must be smaller than 8 MB.");
+      const uploaded = await uploadFile(image);
+      fields.hero_image = [{ name: uploaded.name }];
+    }
+    settings = settings
+      ? await updateRow(SITE_SETTINGS_TABLE, Number(settings.id), fields)
+      : await createRow(SITE_SETTINGS_TABLE, { Name: "homepage", ...fields });
+    return Astro.redirect("/site/?saved=1", 303);
+  } catch (cause) { error = cause instanceof Error ? cause.message : "Could not save the homepage."; }
+}
+
+const hero = Array.isArray(settings?.hero_image) ? settings.hero_image[0] : null;
+---
+<AdminLayout title="Site" active="site">
+  <header class="head"><div><h1>Site</h1><p class="muted">Public homepage settings used by the next static build.</p></div><a class="btn secondary" href="/publish/">Publish website</a></header>
+  {saved && <div class="notice">Homepage settings saved. Use Publish website to make them live.</div>}
+  {error && <div class="error">{error}</div>}
+  {!SITE_SETTINGS_TABLE && <section class="panel warning"><h2>Initialize Site Settings</h2><p class="muted">Creates the single approved Baserow table used for homepage presentation settings. No Product or Brand data is changed.</p><button id="bootstrap-site" type="button">Create Site Settings table</button><p id="bootstrap-result" class="hint"></p></section>}
+  <form class="panel form-grid" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/>
+    <label class="span-2">Homepage hero image<input type="file" name="hero_image" accept="image/png,image/jpeg,image/webp,image/avif"/>
+      <span class="hint">Leave empty to keep the current image. Recommended: wide image, up to 8 MB.</span>
+    </label>
+    {hero?.url && <div class="span-2"><img src={hero.url} alt="Current homepage hero" style="width:min(680px,100%);border-radius:12px"/><p class="hint">Current build source: {hero.name}</p></div>}
+    <label>Bulgarian alt text<input name="hero_alt_bg" value={settings?.hero_alt_bg || "Колаж с български модни и лайфстайл продукти"}/></label>
+    <label>English alt text<input name="hero_alt_en" value={settings?.hero_alt_en || "A collage of Bulgarian fashion and lifestyle products"}/></label>
+    <div class="span-2"><button>Save homepage</button></div>
+  </form>
+</AdminLayout>
+<script define:vars={{ csrf: Astro.locals.admin.csrf }}>
+  document.getElementById("bootstrap-site")?.addEventListener("click", async (event) => {
+    const button = event.currentTarget;
+    const result = document.getElementById("bootstrap-result");
+    button.disabled = true;
+    result.textContent = "Creating…";
+    try {
+      const response = await fetch("/api/site-settings-bootstrap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csrf }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not create table.");
+      result.textContent = `Created. Add BASEROW_SITE_SETTINGS_TABLE_ID=${data.tableId} to Vercel Production, then redeploy.`;
+    } catch (cause) {
+      result.textContent = cause instanceof Error ? cause.message : "Could not create table.";
+      button.disabled = false;
+    }
+  });
+</script>

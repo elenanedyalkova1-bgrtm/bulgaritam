@@ -1,0 +1,50 @@
+---
+import AdminLayout from "../layouts/AdminLayout.astro";
+import { dispatchPublish, loadLatestProductHealthReport } from "../lib/github-deploy";
+import { listProducts, validateCsrf } from "../lib/repositories";
+
+let message = "";
+let error = "";
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  try {
+    validateCsrf(form, Astro.locals.admin.csrf);
+    await dispatchPublish("dry-run");
+    message = "Проверката е стартирана. След завършването ѝ опашката ще се обнови.";
+  } catch (cause) { error = cause instanceof Error ? cause.message : "Проверката не можа да бъде стартирана."; }
+}
+
+let snapshot: Awaited<ReturnType<typeof loadLatestProductHealthReport>> = null;
+let products: any[] = [];
+try { [snapshot, products] = await Promise.all([loadLatestProductHealthReport(), listProducts()]); }
+catch (cause) { error ||= cause instanceof Error ? cause.message : "Проверката не може да бъде заредена."; }
+
+const bySlug = new Map(products.map((product) => [String(product.slug || ""), product]));
+const queue = snapshot ? [...new Map([
+  ...(snapshot.report.confirmed_broken_image_products || []), ...(snapshot.report.review || []),
+].filter((item) => item.image?.state !== "ok").map((item) => [item.slug, item])).values()] : [];
+const labels: Record<string, string> = {
+  missing: "Липсва основна снимка", invalid_url: "Невалиден адрес", gone: "Снимката връща 404/410",
+  not_image: "Адресът не връща изображение", timeout: "Временен timeout", network_error: "Мрежова грешка",
+  blocked: "Сървърът блокира проверката", http_error: "HTTP грешка", inconsistent_response: "Непостоянен отговор",
+};
+---
+<AdminLayout title="Проблемни продукти" active="problems">
+  <header class="head"><div><h1>Проблемни продукти</h1><p class="muted">Потвърдено липсващите снимки се скриват само от следващия публичен build. Продуктите не се изтриват.</p></div><form method="post"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><button>Провери отново</button></form></header>
+  {message && <div class="notice">{message}</div>}{error && <div class="error">{error}</div>}
+  {snapshot && <div class="cards" style="margin-bottom:20px"><div class="metric">Проверени<b>{snapshot.report.checked}</b></div><div class="metric">Потвърдено счупени<b>{snapshot.report.confirmed_broken_images}</b></div><div class="metric">За преглед<b>{snapshot.report.needs_review}</b></div><div class="metric">Последна проверка<b style="font-size:16px">{new Date(snapshot.report.generated_at).toLocaleString("bg-BG")}</b></div></div>}
+  <section class="panel table-wrap">
+    <table><thead><tr><th>Продукт / бранд</th><th>Проблемна снимка</th><th>Статус</th><th>Проверка</th><th></th></tr></thead><tbody>
+      {queue.map((item: any) => {
+        const product: any = bySlug.get(item.slug); const confirmed = Boolean(item.image_confirmed_broken); const attempts = item.image_attempts || [item.image];
+        return <tr><td><a class="row-link" href={`/products/${product?.id || item.id}/`}>{item.name || product?.name_bg || item.slug}</a><div class="muted">{item.brand || product?.brand_name || "—"}</div></td>
+          <td><a href={item.image_url} target="_blank" rel="noreferrer" style="word-break:break-all">{item.image_url || "Няма адрес"}</a></td>
+          <td><span class={`status ${confirmed ? "hidden" : ""}`}>{confirmed ? "Скрит при publish" : "Не е скрит"}</span><div class="hint">{labels[item.image_reason] || labels[item.image?.state] || item.image_reason || item.image?.state}</div></td>
+          <td>{attempts.map((attempt: any, index: number) => <div class="hint">#{index + 1}: {attempt.state}, HTTP {attempt.status || "—"}{attempt.contentType ? `, ${attempt.contentType}` : ""}</div>)}</td>
+          <td><a class="btn secondary" href={`/products/${product?.id || item.id}/`}>Коригирай</a></td></tr>;
+      })}
+    </tbody></table>
+    {!snapshot && <div class="empty">Все още няма Product health отчет. Стартирайте „Провери отново“.</div>}
+    {snapshot && !queue.length && <div class="empty">Няма продукти с проблемна основна снимка.</div>}
+  </section>
+</AdminLayout>

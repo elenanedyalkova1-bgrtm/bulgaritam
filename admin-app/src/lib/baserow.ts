@@ -1,6 +1,7 @@
 const API = "https://api.baserow.io/api";
 export const PRODUCTS_TABLE = import.meta.env?.BASEROW_TABLE_ID || "906650";
 export const BRANDS_TABLE = import.meta.env?.BASEROW_BRANDS_TABLE_ID || "1133942";
+export const SITE_SETTINGS_TABLE = import.meta.env?.BASEROW_SITE_SETTINGS_TABLE_ID || "";
 
 function headers() {
   const token = import.meta.env?.BASEROW_API_TOKEN;
@@ -58,6 +59,21 @@ export const getRow = (table: string, id: number) => request(`/database/rows/tab
 export const createRow = (table: string, fields: Record<string, unknown>) => request(`/database/rows/table/${table}/?user_field_names=true`, { method: "POST", body: JSON.stringify(fields) });
 export const updateRow = (table: string, id: number, fields: Record<string, unknown>) => request(`/database/rows/table/${table}/${id}/?user_field_names=true`, { method: "PATCH", body: JSON.stringify(fields) });
 export const listFields = (table: string) => request(`/database/fields/table/${table}/`);
+
+export async function uploadFile(file: File) {
+  const token = import.meta.env?.BASEROW_API_TOKEN;
+  if (!token) throw new Error("BASEROW_API_TOKEN is missing");
+  const form = new FormData();
+  form.append("file", file, file.name);
+  const response = await fetch(baserowUrl("/user-files/upload-file/"), {
+    method: "POST",
+    headers: { Authorization: `Token ${token}` },
+    body: form,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(`Hero upload failed: ${data.detail || data.error || response.status}`);
+  return data;
+}
 
 export async function createSelectOption(fieldName: "subcategory" | "product_type", rawValue: string) {
   const value = rawValue.trim().replace(/\s+/g, " ");

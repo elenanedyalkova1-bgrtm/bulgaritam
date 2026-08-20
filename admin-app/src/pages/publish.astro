@@ -12,21 +12,34 @@ if (Astro.request.method === "POST") {
     validateCsrf(form, Astro.locals.admin.csrf);
     const mode = form.get("mode") === "deploy" ? "deploy" : "dry-run";
     await dispatchPublish(mode);
-    message = mode === "deploy" ? "Production publication requested. GitHub approval may still be required." : "Safe dry-run build requested.";
-  } catch (cause) {
-    error = cause instanceof Error ? cause.message : "Could not trigger the workflow.";
-  }
+    message = mode === "deploy" ? "Публикуването е стартирано." : "Безопасната проверка е стартирана.";
+  } catch (cause) { error = cause instanceof Error ? cause.message : "Workflow-ът не можа да бъде стартиран."; }
 }
 let runs: Awaited<ReturnType<typeof listPublishRuns>> = [];
-try { runs = await listPublishRuns(); } catch (cause) { error ||= cause instanceof Error ? cause.message : "Could not load workflow status."; }
+try { runs = await listPublishRuns(); } catch (cause) { error ||= cause instanceof Error ? cause.message : "Статусът не може да бъде зареден."; }
 const busy = runs.some((run) => run.status !== "completed");
+const activeRun = runs.find((run) => run.status !== "completed") || runs[0];
+const stages = ["Preparing", "Building", "Uploading", "Verifying", "Live"];
+const stageIndex = activeRun && activeRun.stage !== "failed" ? stages.indexOf(activeRun.stageLabel === "Preparing upload" ? "Uploading" : activeRun.stageLabel) : -1;
 ---
 <AdminLayout title="Publish website" active="publish">
   {busy && <meta http-equiv="refresh" content="15" />}
-  <header class="head"><div><h1>Publish website</h1><p class="muted">Build the latest Baserow catalog and publish the verified static site to SuperHosting.</p></div></header>
+  <header class="head"><div><h1>Publish website</h1><p class="muted">Единният път от актуалните данни и одобрения код до SuperHosting.</p></div></header>
   {message && <div class="notice">{message}</div>}{error && <div class="error">{error}</div>}
-  {configuration.missing.length ? <section class="panel warning"><h2>Configuration required</h2><p class="muted">Missing server variables: {configuration.missing.join(", ")}. The trigger is disabled until they are configured in Vercel.</p></section> :
-  <section class="panel"><h2>Safe build check</h2><p class="muted">Pulls current Baserow data, builds the public Astro site, verifies all Product and Brand routes, detects stale output and uploads a downloadable artifact. It never connects to SuperHosting.</p><form method="post"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><input type="hidden" name="mode" value="dry-run"/><button>Run safe dry-run</button></form></section>}
-  <section class="panel warning"><h2>Publish to SuperHosting</h2><p class="muted">Runs the same verified build, then waits for the protected GitHub production environment. Only Product and Brand directories are synchronized with deletion, removing stale pages without deleting unrelated hosting files.</p><form method="post"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><input type="hidden" name="mode" value="deploy"/><button class="danger" disabled={!configuration.productionEnabled || configuration.missing.length > 0}>Publish website</button></form>{!configuration.productionEnabled && <p class="hint">Production publishing is locked until the first live publish is explicitly approved.</p>}</section>
-  <section class="panel table-wrap"><div class="head"><div><h2>Recent publication runs</h2><p class="muted">{busy ? "A run is active; this page refreshes every 15 seconds." : "Latest GitHub Actions results."}</p></div><a class="btn secondary" href="/publish/">Refresh</a></div><table><thead><tr><th>Started</th><th>Status</th><th>Commit</th><th>Actor</th><th>Details</th></tr></thead><tbody>{runs.map((run) => <tr><td>{new Date(run.createdAt).toLocaleString("bg-BG")}</td><td><span class={`status ${run.conclusion === "failure" ? "hidden" : ""}`}>{run.status === "completed" ? run.conclusion : run.status}</span></td><td>{run.commit}</td><td>{run.actor}</td><td><a href={run.url} target="_blank">Open GitHub ↗</a></td></tr>)}</tbody></table>{!runs.length && <div class="empty">No workflow runs are available yet.</div>}</section>
+  {configuration.missing.length ? <section class="panel warning"><h2>Configuration required</h2><p class="muted">Missing server variables: {configuration.missing.join(", ")}.</p></section> :
+  <section class="panel">
+    <h2>Какво ще бъде публикувано</h2>
+    <p class="muted">Workflow-ът checkout-ва <strong>{configuration.ref}</strong> от <strong>{configuration.repository}</strong>, зарежда най-новите Products, Brands и Site Settings от Baserow, проверява снимките, изгражда статичния Astro сайт, валидира резултата и качва проверения artifact във FTPS root на bulgaritam.bg. Одобрен код, merge-нат в main, стартира същия workflow автоматично.</p>
+    {activeRun && <div class="timeline">{stages.map((stage, index) => <span class:list={[index <= stageIndex && activeRun.stage !== "failed" && "done", index === stageIndex && "current"]}>{stage}</span>)}</div>}
+    {activeRun?.stage === "failed" && <div class="error">Failed stage: <strong>{activeRun.failedStage}</strong></div>}
+    <form method="post"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><input type="hidden" name="mode" value="deploy"/><button class="danger" disabled={busy || !configuration.productionEnabled || configuration.missing.length > 0}>{busy ? "Publication in progress…" : "Publish website"}</button></form>
+    {!configuration.productionEnabled && <p class="hint">Production publishing is currently disabled in Vercel.</p>}
+  </section>}
+  <section class="panel"><h2>Безопасна проверка</h2><p class="muted">Изпълнява същите проверки и създава artifact, но не се свързва със SuperHosting. Използва се и от „Проблемни продукти“ за повторна проверка.</p><form method="post"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><input type="hidden" name="mode" value="dry-run"/><button class="secondary" disabled={busy || configuration.missing.length > 0}>Run safe dry-run</button></form></section>
+  <section class="panel table-wrap"><div class="head"><div><h2>Последни публикации</h2><p class="muted">{busy ? "Активният run се обновява на всеки 15 секунди." : "Последни GitHub Actions резултати."}</p></div><a class="btn secondary" href="/publish/">Refresh</a></div>
+    <table><thead><tr><th>Начало</th><th>Етап</th><th>Commit</th><th>Стартирал</th><th>Детайли</th></tr></thead><tbody>{runs.map((run) => <tr><td>{new Date(run.createdAt).toLocaleString("bg-BG")}</td><td><span class={`status ${run.stage === "failed" ? "hidden" : ""}`}>{run.stageLabel}</span>{run.failedStage && <div class="hint">{run.failedStage}</div>}</td><td>{run.commit}</td><td>{run.actor}</td><td><a href={run.url} target="_blank">GitHub log ↗</a></td></tr>)}</tbody></table>{!runs.length && <div class="empty">Няма налични workflow runs.</div>}
+  </section>
 </AdminLayout>
+<style>
+  .timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:18px 0}.timeline span{padding:9px 6px;border-radius:7px;background:#eeeae5;color:#777;text-align:center;font-size:12px;font-weight:700}.timeline span.done{background:#e5f3eb;color:#275c43}.timeline span.current{outline:2px solid #315b4c}@media(max-width:650px){.timeline{grid-template-columns:1fr}.timeline span{text-align:left}}
+</style>

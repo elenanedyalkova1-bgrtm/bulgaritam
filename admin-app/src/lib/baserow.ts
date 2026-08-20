@@ -8,8 +8,19 @@ function headers() {
   return { Authorization: `Token ${token}`, "Content-Type": "application/json" };
 }
 
+export function baserowUrl(pathOrUrl: string) {
+  if (/^https?:\/\//i.test(pathOrUrl)) {
+    const url = new URL(pathOrUrl);
+    if (url.hostname !== "api.baserow.io") throw new Error("Invalid Baserow API URL");
+    url.protocol = "https:";
+    return url.toString();
+  }
+  if (/https?:\/\//i.test(pathOrUrl)) throw new Error("Invalid Baserow API URL");
+  return `${API}/${pathOrUrl.replace(/^\/+/, "")}`;
+}
+
 async function request(path: string, init: RequestInit = {}) {
-  const response = await fetch(`${API}${path}`, { ...init, headers: { ...headers(), ...(init.headers || {}) } });
+  const response = await fetch(baserowUrl(path), { ...init, headers: { ...headers(), ...(init.headers || {}) } });
   const text = await response.text();
   if (!response.ok) throw new Error(`Baserow ${response.status}: ${text}`);
   return text ? JSON.parse(text) : null;
@@ -21,7 +32,7 @@ async function schemaAuthorization() {
   const email = import.meta.env?.BASEROW_SCHEMA_EMAIL;
   const password = import.meta.env?.BASEROW_SCHEMA_PASSWORD;
   if (!email || !password) throw new Error("Schema option creation is not configured.");
-  const response = await fetch(`${API}/user/token-auth/`, {
+  const response = await fetch(baserowUrl("/user/token-auth/"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username: email, password }),
@@ -36,7 +47,7 @@ export async function listRows(table: string) {
   const rows: any[] = [];
   let next: string | null = `/database/rows/table/${table}/?user_field_names=true&size=200`;
   while (next) {
-    const data = await request(next.startsWith("http") ? next.replace(API, "") : next);
+    const data = await request(next);
     rows.push(...(data.results || []));
     next = data.next || null;
   }
@@ -60,7 +71,7 @@ export async function createSelectOption(fieldName: "subcategory" | "product_typ
   if (duplicate) return { created: false, option: duplicate };
   const select_options = [...(field.select_options || []).map(({ id, value, color }: any) => ({ id, value, color })), { value, color: "light-blue" }];
   const authorization = await schemaAuthorization();
-  const response = await fetch(`${API}/database/fields/${field.id}/`, {
+  const response = await fetch(baserowUrl(`/database/fields/${field.id}/`), {
     method: "PATCH",
     headers: { Authorization: authorization, "Content-Type": "application/json" },
     body: JSON.stringify({ select_options }),

@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
+import { baserowUrl } from "../../lib/baserow";
 
-const BASEROW_API = "https://api.baserow.io/api";
 const ALLOWED_ORIGINS = new Set(["https://bulgaritam.bg", "https://www.bulgaritam.bg"]);
 const ALLOWED_EVENTS = new Set([
   "page_view", "product_impression", "brand_impression", "view_product", "view_brand",
@@ -70,7 +70,7 @@ export const POST: APIRoute = async ({ request }) => {
     payload_json: JSON.stringify(safePayload),
   };
 
-  const response = await fetch(`${BASEROW_API}/database/rows/table/${encodeURIComponent(tableId)}/?user_field_names=true`, {
+  const response = await fetch(baserowUrl(`/database/rows/table/${encodeURIComponent(tableId)}/?user_field_names=true`), {
     method: "POST",
     headers: { Authorization: `Token ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(row),

@@ -29,7 +29,7 @@ const stageIndex = activeRun && activeRun.stage !== "failed" ? stages.indexOf(ac
   {configuration.missing.length ? <section class="panel warning"><h2>Configuration required</h2><p class="muted">Missing server variables: {configuration.missing.join(", ")}.</p></section> :
   <section class="panel">
     <h2>Какво ще бъде публикувано</h2>
-    <p class="muted">Workflow-ът checkout-ва <strong>{configuration.ref}</strong> от <strong>{configuration.repository}</strong>, зарежда най-новите Products, Brands и Site Settings от Baserow, проверява снимките, изгражда статичния Astro сайт, валидира резултата и качва проверения artifact във FTPS root на bulgaritam.bg. Одобрен код, merge-нат в main, стартира същия workflow автоматично.</p>
+    <p class="muted">Workflow-ът checkout-ва <strong>{configuration.ref}</strong> от <strong>{configuration.repository}</strong>, зарежда най-новите Products, Brands и Site Settings от Baserow, проверява снимките, изгражда статичния Astro сайт, валидира резултата и качва проверения artifact във FTPS root на bulgaritam.bg. Публикуване се стартира само умишлено от този екран.</p>
     {activeRun && <div class="timeline">{stages.map((stage, index) => <span class:list={[index <= stageIndex && activeRun.stage !== "failed" && "done", index === stageIndex && "current"]}>{stage}</span>)}</div>}
     {activeRun?.stage === "failed" && <div class="error">Failed stage: <strong>{activeRun.failedStage}</strong></div>}
     <form method="post"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><input type="hidden" name="mode" value="deploy"/><button class="danger" disabled={busy || !configuration.productionEnabled || configuration.missing.length > 0}>{busy ? "Publication in progress…" : "Publish website"}</button></form>

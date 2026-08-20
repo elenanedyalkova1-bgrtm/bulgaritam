@@ -7,11 +7,12 @@ let health: Awaited<ReturnType<typeof loadLatestProductHealthReport>> = null;
 try { health = await loadLatestProductHealthReport(); } catch { /* Catalog overview remains available if GitHub is temporarily unavailable. */ }
 const validProducts = products.filter((p) => p.name_bg && p.slug);
 const validBrands = brands.filter((b) => b.brand_name && b.brand_slug);
+const knownBrandSlugs = new Set(validBrands.map((brand) => String(brand.brand_slug).trim()).filter(Boolean));
 const metrics = [
   ["Products", validProducts.length], ["Active Products", validProducts.filter((p) => isProductActive(p.is_active)).length],
   ["Brands", validBrands.length], ["Active Brands", validBrands.filter((b) => b.is_active === true).length],
   ["Hidden Products", validProducts.filter((p) => !isProductActive(p.is_active)).length], ["Hidden Brands", validBrands.filter((b) => b.is_active !== true).length],
-  ["Empty image field", validProducts.filter((p) => !String(p.image_urls || "").trim()).length], ["Missing Brand link", validProducts.filter((p) => !p.brand_ref?.length).length],
+  ["Empty image field", validProducts.filter((p) => !String(p.image_urls || "").trim()).length], ["Missing Brand relationship", validProducts.filter((p) => !p.brand_ref?.length && !knownBrandSlugs.has(String(p.brand_slug || "").trim())).length],
 ];
 const broken = health?.report.confirmed_broken_images ?? null;
 const review = health?.report.needs_review ?? null;

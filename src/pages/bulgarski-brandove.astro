@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { loadBrands } from "../lib/brands";
-import { OCCASION_FILTERS, OCCASION_GROUPS, getOccasionKeysForProduct } from "../lib/occasions";
+import { getOccasionKeysForProduct } from "../lib/occasions";
 import { loadProducts } from "../lib/products";
 import { buildSearchDocument } from "../lib/search";
 import { getTaxonomyForProduct, getTopLevelCategories } from "../lib/taxonomy";
@@ -205,18 +205,6 @@ const editorialSections = [
           </select>
         </label>
 
-        <button
-          id="brand-occasion-toggle"
-          class="brand-occasion-trigger"
-          type="button"
-          aria-haspopup="dialog"
-          aria-controls="brand-occasion-modal"
-          aria-expanded="false"
-        >
-          <span data-i18n="brands.occasion">Повод</span>
-          <span id="brand-occasion-badge" class="brand-occasion-trigger__badge" hidden>1</span>
-        </button>
-
         <label class="brand-delivery-filter">
           <input id="brand-delivery-outside" type="checkbox" />
           <span>Доставя извън България</span>
@@ -305,52 +293,6 @@ const editorialSections = [
         Няма брандове в тази категория засега.
       </p>
     </section>
-
-    <div id="brand-occasion-modal" class="brand-occasion-modal" hidden>
-      <div class="brand-occasion-modal__backdrop" data-brand-occasion-close></div>
-      <div
-        class="brand-occasion-modal__panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="brandOccasionTitle"
-      >
-        <div class="brand-occasion-modal__head">
-          <div>
-            <p class="brand-occasion-modal__eyebrow" data-i18n="brands.occasionEyebrow">Подбор по настроение</p>
-            <h3 id="brandOccasionTitle" class="brand-occasion-modal__title" data-i18n="brands.occasionTitle">Повод</h3>
-          </div>
-
-          <button class="brand-occasion-modal__close" type="button" aria-label="Затвори" data-brand-occasion-close>
-            ✕
-          </button>
-        </div>
-
-        <div class="brand-occasion-sheet">
-          {OCCASION_GROUPS.map((group) => (
-            <section class="brand-occasion-group">
-              <h4 class="brand-occasion-group__title" data-i18n-bg={group.label} data-i18n-en={group.labelEn}>{group.label}</h4>
-              <div class="brand-occasion-options">
-                {OCCASION_FILTERS.filter((occasion) => occasion.group === group.key).map((occasion) => (
-                  <label class="brand-occasion-option">
-                    <input type="checkbox" name="brandOccasionFilter" value={occasion.key} />
-                    <span data-i18n-bg={occasion.label} data-i18n-en={occasion.labelEn}>{occasion.label}</span>
-                  </label>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-
-        <div class="brand-occasion-modal__actions">
-          <button id="brand-occasion-reset" class="brand-occasion-action brand-occasion-action--ghost" type="button">
-            <span data-i18n="filters.clear">Изчисти</span>
-          </button>
-          <button id="brand-occasion-apply" class="brand-occasion-action" type="button">
-            <span data-i18n="filters.showResults">Покажи резултатите</span>
-          </button>
-        </div>
-      </div>
-    </div>
 
     <section class="seo-editorial" aria-label="Контекст за българските брандове">
       <div class="seo-editorial__header">
@@ -520,6 +462,15 @@ const editorialSections = [
       cursor: pointer;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
       transition: transform 0.08s ease, background 0.12s ease;
+      min-width: 0;
+      max-width: 100%;
+      min-height: 44px;
+      height: auto;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      text-wrap: balance;
+      line-height: 1.25;
+      text-align: center;
     }
 
     .pill:hover {
@@ -984,6 +935,12 @@ const editorialSections = [
         justify-content: center;
       }
 
+      .pill {
+        flex: 1 1 145px;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
       .brand-search {
         grid-column: 1 / -1;
       }
@@ -1079,6 +1036,15 @@ const editorialSections = [
       }
     }
   </style>
+
+  <script>
+    import { buildSearchDocument, matchesSearchValueAgainstDocument, normalizeSearchText } from "../lib/search";
+    (window as any).__bulgaritamCanonicalSearch = {
+      buildDocument: (...values) => buildSearchDocument(...values),
+      matches: (document, value) => matchesSearchValueAgainstDocument(document, value),
+      normalize: (value) => normalizeSearchText(value),
+    };
+  </script>
 
   <script is:inline>
     const filters = document.getElementById("brand-filters");
@@ -1270,23 +1236,16 @@ const editorialSections = [
     };
 
     const matchesSearchDocument = (node, value) => {
-      if (matchesDirectText(node, value)) return true;
-      const groups = buildSearchGroups(value);
-      if (!groups.length) return true;
-      const searchable = `${normalize(node?.dataset?.searchRaw || "")} ${String(node?.dataset?.search || "")}`.trim();
-      const searchableLatin = transliterateBulgarianToLatin(searchable);
-      return groups.every((group) =>
-        group.some((token) => {
-          if (!token) return false;
-          if (token.length < 3) return false;
-          const docTokens = getDocumentTokens(node);
-          if (docTokens.has(token)) return true;
-          for (const docToken of docTokens) {
-            if (docToken.startsWith(token)) return true;
-          }
-          return false;
-        })
-      );
+      const canonical = window.__bulgaritamCanonicalSearch;
+      if (canonical) {
+        const document = canonical.buildDocument(
+          node?.dataset?.searchRaw || "",
+          node?.dataset?.search || "",
+          node?.dataset?.brandName || ""
+        );
+        return canonical.matches(document, value);
+      }
+      return matchesDirectText(node, value);
     };
 
     const getBrandSearchRelevanceScore = (node, value) => {

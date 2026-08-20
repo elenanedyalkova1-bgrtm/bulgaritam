@@ -1,3 +1,5 @@
+import { baserowUrl } from "./lib/baserow-url.mjs";
+
 const BASEROW_API_TOKEN = process.env.BASEROW_API_TOKEN;
 const BASEROW_TABLE_ID = process.env.BASEROW_TABLE_ID || "906650";
 
@@ -39,7 +41,7 @@ async function fetchAllRows() {
   let next = tableUrl;
 
   while (next) {
-    const response = await fetch(next, {
+    const response = await fetch(baserowUrl(next), {
       headers: {
         Authorization: `Token ${BASEROW_API_TOKEN}`,
       },

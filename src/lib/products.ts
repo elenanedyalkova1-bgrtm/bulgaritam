@@ -1,6 +1,7 @@
 // src/lib/products.ts
 
 import { getGiftMeta, type GiftTarget } from "./gifts";
+import { baserowUrl } from "./baserow-url";
 import fs from "node:fs";
 
 export type Product = {
@@ -19,6 +20,9 @@ export type Product = {
   recipient: string[];
   gift_occasion: string[];
   attributes: string[];
+  audience: string[];
+  colors: string[];
+  materials: string[];
   giftable: boolean;
   gift_targets: GiftTarget[];
   gift_match_score: number;
@@ -109,6 +113,9 @@ type BaserowRow = {
   recipient?: Array<{ value?: string }>;
   gift_occasion?: Array<{ value?: string }>;
   attributes?: Array<{ value?: string }>;
+  audience?: Array<{ value?: string }>;
+  colors?: Array<{ value?: string }>;
+  materials?: Array<{ value?: string }>;
   price_min_eur?: string;
   price_max_eur?: string;
   currency?: string;
@@ -186,9 +193,12 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
     tags,
     subcategory: selectValue(row.subcategory),
     product_type: selectValue(row.product_type),
-    recipient: multiSelectValues(row.recipient),
+    recipient: [...new Set([...multiSelectValues(row.recipient), ...multiSelectValues(row.audience)])],
     gift_occasion: multiSelectValues(row.gift_occasion),
     attributes: multiSelectValues(row.attributes),
+    audience: multiSelectValues(row.audience),
+    colors: multiSelectValues(row.colors),
+    materials: multiSelectValues(row.materials),
     giftable: structuredGiftable || (!row.subcategory && legacyGiftMeta.giftable),
 
     price_min_eur: toNum(row.price_min_eur),
@@ -235,7 +245,7 @@ async function fetchAllRows(): Promise<BaserowRow[]> {
   let nextUrl: string | null = BASEROW_API_URL;
 
   while (nextUrl) {
-    const res = await fetch(nextUrl, {
+    const res = await fetch(baserowUrl(nextUrl), {
       headers: {
         Authorization: `Token ${BASEROW_API_TOKEN}`,
       },
@@ -259,7 +269,7 @@ async function fetchAllBrandRows(): Promise<BaserowBrandRow[]> {
   let nextUrl: string | null = `https://api.baserow.io/api/database/rows/table/${tableId}/?user_field_names=true&size=200`;
 
   while (nextUrl) {
-    const res = await fetch(nextUrl, { headers: { Authorization: `Token ${BASEROW_API_TOKEN}` } });
+    const res = await fetch(baserowUrl(nextUrl), { headers: { Authorization: `Token ${BASEROW_API_TOKEN}` } });
     if (!res.ok) throw new Error(`Failed to fetch Baserow Brands: ${res.status} ${res.statusText}`);
     const data = await res.json();
     rows.push(...(data.results || []));
@@ -271,12 +281,13 @@ async function fetchAllBrandRows(): Promise<BaserowBrandRow[]> {
 export async function loadProducts(): Promise<Product[]> {
   const [rows, brandRows] = await Promise.all([fetchAllRows(), fetchAllBrandRows()]);
   const brandsById = new Map(brandRows.map((brand) => [Number(brand.id), brand]));
+  const brandsBySlug = new Map(brandRows.filter((brand) => norm(brand.brand_slug)).map((brand) => [norm(brand.brand_slug), brand]));
 
   const excludedSlugs = healthExcludedSlugs();
   const products = rows
     .map((row) => {
       const brandId = Number(row.brand_ref?.[0]?.id);
-      const brand = brandsById.get(brandId);
+      const brand = brandsById.get(brandId) || brandsBySlug.get(norm(row.brand_slug));
       if (!brand || brand.is_active !== true || !String(row.image_urls || "").trim() || excludedSlugs.has(String(row.slug || "").trim())) return null;
       return parseRow(row, brand);
     })

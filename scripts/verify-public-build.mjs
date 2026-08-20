@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { baserowUrl } from "./lib/baserow-url.mjs";
 
 const token = process.env.BASEROW_API_TOKEN;
 const productsTable = process.env.BASEROW_TABLE_ID || "906650";
@@ -13,7 +14,7 @@ async function rows(table) {
   const result = [];
   let next = `https://api.baserow.io/api/database/rows/table/${table}/?user_field_names=true&size=200`;
   while (next) {
-    const response = await fetch(next, { headers: { Authorization: `Token ${token}` } });
+    const response = await fetch(baserowUrl(next), { headers: { Authorization: `Token ${token}` } });
     if (!response.ok) throw new Error(`Baserow ${table}: ${response.status} ${await response.text()}`);
     const page = await response.json();
     result.push(...(page.results || []));
@@ -38,9 +39,11 @@ const healthExcluded = healthReportPath
   : new Set();
 const activeBrands = brands.filter(row => row.is_active === true && clean(row.brand_slug) && clean(row.brand_name));
 const activeBrandIds = new Set(activeBrands.map(row => Number(row.id)));
-const activeProducts = products.filter(row => productActive(row.is_active) && clean(row.slug) && clean(row.name_bg) && activeBrandIds.has(Number(row.brand_ref?.[0]?.id)) && !healthExcluded.has(clean(row.slug)));
+const activeBrandSlugs = new Set(activeBrands.map(row => clean(row.brand_slug)));
+const productHasActiveBrand = row => activeBrandIds.has(Number(row.brand_ref?.[0]?.id)) || (!row.brand_ref?.length && activeBrandSlugs.has(clean(row.brand_slug)));
+const activeProducts = products.filter(row => productActive(row.is_active) && clean(row.slug) && clean(row.name_bg) && productHasActiveBrand(row) && clean(row.image_urls) && !healthExcluded.has(clean(row.slug)));
 const expectedProducts = activeProducts.map(row => clean(row.slug)).sort();
-const expectedBrands = activeBrands.filter(brand => activeProducts.some(product => Number(product.brand_ref?.[0]?.id) === Number(brand.id))).map(row => clean(row.brand_slug)).sort();
+const expectedBrands = activeBrands.filter(brand => activeProducts.some(product => Number(product.brand_ref?.[0]?.id) === Number(brand.id) || (!product.brand_ref?.length && clean(product.brand_slug) === clean(brand.brand_slug)))).map(row => clean(row.brand_slug)).sort();
 const generatedProducts = pageSlugs(path.join(dist, "p"));
 const generatedBrands = pageSlugs(path.join(dist, "brand"));
 

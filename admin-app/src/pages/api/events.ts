@@ -6,6 +6,7 @@ const ALLOWED_EVENTS = new Set([
   "page_view", "product_impression", "brand_impression", "view_product", "view_brand",
   "search", "search_results_view", "search_no_results", "select_category", "select_subcategory",
   "select_product_type", "select_gift_recipient", "select_gift_occasion", "apply_filter",
+  "open_gift_discovery", "surprise_me",
   "remove_filter", "clear_filters", "change_sort", "save_product", "remove_saved_product",
   "save_brand", "share_product", "create_collection", "add_to_collection", "remove_from_collection",
   "view_collection", "share_collection", "outbound_product_click", "outbound_brand_click",
@@ -26,7 +27,9 @@ const clean = (value: unknown, max = 240) => String(value ?? "").trim().slice(0,
 
 export const OPTIONS: APIRoute = ({ request }) => {
   const origin = request.headers.get("origin") || "";
-  return ALLOWED_ORIGINS.has(origin) ? text("", 204, origin) : text("Forbidden", 403, origin);
+  return ALLOWED_ORIGINS.has(origin)
+    ? new Response(null, { status: 204, headers: cors(origin) })
+    : text("Forbidden", 403, origin);
 };
 
 export const POST: APIRoute = async ({ request }) => {

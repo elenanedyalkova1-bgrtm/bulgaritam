@@ -56,6 +56,9 @@ export async function saveProduct(form: FormData, rowId?: number) {
   fields.recipient = optionIds("recipient", form.getAll("recipient").map(text));
   fields.gift_occasion = optionIds("gift_occasion", form.getAll("gift_occasion").map(text));
   fields.attributes = optionIds("attributes", form.getAll("attributes").map(text));
+  fields.audience = optionIds("audience", form.getAll("audience").map(text));
+  fields.colors = optionIds("colors", form.getAll("colors").map(text));
+  fields.materials = optionIds("materials", form.getAll("materials").map(text));
   if (!rowId) {
     const legacyIds = products.map((row) => Number(row["id 2"])).filter(Number.isFinite);
     fields["id 2"] = String(Math.max(0, ...legacyIds) + 1);

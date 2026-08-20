@@ -60,6 +60,10 @@ const secondaryPills = (
 
 const breadcrumbs = [
   { name: "Начало", item: "/" },
+  ...(landing.kind === "subcategory" ? (() => {
+    const parent = SEO_LANDINGS.find((entry) => entry.kind === "category" && entry.categoryKey === landing.categoryKey);
+    return parent ? [{ name: parent.h1, item: getCanonicalPathForLanding(parent) }] : [];
+  })() : []),
   { name: landing.h1, item: getCanonicalPathForLanding(landing) },
 ];
 

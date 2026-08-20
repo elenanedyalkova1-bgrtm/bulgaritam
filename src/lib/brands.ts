@@ -1,3 +1,5 @@
+import { baserowUrl } from "./baserow-url";
+
 const clean = (v: unknown) => (v == null ? "" : String(v).trim());
 
 export type BrandRow = {
@@ -26,7 +28,7 @@ export async function loadBrands(): Promise<BrandRow[]> {
   const rows: any[] = [];
   let nextUrl: string | null = `https://api.baserow.io/api/database/rows/table/${BRANDS_TABLE_ID}/?user_field_names=true&size=200`;
   while (nextUrl) {
-    const response = await fetch(nextUrl, { headers: { Authorization: `Token ${BASEROW_API_TOKEN}` } });
+    const response = await fetch(baserowUrl(nextUrl), { headers: { Authorization: `Token ${BASEROW_API_TOKEN}` } });
     if (!response.ok) throw new Error(`Failed to fetch Baserow Brands: ${response.status} ${response.statusText}`);
     const data = await response.json();
     rows.push(...(data.results || []));

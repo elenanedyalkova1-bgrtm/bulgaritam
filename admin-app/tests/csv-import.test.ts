@@ -9,4 +9,11 @@ assert.equal(plan.total,5); assert.equal(plan.updated,1); assert.equal(plan.crea
 assert.deepEqual(plan.unknownBrands,["missing-brand"]); assert.deepEqual(plan.duplicateSlugs,["duplicate"]);
 assert.equal(plan.items[1].fields?.currency,"EUR");
 assert.equal(products[0].product_url,"https://brand.example/old", "planning must not mutate fixture data");
+
+const autoBrandRows=parseCsv(`brand_name,brand_slug,brand_url,name_bg,slug,product_url,image_urls,is_active\nNew Canonical Brand,new-canonical-brand,https://new.example,First,first,https://new.example/first,https://new.example/first.jpg,true\nNew Canonical Brand,new-canonical-brand,https://new.example,Second,second,https://new.example/second,https://new.example/second.jpg,true\n`);
+const autoBrandPlan=await prepareImport(autoBrandRows,{products:[],brands:[]});
+assert.equal(autoBrandPlan.brandsToCreate.length,1);
+assert.equal(autoBrandPlan.brandsToCreate[0].products,2);
+assert.equal(autoBrandPlan.productsLinked,2);
+assert.equal(autoBrandPlan.invalid,0);
 console.log("CSV import dry-run test passed: 1 update, 1 create, 3 invalid, 0 writes.");

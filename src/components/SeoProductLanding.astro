@@ -92,6 +92,7 @@ function priceLabel(p) {
   }}
 >
   <main class="page-shell landing-shell">
+    {breadcrumbs.length > 1 ? <nav class="landing-breadcrumbs" aria-label="Breadcrumb"><ol>{breadcrumbs.map((entry, index) => <li>{index < breadcrumbs.length - 1 ? <a href={entry.item}>{entry.name}</a> : <span aria-current="page">{entry.name}</span>}</li>)}</ol></nav> : null}
     <header class="page-head landing-head">
       <p class="page-kicker" data-i18n={landing.kind === "category" ? "landing.category" : "landing.subcategory"}>{landing.kind === "category" ? "Категория" : "Подкатегория"}</p>
       <h1 class="page-title">{landing.h1}</h1>
@@ -1093,3 +1094,6 @@ function priceLabel(p) {
     });
   </script>
 </BaseLayout>
+<style>
+  .landing-breadcrumbs{margin:0 0 18px;font:600 13px/1.4 var(--font-body);color:rgba(26,26,26,.62)}.landing-breadcrumbs ol{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}.landing-breadcrumbs li:not(:last-child)::after{content:"/";margin-left:6px;color:rgba(26,26,26,.32)}.landing-breadcrumbs a{text-decoration:none}.landing-breadcrumbs a:hover{text-decoration:underline}@media(max-width:640px){.landing-breadcrumbs{margin-bottom:14px;text-align:left}}
+</style>

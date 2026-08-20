@@ -1,7 +1,7 @@
 ---
 import AdminLayout from "../layouts/AdminLayout.astro";
 import { dispatchPublish, loadLatestProductHealthReport } from "../lib/github-deploy";
-import { listProducts, validateCsrf } from "../lib/repositories";
+import { isProductActive, listBrands, listProducts, validateCsrf } from "../lib/repositories";
 
 let message = "";
 let error = "";
@@ -16,7 +16,8 @@ if (Astro.request.method === "POST") {
 
 let snapshot: Awaited<ReturnType<typeof loadLatestProductHealthReport>> = null;
 let products: any[] = [];
-try { [snapshot, products] = await Promise.all([loadLatestProductHealthReport(), listProducts()]); }
+let brands: any[] = [];
+try { [snapshot, products, brands] = await Promise.all([loadLatestProductHealthReport(), listProducts(), listBrands()]); }
 catch (cause) { error ||= cause instanceof Error ? cause.message : "Проверката не може да бъде заредена."; }
 
 const bySlug = new Map(products.map((product) => [String(product.slug || ""), product]));
@@ -28,6 +29,21 @@ const labels: Record<string, string> = {
   not_image: "Адресът не връща изображение", timeout: "Временен timeout", network_error: "Мрежова грешка",
   blocked: "Сървърът блокира проверката", http_error: "HTTP грешка", inconsistent_response: "Непостоянен отговор",
 };
+const clean=(value:unknown)=>String(value??"").trim();
+const safe=(value:unknown)=>clean(value).normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("bg").replace(/[^\p{L}\p{N}]+/gu,"");
+const brandById=new Map(brands.map(brand=>[Number(brand.id),brand]));
+const brandsByIdentity=(product:any)=>brands.filter(brand=>(safe(product.brand_name)&&safe(brand.brand_name)===safe(product.brand_name))||(safe(product.brand_slug)&&safe(brand.brand_slug)===safe(product.brand_slug)));
+const blockers=products.flatMap((product:any)=>{
+  const reasons:string[]=[];const linked=brandById.get(Number(product.brand_ref?.[0]?.id));const matches=!linked?brandsByIdentity(product):[];
+  if(!clean(product.name_bg)||!clean(product.slug))reasons.push("Malformed Product: липсва име или slug");
+  if(!clean(product.product_url))reasons.push("Липсва Product URL");
+  if(!clean(product.image_urls))reasons.push("Липсва основна снимка");
+  if(!linked&&matches.length===0)reasons.push("Липсва Brand relationship");
+  if(!linked&&matches.length>1)reasons.push("Ambiguous Brand: повече от едно съвпадение");
+  if(linked&&linked.is_active!==true)reasons.push("Brand е неактивен");
+  if(!isProductActive(product.is_active))reasons.push("Product е скрит");
+  return reasons.length?[{product,reasons}]:[];
+});
 ---
 <AdminLayout title="Проблемни продукти" active="problems">
   <header class="head"><div><h1>Проблемни продукти</h1><p class="muted">Потвърдено липсващите снимки се скриват само от следващия публичен build. Продуктите не се изтриват.</p></div><form method="post"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><button>Провери отново</button></form></header>
@@ -47,4 +63,5 @@ const labels: Record<string, string> = {
     {!snapshot && <div class="empty">Все още няма Product health отчет. Стартирайте „Провери отново“.</div>}
     {snapshot && !queue.length && <div class="empty">Няма продукти с проблемна основна снимка.</div>}
   </section>
+  <section class="panel table-wrap"><h2>Publication blockers от текущите данни ({blockers.length})</h2><table><thead><tr><th>Product</th><th>Реална причина</th><th></th></tr></thead><tbody>{blockers.map(({product,reasons})=><tr><td><a class="row-link" href={`/products/${product.id}/`}>{product.name_bg||`Row #${product.id}`}</a><div class="muted">/{product.slug||"—"}</div></td><td>{reasons.map(reason=><div>{reason}</div>)}</td><td><a class="btn secondary" href={`/products/${product.id}/`}>Коригирай</a></td></tr>)}</tbody></table>{!blockers.length&&<div class="empty">Няма data blockers.</div>}</section>
 </AdminLayout>

@@ -1,9 +1,6 @@
 name: Publish public Bulgaritam site
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       mode:
@@ -90,7 +87,7 @@ jobs:
 
   deploy-superhosting:
     name: Publish verified artifact to SuperHosting
-    if: ${{ github.event_name == 'push' || inputs.mode == 'deploy' }}
+    if: ${{ inputs.mode == 'deploy' }}
     needs: build-and-verify
     runs-on: ubuntu-latest
     timeout-minutes: 40

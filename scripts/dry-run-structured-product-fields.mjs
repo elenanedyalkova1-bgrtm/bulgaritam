@@ -1,3 +1,5 @@
+import { baserowUrl } from "./lib/baserow-url.mjs";
+
 const token = process.env.BASEROW_API_TOKEN;
 if (!token) throw new Error("BASEROW_API_TOKEN is required");
 
@@ -12,7 +14,7 @@ const rules = (pairs, text) => pairs.find(([, terms]) => includes(text, terms))?
 
 async function loadRows() {
   const rows=[]; let next="https://api.baserow.io/api/database/rows/table/906650/?user_field_names=true&size=200";
-  while(next){const r=await fetch(next,{headers:{Authorization:`Token ${token}`}});if(!r.ok)throw new Error(`${r.status} ${await r.text()}`);const d=await r.json();rows.push(...d.results);next=d.next;}
+  while(next){const r=await fetch(baserowUrl(next),{headers:{Authorization:`Token ${token}`}});if(!r.ok)throw new Error(`${r.status} ${await r.text()}`);const d=await r.json();rows.push(...d.results);next=d.next;}
   return rows.filter((r)=>clean(r.slug)&&clean(r.name_bg));
 }
 

@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { baserowUrl } from "./lib/baserow-url.mjs";
 
 try {
   process.loadEnvFile?.();
@@ -49,7 +50,7 @@ async function fetchRows() {
   const rows = [];
   let next = `https://api.baserow.io/api/database/rows/table/${BASEROW_TABLE_ID}/?user_field_names=true&size=200`;
   while (next) {
-    const response = await fetchWithTimeout(next, { headers: apiHeaders });
+    const response = await fetchWithTimeout(baserowUrl(next), { headers: apiHeaders });
     if (!response.ok) throw new Error(`Baserow read failed: ${response.status} ${response.statusText}`);
     const data = await response.json();
     rows.push(...(data.results || []));

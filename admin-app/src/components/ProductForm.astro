@@ -1,7 +1,7 @@
 ---
 import { GIFT_OCCASIONS, MANUAL_CLASSIFICATION_GUIDANCE, multiSelectValues, PRODUCT_ATTRIBUTES, PRODUCT_SUBCATEGORIES, PRODUCT_TYPES, RECIPIENTS, selectValue, structuredCategoryForSubcategory } from "../lib/product-taxonomy";
 const { product = {}, brands = [], taxonomyFields = [], csrf, error = "", isNew = false } = Astro.props as { product?: Record<string, any>; brands?: any[]; taxonomyFields?: any[]; csrf: string; error?: string; isNew?: boolean };
-const linkedBrandId = Number(product.brand_ref?.[0]?.id || 0);
+const linkedBrandId = Number(product.brand_ref?.[0]?.id || brands.find((brand) => brand.brand_slug && brand.brand_slug === product.brand_slug)?.id || 0);
 const fields: Array<{name:string;label:string;type:"text"|"url"|"textarea";required:boolean}> = [
   {name:"name_bg",label:"Product name",type:"text",required:true},{name:"slug",label:"Slug",type:"text",required:true},{name:"tags",label:"Tags (comma separated)",type:"text",required:false},
   {name:"price_min_eur",label:"Minimum price (EUR)",type:"text",required:false},{name:"price_max_eur",label:"Maximum price (EUR)",type:"text",required:false},{name:"currency",label:"Currency",type:"text",required:false},
@@ -14,9 +14,15 @@ const giftable = product.giftable === true || String(product.giftable).toLowerCa
 const selectedRecipients = new Set(multiSelectValues(product.recipient));
 const selectedOccasions = new Set(multiSelectValues(product.gift_occasion));
 const selectedAttributes = new Set(multiSelectValues(product.attributes));
+const selectedAudience = new Set(multiSelectValues(product.audience));
+const selectedColors = new Set(multiSelectValues(product.colors));
+const selectedMaterials = new Set(multiSelectValues(product.materials));
 const fieldOptions = (name: string, fallback: string[]) => taxonomyFields.find((field) => field.name === name)?.select_options?.map((option: any) => option.value) || fallback;
 const subcategoryOptions = fieldOptions("subcategory", PRODUCT_SUBCATEGORIES);
 const productTypeOptions = fieldOptions("product_type", PRODUCT_TYPES);
+const audienceOptions = fieldOptions("audience", []);
+const colorOptions = fieldOptions("colors", []);
+const materialOptions = fieldOptions("materials", []);
 const guidance = MANUAL_CLASSIFICATION_GUIDANCE[product.slug];
 const recommendedParts = guidance?.recommended.split("→").map((part) => part.trim()) || [];
 const missingRecommendedSubcategory = recommendedParts[1] && !subcategoryOptions.some((value: string) => value.trim().toLocaleLowerCase("bg") === recommendedParts[1].toLocaleLowerCase("bg")) ? recommendedParts[1] : "";
@@ -37,6 +43,9 @@ const siteOrigin = (import.meta.env.SITE_ORIGIN || "https://bulgaritam.bg").repl
   <fieldset><legend>Recipient</legend>{RECIPIENTS.map((value) => <label class="check"><input type="checkbox" name="recipient" value={value} checked={selectedRecipients.has(value)}/>{value}</label>)}</fieldset>
   <fieldset><legend>Gift occasion</legend>{GIFT_OCCASIONS.map((value) => <label class="check"><input type="checkbox" name="gift_occasion" value={value} checked={selectedOccasions.has(value)}/>{value}</label>)}</fieldset>
   <fieldset class="span-2"><legend>Attributes</legend>{PRODUCT_ATTRIBUTES.map((value) => <label class="check"><input type="checkbox" name="attributes" value={value} checked={selectedAttributes.has(value)}/>{value}</label>)}</fieldset>
+  {audienceOptions.length > 0 && <fieldset><legend>Audience</legend>{audienceOptions.map((value: string) => <label class="check"><input type="checkbox" name="audience" value={value} checked={selectedAudience.has(value)}/>{value}</label>)}</fieldset>}
+  {colorOptions.length > 0 && <fieldset><legend>Colors</legend>{colorOptions.map((value: string) => <label class="check"><input type="checkbox" name="colors" value={value} checked={selectedColors.has(value)}/>{value}</label>)}</fieldset>}
+  {materialOptions.length > 0 && <fieldset><legend>Materials</legend>{materialOptions.map((value: string) => <label class="check"><input type="checkbox" name="materials" value={value} checked={selectedMaterials.has(value)}/>{value}</label>)}</fieldset>}
   {fields.map(({name,label,type,required}) => type === "textarea" ? <label class="span-2">{label}<textarea name={name} required={required}>{product[name] || ""}</textarea></label> : <label>{label}<input type={type} name={name} value={product[name] || (name === "currency" ? "EUR" : "")} required={required}/></label>)}
   {!isNew && <div class="span-2 panel warning"><strong>System-managed compatibility fields</strong><p class="hint">Legacy ID: {product["id 2"] || "—"}. Brand name, slug, URL, introduction and address are refreshed from the selected Brands row when this Product is saved. Brand editing always uses the Brands table.</p></div>}
   <div class="span-2 actions"><button type="submit">{isNew ? "Create Product" : "Save Product"}</button>{!isNew && <a class="btn secondary" href={`${siteOrigin}/p/${product.slug}/`} target="_blank">Preview public page ↗</a>}</div>

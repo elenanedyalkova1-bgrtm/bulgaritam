@@ -9,6 +9,7 @@ Required environment variables in the repository `.env`:
 - `BASEROW_API_TOKEN`
 - `BASEROW_TABLE_ID=906650`
 - `BASEROW_BRANDS_TABLE_ID=1133942` (optional; this ID is the fallback)
+- `RESEND_API_KEY` (server-only key used by the public Brand Application endpoint)
 - `ADMIN_PASSWORD_HASH`
 - `ADMIN_SESSION_SECRET` (at least 32 random characters)
 - `ADMIN_ORIGIN=https://admin.bulgaritam.bg`
@@ -30,3 +31,7 @@ Before production deployment:
 4. Verify secure cookies, origin checks, rate-limit behavior, and `Cache-Control: no-store`.
 
 Do not deploy this app as static files: authentication and Baserow writes require a trusted server runtime.
+
+## Brand Applications
+
+The public partner form posts to the unauthenticated, validated `/api/brand-applications/` endpoint. The endpoint sends one email through Resend to `info@bulgaritam.bg`; it does not persist the submission or create Brands, Products, accounts, profiles, dashboards, or Admin workflow records. Configure `RESEND_API_KEY` only in the server-side Admin/Vercel environment.

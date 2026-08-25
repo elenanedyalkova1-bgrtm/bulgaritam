@@ -1,0 +1,4 @@
+---
+const {heads,rows,id,emphasizeColumn,emphasizeValue}=Astro.props;
+---
+<div class="table-wrap"><table id={id} data-sortable><thead><tr>{heads.map((h:string)=><th>{h}</th>)}</tr></thead><tbody>{rows.map((row:any[])=><tr class:list={{signal:emphasizeColumn!==undefined&&row[emphasizeColumn]===emphasizeValue}}>{row.map(value=><td>{value}</td>)}</tr>)}</tbody></table>{!rows.length&&<p class="muted">Няма данни за избрания период.</p>}</div>

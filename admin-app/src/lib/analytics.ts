@@ -27,6 +27,11 @@ export type AnalyticsEvent = {
   utmSource: string;
   utmMedium: string;
   utmCampaign: string;
+  searchId: string;
+  pagePath: string;
+  pageType: string;
+  giftRecipient: string;
+  giftOccasion: string;
   payload: Record<string, unknown>;
 };
 
@@ -50,6 +55,8 @@ export const parseEvent = (row: any): AnalyticsEvent | null => {
     searchTerm: text(row.search_term || payload.search_term || payload.query), resultCount: number(row.search_results_count ?? payload.search_results_count ?? payload.result_count),
     collectionId: pick(row, payload, "collection_id"), sourceContext: pick(row, payload, "source_context"), listContext: pick(row, payload, "list_context"),
     referrerDomain: pick(row, payload, "referrer_domain"), utmSource: pick(row, payload, "utm_source"), utmMedium: pick(row, payload, "utm_medium"), utmCampaign: pick(row, payload, "utm_campaign"),
+    searchId: pick(row, payload, "search_id"), pagePath: pick(row, payload, "page_path"), pageType: pick(row, payload, "page_type"),
+    giftRecipient: pick(row, payload, "gift_recipient"), giftOccasion: pick(row, payload, "gift_occasion"),
     payload,
   };
 };
@@ -85,7 +92,7 @@ export function resolvePeriod(url: URL) {
   return { key, start, end, previousStart: new Date(start.getTime() - duration), previousEnd: start, from: dateInSofia(start), to: dateInSofia(new Date(end.getTime() - 1)) };
 }
 
-const count = (events: AnalyticsEvent[], name: string) => events.filter((event) => event.event === name).length;
+export const count = (events: AnalyticsEvent[], name: string) => events.filter((event) => event.event === name).length;
 const unique = (values: string[]) => new Set(values.filter(Boolean)).size;
 const pct = (numerator: number, denominator: number) => denominator ? (numerator / denominator) * 100 : 0;
 const eventNames = ["page_view","product_impression","view_product","view_brand","save_product","add_to_collection","share_collection","outbound_product_click","outbound_brand_click","search","search_no_results"];
@@ -100,11 +107,11 @@ export function metricSummary(events: AnalyticsEvent[], previous: AnalyticsEvent
 
 const group = <T>(items: T[], key: (item:T)=>string) => {
   const map = new Map<string,T[]>();
-  items.forEach(item => { const value=key(item)||"Unknown"; map.set(value,[...(map.get(value)||[]),item]); });
+  items.forEach(item => { const value=key(item)||"Неизвестно"; map.set(value,[...(map.get(value)||[]),item]); });
   return map;
 };
 
-const downstreamNames = new Set(["view_product","save_product","add_to_collection","share_product","outbound_product_click"]);
+const downstreamNames = new Set(["view_product","view_brand","save_product","add_to_collection","share_product","outbound_product_click","outbound_brand_click"]);
 export function buildSearchRows(events: AnalyticsEvent[]) {
   const sorted = [...events].sort((a,b)=>a.at.getTime()-b.at.getTime());
   const lastSearchBySession = new Map<string,string>();
@@ -117,23 +124,38 @@ export function buildSearchRows(events: AnalyticsEvent[]) {
   });
   return [...group(events.filter(e=>e.event==="search" && e.searchTerm),e=>e.searchTerm).entries()].map(([query,items])=>{
     const actions=downstream.get(query)||[]; const counts=items.map(e=>e.resultCount);
-    return {query, searches:items.length, avgResults:counts.length?counts.reduce((a,b)=>a+b,0)/counts.length:0, zero:items.filter(e=>e.resultCount===0).length,
-      productViews:count(actions,"view_product"), saves:count(actions,"save_product"), outbound:count(actions,"outbound_product_click"),
+    const zero=items.filter(e=>e.resultCount===0).length;
+    return {query, searches:items.length, avgResults:counts.length?counts.reduce((a,b)=>a+b,0)/counts.length:0, zero, zeroRate:pct(zero,items.length),
+      productViews:count(actions,"view_product"), brandViews:count(actions,"view_brand"), saves:count(actions,"save_product"), productOutbound:count(actions,"outbound_product_click"), brandOutbound:count(actions,"outbound_brand_click"), outbound:count(actions,"outbound_product_click"),
       unmetScore:items.filter(e=>e.resultCount===0).length*3 + Math.max(0,items.length-(actions.length||0))};
   }).sort((a,b)=>b.searches-a.searches);
 }
 
+type ProductResult = [string,string,number];
+type BrandResult = [string,number];
+const jsonTuples = (value: unknown) => { try { const parsed=JSON.parse(text(value)); return Array.isArray(parsed)?parsed:[]; } catch { return []; } };
+export const returnedProducts = (event:AnalyticsEvent) => jsonTuples(event.payload.returned_products_json).map((r:any)=>[text(r[0]),text(r[1]),Number(r[2])||0] as ProductResult).filter(r=>r[0]);
+export const returnedBrands = (event:AnalyticsEvent) => jsonTuples(event.payload.returned_brands_json).map((r:any)=>[text(r[0]),Number(r[1])||0] as BrandResult).filter(r=>r[0]);
+const hasReturnedData = (event:AnalyticsEvent) => Object.hasOwn(event.payload,"returned_products_json")||Object.hasOwn(event.payload,"returned_brands_json");
+
 export function buildProductRows(events: AnalyticsEvent[]) {
-  return [...group(events.filter(e=>e.productId||e.productSlug),e=>e.productId||e.productSlug).entries()].map(([id,items])=>{
+  const returned=new Map<string,number>();let returnedAvailable=false;
+  events.filter(e=>e.event==="search").forEach(e=>{if(hasReturnedData(e))returnedAvailable=true;returnedProducts(e).forEach(([id])=>returned.set(id,(returned.get(id)||0)+1))});
+  const ids=new Set([...events.map(e=>e.productId||e.productSlug).filter(Boolean),...returned.keys()]);
+  return [...ids].map(id=>{const items=events.filter(e=>(e.productId||e.productSlug)===id);
     const impressions=count(items,"product_impression"), views=count(items,"view_product"), outbound=count(items,"outbound_product_click");
-    return {id,name:items.find(e=>e.productName)?.productName||id,slug:items.find(e=>e.productSlug)?.productSlug||"",brand:items.find(e=>e.brandName)?.brandName||"—",brandId:items.find(e=>e.brandId)?.brandId||"",
-      impressions,views,saves:count(items,"save_product"),adds:count(items,"add_to_collection"),shares:count(items,"share_product"),outbound, impressionViewRate:pct(views,impressions),viewOutboundRate:pct(outbound,views)};
+    const returns=returned.get(id);
+    return {id,name:items.find(e=>e.productName)?.productName||id,slug:items.find(e=>e.productSlug)?.productSlug||"",brand:items.find(e=>e.brandName)?.brandName||"—",brandId:items.find(e=>e.brandId)?.brandId||"",category:items.find(e=>e.category)?.category||"",
+      returned:returns??null,returnedAvailable,impressions,views,saves:count(items,"save_product"),adds:count(items,"add_to_collection"),shares:count(items,"share_product"),outbound,returnedImpressionRate:returns==null?null:pct(impressions,returns),impressionViewRate:pct(views,impressions),viewOutboundRate:pct(outbound,views)};
   }).sort((a,b)=>b.views+b.outbound-a.views-a.outbound);
 }
 
 export function buildBrandRows(events: AnalyticsEvent[]) {
-  return [...group(events.filter(e=>e.brandId||e.brandSlug||e.brandName),e=>e.brandId||e.brandSlug||e.brandName).entries()].map(([id,items])=>({id,name:items.find(e=>e.brandName)?.brandName||id,slug:items.find(e=>e.brandSlug)?.brandSlug||"",
-    impressions:count(items,"brand_impression"),productViews:count(items,"view_product"),brandViews:count(items,"view_brand"),saves:count(items,"save_product"),adds:count(items,"add_to_collection"),shares:count(items,"share_product")+count(items,"share_collection"),productOutbound:count(items,"outbound_product_click"),brandOutbound:count(items,"outbound_brand_click"),products:buildProductRows(items)})).sort((a,b)=>b.productViews+b.brandViews-a.productViews-a.brandViews);
+  const returned=new Map<string,number>();let returnedAvailable=false;
+  events.filter(e=>e.event==="search").forEach(e=>{if(hasReturnedData(e))returnedAvailable=true;returnedBrands(e).forEach(([id])=>returned.set(id,(returned.get(id)||0)+1));returnedProducts(e).forEach(([,id])=>{if(id)returned.set(id,(returned.get(id)||0)+1)})});
+  const ids=new Set([...events.map(e=>e.brandId||e.brandSlug||e.brandName).filter(Boolean),...returned.keys()]);
+  return [...ids].map(id=>{const items=events.filter(e=>(e.brandId||e.brandSlug||e.brandName)===id);return {id,name:items.find(e=>e.brandName)?.brandName||id,slug:items.find(e=>e.brandSlug)?.brandSlug||"",returned:returned.get(id)??null,returnedAvailable,
+    impressions:count(items,"brand_impression"),productViews:count(items,"view_product"),brandViews:count(items,"view_brand"),saves:count(items,"save_product"),adds:count(items,"add_to_collection"),shares:count(items,"share_product")+count(items,"share_collection"),productOutbound:count(items,"outbound_product_click"),brandOutbound:count(items,"outbound_brand_click"),products:buildProductRows(items)}}).sort((a,b)=>b.productViews+b.brandViews-a.productViews-a.brandViews);
 }
 
 export function buildDimensionRows(events: AnalyticsEvent[], selector:(event:AnalyticsEvent)=>string) {
@@ -151,3 +173,51 @@ export function buildJourneyRows(events: AnalyticsEvent[]) {
     return {sessionId:`…${sessionId.slice(-8)}`,started:sorted[0]?.at,steps:sorted.map(e=>({event:e.event,label:e.searchTerm||e.productName||e.brandName||e.category||""})),meaningful:sorted.some(e=>["save_product","outbound_product_click"].includes(e.event))};
   }).filter(row=>row.steps.length>1).sort((a,b)=>(b.started?.getTime()||0)-(a.started?.getTime()||0)).slice(0,40);
 }
+
+const split=(value:unknown)=>text(value).split(",").map(v=>v.trim()).filter(Boolean);
+const payloadText=(e:AnalyticsEvent,key:string)=>text(e.payload[key]);
+const actionNames=new Set(["view_product","view_brand","save_product","outbound_product_click","outbound_brand_click"]);
+export function buildUnmetRows(events:AnalyticsEvent[]){
+  const searches=events.filter(e=>e.event==="search"&&e.searchTerm&&e.resultCount<=3);
+  const budgetFor=(search:AnalyticsEvent)=>payloadText(search,"price_range")||payloadText([...events].filter(e=>e.sessionId===search.sessionId&&e.at<=search.at&&["gift_budget","product_constraints"].includes(payloadText(e,"filter_name"))).sort((a,b)=>b.at.getTime()-a.at.getTime())[0]||search,"price_range");
+  return [...group(searches,e=>e.searchTerm).entries()].map(([query,items])=>({query,searches:items.length,resultCount:Math.min(...items.map(e=>e.resultCount)),zero:items.filter(e=>e.resultCount===0).length,category:items.find(e=>e.category)?.category||"—",subcategory:items.find(e=>e.subcategory)?.subcategory||"—",productType:items.find(e=>e.productType)?.productType||"—",recipient:items.find(e=>e.giftRecipient)?.giftRecipient||"—",occasion:items.find(e=>e.giftOccasion)?.giftOccasion||"—",budget:items.map(budgetFor).find(Boolean)||"—"})).sort((a,b)=>b.zero-a.zero||b.searches-a.searches);
+}
+
+const filterDimensions=[
+  ["category","Категория"],["subcategory","Подкатегория"],["product_type","Тип продукт"],["materials","Материал"],["colors","Цвят"],["attributes","Характеристика"],["price_range","Ценови диапазон"],["gift_budget","Бюджет за подарък"],["gift_recipient","Получател"],["gift_occasion","Повод"],["giftable","Подходящо за подарък"],["delivery_abroad","Доставка извън България"],
+] as const;
+export function buildFilterRows(events:AnalyticsEvent[]){
+  const rows:any[]=[];
+  for(const [key,label] of filterDimensions){
+    const selections: {event:AnalyticsEvent,value:string}[]=[];
+    events.forEach(e=>{
+      const filterName=payloadText(e,"filter_name");
+      let values:string[]=[];
+      if(key==="category"&&e.event==="select_category")values=[payloadText(e,"filter_value")||e.category];
+      else if(key==="subcategory"&&e.event==="select_subcategory")values=[payloadText(e,"filter_value")||e.subcategory];
+      else if(key==="product_type"&&e.event==="select_product_type")values=[payloadText(e,"filter_value")||e.productType];
+      else if(key==="gift_recipient"&&e.event==="select_gift_recipient")values=[payloadText(e,"filter_value")];
+      else if(key==="gift_occasion"&&e.event==="select_gift_occasion")values=[payloadText(e,"filter_value")||e.giftOccasion];
+      else if(key==="gift_budget"&&filterName==="gift_budget")values=[payloadText(e,"filter_value")];
+      else if(key==="delivery_abroad"&&filterName==="delivery_abroad")values=[payloadText(e,"filter_value")];
+      else if(key==="giftable"&&filterName==="giftable")values=[payloadText(e,"filter_value")];
+      else if(["materials","colors","attributes"].includes(key)&&filterName==="product_constraints")values=split(e.payload[key]);
+      else if(key==="price_range"&&filterName==="product_constraints")values=[payloadText(e,"price_range")].filter(v=>v&&v!=="all");
+      values.filter(Boolean).forEach(value=>selections.push({event:e,value}));
+    });
+    for(const [value,items] of group(selections,x=>x.value)){
+      const sessionIds=new Set(items.map(x=>x.event.sessionId));const first=Math.min(...items.map(x=>x.event.at.getTime()));
+      const actions=events.filter(e=>sessionIds.has(e.sessionId)&&e.at.getTime()>=first&&actionNames.has(e.event));
+      rows.push({key,label,value,selections:items.length,views:count(actions,"view_product"),outbound:count(actions,"outbound_product_click")});
+    }
+  }
+  return rows.sort((a,b)=>b.selections-a.selections);
+}
+
+export function buildPageRows(events:AnalyticsEvent[]){return [...group(events,e=>e.pagePath||e.sourceContext||e.listContext).entries()].map(([path,items])=>({path,pageType:items.find(e=>e.pageType)?.pageType||"—",sessions:unique(items.map(e=>e.sessionId)),pageViews:count(items,"page_view"),productViews:count(items,"view_product"),brandViews:count(items,"view_brand"),saves:count(items,"save_product"),outbound:count(items,"outbound_product_click")+count(items,"outbound_brand_click")})).sort((a,b)=>b.pageViews+b.productViews+b.outbound-a.pageViews-a.productViews-a.outbound)}
+
+export function buildAcquisitionRows(events:AnalyticsEvent[]){return [...group(events,e=>[e.utmSource,e.utmMedium,e.utmCampaign,e.referrerDomain].join("|")).entries()].map(([key,items])=>{const [source,medium,campaign,referrer]=key.split("|");return{source:source||"Директен / неизвестен",medium:medium||"—",campaign:campaign||"—",referrer:referrer||"—",sessions:unique(items.map(e=>e.sessionId)),searches:count(items,"search"),views:count(items,"view_product"),saves:count(items,"save_product"),outbound:count(items,"outbound_product_click")+count(items,"outbound_brand_click")}}).sort((a,b)=>b.sessions-a.sessions)}
+
+export function buildFunnel(events:AnalyticsEvent[]){const searches=events.filter(e=>e.event==="search"),tracked=searches.filter(e=>hasReturnedData(e)&&e.searchId),ids=new Set(tracked.map(e=>e.searchId)),related=events.filter(e=>ids.has(e.searchId)),returns=tracked.reduce((n,e)=>n+returnedProducts(e).length+returnedBrands(e).length,0),impressions=count(related,"product_impression")+count(related,"brand_impression"),views=count(related,"view_product")+count(related,"view_brand"),saves=count(related,"save_product"),outbound=count(related,"outbound_product_click")+count(related,"outbound_brand_click");return{available:tracked.length>0,searches:searches.length,searchesWithResults:searches.filter(e=>e.resultCount>0).length,returns,impressions,views,saves,outbound,returnImpression:pct(impressions,returns),impressionView:pct(views,impressions),viewSave:pct(saves,views),viewOutbound:pct(outbound,views),searchOutbound:pct(outbound,tracked.length)}}
+
+export function buildBrandSearchRows(events:AnalyticsEvent[],brandId:string){const searches=events.filter(e=>e.event==="search"&&e.searchId);const rows=new Map<string,{query:string,returned:number,impressions:number,views:number,outbound:number}>();for(const s of searches){const productMatches=returnedProducts(s).filter(([,b])=>b===brandId).length;const brandMatches=returnedBrands(s).filter(([b])=>b===brandId).length;if(!productMatches&&!brandMatches)continue;const row=rows.get(s.searchTerm)||{query:s.searchTerm,returned:0,impressions:0,views:0,outbound:0};row.returned+=productMatches+brandMatches;const related=events.filter(e=>e.searchId===s.searchId&&e.brandId===brandId);row.impressions+=count(related,"product_impression")+count(related,"brand_impression");row.views+=count(related,"view_product")+count(related,"view_brand");row.outbound+=count(related,"outbound_product_click")+count(related,"outbound_brand_click");rows.set(s.searchTerm,row)}return[...rows.values()].sort((a,b)=>b.returned-a.returned)}

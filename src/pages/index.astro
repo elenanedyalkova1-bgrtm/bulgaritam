@@ -13,9 +13,11 @@ import defaultHomeHero from "../assets/home-hero-fashion-collage.webp";
 const [products, homepageSettings] = await Promise.all([loadProducts(), loadHomepageSettings()]);
 const displayProducts = products.filter((product) => product.image_urls?.[0]);
 const LAZY_IMAGE_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-const homeCategories = getAvailablePublicBrowse(displayProducts);
+const homeCategories = getAvailablePublicBrowse(displayProducts, true);
 const structuredAttributes = new Set(displayProducts.flatMap((product) => product.attributes));
 const attributeOptions = ["Веган", "Еко", "Натурален", "Органичен памук", "Ръчна изработка", "Персонализируем"].filter((value) => structuredAttributes.has(value));
+const materialOptions = [...new Set(displayProducts.flatMap((product) => product.materials).filter(Boolean))].sort((a, b) => a.localeCompare(b, "bg"));
+const colorOptions = [...new Set(displayProducts.flatMap((product) => product.colors).filter(Boolean))].sort((a, b) => a.localeCompare(b, "bg"));
 const structuredRecipients = new Set(displayProducts.filter((product) => product.giftable).flatMap((product) => product.recipient));
 const recipientOptions = ["За бебе", "За двойка", "За дете", "За жена", "За мъж"].filter((value) => structuredRecipients.has(value));
 const giftOccasionOptions = ["Рожден ден", "Сватба", "Новородено", "Свети Валентин"].filter((value) =>
@@ -107,6 +109,7 @@ function priceLabel(p) {
         <button class="discovery-shortcut" type="button" data-discovery-gift>🎁 <span>Търся нещо за подарък</span></button>
         <button class="discovery-shortcut" type="button" data-discovery-surprise>🎲 <span>Изненадай ме</span></button>
       </div>
+      <div class="gift-hub-entry"><a href="/bulgarski-podaratsi/"><span>🎁</span> Разгледай всички идеи за подарък <span aria-hidden="true">→</span></a></div>
       <div class="self-category-choices" id="selfCategoryChoices" role="group" aria-label="Избери категория" hidden>
         {[["clothing","Облекло"],["accessories","Аксесоари"],["cosmetics","Козметика"],["health","Здраве и грижа"],["books","Книги, игри и творчество"]].map(([key,label]) =>
           <button class="chip chip-sub" type="button" data-self-category={key}>{label}</button>
@@ -223,18 +226,32 @@ function priceLabel(p) {
         </div>
 
         {attributeOptions.length ? (
-          <div class="filters-group filters-group--spaced">
+          <div class="filters-group filters-group--spaced" data-dynamic-filter-group="attribute">
             <p class="filters-group__label">Характеристики</p>
             <div class="filter-options-grid">
               {attributeOptions.map((attribute) => (
-                <label class="filter-option filter-option--checkbox">
+                <label class="filter-option filter-option--checkbox" data-dynamic-filter-option>
                   <input type="checkbox" name="attributeFilter" value={attribute} />
-                  <span>{attribute}</span>
+                  <span data-filter-label={attribute}>{attribute}</span>
                 </label>
               ))}
             </div>
           </div>
         ) : null}
+
+        <div class="filters-group filters-group--spaced" data-dynamic-filter-group="material" hidden>
+          <p class="filters-group__label">Материал</p>
+          <div class="filter-options-grid">
+            {materialOptions.map((value) => <label class="filter-option filter-option--checkbox" data-dynamic-filter-option><input type="checkbox" name="materialFilter" value={value} /><span data-filter-label={value}>{value}</span></label>)}
+          </div>
+        </div>
+
+        <div class="filters-group filters-group--spaced" data-dynamic-filter-group="color" hidden>
+          <p class="filters-group__label">Цвят</p>
+          <div class="filter-options-grid">
+            {colorOptions.map((value) => <label class="filter-option filter-option--checkbox" data-dynamic-filter-option><input type="checkbox" name="colorFilter" value={value} /><span data-filter-label={value}>{value}</span></label>)}
+          </div>
+        </div>
 
         <div class="filters-group">
           <p class="filters-group__label">Доставка</p>
@@ -358,6 +375,8 @@ function priceLabel(p) {
               data-recipients={p.recipient.join("|")}
               data-gift-occasions={p.gift_occasion.join("|")}
               data-attributes={p.attributes.join("|")}
+              data-materials={p.materials.join("|")}
+              data-colors={p.colors.join("|")}
               data-search={buildSearchDocument([
                 p.name_bg,
                 p.brand_name,
@@ -539,7 +558,7 @@ function priceLabel(p) {
       max-width: 640px;
       width: 100%;
       height: 58px;
-      border-radius: 999px;
+      border-radius: 14px;
       padding: 0 22px;
       font-size: 16px;
       border: 1px solid rgba(26, 26, 26, 0.08);
@@ -583,6 +602,10 @@ function priceLabel(p) {
     }
 
     .discovery-shortcut span { min-width: 0; }
+
+    .gift-hub-entry { display: flex; justify-content: center; margin: 4px auto 14px; }
+    .gift-hub-entry a { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(123,64,59,.16); background: rgba(255,255,255,.58); color: rgba(83,48,44,.9); font-size: 13px; font-weight: 750; text-decoration: none; box-shadow: 0 8px 20px rgba(0,0,0,.035); }
+    .gift-hub-entry a:hover, .gift-hub-entry a:focus-visible { background: rgba(255,255,255,.9); border-color: rgba(123,64,59,.28); }
 
     .discovery-shortcut:hover,
     .discovery-shortcut:focus-visible {
@@ -675,7 +698,7 @@ function priceLabel(p) {
     .discovery-btn,
     .sort-select {
       min-height: 48px;
-      border-radius: 999px;
+      border-radius: 14px;
       border: 1px solid rgba(26, 26, 26, 0.1);
       background: rgba(255, 255, 255, 0.82);
       box-shadow: 0 12px 26px rgba(0, 0, 0, 0.05);
@@ -1776,6 +1799,8 @@ function priceLabel(p) {
     let selectedSort = "featured";
     let selectedGiftFilters = [];
     let selectedAttributes = [];
+    let selectedMaterials = [];
+    let selectedColors = [];
     let currentSearchIntent = null;
     let searchFallbackRequired = false;
     let searchTrackTimer = 0;
@@ -1997,6 +2022,11 @@ function priceLabel(p) {
         return;
       }
 
+      const searchId = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+      window.__bulgaritamDiscoveryContext = {
+        ...(window.__bulgaritamDiscoveryContext || {}),
+        search_id: searchId,
+      };
       searchTrackTimer = window.setTimeout(() => {
         const signature = [
           normalized,
@@ -2006,11 +2036,11 @@ function priceLabel(p) {
           matchedCards.length,
         ].join("|");
 
-        if (signature === lastTrackedSearchSignature) return;
         lastTrackedSearchSignature = signature;
 
         const intent = currentSearchIntent;
         const searchParams = {
+          search_id: searchId,
           query: String(value || "").trim(),
           search_term: String(value || "").trim(),
           normalized_query: normalized,
@@ -2024,7 +2054,15 @@ function priceLabel(p) {
           gift_recipient: intent?.recipients?.join(",") || "",
           gift_occasion: intent?.occasions?.join(",") || "",
         };
-        window.bulgaritamTrack?.("search", searchParams);
+        const returnedProducts = matchedCards.map((card, position) => [
+          card.dataset.productId || "",
+          card.dataset.brandId || "",
+          position + 1,
+        ]);
+        window.bulgaritamTrack?.("search", {
+          ...searchParams,
+          returned_products_json: JSON.stringify(returnedProducts),
+        });
         window.bulgaritamTrack?.(matchedCards.length ? "search_results_view" : "search_no_results", searchParams);
       }, 700);
     };
@@ -2224,7 +2262,7 @@ function priceLabel(p) {
     }
 
     function updateFiltersBadge() {
-      const total = (selectedPriceRange !== "all" ? 1 : 0) + (selectedDeliveryOutside ? 1 : 0) + selectedAttributes.length;
+      const total = (selectedPriceRange !== "all" ? 1 : 0) + (selectedDeliveryOutside ? 1 : 0) + selectedAttributes.length + selectedMaterials.length + selectedColors.length;
       if (!filtersBadge) return;
       if (total > 0) {
         filtersBadge.textContent = String(total);
@@ -2265,6 +2303,8 @@ function priceLabel(p) {
       if (selectedPriceRange !== "all") chips.push({ key: "price", label: selectedPriceRange === "0-25" ? "До €25" : selectedPriceRange === "100+" ? "€100+" : `€${selectedPriceRange}` });
       if (selectedDeliveryOutside) chips.push({ key: "delivery", label: "Доставка извън България" });
       selectedAttributes.forEach((label) => chips.push({ key: `attribute:${label}`, label }));
+      selectedMaterials.forEach((label) => chips.push({ key: `material:${label}`, label }));
+      selectedColors.forEach((label) => chips.push({ key: `color:${label}`, label }));
       selectedGiftFilters.forEach((value) => chips.push({ key: `gift:${value}`, label: value === "giftable:true" ? "Подарък" : value.split(":").slice(1).join(":") || "Подарък" }));
       activeSelections.innerHTML = "";
       chips.forEach(({ key, label }) => {
@@ -2296,6 +2336,8 @@ function priceLabel(p) {
       else if (key === "price") selectedPriceRange = "all";
       else if (key === "delivery") selectedDeliveryOutside = false;
       else if (key.startsWith("attribute:")) selectedAttributes = selectedAttributes.filter((value) => value !== key.slice(10));
+      else if (key.startsWith("material:")) selectedMaterials = selectedMaterials.filter((value) => value !== key.slice(9));
+      else if (key.startsWith("color:")) selectedColors = selectedColors.filter((value) => value !== key.slice(6));
       else if (key.startsWith("gift:")) selectedGiftFilters = selectedGiftFilters.filter((value) => value !== key.slice(5));
       applyDiscovery(q.value || "");
       focusResults();
@@ -2304,7 +2346,7 @@ function priceLabel(p) {
     function clearAllSelections() {
       window.bulgaritamTrack?.("clear_filters", window.__bulgaritamDiscoveryContext || {});
       activeCategoryKey = ""; activeSubcategoryKey = ""; activeProductType = "";
-      selectedPriceRange = "all"; selectedDeliveryOutside = false; selectedAttributes = []; selectedGiftFilters = []; q.value = "";
+      selectedPriceRange = "all"; selectedDeliveryOutside = false; selectedAttributes = []; selectedMaterials = []; selectedColors = []; selectedGiftFilters = []; q.value = "";
       renderSubChips(null); renderTypeChips(); syncFilterInputs(); syncOccasionInputs(); applyDiscovery("");
       focusResults();
     }
@@ -2319,12 +2361,16 @@ function priceLabel(p) {
 
       const matchesManualFilters = (card) => {
         const attributes = splitPipeValues(card.dataset.attributes);
+        const materials = splitPipeValues(card.dataset.materials);
+        const colors = splitPipeValues(card.dataset.colors);
         const recipients = splitPipeValues(card.dataset.recipients);
         const giftOccasions = splitPipeValues(card.dataset.giftOccasions);
         const matchesCategory = !categoryFilterKey || card.dataset.publicCategory === categoryFilterKey;
         const matchesSubcategory = !subcategoryFilterKey || card.dataset.publicSubcategory === subcategoryFilterKey;
         const matchesProductType = !activeProductType || card.dataset.productType === activeProductType;
         const matchesAttributes = !selectedAttributes.length || selectedAttributes.every((entry) => attributes.includes(entry));
+        const matchesMaterials = !selectedMaterials.length || selectedMaterials.some((entry) => materials.includes(entry));
+        const matchesColors = !selectedColors.length || selectedColors.some((entry) => colors.includes(entry));
         const matchesGift = !selectedGiftFilters.length || (card.dataset.giftable === "1" && selectedGiftFilters.every((filter) => {
           const [kind, ...rest] = filter.split(":");
           const filterValue = rest.join(":");
@@ -2335,7 +2381,7 @@ function priceLabel(p) {
           return false;
         }));
         const matchesDelivery = !selectedDeliveryOutside || card.dataset.deliversAbroad === "1";
-        return matchesCategory && matchesSubcategory && matchesProductType && matchesAttributes && matchesGift && matchesPriceRange(card, selectedPriceRange) && matchesDelivery;
+        return matchesCategory && matchesSubcategory && matchesProductType && matchesAttributes && matchesMaterials && matchesColors && matchesGift && matchesPriceRange(card, selectedPriceRange) && matchesDelivery;
       };
 
       const matchesIntent = (card) => {
@@ -2402,7 +2448,7 @@ function priceLabel(p) {
         product_type: currentSearchIntent?.productType || activeProductType || "",
         gift_recipient: currentSearchIntent?.recipients?.join(",") || selectedGiftFilters.filter((entry) => entry.startsWith("recipient:")).map((entry) => entry.slice(10)).join(","),
         gift_occasion: currentSearchIntent?.occasions?.join(",") || selectedGiftFilters.filter((entry) => entry.startsWith("occasion:")).map((entry) => entry.slice(9)).join(","),
-        active_filters: [...selectedAttributes, selectedPriceRange !== "all" ? selectedPriceRange : "", selectedDeliveryOutside ? "delivery_abroad" : ""].filter(Boolean).join(","),
+        active_filters: [...selectedAttributes, ...selectedMaterials, ...selectedColors, selectedPriceRange !== "all" ? selectedPriceRange : "", selectedDeliveryOutside ? "delivery_abroad" : ""].filter(Boolean).join(","),
         list_context: derivedListContext,
         list_name: "Начална discovery мрежа",
       };
@@ -2522,6 +2568,8 @@ function priceLabel(p) {
           activeCategoryKey = cat.key;
           activeSubcategoryKey = s.key;
           activeProductType = "";
+          selectedMaterials = [];
+          selectedColors = [];
           removeStructuredTermsFromSearch();
           renderTypeChips();
           applyDiscovery(q.value || "");
@@ -2540,11 +2588,16 @@ function priceLabel(p) {
         return;
       }
       const counts = new Map();
+      const allowedTypes = new Set(
+        CATEGORIES.find((category) => category.key === activeCategoryKey)
+          ?.subcategories.find((subcategory) => subcategory.key === activeSubcategoryKey)
+          ?.productTypes || []
+      );
       allCards
         .filter((card) => card.dataset.publicCategory === activeCategoryKey && card.dataset.publicSubcategory === activeSubcategoryKey)
         .forEach((card) => {
           const value = card.dataset.productType || "";
-          if (value) counts.set(value, (counts.get(value) || 0) + 1);
+          if (value && allowedTypes.has(value)) counts.set(value, (counts.get(value) || 0) + 1);
         });
       const types = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "bg"));
       typeChips.innerHTML = "";
@@ -2556,6 +2609,8 @@ function priceLabel(p) {
         button.textContent = `${value} (${productCount})`;
         button.addEventListener("click", () => {
           activeProductType = activeProductType === value ? "" : value;
+          selectedMaterials = [];
+          selectedColors = [];
           removeStructuredTermsFromSearch();
           window.bulgaritamTrack?.("select_product_type", { selected_value: value, filter_name: "product_type", filter_value: value, ...(window.__bulgaritamDiscoveryContext || {}) });
           applyDiscovery(q.value || "");
@@ -2577,8 +2632,35 @@ function priceLabel(p) {
       document.documentElement.classList.toggle("no-scroll", isOpen);
     }
 
+    function updateDynamicFilterOptions() {
+      const candidates = allCards.filter((card) =>
+        (!activeCategoryKey || card.dataset.publicCategory === activeCategoryKey) &&
+        (!activeSubcategoryKey || card.dataset.publicSubcategory === activeSubcategoryKey) &&
+        (!activeProductType || card.dataset.productType === activeProductType)
+      );
+      [["attribute", "attributes", selectedAttributes], ["material", "materials", selectedMaterials], ["color", "colors", selectedColors]].forEach(([groupName, dataKey, selected]) => {
+        const group = filtersModal?.querySelector(`[data-dynamic-filter-group="${groupName}"]`);
+        if (!group) return;
+        const counts = new Map();
+        candidates.forEach((card) => splitPipeValues(card.dataset[dataKey]).forEach((value) => counts.set(value, (counts.get(value) || 0) + 1)));
+        let available = 0;
+        group.querySelectorAll("[data-dynamic-filter-option]").forEach((option) => {
+          const input = option.querySelector("input");
+          const count = counts.get(input.value) || 0;
+          const isSelected = selected.includes(input.value);
+          option.hidden = count === 0 && !isSelected;
+          input.disabled = count === 0 && !isSelected;
+          const label = option.querySelector("[data-filter-label]");
+          if (label) label.textContent = `${label.dataset.filterLabel} (${count})`;
+          if (count > 0) available += 1;
+        });
+        group.hidden = available < 2 && selected.length === 0;
+      });
+    }
+
     function openFilters() {
       if (!filtersModal) return;
+      updateDynamicFilterOptions();
       syncFilterInputs();
       filtersModal.removeAttribute("hidden");
       filtersToggle?.setAttribute("aria-expanded", "true");
@@ -2604,6 +2686,8 @@ function priceLabel(p) {
       filtersModal?.querySelectorAll('input[name="attributeFilter"]').forEach((input) => {
         input.checked = selectedAttributes.includes(input.value);
       });
+      filtersModal?.querySelectorAll('input[name="materialFilter"]').forEach((input) => { input.checked = selectedMaterials.includes(input.value); });
+      filtersModal?.querySelectorAll('input[name="colorFilter"]').forEach((input) => { input.checked = selectedColors.includes(input.value); });
       const priceInput = filtersModal?.querySelector(`input[name="priceFilter"][value="${selectedPriceRange}"]`);
       if (priceInput) priceInput.checked = true;
       const deliveryInput = document.getElementById("deliveryOutsideHome");
@@ -2630,6 +2714,8 @@ function priceLabel(p) {
       activeCategoryKey = category.key;
       activeSubcategoryKey = "";
       activeProductType = "";
+      selectedMaterials = [];
+      selectedColors = [];
       renderSubChips(category);
       renderTypeChips();
       applyDiscovery(q.value || "");
@@ -2753,6 +2839,14 @@ function priceLabel(p) {
       ).map((input) => input.value);
       selectedGiftFilters.unshift("giftable:true");
       selectedPriceRange = occasionModal?.querySelector('input[name="giftPriceFilter"]:checked')?.value || "all";
+      window.bulgaritamTrack?.("apply_filter", {
+        selected_value: selectedPriceRange,
+        filter_name: "gift_budget",
+        filter_value: selectedPriceRange,
+        price_range: selectedPriceRange,
+        source_context: "gift_discovery",
+        ...(window.__bulgaritamDiscoveryContext || {}),
+      });
       selectedGiftFilters.forEach((filter) => {
         const [kind, ...parts] = filter.split(":");
         const selectedValue = parts.join(":");
@@ -2770,6 +2864,11 @@ function priceLabel(p) {
     });
 
     occasionReset?.addEventListener("click", () => {
+      window.bulgaritamTrack?.("clear_filters", {
+        filter_name: "gift_filters",
+        source_context: "gift_discovery",
+        ...(window.__bulgaritamDiscoveryContext || {}),
+      });
       selectedGiftFilters = [];
       selectedPriceRange = "all";
       syncOccasionInputs();
@@ -2788,14 +2887,18 @@ function priceLabel(p) {
       selectedPriceRange = checked?.value || "all";
       selectedDeliveryOutside = Boolean(document.getElementById("deliveryOutsideHome")?.checked);
       selectedAttributes = Array.from(filtersModal?.querySelectorAll('input[name="attributeFilter"]:checked') || []).map((input) => input.value);
+      selectedMaterials = Array.from(filtersModal?.querySelectorAll('input[name="materialFilter"]:checked') || []).map((input) => input.value);
+      selectedColors = Array.from(filtersModal?.querySelectorAll('input[name="colorFilter"]:checked') || []).map((input) => input.value);
       closeFilters();
       applyDiscovery(q.value);
       window.bulgaritamTrack?.("apply_filter", {
         filter_name: "product_constraints",
-        filter_value: [selectedPriceRange, selectedDeliveryOutside ? "delivery_abroad" : "", ...selectedAttributes].filter(Boolean).join(","),
+        filter_value: [selectedPriceRange, selectedDeliveryOutside ? "delivery_abroad" : "", ...selectedAttributes, ...selectedMaterials, ...selectedColors].filter(Boolean).join(","),
         price_range: selectedPriceRange,
         delivers_outside_bulgaria: selectedDeliveryOutside,
         attributes: selectedAttributes,
+        materials: selectedMaterials,
+        colors: selectedColors,
         result_count: matchedCards.length,
         ...(window.__bulgaritamDiscoveryContext || {}),
       });
@@ -2804,14 +2907,22 @@ function priceLabel(p) {
     });
 
     filtersReset?.addEventListener("click", () => {
+      window.bulgaritamTrack?.("clear_filters", {
+        filter_name: "product_constraints",
+        source_context: "homepage_discovery",
+        ...(window.__bulgaritamDiscoveryContext || {}),
+      });
       selectedPriceRange = "all";
       selectedDeliveryOutside = false;
       selectedAttributes = [];
+      selectedMaterials = [];
+      selectedColors = [];
       const first = filtersModal?.querySelector('input[name="priceFilter"][value="all"]');
       if (first) first.checked = true;
       const deliveryCheckbox = document.getElementById("deliveryOutsideHome");
       if (deliveryCheckbox) deliveryCheckbox.checked = false;
       filtersModal?.querySelectorAll('input[name="attributeFilter"]').forEach((input) => { input.checked = false; });
+      filtersModal?.querySelectorAll('input[name="materialFilter"], input[name="colorFilter"]').forEach((input) => { input.checked = false; });
       closeFilters();
       applyDiscovery(q.value);
       pulseResults();

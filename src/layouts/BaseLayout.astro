@@ -185,6 +185,7 @@ const socialImage = normalizeUrl(seoData.image) || `${SITE_URL}/social-preview.p
 const openGraphType = seoType === "product" ? "product" : "website";
 const gaMeasurementId = normalizeText(import.meta.env.PUBLIC_GA_MEASUREMENT_ID) || "G-7XT69Z6DKS";
 const gtmContainerId = normalizeText(import.meta.env.PUBLIC_GTM_CONTAINER_ID) || "GTM-58MC374T";
+const newsletterEndpoint = normalizeText(import.meta.env.PUBLIC_NEWSLETTER_ENDPOINT) || "https://admin.bulgaritam.bg/api/newsletter/";
 const faviconSvg = "/favicon.svg";
 const faviconPng48 = "/favicon-48x48.png";
 const faviconPng192 = "/favicon-192x192.png";
@@ -246,15 +247,6 @@ if (seoType === "product" && seoData.productName) {
     image: productImage ? [productImage] : undefined,
     brand: brandName ? { "@type": "Brand", name: brandName } : undefined,
     category: normalizeText(seoData.category) || undefined,
-    offers: seoData.productUrl
-      ? {
-          "@type": "Offer",
-          url: normalizeUrl(seoData.productUrl) || resolvedCanonical,
-          priceCurrency: normalizeText(seoData.currency) || "EUR",
-          price: seoData.price ?? undefined,
-          availability: "https://schema.org/InStock",
-        }
-      : undefined,
   };
 
   structuredData.push(productSchema);
@@ -292,6 +284,7 @@ if (seoType === "category" && seoData.category) {
     <meta name="description" content={resolvedDescription} />
     <meta name="robots" content={robotsDirective} />
     <meta name="googlebot" content={robotsDirective} />
+    <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="icon" type="image/svg+xml" sizes="any" href={faviconSvg} />
     <link rel="icon" type="image/png" sizes="48x48" href={faviconPng48} />
     <link rel="icon" type="image/png" sizes="192x192" href={faviconPng192} />
@@ -323,20 +316,60 @@ if (seoType === "category" && seoData.category) {
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;600;700&display=swap"
     />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;600;700&display=swap"
       media="print"
       onload="this.media='all'"
     />
     <noscript>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;600;700&display=swap"
       />
     </noscript>
+
+    <!-- Consent Mode must be initialized before GTM or the Google tag loads. -->
+    <script is:inline>
+      (() => {
+        const consentKey = "bulgaritam_cookie_consent_v1";
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
+
+        if (!window.__bulgaritamConsentDefaultSet) {
+          window.gtag("consent", "default", {
+            analytics_storage: "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+            wait_for_update: 500,
+          });
+          window.__bulgaritamConsentDefaultSet = true;
+          window.__bulgaritamGoogleConsentState = "denied";
+        }
+
+        try {
+          const stored = JSON.parse(window.localStorage.getItem(consentKey) || "null");
+          if (!stored) return;
+          const analyticsGranted = Boolean(stored.analytics) &&
+            !document.cookie.split(";").some((part) => part.trim() === "bulgaritam_analytics_excluded=1");
+          const analyticsState = analyticsGranted ? "granted" : "denied";
+          document.documentElement.dataset.cookieAnalytics = analyticsGranted ? "1" : "0";
+          window.__cookieConsent = { necessary: true, analytics: analyticsGranted };
+          window.gtag("consent", "update", {
+            analytics_storage: analyticsState,
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+          });
+          window.__bulgaritamGoogleConsentState = analyticsState;
+        } catch {
+          // Keep the privacy-safe defaults when storage is unavailable or invalid.
+        }
+      })();
+    </script>
 
     <!-- Microsoft Clarity -->
     <script is:inline>
@@ -356,8 +389,14 @@ if (seoType === "category" && seoData.category) {
             ? () => window.requestIdleCallback(startClarity, { timeout: 2500 })
             : () => window.setTimeout(startClarity, 1800);
 
-        if (document.readyState === "complete") schedule();
-        else window.addEventListener("load", schedule, { once: true });
+        const scheduleWhenGranted = () => {
+          if (!window.__cookieConsent?.analytics) return;
+          if (document.readyState === "complete") schedule();
+          else window.addEventListener("load", schedule, { once: true });
+        };
+
+        scheduleWhenGranted();
+        window.addEventListener("cookie-consent", scheduleWhenGranted);
       })();
     </script>
 
@@ -436,7 +475,8 @@ if (seoType === "category" && seoData.category) {
           if (typeof value === "boolean") return value ? "1" : "0";
           if (["board_name", "collection_name", "email", "phone", "destination_url"].includes(key)) return undefined;
           const stringValue = redactPotentialPii(value).trim();
-          return stringValue ? stringValue.slice(0, 240) : undefined;
+          const maxLength = ["returned_products_json", "returned_brands_json"].includes(key) ? 20_000 : 240;
+          return stringValue ? stringValue.slice(0, maxLength) : undefined;
         };
 
         const sanitizeParams = (params = {}) =>
@@ -452,12 +492,6 @@ if (seoType === "category" && seoData.category) {
           window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
           if (!window.__bulgaritamGaInitialized) {
             window.gtag("js", new Date());
-            window.gtag("consent", "default", {
-              analytics_storage: "denied",
-              ad_storage: "denied",
-              ad_user_data: "denied",
-              ad_personalization: "denied",
-            });
             if (!containerId && measurementId) {
               window.gtag("config", measurementId, { anonymize_ip: true, send_page_view: false });
             }
@@ -476,12 +510,27 @@ if (seoType === "category" && seoData.category) {
         const applyConsentToGa = () => {
           if ((!measurementId && !containerId) || typeof window.gtag !== "function") return;
           const granted = hasAnalyticsConsent() && !isAnalyticsExcluded();
+          const analyticsState = granted ? "granted" : "denied";
+          if (window.__bulgaritamGoogleConsentState === analyticsState) {
+            if (granted && !window.__bulgaritamInitialPageviewSent) {
+              window.bulgaritamTrack?.("page_view", {
+                page_path: window.location.pathname,
+                page_title: document.title,
+                language: getLanguage(),
+                device_type: getDeviceType(),
+              });
+              window.__bulgaritamInitialPageviewSent = true;
+            }
+            if (granted) flushQueue();
+            return;
+          }
           window.gtag("consent", "update", {
-            analytics_storage: granted ? "granted" : "denied",
+            analytics_storage: analyticsState,
             ad_storage: "denied",
             ad_user_data: "denied",
             ad_personalization: "denied",
           });
+          window.__bulgaritamGoogleConsentState = analyticsState;
 
           if (granted && !window.__bulgaritamInitialPageviewSent) {
             window.bulgaritamTrack?.("page_view", {
@@ -515,6 +564,7 @@ if (seoType === "category" && seoData.category) {
           const searchTerm = payload.search_term || payload.query;
           if (!searchTerm && !payload.category && !payload.subcategory && !payload.active_filters) return;
           const context = sanitizeParams({
+            search_id: payload.search_id,
             search_term: searchTerm,
             normalized_query: payload.normalized_query,
             structured_intent: payload.structured_intent,
@@ -664,8 +714,8 @@ if (seoType === "category" && seoData.category) {
             entries.forEach((entry) => {
               if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
               const node = entry.target;
-              const context = getDiscoveryContext();
-              const signature = JSON.stringify([context.query || "", context.category || "", context.subcategory || "", context.product_type || "", node.dataset.listContext || ""]);
+              const context = { ...readPersistedDiscoveryContext(), ...getDiscoveryContext() };
+              const signature = JSON.stringify([context.search_id || "", context.query || context.search_term || "", context.category || "", context.subcategory || "", context.product_type || "", node.dataset.listContext || ""]);
               const seen = impressionSeen.get(node) || new Set();
               if (seen.has(signature)) return;
               seen.add(signature);
@@ -745,6 +795,8 @@ if (seoType === "category" && seoData.category) {
             data-i18n="nav.recommended"
           >Препоръчано</a>
 
+          <a href="/bulgarski-podaratsi/" class:list={{ "nav-link": true, "is-active": isActive("/bulgarski-podaratsi") }} data-i18n="nav.gifts">Подаръци</a>
+
           <a class="nav-link" href="/bulgarski-brandove/" data-i18n="nav.brands">Брандове</a>
 
           <a
@@ -806,6 +858,7 @@ if (seoType === "category" && seoData.category) {
             </a>
 
             <a href="/blog/" class:list={{ "nav-link": true, "is-active": isActive("/blog") }} data-i18n="nav.recommended">Препоръчано</a>
+            <a href="/bulgarski-podaratsi/" class:list={{ "nav-link": true, "is-active": isActive("/bulgarski-podaratsi") }} data-i18n="nav.gifts">Подаръци</a>
             <a class="nav-link" href="/bulgarski-brandove/" data-i18n="nav.brands">Брандове</a>
             <a href="/za-nas/" class:list={{ "nav-link": true, "is-active": isActive("/za-nas") }} data-i18n="nav.about">За нас</a>
             <a href="/partnyori/" class:list={{ "nav-link": true, "is-active": isActive("/partnyori") }} data-i18n="nav.partner">Стани партньор</a>
@@ -868,6 +921,25 @@ if (seoType === "category" && seoData.category) {
 
     <!-- PAGE CONTENT -->
     <slot />
+    <button class="scroll-to-top" type="button" aria-label="Към началото" title="Към началото" hidden>↑</button>
+    <script is:inline>
+      (() => {
+        const button = document.querySelector(".scroll-to-top");
+        if (!button) return;
+        const getScrollTop = () => Math.max(window.scrollY, document.documentElement.scrollTop, document.body.scrollTop);
+        const update = () => button.toggleAttribute("hidden", getScrollTop() < 420);
+        window.addEventListener("scroll", update, { passive: true });
+        document.body.addEventListener("scroll", update, { passive: true });
+        button.addEventListener("click", () => {
+          const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+          const scroller = document.body.scrollHeight > document.documentElement.scrollHeight
+            ? document.body
+            : (document.scrollingElement || document.documentElement);
+          scroller.scrollTo({ top: 0, behavior });
+        });
+        update();
+      })();
+    </script>
     <script is:inline>
   // ==========================================
   // Bulgaritam Saved Boards (single device)
@@ -1220,9 +1292,10 @@ window.addEventListener("bulgaritam:saved", (e) => {
     <footer class="footer">
       <div class="wrap footer-inner">
         <div class="footer-col">
-          <a class="footer-brand footer-link" href="/">Българитъм</a>
+          <a class="footer-brand footer-link" href="/">БЪЛГАРИТЪМ</a>
+          <div class="footer-positioning-title">Откривай какво се създава в България</div>
           <div class="footer-note" data-i18n="footer.note">
-            Откривай български марки и продукти на едно място - представени по начин, който прави търсенето по-лесно, по-бързо и по-вдъхновяващо.
+            Намери бранд, конкретен продукт или просто следващата си находка. Разглеждай по категория, повод и това, което наистина търсиш, и запазвай нещата, към които искаш да се върнеш.
           </div>
           <div class="footer-made" data-i18n="footer.made">Създадено в България 🇧🇬</div>
         </div>
@@ -1234,6 +1307,8 @@ window.addEventListener("bulgaritam:saved", (e) => {
             <a class="footer-link" href="/bulgarski-brandove/" data-i18n="nav.brands">Брандове</a>
             <a class="footer-link" href="/zapazeni/" data-i18n="nav.saved">Запазени</a>
             <a class="footer-link" href="/blog/" data-i18n="nav.recommended">Препоръчано</a>
+            <a class="footer-link" href="/rachno-izraboteni/">Ръчно изработени</a>
+            <a class="footer-link" href="/k/bijuta/">Бижута</a>
           </nav>
         </div>
 
@@ -1263,6 +1338,102 @@ window.addEventListener("bulgaritam:saved", (e) => {
         </div>
       </div>
     </footer>
+
+    <div class="newsletter-modal" id="newsletter-modal" hidden>
+      <button class="newsletter-modal__backdrop" type="button" aria-label="Затвори" data-newsletter-close></button>
+      <section class="newsletter-modal__card" role="dialog" aria-modal="true" aria-labelledby="newsletter-title">
+        <button class="newsletter-modal__close" type="button" aria-label="Затвори" data-newsletter-close>×</button>
+        <p class="newsletter-modal__kicker">Подбрано от Българитъм</p>
+        <h2 id="newsletter-title">Избери какво искаш да получаваш</h2>
+        <p class="newsletter-modal__intro">Само темите, които са ти полезни. Можеш да избереш една или повече.</p>
+        <form class="newsletter-form" name="bulgaritam-newsletter">
+          <div class="newsletter-form__identity">
+            <label><span>Име</span><input type="text" name="name" autocomplete="name" required /></label>
+            <label><span>Имейл</span><input type="email" name="email" autocomplete="email" required /></label>
+          </div>
+          <fieldset>
+            <legend>Какъв тип информация искаш да получаваш?</legend>
+            <label class="newsletter-theme newsletter-theme--primary"><input type="checkbox" name="preference_discounts" value="Да" /><span><strong>Отстъпки</strong><small>Подбрана информация за намаления и продукти с отстъпка от български брандове, открити чрез Българитъм.</small></span></label>
+            <label class="newsletter-theme"><input type="checkbox" name="preference_discoveries" value="Да" /><span><strong>Нови български находки</strong><small>Интересни продукти и брандове, които добавяме и откриваме чрез Българитъм.</small></span></label>
+            <label class="newsletter-theme"><input type="checkbox" name="preference_for_brands" value="Да" /><span><strong>От брандовете</strong><small>Полезни бизнес изводи, уроци и обобщени практики или статистики, споделени от български брандове.</small></span></label>
+          </fieldset>
+          <button class="newsletter-form__submit" type="submit">Искам да получавам</button>
+          <p class="newsletter-form__status" role="status" aria-live="polite" hidden></p>
+          <p class="newsletter-form__privacy">С изпращането се съгласяваш да използваме данните ти за избраните известия. Можеш да се отпишеш по всяко време. Виж <a href="/politika-na-poveritelnost/">политиката за поверителност</a>.</p>
+        </form>
+      </section>
+    </div>
+    <script is:inline define:vars={{ newsletterEndpoint }}>
+      (() => {
+        const modal = document.getElementById("newsletter-modal");
+        const form = modal?.querySelector("form");
+        const preferenceInputs = Array.from(form?.querySelectorAll('input[type="checkbox"]') || []);
+        const submitButton = form?.querySelector('button[type="submit"]');
+        const status = form?.querySelector(".newsletter-form__status");
+        const storageKey = "bulgaritam_newsletter_dismissed_v1";
+        const close = () => {
+          modal?.setAttribute("hidden", "");
+          document.documentElement.classList.remove("newsletter-open");
+          try { sessionStorage.setItem(storageKey, "1"); } catch {}
+        };
+        modal?.querySelectorAll("[data-newsletter-close]").forEach((button) => button.addEventListener("click", close));
+        document.addEventListener("keydown", (event) => { if (event.key === "Escape" && modal && !modal.hidden) close(); });
+        form?.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const first = preferenceInputs[0];
+          first?.setCustomValidity(preferenceInputs.some((input) => input.checked) ? "" : "Избери поне една тема.");
+          if (!form.reportValidity()) return;
+
+          if (submitButton) submitButton.disabled = true;
+          if (status) {
+            status.hidden = true;
+            status.className = "newsletter-form__status";
+          }
+
+          const data = new FormData(form);
+          const payload = {
+            name: String(data.get("name") || "").trim(),
+            email: String(data.get("email") || "").trim(),
+            discounts_opt_in: data.has("preference_discounts"),
+            new_finds_opt_in: data.has("preference_discoveries"),
+            brand_insights_opt_in: data.has("preference_for_brands"),
+          };
+
+          try {
+            const response = await fetch(newsletterEndpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.accepted !== true) throw new Error(result.error || "Записването не беше успешно.");
+            form.reset();
+            try { sessionStorage.setItem(storageKey, "1"); } catch {}
+            if (status) {
+              status.textContent = "Готово! Записа се успешно за избраните теми.";
+              status.classList.add("is-success");
+              status.hidden = false;
+            }
+          } catch (error) {
+            if (status) {
+              status.textContent = error instanceof Error ? error.message : "Възникна грешка. Опитай отново.";
+              status.classList.add("is-error");
+              status.hidden = false;
+            }
+          } finally {
+            if (submitButton) submitButton.disabled = false;
+          }
+        });
+        preferenceInputs.forEach((input) => input.addEventListener("change", () => preferenceInputs[0]?.setCustomValidity("")));
+        let dismissed = false;
+        try { dismissed = sessionStorage.getItem(storageKey) === "1"; } catch {}
+        if (!dismissed) window.setTimeout(() => {
+          modal?.removeAttribute("hidden");
+          document.documentElement.classList.add("newsletter-open");
+          window.setTimeout(() => modal?.querySelector("input")?.focus(), 180);
+        }, 15000);
+      })();
+    </script>
 
     <!-- COOKIE BANNER -->
     <div id="cookie-banner" class="cookie" hidden>
@@ -1485,11 +1656,12 @@ window.addEventListener("bulgaritam:saved", (e) => {
           "nav.saved": "Запазени",
           "nav.recommended": "Препоръчано",
           "nav.brands": "Брандове",
+          "nav.gifts": "Подаръци",
           "nav.about": "За нас",
           "nav.partner": "Стани партньор",
           "nav.apply": "Кандидатствай",
           "nav.menu": "Меню",
-          "footer.note": "Откривай български марки и продукти на едно място - представени по начин, който прави търсенето по-лесно, по-бързо и по-вдъхновяващо.",
+          "footer.note": "Намери бранд, конкретен продукт или просто следващата си находка. Разглеждай по категория, повод и това, което наистина търсиш, и запазвай нещата, към които искаш да се върнеш.",
           "footer.made": "Създадено в България 🇧🇬",
           "footer.explore": "Разгледай",
           "footer.categories": "Категории",
@@ -1524,6 +1696,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
           "nav.saved": "Saved",
           "nav.recommended": "Recommended",
           "nav.brands": "Brands",
+          "nav.gifts": "Gifts",
           "nav.about": "About",
           "nav.partner": "Become a partner",
           "nav.apply": "Apply",

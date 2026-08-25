@@ -50,7 +50,9 @@ export const POST: APIRoute = async ({ request }) => {
   const safePayload = Object.fromEntries(
     Object.entries(input).filter(([key, value]) =>
       !FORBIDDEN_KEYS.has(key) && (typeof value === "string" || typeof value === "number" || typeof value === "boolean")
-    ).map(([key, value]) => [key, typeof value === "string" ? clean(value) : value])
+    ).map(([key, value]) => [key, typeof value === "string"
+      ? clean(value, ["returned_products_json", "returned_brands_json"].includes(key) ? 20_000 : 240)
+      : value])
   );
 
   const row = {

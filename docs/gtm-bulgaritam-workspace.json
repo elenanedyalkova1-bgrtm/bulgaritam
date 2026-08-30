@@ -21,13 +21,16 @@
         "accountId": "6320901564",
         "containerId": "233513387",
         "tagId": "100",
-        "name": "GA4 - Google tag - Consent granted page view",
+        "name": "GA4 - Google tag - Consent granted initialization",
         "type": "googtag",
         "parameter": [
-          {"type": "TEMPLATE", "key": "tagId", "value": "G-7XT69Z6DKS"}
+          {"type": "TEMPLATE", "key": "tagId", "value": "G-7XT69Z6DKS"},
+          {"type": "LIST", "key": "configSettingsTable", "list": [
+            {"type":"MAP","map":[{"type":"TEMPLATE","key":"parameter","value":"send_page_view"},{"type":"TEMPLATE","key":"parameterValue","value":"false"}]}
+          ]}
         ],
         "firingTriggerId": ["10"],
-        "tagFiringOption": "ONCE_PER_EVENT",
+        "tagFiringOption": "ONCE_PER_LOAD",
         "consentSettings": {
           "consentStatus": "NEEDED",
           "consentType": {"type": "LIST", "list": [{"type": "TEMPLATE", "value": "analytics_storage"}]}
@@ -89,7 +92,8 @@
             {"type":"MAP","map":[{"type":"TEMPLATE","key":"name","value":"utm_campaign"},{"type":"TEMPLATE","key":"value","value":"{{DLV - utm_campaign}}"}]}
           ]}
         ],
-        "firingTriggerId": ["11", "12", "13", "14", "15", "16"],
+        "firingTriggerId": ["17", "11", "12", "13", "14", "15", "16"],
+        "setupTag": [{"tagName":"100","stopOnSetupFailure":true}],
         "tagFiringOption": "ONCE_PER_EVENT",
         "consentSettings": {
           "consentStatus": "NEEDED",
@@ -98,13 +102,14 @@
       }
     ],
     "trigger": [
-      {"accountId":"6320901564","containerId":"233513387","triggerId":"10","name":"CE - Page view after analytics consent","type":"CUSTOM_EVENT","customEventFilter":[{"type":"EQUALS","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"page_view"}]}]},
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"10","name":"CE - Analytics initialization after consent","type":"CUSTOM_EVENT","customEventFilter":[{"type":"EQUALS","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"analytics_init"}]}]},
       {"accountId":"6320901564","containerId":"233513387","triggerId":"11","name":"CE - Search","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(search|search_results_view|search_no_results)$"}]}]},
       {"accountId":"6320901564","containerId":"233513387","triggerId":"12","name":"CE - Browse and filters","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(select_category|select_subcategory|select_product_type|select_gift_recipient|select_gift_occasion|apply_filter|remove_filter|clear_filters|change_sort)$"}]}]},
       {"accountId":"6320901564","containerId":"233513387","triggerId":"13","name":"CE - Visibility","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(product_impression|brand_impression)$"}]}]},
       {"accountId":"6320901564","containerId":"233513387","triggerId":"14","name":"CE - Engagement","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(view_product|save_product|remove_saved_product|share_product|view_brand|save_brand)$"}]}]},
       {"accountId":"6320901564","containerId":"233513387","triggerId":"15","name":"CE - Outbound","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(outbound_product_click|outbound_brand_click)$"}]}]},
-      {"accountId":"6320901564","containerId":"233513387","triggerId":"16","name":"CE - Collections","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(create_collection|add_to_collection|remove_from_collection|view_collection|share_collection)$"}]}]}
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"16","name":"CE - Collections","type":"CUSTOM_EVENT","customEventFilter":[{"type":"MATCH_REGEX","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"^(create_collection|add_to_collection|remove_from_collection|view_collection|share_collection)$"}]}]},
+      {"accountId":"6320901564","containerId":"233513387","triggerId":"17","name":"CE - Manual page view","type":"CUSTOM_EVENT","customEventFilter":[{"type":"EQUALS","parameter":[{"type":"TEMPLATE","key":"arg0","value":"{{_event}}"},{"type":"TEMPLATE","key":"arg1","value":"page_view"}]}]}
     ],
     "variable": [
       {"accountId":"6320901564","containerId":"233513387","variableId":"200","name":"DLV - product_id","type":"v","parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"product_id"}]},

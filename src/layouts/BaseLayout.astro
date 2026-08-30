@@ -492,11 +492,18 @@ if (seoType === "category" && seoData.category) {
           window.gtag = window.gtag || function gtag(){ window.dataLayer.push(arguments); };
           if (!window.__bulgaritamGaInitialized) {
             window.gtag("js", new Date());
-            if (!containerId && measurementId) {
-              window.gtag("config", measurementId, { anonymize_ip: true, send_page_view: false });
-            }
             window.__bulgaritamGaInitialized = true;
           }
+        };
+
+        const initializeGoogleTag = () => {
+          if (window.__bulgaritamGoogleTagInitialized || !hasAnalyticsConsent() || isAnalyticsExcluded()) return;
+          if (containerId) {
+            window.dataLayer.push({ event: "analytics_init" });
+          } else if (measurementId) {
+            window.gtag("config", measurementId, { anonymize_ip: true, send_page_view: false });
+          }
+          window.__bulgaritamGoogleTagInitialized = true;
         };
 
         const flushQueue = () => {
@@ -512,6 +519,7 @@ if (seoType === "category" && seoData.category) {
           const granted = hasAnalyticsConsent() && !isAnalyticsExcluded();
           const analyticsState = granted ? "granted" : "denied";
           if (window.__bulgaritamGoogleConsentState === analyticsState) {
+            if (granted) initializeGoogleTag();
             if (granted && !window.__bulgaritamInitialPageviewSent) {
               window.bulgaritamTrack?.("page_view", {
                 page_path: window.location.pathname,
@@ -532,6 +540,7 @@ if (seoType === "category" && seoData.category) {
           });
           window.__bulgaritamGoogleConsentState = analyticsState;
 
+          if (granted) initializeGoogleTag();
           if (granted && !window.__bulgaritamInitialPageviewSent) {
             window.bulgaritamTrack?.("page_view", {
               page_path: window.location.pathname,
@@ -598,7 +607,7 @@ if (seoType === "category" && seoData.category) {
         };
 
         window.bulgaritamTrack = (eventName, params = {}) => {
-          if ((!measurementId && !containerId && !firstPartyEndpoint) || !hasAnalyticsConsent() || isAnalyticsExcluded() || !eventName) return;
+          if ((!measurementId && !containerId && !firstPartyEndpoint) || !hasAnalyticsConsent() || isAnalyticsExcluded() || !eventName) return false;
 
           const payload = {
             ...buildCommonParams(),
@@ -618,6 +627,7 @@ if (seoType === "category" && seoData.category) {
           } else if (!containerId) {
             queue.push({ eventName, params: payload });
           }
+          return true;
         };
 
         const destinationDomain = (href) => {
@@ -718,13 +728,15 @@ if (seoType === "category" && seoData.category) {
               const signature = JSON.stringify([context.search_id || "", context.query || context.search_term || "", context.category || "", context.subcategory || "", context.product_type || "", node.dataset.listContext || ""]);
               const seen = impressionSeen.get(node) || new Set();
               if (seen.has(signature)) return;
+              let accepted = false;
+              if (node.dataset.analyticsKind === "brand") {
+                accepted = Boolean(window.bulgaritamTrack?.("brand_impression", getBrandContext(node)));
+              } else {
+                accepted = Boolean(window.bulgaritamTrack?.("product_impression", getProductContext(node)));
+              }
+              if (!accepted) return;
               seen.add(signature);
               impressionSeen.set(node, seen);
-              if (node.dataset.analyticsKind === "brand") {
-                window.bulgaritamTrack?.("brand_impression", getBrandContext(node));
-              } else {
-                window.bulgaritamTrack?.("product_impression", getProductContext(node));
-              }
             });
           }, { threshold: [0.5] });
           document.querySelectorAll("[data-analytics-kind]").forEach((node) => observer.observe(node));

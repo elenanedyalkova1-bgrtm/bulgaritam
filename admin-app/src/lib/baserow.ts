@@ -1,10 +1,11 @@
 const API = "https://api.baserow.io/api";
-export const PRODUCTS_TABLE = import.meta.env?.BASEROW_TABLE_ID || "906650";
-export const BRANDS_TABLE = import.meta.env?.BASEROW_BRANDS_TABLE_ID || "1133942";
+const runtimeEnv = (name: string) => import.meta.env?.[name] || (typeof process !== "undefined" ? process.env?.[name] : undefined);
+export const PRODUCTS_TABLE = runtimeEnv("BASEROW_TABLE_ID") || "906650";
+export const BRANDS_TABLE = runtimeEnv("BASEROW_BRANDS_TABLE_ID") || "1133942";
 export const SITE_SETTINGS_TABLE = import.meta.env?.BASEROW_SITE_SETTINGS_TABLE_ID || "";
 
 function headers() {
-  const token = import.meta.env?.BASEROW_API_TOKEN;
+  const token = runtimeEnv("BASEROW_API_TOKEN");
   if (!token) throw new Error("BASEROW_API_TOKEN is missing");
   return { Authorization: `Token ${token}`, "Content-Type": "application/json" };
 }

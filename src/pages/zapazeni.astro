@@ -415,14 +415,14 @@ const description = "Запазени продукти и колекции – �
       const copyBtn = document.getElementById("saved-share-copy-btn");
       if (copyBtn) {
         const original = copyBtn.textContent;
-        copyBtn.textContent = tSaved().copied;
+        copyBtn.textContent = "Линкът е копиран";
         window.setTimeout(() => {
           copyBtn.textContent = original;
         }, 1800);
       }
       const toast = document.getElementById("saved-copy-toast");
       if (toast) {
-        toast.textContent = tSaved().copied;
+        toast.textContent = "Линкът е копиран";
         toast.removeAttribute("hidden");
         window.clearTimeout(savedCopyToastTimer);
         savedCopyToastTimer = window.setTimeout(() => toast.setAttribute("hidden", ""), 2200);

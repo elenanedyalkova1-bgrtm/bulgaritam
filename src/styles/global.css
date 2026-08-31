@@ -1,14 +1,15 @@
 /* =========================================
    Bulgaritam — global.css
    Cleaned and rebuilt for a warmer Pinterest-like layout
-   Fonts: Fraunces (titles) + Inter (body)
+   Fonts: Forum (wordmark) + Fraunces (headings) + Inter (body/UI)
 ========================================= */
 
 /* ---------- Design tokens ---------- */
 :root {
   --font-title: "Fraunces", Georgia, serif;
-  --font-display: "Forum", "Fraunces", Georgia, serif;
-  --font-wordmark: var(--font-display);
+  --font-display: var(--font-title);
+  --font-wordmark: "Forum", "Fraunces", Georgia, serif;
+  --font-slight: "Forum", "Fraunces", Georgia, serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --type-h1: clamp(32px, 3.8vw, 56px);
   --type-h2: clamp(28px, 3vw, 36px);
@@ -150,6 +151,32 @@ h2,
   backdrop-filter: blur(10px);
   background: rgba(247, 241, 235, 0.78);
   border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+  transform: translateZ(0);
+}
+
+.scroll-to-top {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 110;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(26, 26, 26, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--text);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+  font: 700 22px/1 var(--font-body);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.scroll-to-top:hover { background: #fff; transform: translateY(-2px); }
+.scroll-to-top[hidden] { display: none; }
+
+@media (max-width: 768px) {
+  .topbar { position: sticky !important; top: 0 !important; }
+  .scroll-to-top { width: 44px; height: 44px; right: 14px; bottom: 16px; }
 }
 
 .topbar-inner {
@@ -444,11 +471,11 @@ body.page .lead {
 
 .page-title {
   margin: 0;
-  max-width: 14ch;
+  max-width: min(100%, 24ch);
   text-align: center;
   white-space: normal;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
 }
 
 .page-intro {
@@ -511,8 +538,10 @@ body.page .lead {
   list-style: none;
   padding: 0;
   margin: 0;
-  column-gap: 22px;
-  columns: 4 260px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 22px;
+  align-items: start;
 }
 
 .card {
@@ -521,10 +550,9 @@ body.page .lead {
   border-radius: calc(var(--radius) + 2px);
   overflow: hidden;
   padding: 0;
-  display: inline-block;
+  display: block;
   width: 100%;
-  margin: 0 0 22px;
-  break-inside: avoid;
+  margin: 0;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   will-change: transform;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
@@ -739,6 +767,49 @@ body.page .lead {
   line-height: 1.72;
   max-width: 36ch;
   font-size: 15px;
+}
+.footer-brand { font-family: var(--font-slight); font-size: 25px; letter-spacing: .08em; }
+.footer-positioning-title { max-width: 24ch; margin: 17px 0 8px; font: 400 22px/1.12 var(--font-slight); }
+
+.newsletter-modal { position: fixed; inset: 0; z-index: 130; display: grid; place-items: center; padding: 20px; }
+.newsletter-modal[hidden] { display: none; }
+.newsletter-modal__backdrop { position: absolute; inset: 0; border: 0; background: rgba(28, 26, 23, .46); backdrop-filter: blur(4px); }
+.newsletter-modal__card { position: relative; width: min(680px, 100%); max-height: min(760px, calc(100dvh - 32px)); overflow: auto; padding: clamp(25px, 4vw, 40px); border: 1px solid rgba(95,127,107,.2); border-radius: 26px; background: #f7f3ec; box-shadow: 0 28px 80px rgba(26,26,26,.22); animation: newsletterEnter .3s ease-out both; }
+.newsletter-modal__close { position: absolute; top: 14px; right: 14px; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid rgba(26,26,26,.12); border-radius: 50%; background: #fff; color: var(--text); font: 26px/1 var(--font-body); cursor: pointer; }
+.newsletter-modal__kicker { margin: 0 48px 7px 0; color: var(--accent-strong); font-size: 11px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.newsletter-modal h2 { max-width: 15ch; margin: 0; font: 400 clamp(29px, 5vw, 43px)/1.04 var(--font-slight); }
+.newsletter-modal__intro { margin: 12px 0 20px; color: var(--muted); line-height: 1.55; }
+.newsletter-form { display: grid; gap: 16px; }
+.newsletter-form__identity { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.newsletter-form__identity label { display: grid; gap: 6px; font-size: 12px; font-weight: 750; }
+.newsletter-form input[type="text"], .newsletter-form input[type="email"] { width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid rgba(26,26,26,.28); border-radius: 11px; background: #fff; color: #1a1a1a; box-shadow: inset 0 1px 2px rgba(26,26,26,.04); font: 16px var(--font-body); }
+.newsletter-form input:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+.newsletter-form fieldset { display: grid; gap: 9px; margin: 0; padding: 0; border: 0; }
+.newsletter-form legend { margin-bottom: 9px; font-size: 13px; font-weight: 750; }
+.newsletter-theme { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start; padding: 12px 13px; border: 1px solid rgba(26,26,26,.11); border-radius: 13px; background: rgba(255,255,255,.64); cursor: pointer; }
+.newsletter-theme--primary { border-color: rgba(95,127,107,.36); background: rgba(95,127,107,.09); }
+.newsletter-theme input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent-strong); }
+.newsletter-theme span, .newsletter-theme strong, .newsletter-theme small { display: block; }
+.newsletter-theme strong { font-size: 14px; }
+.newsletter-theme small { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.newsletter-form__submit { min-height: 46px; border: 0; border-radius: 12px; background: var(--accent-strong); color: #fff; font: 800 14px var(--font-body); cursor: pointer; }
+.newsletter-form__submit:disabled { cursor: wait; opacity: .66; }
+.newsletter-form__status { margin: -4px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.45; }
+.newsletter-form__status.is-success { background: rgba(95,127,107,.12); color: #315b4c; }
+.newsletter-form__status.is-error { background: rgba(140,55,50,.1); color: #8c3732; }
+.newsletter-form__status[hidden] { display: none; }
+.newsletter-form__privacy { margin: -3px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.newsletter-form__privacy a { color: inherit; }
+.newsletter-open { overflow: hidden; }
+@keyframes newsletterEnter { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .newsletter-modal__card { animation: none; } }
+@media (max-width: 560px) {
+  .newsletter-modal { align-items: end; padding: 10px; }
+  .newsletter-modal__card { max-height: calc(100dvh - 20px); padding: 24px 18px 20px; border-radius: 22px; }
+  .newsletter-modal__close { position: sticky; top: 0; z-index: 3; float: right; }
+  .newsletter-modal h2 { font-size: 31px; }
+  .newsletter-form__identity { grid-template-columns: 1fr; }
+  .newsletter-theme { padding: 10px 11px; }
 }
 
 .footer-made {
@@ -1331,7 +1402,7 @@ html.discovery-modal-open .cookie {
   }
 
   .grid:not(#grid):not(#brandGrid) {
-    columns: 4 220px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
   }
 
   .h1 {
@@ -1342,7 +1413,7 @@ html.discovery-modal-open .cookie {
 
 @media (max-width: 1024px) {
   .grid:not(#grid):not(#brandGrid) {
-    columns: 3 220px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
   }
 
   .h1 {
@@ -1509,8 +1580,8 @@ html.discovery-modal-open .cookie {
   }
 
   .grid:not(#grid):not(#brandGrid) {
-    columns: 1;
-    column-gap: 0;
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 
   .card-titlelink {

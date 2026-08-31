@@ -16,7 +16,9 @@
     "audit:tags": "node scripts/audit-product-tags.mjs",
     "health:products": "node scripts/check-product-health.mjs",
     "health:products:apply": "node scripts/check-product-health.mjs --apply",
-    "verify:public-build": "node scripts/verify-public-build.mjs"
+    "verify:public-build": "node scripts/verify-public-build.mjs",
+    "verify:seo-membership": "admin-app/node_modules/.bin/tsx scripts/verify-seo-product-membership.ts",
+    "setup:product-facets": "node scripts/setup-product-facets.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",

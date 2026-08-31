@@ -2,8 +2,10 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCategoryLabel, getCategoryLabelForLang, getSubcategoryLabelForLang, getTaxonomyForProduct } from "../lib/taxonomy";
 import { getProductBadges } from "../lib/product-badges";
-import { getClothingTypeMatches } from "../lib/clothing-types";
-import { getPublicBrowseForProduct } from "../lib/public-browse-taxonomy";
+import { PUBLIC_BROWSE_CATEGORIES } from "../lib/public-browse-taxonomy";
+import { GIFT_FACETS_BY_CONTEXT, STRUCTURED_FACET_OPTIONS } from "../../admin-app/src/lib/product-taxonomy";
+import { SEO_INTENT_LANDINGS, getLandingGraphNode, getSeoLandingStateRegistry } from "../lib/seo-landings";
+import { orderPublicFilters } from "../lib/public-filter-order";
 
 const {
   landing,
@@ -16,30 +18,30 @@ const {
   secondaryPillsAriaLabel = "Още филтри",
   editorialSections = [],
   editorialHeader = null,
-  refinementOptions: passedRefinementOptions = [],
-  refinementTitle = "Вид облекло",
+  refinementTitle = "",
   secondaryPillsTitle = "",
-  browseProducts = [],
+  parentLink = null,
 } = Astro.props;
 
 const clean = (value) => String(value ?? "").trim();
+const resolvedRefinementTitle = refinementTitle ||
+  (landing.group === "clothing" || landing.categoryKey === "clothing" ? "Вид облекло" : "Вид продукт");
 const getPrimaryImage = (product) =>
   Array.isArray(product?.image_urls)
     ? product.image_urls.find((url) => /^https?:\/\//i.test(clean(url))) || product.image_urls.find((url) => clean(url))
     : "";
 
-const initialProductSlugs = new Set(products.map((product) => product.slug));
+const registeredStructuredState = landing.structuredState || {};
+const registeredCategory = clean(registeredStructuredState.category?.[0] || landing.structuredCategory);
+const registeredSubcategory = clean(registeredStructuredState.subcategory?.[0] || landing.structuredSubcategory);
 const browseCategoryKey = landing.categoryKey || "";
-const browseSubcategoryKey = landing.audienceSubcategoryKey || landing.subcategoryKey || "";
-const contextualProducts = browseSubcategoryKey
-  ? browseProducts.filter((product) => {
-      const context = getPublicBrowseForProduct(product);
-      return context.categoryKey === browseCategoryKey && context.subcategoryKey === browseSubcategoryKey;
-    })
-  : [];
-const displayProducts = Array.from(new Map([...products, ...contextualProducts].map((product) => [product.slug, product])).values())
-  .filter((product) => getPrimaryImage(product));
-const initialDisplayCount = displayProducts.filter((product) => initialProductSlugs.has(product.slug)).length;
+const browseSubcategoryKey = landing.audienceSubcategoryKey || landing.subcategoryKey ||
+  PUBLIC_BROWSE_CATEGORIES.find((category) => category.key === browseCategoryKey || category.value === registeredCategory)
+    ?.subcategories.find((subcategory) => subcategory.value === registeredSubcategory)?.key || "";
+const browseCategory = PUBLIC_BROWSE_CATEGORIES.find((category) => category.key === browseCategoryKey || category.value === registeredCategory);
+const browseSubcategory = browseCategory?.subcategories.find((subcategory) => subcategory.key === browseSubcategoryKey || subcategory.value === registeredSubcategory);
+const displayProducts = products.filter((product) => getPrimaryImage(product));
+const initialDisplayCount = displayProducts.length;
 const structuredTypeCounts = new Map();
 displayProducts.forEach((product) => {
   const value = clean(product.product_type);
@@ -48,19 +50,129 @@ displayProducts.forEach((product) => {
 const structuredRefinementOptions = Array.from(structuredTypeCounts.entries())
   .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "bg"))
   .map(([value, productCount]) => ({ key: value, label: `${value} (${productCount})`, baseLabel: value }));
-const legacyRefinementOptions = passedRefinementOptions
-  .map((option) => ({ ...option, productCount: displayProducts.filter((product) => getClothingTypeMatches(product, [option]).length > 0).length }))
-  .filter((option) => option.productCount > 0)
-  .map((option) => ({ key: option.key, label: `${option.label} (${option.productCount})`, baseLabel: option.label }));
-const normalizedPublicLabel = (value) => clean(value).toLocaleLowerCase("bg");
-const refinementOptions = [
-  ...legacyRefinementOptions,
-  ...structuredRefinementOptions.filter((structured) => !legacyRefinementOptions.some((legacy) => {
-    const legacyLabel = normalizedPublicLabel(legacy.baseLabel);
-    const structuredLabel = normalizedPublicLabel(structured.baseLabel);
-    return legacyLabel === structuredLabel || legacyLabel.startsWith(structuredLabel) || structuredLabel.startsWith(legacyLabel);
-  })),
-];
+const allowedProductTypes = new Set(
+  PUBLIC_BROWSE_CATEGORIES.find((category) => category.key === browseCategoryKey)
+    ?.subcategories.find((subcategory) => subcategory.key === browseSubcategoryKey)
+    ?.productTypes || []
+);
+const refinementOptions = structuredRefinementOptions.filter((option) => allowedProductTypes.has(option.key));
+const buildFacetOptions = (field) => {
+  const counts = new Map();
+  displayProducts.forEach((product) => {
+    [...new Set(Array.isArray(product[field]) ? product[field].map(clean).filter(Boolean) : [])]
+      .forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
+  });
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "bg"))
+    .map(([value, productCount]) => ({ value, productCount }));
+};
+const materialOptions = buildFacetOptions("materials");
+const colorOptions = buildFacetOptions("colors");
+const isGiftContext = landing.categoryKey === "gifts";
+const registeredRecipient = clean(registeredStructuredState.recipient?.[0]);
+const registeredOccasion = clean(registeredStructuredState.gift_occasion?.[0]);
+const giftContextKey = landing.subcategoryKey || ({
+  "За жена": "gifts_for_her", "За мъж": "gifts_for_him", "За дете": "gifts_for_child", "За бебе": "gifts_for_baby",
+}[registeredRecipient]) || (registeredOccasion === "Сватба" ? "gifts_for_wedding" : "");
+const giftFacetConfig = GIFT_FACETS_BY_CONTEXT[giftContextKey] || null;
+const isJewelryContext = landing.subcategoryKey === "accessories_jewelry" || registeredSubcategory === "Бижута";
+const isShoeContext = landing.subcategoryKey === "accessories_shoes" || registeredSubcategory === "Обувки";
+const isClothingContext = landing.categoryKey === "clothing" || landing.group === "clothing" || registeredCategory === "Облекло";
+const isCosmeticsContext = landing.categoryKey === "cosmetics" || registeredCategory === "Козметика";
+const isFaceCosmetics = isCosmeticsContext && (landing.subcategoryKey === "cosmetics_face" || registeredSubcategory === "Грижа за лицето");
+const isHairCosmetics = isCosmeticsContext && (landing.subcategoryKey === "cosmetics_hair" || registeredSubcategory === "Грижа за косата");
+const approvedFacetOptions = (field, approved) => {
+  const allowed = new Set(approved || []);
+  return buildFacetOptions(field).filter((option) => allowed.has(option.value));
+};
+const additionalFacetSpecs = [
+  ...(giftFacetConfig?.recipient_age ? [{ group: "recipient_age", field: "recipient_age", label: "Възраст", options: approvedFacetOptions("recipient_age", giftFacetConfig.recipient_age) }] : []),
+  ...(giftFacetConfig?.recipient_gender ? [{ group: "recipient_gender", field: "recipient_gender", label: "Пол", options: approvedFacetOptions("recipient_gender", giftFacetConfig.recipient_gender) }] : []),
+  ...(giftFacetConfig?.gift_occasion ? [{ group: "gift_occasion", field: "gift_occasion", label: "Повод", options: approvedFacetOptions("gift_occasion", giftFacetConfig.gift_occasion) }] : []),
+  ...(giftFacetConfig?.role_interest ? [{ group: "role_interest", field: "role_interest", label: "Роля / интерес", options: approvedFacetOptions("role_interest", giftFacetConfig.role_interest) }] : []),
+  ...(giftFacetConfig?.wedding_anniversary_type ? [{ group: "wedding_anniversary_type", field: "wedding_anniversary_type", label: "Вид годишнина", options: approvedFacetOptions("wedding_anniversary_type", giftFacetConfig.wedding_anniversary_type) }] : []),
+  ...(isGiftContext ? [{ group: "attributes", field: "attributes", label: "Характеристики", options: approvedFacetOptions("attributes", ["Персонализируем", "Романтичен", "Практичен", "Забавен"]), display: { "Персонализируем": "Персонализиран" } }] : []),
+  ...(isJewelryContext ? [{ group: "gemstone", field: "gemstone", label: "Камък", options: approvedFacetOptions("gemstone", STRUCTURED_FACET_OPTIONS.gemstone) }] : []),
+  ...(isJewelryContext ? [{ group: "jewelry_detail", field: "jewelry_detail", label: "Детайл", options: approvedFacetOptions("jewelry_detail", STRUCTURED_FACET_OPTIONS.jewelry_detail) }] : []),
+  ...(isClothingContext && !isShoeContext ? [
+    { group: "clothing_style", field: "clothing_style", label: "Стил / тип", options: approvedFacetOptions("clothing_style", STRUCTURED_FACET_OPTIONS.clothing_style) },
+    { group: "sleeve", field: "sleeve", label: "Ръкав", options: approvedFacetOptions("sleeve", STRUCTURED_FACET_OPTIONS.sleeve) },
+    { group: "season", field: "season", label: "Сезон", options: approvedFacetOptions("season", STRUCTURED_FACET_OPTIONS.season) },
+  ] : []),
+  ...(isCosmeticsContext ? [{ group: "ingredient", field: "ingredient", label: "Съставка", options: approvedFacetOptions("ingredient", STRUCTURED_FACET_OPTIONS.ingredient) }] : []),
+  ...(isFaceCosmetics ? [
+    { group: "skin_type", field: "skin_type", label: "Тип кожа", options: approvedFacetOptions("skin_type", STRUCTURED_FACET_OPTIONS.skin_type) },
+    { group: "skin_need", field: "skin_need", label: "Нужда / ефект", options: approvedFacetOptions("skin_need", STRUCTURED_FACET_OPTIONS.skin_need) },
+  ] : []),
+  ...(isHairCosmetics ? [{ group: "hair_need", field: "hair_need", label: "Нужда", options: approvedFacetOptions("hair_need", STRUCTURED_FACET_OPTIONS.hair_need) }] : []),
+].filter((spec) => spec.options.length > 0);
+const baseGiftRecipient = landing.giftFilters?.recipients?.[0] || landing.recipients?.[0] || registeredRecipient;
+const giftSeoHrefByFacet = Object.fromEntries(SEO_INTENT_LANDINGS.filter((entry) => {
+  if (entry.group !== "gifts" || !baseGiftRecipient || entry.recipients?.length !== 1 || entry.recipients[0] !== baseGiftRecipient) return false;
+  const dimensions = [entry.ages?.length, entry.occasions?.length, entry.genders?.length].filter(Boolean).length;
+  return dimensions === 1;
+}).flatMap((entry) => [
+  ...(entry.ages?.length === 1 ? [[`recipient_age:${entry.ages[0]}`, entry.path]] : []),
+  ...(entry.occasions?.length === 1 ? [[`gift_occasion:${entry.occasions[0]}`, entry.path]] : []),
+  ...(entry.genders?.length === 1 ? [[`recipient_gender:${entry.genders[0]}`, entry.path]] : []),
+]));
+const landingGraphNode = getLandingGraphNode(landing);
+const parentGraphNode = landingGraphNode?.parentKey ? getLandingGraphNode(landingGraphNode.parentKey) : null;
+const inferredStructuredSubcategory = landing.categoryKey !== "gifts" && parentGraphNode?.pageType === "subcategory"
+  ? parentGraphNode.navigationLabel
+  : "";
+const baseStructuredState = landing.structuredState || {
+  ...((registeredCategory || (landing.categoryKey && landing.categoryKey !== "gifts")) ? { category: [registeredCategory || browseCategory?.value || getCategoryLabel(landing.categoryKey)] } : {}),
+  ...((registeredSubcategory || landing.kind === "subcategory" || inferredStructuredSubcategory) ? { subcategory: [registeredSubcategory || browseSubcategory?.value || inferredStructuredSubcategory] } : {}),
+  ...(landing.productTypes?.length ? { product_type: landing.productTypes } : {}),
+  ...(landing.categoryKey === "gifts" ? { giftable: ["true"] } : {}),
+  ...((landing.giftFilters?.recipients || landing.recipients)?.length ? { recipient: landing.giftFilters?.recipients || landing.recipients } : {}),
+  ...((landing.giftFilters?.occasions || landing.occasions)?.length ? { gift_occasion: landing.giftFilters?.occasions || landing.occasions } : {}),
+  ...((landing.giftFilters?.ages || landing.ages)?.length ? { recipient_age: landing.giftFilters?.ages || landing.ages } : {}),
+  ...((landing.giftFilters?.genders || landing.genders)?.length ? { recipient_gender: landing.giftFilters?.genders || landing.genders } : {}),
+};
+const seoStateRegistry = getSeoLandingStateRegistry();
+const priceRangesForProduct = (product) => {
+  const low = Number.isFinite(product.price_min_eur) ? product.price_min_eur : null;
+  const high = Number.isFinite(product.price_max_eur) ? product.price_max_eur : low;
+  if (low == null && high == null) return [];
+  return [
+    (low ?? high) <= 25 ? "0-25" : "",
+    (low ?? high) <= 50 && (high ?? low) >= 25 ? "25-50" : "",
+    (low ?? high) <= 100 && (high ?? low) >= 50 ? "50-100" : "",
+    (high ?? low) >= 100 ? "100+" : "",
+  ].filter(Boolean);
+};
+const priceOptions = [
+  { value: "0-25", label: "До €25" }, { value: "25-50", label: "€25–50" },
+  { value: "50-100", label: "€50–100" }, { value: "100+", label: "€100+" },
+].map((option) => ({ ...option, productCount: displayProducts.filter((product) => priceRangesForProduct(product).includes(option.value)).length })).filter((option) => option.productCount > 0);
+const showMaterials = landing.categoryKey !== "cosmetics" && (materialOptions.length >= 2 || Boolean(baseStructuredState.materials?.length));
+const showColors = colorOptions.length >= 2 || Boolean(baseStructuredState.colors?.length);
+const showPrice = priceOptions.length > 0;
+const hasRefinements = refinementOptions.length || showMaterials || showColors || showPrice || additionalFacetSpecs.length;
+const filterContext = isGiftContext
+  ? "gift"
+  : isJewelryContext
+    ? "jewelry"
+    : isShoeContext
+      ? "shoes"
+      : isFaceCosmetics
+        ? "cosmetics_face"
+        : isHairCosmetics
+          ? "cosmetics_hair"
+          : isCosmeticsContext
+            ? "cosmetics"
+            : isClothingContext
+              ? "clothing"
+              : "default";
+const orderedFacetSpecs = orderPublicFilters([
+  ...(refinementOptions.length ? [{ group: "type", label: resolvedRefinementTitle, options: refinementOptions, optionKind: "type" }] : []),
+  ...(showMaterials ? [{ group: "material", label: "Материал", options: materialOptions, optionKind: "facet" }] : []),
+  ...(showColors ? [{ group: "color", label: "Цвят", options: colorOptions, optionKind: "facet" }] : []),
+  ...(showPrice ? [{ group: "price", label: "Цена", options: priceOptions, optionKind: "price" }] : []),
+  ...additionalFacetSpecs.map((spec) => ({ ...spec, optionKind: "additional" })),
+], filterContext);
 
 function priceLabel(p) {
   if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
@@ -103,11 +215,12 @@ function priceLabel(p) {
       </div>
 
       {primaryPills.length ? (
-        <div class="landing-subcategories" aria-label={primaryPillsAriaLabel}>
+        <div class="landing-subcategories" aria-label={primaryPillsAriaLabel} data-mobile-gift-pills={landing.categoryKey === "gifts" ? "true" : undefined}>
           {primaryPills.map((entry) => (
             <a
               class:list={[
                 "landing-subcategories__pill",
+                landing.categoryKey === "gifts" && !entry.isMobilePrimary ? "is-mobile-longtail" : "",
                 entry.isActive ? "is-active" : ""
               ]}
               href={entry.href}
@@ -117,6 +230,9 @@ function priceLabel(p) {
               {entry.label}
             </a>
           ))}
+          {landing.categoryKey === "gifts" && primaryPills.some((entry) => !entry.isMobilePrimary) ? (
+            <button class="landing-gift-more" type="button" aria-expanded="false">Още идеи за подарък</button>
+          ) : null}
         </div>
       ) : null}
 
@@ -143,29 +259,60 @@ function priceLabel(p) {
       ) : null}
     </header>
 
-    <section class="section section--feed">
-      {refinementOptions.length ? (
+    <section
+      id="products"
+      class="section section--feed"
+      data-seo-state-registry={JSON.stringify(seoStateRegistry)}
+      data-base-structured-state={JSON.stringify(baseStructuredState)}
+      data-canonical-path={canonicalPath}
+    >
+      {hasRefinements ? (
         <details class="landing-refinements">
           <summary class="landing-refinements__summary">
-            <span class="landing-refinements__label">{refinementTitle}</span>
+            <span class="landing-refinements__label">{resolvedRefinementTitle}</span>
             <span class="landing-refinements__toggle">Филтрирай</span>
           </summary>
 
-          <div class="landing-refinements__panel">
-            {refinementOptions.map((option) => (
-              <label class="landing-refinements__option">
-                <input type="checkbox" value={option.key} data-refinement-input />
-                <span>{option.label}</span>
-              </label>
-            ))}
+          <div class="landing-refinements__groups">
+            {orderedFacetSpecs.map((spec) => <fieldset class="landing-refinements__group" data-facet-group={spec.group}>
+              <legend>{spec.label}</legend>
+              <div class="landing-refinements__panel" data-collapsible-facet>
+                {spec.options.map((option) => {
+                  const value = spec.optionKind === "type" ? option.key : option.value;
+                  const baseLabel = spec.optionKind === "type" ? option.baseLabel : spec.optionKind === "price" ? option.label : option.value;
+                  const displayLabel = spec.display?.[value] || baseLabel;
+                  const renderedLabel = spec.optionKind === "type" ? option.label : `${displayLabel} (${option.productCount})`;
+                  return <label class="landing-refinements__option" data-facet-option>
+                    <input
+                      type="checkbox"
+                      value={value}
+                      data-refinement-input
+                      data-filter-group={spec.group}
+                      data-seo-href={giftSeoHrefByFacet[`${spec.group}:${value}`] || undefined}
+                    />
+                    <span data-option-label={displayLabel}>{renderedLabel}</span>
+                  </label>;
+                })}
+              </div>
+            </fieldset>)}
           </div>
         </details>
       ) : null}
 
       <div class="section-head section-head--centered">
         <h2 class="h2"><span data-i18n="landing.products">Продукти</span> (<span id="count">{initialDisplayCount}</span>)</h2>
-        <a class="landing-back" href="/" data-i18n="landing.backHome">Към началото</a>
+        <a class="landing-back" href={parentLink?.href || "/"} data-i18n={parentLink ? undefined : "landing.backHome"}>
+          {parentLink ? `Към ${parentLink.label}` : "Към началото"}
+        </a>
       </div>
+
+      {initialDisplayCount === 0 ? (
+        <div class="landing-empty" role="status">
+          <h2>Очаквай нови предложения</h2>
+          <p>Разширяваме тази селекция с още продукти от български брандове. Междувременно разгледай свързаните категории и марки.</p>
+          <a href="/bulgarski-brandove/">Разгледай българските брандове</a>
+        </div>
+      ) : null}
 
       <ul class="grid" id="grid" data-masonry-grid>
         {displayProducts.map((p, index) => {
@@ -173,7 +320,7 @@ function priceLabel(p) {
           const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
           const taxonomy = getTaxonomyForProduct(p);
           const shouldEagerLoad = index < 4;
-          const refinementKeys = [clean(p.product_type), ...getClothingTypeMatches(p, passedRefinementOptions)].filter(Boolean).join(",");
+          const refinementKeys = allowedProductTypes.has(clean(p.product_type)) ? clean(p.product_type) : "";
 
           return (
           <li
@@ -185,7 +332,17 @@ function priceLabel(p) {
             data-product-id={p.id}
             data-masonry-card
             data-refinement-keys={refinementKeys}
-            data-initial-match={initialProductSlugs.has(p.slug) ? "1" : "0"}
+            data-materials={(p.materials || []).join("|")}
+            data-colors={(p.colors || []).join("|")}
+            data-price-ranges={priceRangesForProduct(p).join("|")}
+            data-facet-values={JSON.stringify({
+              type: refinementKeys ? [refinementKeys] : [], materials: p.materials || [], color: p.colors || [], price: priceRangesForProduct(p),
+              recipient_age: p.recipient_age || [], recipient_gender: p.recipient_gender || [], gift_occasion: p.gift_occasion || [],
+              role_interest: p.role_interest || [], wedding_anniversary_type: p.wedding_anniversary_type || [], attributes: p.attributes || [],
+              gemstone: p.gemstone || [], jewelry_detail: p.jewelry_detail || [], clothing_style: p.clothing_style || [], sleeve: p.sleeve || [], season: p.season || [],
+              ingredient: p.ingredient || [], skin_type: p.skin_type || [], skin_need: p.skin_need || [], hair_need: p.hair_need || [],
+            })}
+            data-initial-match="1"
             data-product-slug={p.slug}
             data-product-name={p.name_bg}
             data-brand-slug={p.brand_slug ?? ""}
@@ -379,6 +536,8 @@ function priceLabel(p) {
       color: rgba(26, 26, 26, 0.92);
     }
 
+    .landing-gift-more { display: none; }
+
     .section--feed {
       padding-top: 10px;
     }
@@ -411,6 +570,10 @@ function priceLabel(p) {
       display: none;
       content: "";
     }
+
+    .landing-refinements__groups { display: grid; gap: 18px; padding: 0 18px 18px; }
+    .landing-refinements__group { min-width: 0; margin: 0; padding: 0; border: 0; }
+    .landing-refinements__group legend { margin: 0 0 10px; padding: 0; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: rgba(26,26,26,.52); }
 
     .landing-refinements__label {
       font-size: 15px;
@@ -473,6 +636,9 @@ function priceLabel(p) {
       background: rgba(95, 127, 107, 0.12);
     }
 
+    .landing-refinements__option.is-overflow-option { display: none; }
+    .landing-refinements__more { justify-self: start; padding: 8px 0; border: 0; background: transparent; color: var(--accent-strong); font: 700 13px var(--font-body); cursor: pointer; }
+
     .section-head--centered {
       display: flex;
       flex-direction: column;
@@ -525,7 +691,9 @@ function priceLabel(p) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 22px;
       align-items: start;
-      grid-auto-rows: 10px;
+      --masonry-row: 10px;
+      grid-auto-rows: auto;
+      grid-auto-flow: dense;
     }
 
     .grid.grid--ordered {
@@ -538,7 +706,7 @@ function priceLabel(p) {
       display: block;
       width: 100%;
       margin: 0;
-      grid-row: span var(--masonry-span, 1);
+      grid-row: auto;
       background: rgba(255, 255, 255, 0.72);
       border: 1px solid rgba(26, 26, 26, 0.08);
       border-radius: 24px;
@@ -546,6 +714,9 @@ function priceLabel(p) {
       overflow: hidden;
       transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
     }
+
+    .grid.is-masonry-ready:not(.grid--ordered) { grid-auto-rows: var(--masonry-row); }
+    .grid.is-masonry-ready .card { grid-row: span var(--masonry-span); }
 
     .grid.grid--ordered .card {
       grid-row: auto;
@@ -961,6 +1132,23 @@ function priceLabel(p) {
         justify-content: center;
       }
 
+      [data-mobile-gift-pills="true"] .is-mobile-longtail { display: none; }
+      [data-mobile-gift-pills="true"].is-expanded .is-mobile-longtail { display: inline-flex; }
+      .landing-gift-more {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 16px;
+        border: 0;
+        background: transparent;
+        color: var(--accent-strong);
+        font: 700 14px var(--font-body);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        cursor: pointer;
+      }
+
       .grid {
         width: 100%;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1001,6 +1189,22 @@ function priceLabel(p) {
     const feedSentinel = document.getElementById("feedSentinel");
     const allCards = Array.from(grid.querySelectorAll("li.card"));
     const refinementInputs = Array.from(document.querySelectorAll("[data-refinement-input]"));
+    const feedSection = document.getElementById("products");
+    const refinements = feedSection?.querySelector(".landing-refinements");
+    const parseJson = (value, fallback) => { try { return JSON.parse(value || "") || fallback; } catch { return fallback; } };
+    const seoStateRegistry = new Map(parseJson(feedSection?.dataset.seoStateRegistry, []).map((entry) => [entry.stateKey, entry.path]));
+    const baseStructuredState = parseJson(feedSection?.dataset.baseStructuredState, {});
+    const splitFacetValues = (value) => String(value || "").split("|").map((entry) => entry.trim()).filter(Boolean);
+    const cardFacetKey = (group) => group === "material" ? "materials" : group;
+    const stateFacetKey = (group) => ({ type: "product_type", material: "materials", color: "colors" })[group] || group;
+    const cardFacetValues = (card, group) => {
+      try {
+        const values = JSON.parse(card.dataset.facetValues || "{}")[cardFacetKey(group)];
+        return Array.isArray(values) ? values.map((value) => String(value).trim()).filter(Boolean) : [];
+      } catch {
+        return [];
+      }
+    };
 
     const getBatchSize = () => {
       if (window.innerWidth <= 640) return 8;
@@ -1010,20 +1214,108 @@ function priceLabel(p) {
 
     let visibleCount = getBatchSize();
 
+    const serializeState = (state) => Object.entries(state)
+      .filter(([, values]) => Array.isArray(values) && values.length)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([field, values]) => `${field}=${[...new Set(values.map((value) => String(value).trim().toLowerCase()).filter(Boolean))].sort().join("|")}`)
+      .join("&");
+
+    const currentStructuredState = () => {
+      const state = Object.fromEntries(Object.entries(baseStructuredState).map(([field, values]) => [field, [...values]]));
+      const mutableFields = new Set(refinementInputs.map((input) => stateFacetKey(input.dataset.filterGroup || "type")));
+      mutableFields.forEach((field) => delete state[field]);
+      refinementInputs.filter((input) => input.checked).forEach((input) => {
+        const field = stateFacetKey(input.dataset.filterGroup || "type");
+        (state[field] ||= []).push(input.value);
+      });
+      return state;
+    };
+
+    const startCanonicalNavigation = () => {
+      const state = currentStructuredState();
+      const destination = seoStateRegistry.get(serializeState(state));
+      if (!destination || destination === feedSection?.dataset.canonicalPath) return;
+      let prefetchLink = document.head.querySelector(`link[data-seo-filter-prefetch][href="${destination}"]`);
+      if (!prefetchLink) {
+        prefetchLink = document.createElement("link");
+        prefetchLink.rel = "prefetch";
+        prefetchLink.href = destination;
+        prefetchLink.dataset.seoFilterPrefetch = "true";
+        document.head.append(prefetchLink);
+      }
+      sessionStorage.setItem("bulgaritam:seo-filter-transition", JSON.stringify({ destination, state, filtersOpen: Boolean(refinements?.open), anchor: "products" }));
+      requestAnimationFrame(() => window.location.assign(destination));
+    };
+
+    const restoreTransitionState = () => {
+      const saved = parseJson(sessionStorage.getItem("bulgaritam:seo-filter-transition"), null);
+      if (!saved || saved.destination !== feedSection?.dataset.canonicalPath) return;
+      sessionStorage.removeItem("bulgaritam:seo-filter-transition");
+      refinementInputs.forEach((input) => {
+        const values = saved.state?.[stateFacetKey(input.dataset.filterGroup || "type")] || [];
+        input.checked = values.some((value) => String(value).toLowerCase() === String(input.value).toLowerCase());
+      });
+      if (saved.filtersOpen && refinements) refinements.open = true;
+      requestAnimationFrame(() => document.getElementById(saved.anchor || "products")?.scrollIntoView({ block: "start" }));
+    };
+
+    refinementInputs.forEach((input) => {
+      const values = baseStructuredState[stateFacetKey(input.dataset.filterGroup || "type")] || [];
+      input.checked = values.some((value) => String(value).toLowerCase() === String(input.value).toLowerCase());
+    });
+    restoreTransitionState();
+
     const getFilteredCards = () => {
-      const activeFilters = refinementInputs
-        .filter((input) => input.checked)
-        .map((input) => input.value);
-
-      if (!activeFilters.length) return allCards.filter((card) => card.dataset.initialMatch === "1");
-
+      const selected = {};
+      refinementInputs.filter((input) => input.checked).forEach((input) => {
+        const group = input.dataset.filterGroup || "type";
+        (selected[group] ||= []).push(input.value);
+      });
       return allCards.filter((card) => {
-        const keys = String(card.dataset.refinementKeys || "")
-          .split(",")
-          .map((value) => value.trim())
-          .filter(Boolean);
+        const hasSelection = Object.values(selected).some((entries) => entries.length);
+        if (!hasSelection && card.dataset.initialMatch !== "1") return false;
+        return Object.entries(selected).every(([group, entries]) => !entries.length || entries.some((entry) => cardFacetValues(card, group).includes(entry)));
+      });
+    };
 
-        return activeFilters.some((key) => keys.includes(key));
+    const updateFacetAvailability = () => {
+      const selectionsByGroup = () => refinementInputs.filter((input) => input.checked).reduce((groups, input) => {
+        const name = input.dataset.filterGroup || "type";
+        (groups[name] ||= []).push(input.value);
+        return groups;
+      }, {});
+      document.querySelectorAll("[data-facet-group]").forEach((group) => {
+        const groupName = group.dataset.facetGroup;
+        const selected = selectionsByGroup();
+        delete selected[groupName];
+        const candidates = allCards.filter((card) => Object.entries(selected).every(([name, values]) =>
+          values.some((value) => cardFacetValues(card, name).includes(value))
+        ));
+        let available = 0;
+        group.querySelectorAll("[data-facet-option]").forEach((option) => {
+          const input = option.querySelector("input");
+          const count = candidates.filter((card) => {
+            return cardFacetValues(card, groupName).includes(input.value);
+          }).length;
+          option.hidden = count === 0 && !input.checked;
+          input.disabled = count === 0 && !input.checked;
+          const label = option.querySelector("[data-option-label]");
+          if (label) label.textContent = `${label.dataset.optionLabel} (${count})`;
+          if (count > 0 || input.checked) available += 1;
+        });
+        const hasSelectedOption = Array.from(group.querySelectorAll("input")).some((input) => input.checked);
+        if (groupName !== "type") group.hidden = available < 2 && !hasSelectedOption;
+      });
+      document.querySelectorAll("[data-collapsible-facet]").forEach((panel) => {
+        const options = Array.from(panel.querySelectorAll("[data-facet-option]")).filter((option) => !option.hidden);
+        let button = panel.parentElement?.querySelector(":scope > .landing-refinements__more");
+        if (options.length <= 8) { options.forEach((option) => option.classList.remove("is-overflow-option")); button?.remove(); return; }
+        if (!button) { button = document.createElement("button"); button.type = "button"; button.className = "landing-refinements__more"; panel.insertAdjacentElement("afterend", button); }
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        options.forEach((option, index) => option.classList.toggle("is-overflow-option", !expanded && index >= 8 && !option.querySelector("input")?.checked));
+        button.textContent = expanded ? "Покажи по-малко" : `Покажи още (${options.length - 8})`;
+        button.setAttribute("aria-expanded", String(expanded));
+        button.onclick = () => { button.setAttribute("aria-expanded", String(!expanded)); updateFacetAvailability(); };
       });
     };
 
@@ -1060,7 +1352,7 @@ function priceLabel(p) {
         feedSentinel.hidden = filteredCards.length <= visibleCount;
       }
 
-      window.dispatchEvent(new Event("resize"));
+      updateFacetAvailability();
     };
 
     const loadMore = () => {
@@ -1075,6 +1367,7 @@ function priceLabel(p) {
       input.addEventListener("change", () => {
         visibleCount = getBatchSize();
         updateFeedVisibility();
+        startCanonicalNavigation();
       });
     });
 
@@ -1091,6 +1384,15 @@ function priceLabel(p) {
     window.addEventListener("resize", () => {
       visibleCount = Math.max(visibleCount, getBatchSize());
       updateFeedVisibility();
+    });
+
+    const mobileGiftPills = document.querySelector('[data-mobile-gift-pills="true"]');
+    const giftMoreButton = mobileGiftPills?.querySelector(".landing-gift-more");
+    giftMoreButton?.addEventListener("click", () => {
+      const expanded = !mobileGiftPills.classList.contains("is-expanded");
+      mobileGiftPills.classList.toggle("is-expanded", expanded);
+      giftMoreButton.setAttribute("aria-expanded", String(expanded));
+      giftMoreButton.textContent = expanded ? "Скрий допълнителните идеи" : "Още идеи за подарък";
     });
   </script>
 </BaseLayout>

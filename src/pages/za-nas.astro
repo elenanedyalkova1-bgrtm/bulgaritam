@@ -1,148 +1,39 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-const title = "За нас | Българитъм";
-const description =
-  "Българитъм е място за откриване на български брандове и продукти с редакторски подход, ясна структура и вдъхновяващо browsing изживяване.";
-const canonical = "https://bulgaritam.bg/za-nas/";
+import { Image } from "astro:assets";
+import { loadProducts } from "../lib/products";
+import fashion from "../assets/editorial/about-fashion.png"; import gift from "../assets/editorial/about-gift.png"; import food from "../assets/editorial/about-food.png"; import home from "../assets/editorial/about-family-business.jpg"; import jewelry from "../assets/editorial/about-own-signature.jpg";
+const title="За нас | Българитъм",description="Българитъм е място за откриване на български брандове и продукти с редакторски подход, ясна структура и приятно изживяване.",canonical="https://bulgaritam.bg/za-nas/";
+const products=(await loadProducts()).filter(p=>p.is_active&&p.image_urls?.[0]);
+const stableScore=(value,seed)=>[...`${seed}:${value}`].reduce((hash,char)=>(hash*31+char.charCodeAt(0))>>>0,2166136261);
+const usedSlugs=new Set();
+const takeDiversified=(pool,seed,count=4)=>pool
+  .filter(product=>!usedSlugs.has(product.slug))
+  .sort((a,b)=>stableScore(a.slug,seed)-stableScore(b.slug,seed))
+  .slice(0,count)
+  .map(product=>(usedSlugs.add(product.slug),product));
+const homeProducts=takeDiversified(products.filter(p=>p.category==="Дом и интериор"),"new-home");
+const giftsForHer=takeDiversified(products.filter(p=>p.giftable&&p.recipient.includes("За жена")),"wishlist");
+const curatedLater=takeDiversified(products,"return-later");
+const collections=[homeProducts,giftsForHer,curatedLater];
 ---
-
-<BaseLayout
-  seo={{
-    title,
-    description,
-    data: {
-      breadcrumbs: [
-        { name: "Начало", item: "/" },
-        { name: "За нас", item: "/za-nas/" },
-      ],
-    },
-  }}
-  canonical={canonical}
-  i18n={{
-    en: {
-      "about.kicker": "Who we are",
-      "about.title": "About Bulgaritam",
-      "about.intro1": "We used to spend hours on Instagram and ask around just to find beautiful Bulgarian products.",
-      "about.intro2": "That is why we created Bulgaritam. A platform where, within minutes, you can discover the right product for you, created by Bulgarian brands and artists.",
-      "about.intro3": "We built it to feel visual and intuitive, so you can get inspired, discover, and save your favorite finds.",
-      "about.intro4": "At Bulgaritam, we do not just search. We shape our own aesthetic.",
-      "about.how": "How it works",
-      "about.how1": "You browse categories or search for something specific.",
-      "about.how2": "You discover products you like.",
-      "about.how3": "You save them in your own collections for inspiration you can return to and share with a link.",
-      "about.how4": "And when you are ready, you go directly to the brand and order from there.",
-      "about.why": "Why we do it",
-      "about.why1": "Because discovering good Bulgarian products should not take hours.",
-      "about.why2": "Because there are people who want to shop from local makers, but until now there was no easy way to do that.",
-      "about.why3": "With Bulgaritam, we make the connection easier — between the people who search and the people who create.",
-      "about.contact": "Contact",
-      "about.contactBody": "If you are a Bulgarian brand and want to join, apply through the Partners page.",
-      "about.partnersLink": "Partners"
-    }
-  }}
->
-  <main class="page-shell page-shell--narrow">
-    <header class="page-head">
-      <p class="page-kicker" data-i18n="about.kicker">Кои сме ние</p>
-      <h1 class="page-title" data-i18n="about.title">За Българитъм</h1>
-      <div class="page-intro page-intro--rich">
-        <p data-i18n="about.intro1">Прекарвахме часове в Instagram и питахме познати, за да открием хубави български продукти.</p>
-        <p data-i18n="about.intro2">Затова създадохме Българитъм. Платформа, на която за минути откриваш точния за теб продукт, създаден от български брандове и артисти.</p>
-        <p data-i18n="about.intro3">Създадохме го визуално и интуитивно, за да се вдъхновяваш, да откриваш и да запазваш любимите си находки.</p>
-        <p data-i18n="about.intro4">В Българитъм ние не просто търсим, а създаваме своята естетика.</p>
-      </div>
-    </header>
-
-    <section class="page-card">
-      <h2 data-i18n="about.how">Как работи</h2>
-      <ol>
-        <li data-i18n="about.how1">Разглеждаш категории или търсиш нещо конкретно.</li>
-        <li data-i18n="about.how2">Откриваш продукти, които ти харесват.</li>
-        <li data-i18n="about.how3">Запазваш ги в свои колекции за вдъхновение, към което можеш да се връщаш и да споделяш с линк.</li>
-        <li data-i18n="about.how4">И когато си готов, отиваш директно при бранда и поръчваш оттам.</li>
-      </ol>
-    </section>
-
-    <section class="page-card">
-      <h2 data-i18n="about.why">Защо го правим</h2>
-      <p data-i18n="about.why1">Защото откриването на добри български продукти не трябва да отнема часове.</p>
-      <p data-i18n="about.why2">Защото има хора, които искат да пазаруват от местни производители, но досега нямаше лесен начин за това.</p>
-      <p data-i18n="about.why3">С Българитъм правим връзката по-лесна - между хората, които търсят, и хората, които създават.</p>
-    </section>
-
-    <section class="page-card">
-      <h2 data-i18n="about.contact">Контакт</h2>
-      <p>
-        <span data-i18n="about.contactBody">Ако си български бранд и искаш да се включиш, кандидатствай от страницата</span>
-        <a href="/partnyori/" data-i18n="about.partnersLink">Партньори</a>.
-      </p>
-    </section>
-  </main>
-
-  <style>
-    .page-shell--narrow {
-      max-width: 920px;
-    }
-
-    .page-head {
-      margin-bottom: 40px;
-    }
-
-    .page-card {
-      padding: 28px 30px;
-      background: rgba(255, 255, 255, 0.8);
-    }
-
-    .page-card + .page-card {
-      margin-top: 24px;
-    }
-
-    .page-intro--rich {
-      max-width: 760px;
-      margin: 0 auto;
-    }
-
-    .page-intro--rich p {
-      margin: 0;
-    }
-
-    .page-intro--rich p + p {
-      margin-top: 14px;
-    }
-
-    h2 {
-      margin: 0 0 14px;
-    }
-
-    ol,
-    ul,
-    .page-card p {
-      max-width: 680px;
-      margin: 0;
-      line-height: 1.7;
-    }
-
-    ol,
-    ul {
-      padding-left: 18px;
-    }
-
-    .page-card p {
-      padding-left: 0;
-    }
-
-    a { color: var(--accent); text-decoration: none; font-weight: 650; }
-    a:hover { text-decoration: underline; }
-
-    @media (max-width: 768px) {
-      .page-head {
-        margin-bottom: 30px;
-      }
-
-      .page-card {
-        padding: 24px 20px;
-      }
-    }
-  </style>
+<BaseLayout seo={{title,description,data:{breadcrumbs:[{name:"Начало",item:"/"},{name:"За нас",item:"/za-nas/"}]}}} canonical={canonical}>
+<main class="about">
+<section class="hero wrap"><div><p class="eyebrow">Кои сме ние</p><h1>За Българитъм</h1><div class="copy"><p>Всеки от нас има онзи момент, в който някой споменава български бранд и си казваш:</p><blockquote>„Как не съм го виждала досега?“</blockquote><p>Не защото не търсим. А защото добрите продукти са навсякъде и никъде едновременно - в отделни сайтове, Instagram профили, малки ателиета, магазини и препоръки от човек на човек.</p><p>Българитъм тръгна от точно това усещане, че не би трябвало да познаваш името на един бранд предварително, за да стигнеш до него.</p><p>Ако търсиш рокля, подарък, крем за лице или нещо за дома, българските предложения просто трябва да имат шанс да се появят пред теб.</p></div></div><div class="collage"><Image src={fashion} alt="Моден детайл"/><Image src={gift} alt="Подарък"/><Image src={food} alt="Мед и храна"/></div></section>
+<section class="final"><div class="wrap"><div class="final-title"><h2>Българитъм е място за откриване.</h2><p class="not-shop">Не магазин.</p></div><div><div class="final-copy"><p>Когато намериш продукт, който ти харесва, отиваш директно при бранда. Там разглеждаш останалото, поръчваш и продължаваш отношенията си с него.</p><p>За нас добрият резултат е прост: да попаднеш на нещо, което иначе вероятно нямаше да видиш.</p><p>И следващия път, когато търсиш нещо конкретно, да знаеш откъде можеш да започнеш.</p></div><nav class="actions" aria-label="Следващи стъпки"><a href="/bulgarski-brandove/">Разгледай българските брандове →</a><a href="/partnyori/">Имаш бранд? Стани част от Българитъм →</a></nav></div></div></section>
+<section class="choice wrap"><div><p class="eyebrow">Изборът остава твой</p><h2>Не защото са български на всяка цена</h2><p class="italic">А защото заслужават да бъдат част от избора.</p><p>Не искаме да убеждаваме никого какво трябва да купува. Искаме изборът да е по-обширен и местните продукти да не отпадат още преди сравнението да е започнало.</p><p>Затова събираме продукти и брандове на едно място и ги подреждаме по начин, който започва от нуждата на човека, а не от това колко добре вече познава пазара.</p></div><div class="terms"><span>Подарък за жена</span><span>Ленена рокля</span><span>Шампоан</span><span>Лампа за дома</span><strong>Започваш от това, което ти трябва.</strong></div></section>
+<section class="collections"><div class="wrap"><p class="eyebrow">Запази за после</p><h2>И не е нужно да решиш веднага</h2><div class="columns"><p>Понякога намираш нещо, което не ти трябва точно сега, но не искаш да изгубиш.</p><p>Затова в Българитъм можеш не само да запазваш отделни находки, а и да ги събираш в свои колекции.</p><p>Можеш да направиш списък с неща за новия дом. Да събереш идеи за подарък. Да запазиш неща, към които искаш да се върнеш след време.</p><p>Или да направиш собствен списък с подаръци, които би искала, и да го споделиш с приятелите си, когато дойде поводът.</p><p>А може и да няма никакъв повод. Понякога просто попадаш на нещо хубаво и искаш да знаеш къде да го намериш отново.</p></div><p class="mantra">Събирай. Подреждай. Споделяй.</p><div class="collection-row">{["За новия дом","Подаръци, които бих искала","Да се върна по-късно"].map((name,i)=><article><h3>{name}</h3><div>{collections[i].map(p=><a href={`/p/${p.slug}/`} aria-label={p.name_bg}><img src={p.image_urls[0]} alt={p.name_bg} loading="lazy"/></a>)}</div></article>)}</div></div></section>
+<section class="variety wrap"><div><p class="eyebrow">Различни истории</p><h2>Има много повече, отколкото изглежда</h2><p>Зад един български продукт може да стои малко ателие, семейна фирма, производител с десетилетия история или съвсем нов бранд, който тепърва намира своята публика.</p><p>Не ги поставяме в една и съща рамка и не се опитваме да ги превръщаме в нещо, което не са.</p><p>По-интересно ни е да покажем колко различни неща всъщност се създават тук. От дрехи, козметика и храна до мебели, технологии, книги, продукти за деца и неща за дома.</p></div><div class="variety-grid"><figure><Image src={home} alt="Дом и интериор"/><figcaption>Семейна фирма</figcaption></figure><div class="labels"><span>Малко ателие</span><span>Производител с история</span><span>Нов бранд</span></div><figure><Image src={jewelry} alt="Бижута"/><figcaption>Собствен почерк</figcaption></figure></div></section>
+</main>
+<style>
+.about{overflow:hidden}.wrap{width:min(1180px,calc(100% - 40px));margin:auto}.eyebrow{margin:0 0 14px;color:var(--accent-strong);font-size:12px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}.about h1,.about h2,.about blockquote{font-family:var(--font-slight);font-weight:400}.about h1{margin:0 0 30px;font-size:clamp(54px,8vw,112px);line-height:.9}.about h2{margin:0;font-size:clamp(38px,5.5vw,76px);line-height:1}.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(36px,7vw,100px);align-items:center;padding:80px 0 110px}.copy,.choice p,.variety p{color:var(--muted);line-height:1.72}.copy{font-size:17px}.copy blockquote{margin:24px 0;color:var(--text);font-size:clamp(30px,4vw,55px);line-height:1.08}.collage{position:relative;min-height:690px}.collage img{position:absolute;object-fit:cover}.collage img:nth-child(1){inset:0 5% 12% 20%;width:75%;height:88%}.collage img:nth-child(2){left:0;bottom:0;width:44%;height:32%}.collage img:nth-child(3){right:0;top:8%;width:38%;height:28%}.choice{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;padding:110px 0}.italic{font:italic 25px/1.35 var(--font-slight);color:var(--accent-strong)!important}.terms{display:flex;flex-direction:column;justify-content:center;border-block:1px solid var(--border)}.terms span{padding:15px 0;border-bottom:1px solid var(--border);font:400 clamp(27px,3vw,44px) var(--font-slight)}.terms strong{padding-top:26px;color:var(--accent-strong)}.choice-end{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:60px}.collections{padding:100px 0;background:rgba(95,127,107,.09)}.columns{columns:2;column-gap:60px;max-width:960px;margin:35px 0;color:var(--muted);line-height:1.7}.mantra{font:400 clamp(29px,4vw,48px) var(--font-slight)}.collection-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.collection-row article{padding:18px;background:#fff;border-radius:18px}.collection-row h3{min-height:44px;margin:0 0 14px}.collection-row article div{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.collection-row img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}.variety{display:grid;grid-template-columns:.8fr 1.2fr;gap:70px;align-items:center;padding:120px 0}.variety-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.variety-grid figure{margin:0}.variety-grid figure:first-child{grid-row:span 2}.variety-grid img{width:100%;height:100%;max-height:600px;object-fit:cover}.variety-grid figcaption{margin-top:8px;font-size:12px;text-transform:uppercase;letter-spacing:.12em}.labels{display:grid;align-content:center;gap:12px;padding:28px;background:var(--accent-strong);color:#fff}.labels span{padding-bottom:12px;border-bottom:1px solid #ffffff55}.final{padding:110px 0;background:#20241f;color:#fff}.final h2{max-width:1000px;font-size:clamp(48px,7vw,96px)}.not-shop{margin:18px 0 50px;color:#d8b6aa;font:italic clamp(34px,5vw,68px) var(--font-slight)}.final-copy{max-width:760px;color:#ffffffb8;font-size:18px;line-height:1.7}.actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:42px}.actions a{padding:14px 18px;border:1px solid #ffffff55;border-radius:999px;color:#fff;text-decoration:none}.actions a:first-child{background:#fff;color:#20241f}
+@media(max-width:800px){.wrap{width:min(100% - 32px,1180px)}.hero,.choice,.variety{grid-template-columns:1fr}.hero{padding:50px 0 75px}.collage{min-height:480px}.choice,.variety{padding:75px 0}.choice-end{grid-template-columns:1fr;gap:10px}.columns{columns:1}.collection-row{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px}.collection-row article{min-width:82vw;scroll-snap-align:start}.variety-grid{min-height:520px}.final{padding:75px 0}}@media(max-width:500px){.collage{min-height:390px}.collections{padding:70px 0}.variety-grid{grid-template-columns:1fr 1fr;min-height:430px}.labels{padding:16px}.actions{flex-direction:column}.actions a{text-align:center}}
+</style>
+<style>
+.collection-row a{display:block}.collection-row img{display:block}.variety-grid figure:first-child img{object-position:center 42%}.variety-grid figure:last-child img{object-position:center 58%}
+.copy blockquote{white-space:nowrap;font-size:clamp(22px,3.6vw,50px)}
+@media(min-width:801px){.about h1{font-size:clamp(52px,6vw,82px)}.about h2{font-size:clamp(36px,4vw,58px)}.about .hero{padding-top:90px;padding-bottom:68px}.about .choice{padding:68px 0}.about .collections{padding:68px 0}.about .variety{padding:72px 0}.about .final{padding:72px 0}.final>.wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:80px;align-items:start}.final h2{font-size:clamp(42px,4.4vw,64px)}.not-shop{font-size:clamp(34px,3.8vw,54px)}}
+@media(max-width:800px){.about .hero{padding-bottom:50px}.about .choice,.about .variety{padding:56px 0}.about .collections,.about .final{padding:56px 0}.collage{min-height:420px}.copy blockquote{font-size:clamp(19px,5.8vw,38px)}}
+@media(max-width:500px){.collage{min-height:340px}}
+</style>
 </BaseLayout>

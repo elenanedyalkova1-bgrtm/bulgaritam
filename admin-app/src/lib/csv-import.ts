@@ -1,14 +1,15 @@
 import { BRANDS_TABLE, PRODUCTS_TABLE, createRow, listFields, listRows, updateRow } from "./baserow";
+import { brandMirrorFields, foldBrandIdentity, resolveBrandIdentity, resolveOrCreateBrand } from "./brand-sync";
 
 export const CSV_COLUMNS = [
   "product_id","legacy_product_id","brand_name","brand_slug","brand_url","brand_description_bg","brand_logo_url","brand_instagram_url","brand_address",
-  "name_bg","slug","product_url","image_urls","category","subcategory","product_type","attributes","gift_occasion","colors","materials","audience","recipient","tags",
+  "name_bg","slug","product_url","image_urls","category","subcategory","product_type","attributes","gift_occasion","colors","materials","audience","recipient","recipient_age","recipient_gender","role_interest","wedding_anniversary_type","gemstone","jewelry_detail","clothing_style","sleeve","season","ingredient","skin_type","skin_need","hair_need","tags",
   "price_min_eur","price_max_eur","currency","short_desc_bg","long_desc_bg","is_active","meta_title_bg","meta_desc_bg","rating","created_at",
 ] as const;
 
 const EDITABLE = ["name_bg","slug","category","tags","price_min_eur","price_max_eur","currency","short_desc_bg","long_desc_bg","product_url","image_urls","meta_title_bg","meta_desc_bg","rating","created_at"] as const;
 const SINGLE_SELECT = ["subcategory","product_type"] as const;
-const MULTI_SELECT = ["attributes","gift_occasion","colors","materials","audience","recipient"] as const;
+const MULTI_SELECT = ["attributes","gift_occasion","colors","materials","audience","recipient","recipient_age","recipient_gender","role_interest","wedding_anniversary_type","gemstone","jewelry_detail","clothing_style","sleeve","season","ingredient","skin_type","skin_need","hair_need"] as const;
 type CsvRow = Record<string, string>;
 type BrandPlan = { key:string; brand_name:string; brand_slug:string; fields:Record<string,unknown>; products:number };
 export type ImportItem = { line:number; action:"create"|"update"|"unchanged"|"invalid"; row:CsvRow; productId?:number; brandId?:number; brandKey?:string; errors:string[]; warnings:string[]; fields?:Record<string,unknown> };
@@ -35,9 +36,7 @@ const boolValue=(v:string)=>{const n=v.toLowerCase(); if(["true","1","yes","y"].
 const normalized=(v:unknown)=>String(v??"").trim();
 const linkedId=(v:any)=>Number(v?.[0]?.id || 0);
 const validUrl=(v:string)=>{try{const u=new URL(v);return u.protocol==="http:"||u.protocol==="https:";}catch{return false;}};
-const fold=(v:unknown)=>normalized(v).normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("bg").replace(/[^\p{L}\p{N}]+/gu,"");
-const validSlug=(v:string)=>/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v);
-const placeholderBrand=(v:string)=>!v||/^(unknown|brand|n\/a|няма|без бранд)$/i.test(v);
+const fold=foldBrandIdentity;
 const splitSelect=(v:string)=>v.split(/[|;,]/).map(item=>item.trim()).filter(Boolean);
 
 export async function prepareImport(rows: CsvRow[], fixture?: {products:any[];brands:any[];fields?:any[]}): Promise<ImportPlan> {
@@ -45,9 +44,6 @@ export async function prepareImport(rows: CsvRow[], fixture?: {products:any[];br
   const byId=new Map(products.map(p=>[Number(p.id),p]));
   const bySlug=new Map<string,any>(); for(const p of products){const s=normalized(p.slug);if(s)bySlug.set(s,p);}
   const brandsById=new Map(brands.map(b=>[Number(b.id),b]));
-  const brandsBySlug=new Map(brands.filter(b=>normalized(b.brand_slug)).map(b=>[normalized(b.brand_slug),b]));
-  const brandsBySafeName=new Map<string,any[]>(); const brandsBySafeSlug=new Map<string,any[]>();
-  for(const brand of brands){for(const [map,value] of [[brandsBySafeName,fold(brand.brand_name)],[brandsBySafeSlug,fold(brand.brand_slug)]] as const){if(!value)continue;const list=map.get(value)||[];list.push(brand);map.set(value,list);}}
   const brandPlans=new Map<string,BrandPlan>(); const reusedBrandIds=new Set<number>(); let ambiguousRecords=0;let malformedBrandRecords=0;let productsLinked=0;
   const optionIds=(fieldName:string,raw:string,errors:string[])=>{if(!raw)return [];const field=schema.find((item:any)=>item.name===fieldName);if(!field){errors.push(`Baserow field ${fieldName} is missing`);return [];}return splitSelect(raw).map(value=>{const option=field.select_options?.find((item:any)=>fold(item.value)===fold(value));if(!option)errors.push(`Unknown ${fieldName} option: ${value}`);return option?.id;}).filter(Number.isFinite);};
   const counts=new Map<string,number>(); rows.forEach(r=>{const s=normalized(r.slug);if(s)counts.set(s,(counts.get(s)||0)+1);});
@@ -62,17 +58,16 @@ export async function prepareImport(rows: CsvRow[], fixture?: {products:any[];br
     const existing=byRequestedId || (!row.product_id ? byRequestedSlug : undefined);
     if(duplicateSlugs.includes(row.slug)) errors.push("Duplicate slug in CSV");
     let brand:any;let brandKey=""; const incomingName=normalized(row.brand_name);const incomingSlug=normalized(row.brand_slug);
-    const explicitSlugBrand=incomingSlug?brandsBySlug.get(incomingSlug):undefined;
-    const safeCandidates=[...new Map([...(brandsBySafeName.get(fold(incomingName))||[]),...(brandsBySafeSlug.get(fold(incomingSlug))||[])].map(item=>[item.id,item])).values()];
-    if(explicitSlugBrand&&!safeCandidates.some(item=>item.id===explicitSlugBrand.id))safeCandidates.push(explicitSlugBrand);
     const existingBrand=existing?brandsById.get(linkedId(existing.brand_ref)):undefined;
-    if(existingBrand)brand=existingBrand;
-    else if(safeCandidates.length===1){brand=safeCandidates[0];reusedBrandIds.add(Number(brand.id));}
-    else if(safeCandidates.length>1){errors.push("Ambiguous Brand identity");ambiguousRecords++;}
-    else if(placeholderBrand(incomingName)||!validSlug(incomingSlug)){errors.push("Malformed Brand identity: brand_name and valid brand_slug are required");unknown.add(incomingName||incomingSlug);malformedBrandRecords++;}
+    const resolution=resolveBrandIdentity(brands,{preferredBrandId:existingBrand?.id,brandName:incomingName,brandSlug:incomingSlug,brandUrl:row.brand_url,descriptionBg:row.brand_description_bg,logoUrl:row.brand_logo_url,instagramUrl:row.brand_instagram_url,address:row.brand_address});
+    if(resolution.status==="resolved"){brand=resolution.brand;reusedBrandIds.add(Number(brand.id));}
+    else if(resolution.status==="ambiguous"){errors.push(resolution.message);ambiguousRecords++;}
+    else if(resolution.status==="unresolved"){errors.push(`Malformed Brand identity: ${resolution.message}`);unknown.add(incomingName||incomingSlug);malformedBrandRecords++;}
     else {
-      brandKey=fold(incomingName);const current=brandPlans.get(brandKey);
-      if(current&&(current.brand_slug!==incomingSlug||fold(current.brand_name)!==fold(incomingName))){errors.push("Ambiguous Brand identity within CSV");ambiguousRecords++;}
+      const nameKey=fold(incomingName);const currentByName=brandPlans.get(nameKey);const currentBySlug=[...brandPlans.values()].find(plan=>fold(plan.brand_slug)===fold(incomingSlug));
+      const current=currentByName||currentBySlug;brandKey=current?.key||nameKey;
+      if(currentByName&&currentBySlug&&currentByName!==currentBySlug){errors.push("Ambiguous Brand identity within CSV");ambiguousRecords++;}
+      else if(currentBySlug&&!currentByName&&fold(currentBySlug.brand_name)!==nameKey){errors.push("Ambiguous Brand identity within CSV");ambiguousRecords++;}
       else if(!current)brandPlans.set(brandKey,{key:brandKey,brand_name:incomingName,brand_slug:incomingSlug,products:0,fields:{brand_name:incomingName,brand_slug:incomingSlug,brand_url:normalized(row.brand_url),description_bg:normalized(row.brand_description_bg),logo_url:normalized(row.brand_logo_url),instagram_url:normalized(row.brand_instagram_url),address:normalized(row.brand_address),is_active:true}});
       const plan=brandPlans.get(brandKey);if(plan)plan.products++;
     }
@@ -112,13 +107,11 @@ export async function executeImport(plan: ImportPlan) {
   const products=await listRows(PRODUCTS_TABLE); let nextLegacy=Math.max(0,...products.map(p=>Number(p["id 2"])).filter(Number.isFinite))+1;
   const resolvedBrands=new Map<string,any>();
   for(const planned of plan.brandsToCreate){
-    const latest=await listRows(BRANDS_TABLE);const matches=latest.filter(brand=>fold(brand.brand_name)===fold(planned.brand_name)||fold(brand.brand_slug)===fold(planned.brand_slug));
-    if(matches.length>1)throw new Error(`Ambiguous Brand after refresh: ${planned.brand_name}`);
-    const brand=matches[0]||await createRow(BRANDS_TABLE,planned.fields);resolvedBrands.set(planned.key,brand);
+    const brand=await resolveOrCreateBrand({brandName:planned.brand_name,brandSlug:planned.brand_slug,brandUrl:String(planned.fields.brand_url||""),descriptionBg:String(planned.fields.description_bg||""),logoUrl:String(planned.fields.logo_url||""),instagramUrl:String(planned.fields.instagram_url||""),address:String(planned.fields.address||"")});resolvedBrands.set(planned.key,brand);
   }
   for(const item of plan.items){
     if(item.action==="invalid"||item.action==="unchanged"){result.skipped++;continue;}
-    try{const fields={...(item.fields||{})};const resolved=item.brandKey?resolvedBrands.get(item.brandKey):null;if(resolved){fields.brand_ref=[resolved.id];fields.brand_name=resolved.brand_name;fields.brand_slug=resolved.brand_slug;fields.brand_url=resolved.brand_url||"";} if(item.action==="create"){fields["id 2"]=String(nextLegacy++);if(!fields.created_at)fields.created_at=new Date().toISOString();await createRow(PRODUCTS_TABLE,fields);result.created++;}else{await updateRow(PRODUCTS_TABLE,item.productId!,fields);result.updated++;}}
+    try{const fields={...(item.fields||{})};const resolved=item.brandKey?resolvedBrands.get(item.brandKey):null;if(resolved)Object.assign(fields,brandMirrorFields(resolved)); if(item.action==="create"){fields["id 2"]=String(nextLegacy++);if(!fields.created_at)fields.created_at=new Date().toISOString();await createRow(PRODUCTS_TABLE,fields);result.created++;}else{await updateRow(PRODUCTS_TABLE,item.productId!,fields);result.updated++;}}
     catch(error){result.failed++;result.errors.push(`Line ${item.line}: ${error instanceof Error?error.message:"Import failed"}`);}
   }
   return result;

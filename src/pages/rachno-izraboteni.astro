@@ -1,6 +1,6 @@
 ---
 import SeoProductLanding from "../components/SeoProductLanding.astro";
-import { getIntentLandingByPath, getProductsForIntentLanding } from "../lib/seo-landings";
+import { getIntentLandingByPath, getProductsForIntentLanding, getLandingPageHierarchy } from "../lib/seo-landings";
 import { loadProducts } from "../lib/products";
 
 const allProducts = await loadProducts();
@@ -11,15 +11,16 @@ if (!landing) {
 }
 
 const products = getProductsForIntentLanding(allProducts, landing);
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
 ---
 
 <SeoProductLanding
-  landing={landing}
+  landing={hierarchy.seoLanding}
   products={products}
   browseProducts={allProducts}
   canonicalPath="/rachno-izraboteni/"
-  breadcrumbs={[
-    { name: "Начало", item: "/" },
-    { name: "Ръчно изработени", item: "/rachno-izraboteni/" },
-  ]}
+  breadcrumbs={hierarchy.breadcrumbs}
+  primaryPills={hierarchy.primaryPills}
+  secondaryPills={hierarchy.secondaryPills}
+  parentLink={hierarchy.parentLink}
 />

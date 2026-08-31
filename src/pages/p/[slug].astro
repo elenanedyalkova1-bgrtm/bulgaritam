@@ -2,7 +2,6 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCuratedTagsForProduct } from "../../lib/curated-tags";
 import { getProductBadges } from "../../lib/product-badges";
-import { getProductUsageContext } from "../../lib/product-context";
 import { getCategoryKey, getCategoryLanding, getCanonicalPathForLanding, getDisplayCategoryForProduct, getRelevantLandingsForProduct } from "../../lib/seo-landings";
 import { getTaxonomyForProduct } from "../../lib/taxonomy";
 import { loadProducts } from "../../lib/products";
@@ -33,6 +32,11 @@ export async function getStaticPaths() {
 }
 
 const { product } = Astro.props;
+const productMaterials = [...new Set((Array.isArray(product.materials) ? product.materials : []).map(clean).filter(Boolean))];
+const productColors = [...new Set((Array.isArray(product.colors) ? product.colors : []).map(clean).filter(Boolean))];
+const productAttributes = [...new Set((Array.isArray(product.attributes) ? product.attributes : []).map(clean).filter(Boolean))];
+const brandIntro = clean(product.intro_bg);
+const brandExcerpt = brandIntro.length > 260 ? `${brandIntro.slice(0, 257).replace(/\s+\S*$/, "")}…` : brandIntro;
 
 // Load all products once for related
 const all = await loadProducts();
@@ -58,9 +62,8 @@ const breadcrumbs = [
   { label: "Начало", href: "/" },
   { label: productCategoryLabel || "Категория", href: categoryLanding ? getCanonicalPathForLanding(categoryLanding) : undefined },
   { label: product.brand_name || "Бранд", href: product.brand_slug ? `/brand/${product.brand_slug}/` : undefined },
-  { label: product.name_bg || "Продукт" },
+  { label: product.name_bg || "Продукт", href: `/p/${product.slug}/` },
 ];
-const usageContext = getProductUsageContext(product);
 const sameBrandProducts = all
   .filter((p) => p.slug !== product.slug)
   .filter((p) => product.brand_slug && p.brand_slug === product.brand_slug)
@@ -115,6 +118,9 @@ const relatedPrice = (p) =>
     "product.saveNote": "Collect your favorite products in a personal gallery and share it with a link.",
     "product.category": "Category",
     "product.price": "Price",
+    "product.materials": "Materials",
+    "product.colors": "Colors",
+    "product.attributes": "Features",
     "product.cta": "Visit brand website →",
     "product.moreIdeas": "More ideas",
     "product.relatedTitle": "Explore more in similar selections",
@@ -154,7 +160,7 @@ const relatedPrice = (p) =>
       <ol>
         {breadcrumbs.map((c, i) => (
           <li>
-            {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            {i < breadcrumbs.length - 1 && c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
             {i < breadcrumbs.length - 1 ? <span class="sep">→</span> : null}
           </li>
         ))}
@@ -229,15 +235,16 @@ const relatedPrice = (p) =>
               </div>
             ) : null}
 
-            <div class="meta-item">
-              <span class="meta-label" data-i18n="product.suitableFor">Подходящо за</span>
-              <span class="meta-value">{usageContext.suitableFor}</span>
-            </div>
+            {productMaterials.length ? (
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="product.materials">Материали</span>
+                <span class="meta-value">{productMaterials.join(" · ")}</span>
+              </div>
+            ) : null}
 
-            <div class="meta-item">
-              <span class="meta-label" data-i18n="product.perfectFor">Перфектно за</span>
-              <span class="meta-value">{usageContext.perfectFor}</span>
-            </div>
+            {productColors.length ? <div class="meta-item"><span class="meta-label" data-i18n="product.colors">Цветове</span><span class="meta-value">{productColors.join(" · ")}</span></div> : null}
+            {productAttributes.length ? <div class="meta-item"><span class="meta-label" data-i18n="product.attributes">Характеристики</span><span class="meta-value">{productAttributes.join(" · ")}</span></div> : null}
+
           </div>
 
           {curatedTagLinks.length ? (
@@ -249,6 +256,10 @@ const relatedPrice = (p) =>
               ))}
             </div>
           ) : null}
+
+          <div class="product-signals" aria-label="Обратна връзка за продукта">
+            <button type="button" class="product-signal" data-user-signal="recommend" data-signal-context="product_page" aria-pressed="false">Препоръчвам</button>
+          </div>
 
           <a
             href={product.product_url}
@@ -278,7 +289,7 @@ const relatedPrice = (p) =>
           <h2 class="related-title" data-i18n="product.sameBrandTitle">Още от този бранд</h2>
         </div>
 
-        <ul class="related-grid">
+        <ul class="related-grid" data-masonry-grid>
           {sameBrandProducts.map((r) => {
             const { isBio, isEco, isHandmade, isGift } = getProductBadges(r);
             return (
@@ -353,7 +364,7 @@ const relatedPrice = (p) =>
 
         <div class="landing-links__grid">
           {landingLinks.map((landing) => (
-            <a class="landing-link-card" href={getCanonicalPathForLanding(landing)}>
+            <a class="landing-link-card" href={"path" in landing ? landing.path : getCanonicalPathForLanding(landing)}>
               <span class="landing-link-card__label">{landing.label}</span>
               <span class="landing-link-card__cta">Виж всички →</span>
             </a>
@@ -369,7 +380,7 @@ const relatedPrice = (p) =>
           <h2 class="related-title" data-i18n="product.mightLike">Още продукти, които може да ти допаднат</h2>
         </div>
 
-        <ul class="related-grid">
+        <ul class="related-grid" data-masonry-grid>
           {related.map((r) => {
             const { isBio, isEco, isHandmade, isGift } = getProductBadges(r);
             return (
@@ -447,6 +458,14 @@ const relatedPrice = (p) =>
               </li>
           )})}
         </ul>
+      </section>
+    ) : null}
+
+    {brandExcerpt && product.brand_slug ? (
+      <section class="product-brand-block page-panel">
+        <p class="page-kicker">За {product.brand_name}</p>
+        <p>{brandExcerpt}</p>
+        <a href={`/brand/${product.brand_slug}/`}>Виж профила на бранда →</a>
       </section>
     ) : null}
   </main>
@@ -599,6 +618,37 @@ const relatedPrice = (p) =>
       background: rgba(95, 127, 107, 0.1);
       border-color: rgba(95, 127, 107, 0.22);
       color: rgba(26, 26, 26, 0.94);
+    }
+
+    .product-signals {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .product-brand-block { max-width: 760px; margin: 40px auto 0; padding: 24px; }
+    .product-brand-block p:not(.page-kicker) { margin: 8px 0 14px; color: rgba(26,26,26,.74); line-height: 1.65; }
+    .product-brand-block a { color: var(--accent-strong); font-weight: 750; text-decoration: none; }
+
+    .product-signal {
+      min-height: 42px;
+      padding: 0 15px;
+      border: 1px solid rgba(95, 127, 107, 0.25);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: rgba(26, 26, 26, 0.82);
+      font: 700 14px var(--font-body);
+      cursor: pointer;
+    }
+
+    .product-signal:hover:not(:disabled) {
+      background: rgba(95, 127, 107, 0.1);
+    }
+
+    .product-signal[aria-pressed="true"] {
+      background: rgba(95, 127, 107, 0.16);
+      color: var(--accent-strong);
+      cursor: default;
     }
 
     .meta-item {
@@ -762,12 +812,16 @@ const relatedPrice = (p) =>
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 18px;
       align-items: start;
+      --masonry-row: 10px;
+      grid-auto-rows: auto;
+      grid-auto-flow: dense;
     }
 
     .related-card {
       display: block;
       position: relative;
       width: auto;
+      grid-row: auto;
       border: 1px solid rgba(26,26,26,.1);
       border-radius: 20px;
       overflow: hidden;
@@ -775,6 +829,9 @@ const relatedPrice = (p) =>
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.045);
       transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
+
+    .related-grid.is-masonry-ready { grid-auto-rows: var(--masonry-row); }
+    .related-grid.is-masonry-ready .related-card { grid-row: span var(--masonry-span); }
 
     .related-link {
       display: flex;

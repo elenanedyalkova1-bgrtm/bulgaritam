@@ -1,7 +1,6 @@
 ---
 import SeoProductLanding from "../../components/SeoProductLanding.astro";
-import { getCategoryLanding, getProductsForLanding, getSubcategoryLandings, getIntentLandingsForCategory } from "../../lib/seo-landings";
-import { getSubcategoryLabelForLang } from "../../lib/taxonomy";
+import { getCategoryLanding, getProductsForLanding, getLandingPageHierarchy } from "../../lib/seo-landings";
 import { loadProducts } from "../../lib/products";
 
 const allProducts = await loadProducts();
@@ -13,36 +12,29 @@ if (!landing) {
 
 const seoLanding = {
   ...landing,
-  h1: "Български подаръци",
-  title: "Български подаръци | Българитъм",
-  description: "Открий български подаръци от локални марки и автори в Българитъм.",
+  h1: "Идеи за подарък",
+  title: "Идеи за подарък от български брандове | Българитъм",
+  description: "Открий идеи за подарък от български брандове за жена, мъж, дете, бебе и специални поводи.",
   intro: [
-    "Открий български подаръци от локални марки, подредени така, че да стигаш по-лесно до точния жест за точния човек.",
-    "Тази страница събира идеи за подарък с повече смисъл, по-ясна структура и по-спокойно разглеждане."
+    "Открий идеи за подарък от локални марки, подредени така, че да стигаш по-лесно до точния жест за точния човек.",
+    "Разгледай български подаръци по получател, повод и начин на изработка."
   ],
 };
 
 const products = getProductsForLanding(allProducts, landing);
-const primaryPills = [
-  ...getSubcategoryLandings("gifts")
-    .map((entry) => ({
-      ...entry,
-      productCount: getProductsForLanding(allProducts, entry).length,
-    }))
-    .filter((entry) => entry.productCount > 0)
-    .map((entry) => ({
-      label: entry.label,
-      labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
-      href: `/bulgarski-podaratsi/${entry.slug}/`,
-      isActive: false,
-    })),
-  ...getIntentLandingsForCategory("gifts", "gifts").map((entry) => ({
-    label: entry.label,
-    labelEn: entry.labelEn,
-    href: entry.path,
-    isActive: false,
-  })),
-];
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
+const giftPills = [...hierarchy.primaryPills, ...hierarchy.secondaryPills];
+const mobileMainPillOrder = ["За жена", "За мъж", "За дете", "За бебе", "За сватба", "Ръчно изработени"];
+const primaryPills = giftPills
+  .map((entry) => ({ ...entry, isMobilePrimary: mobileMainPillOrder.includes(entry.label) }))
+  .sort((a, b) => {
+    const aIndex = mobileMainPillOrder.indexOf(a.label);
+    const bIndex = mobileMainPillOrder.indexOf(b.label);
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
 ---
 
 <SeoProductLanding
@@ -50,9 +42,7 @@ const primaryPills = [
   products={products}
   browseProducts={allProducts}
   canonicalPath="/bulgarski-podaratsi/"
-  breadcrumbs={[
-    { name: "Начало", item: "/" },
-    { name: "Български подаръци", item: "/bulgarski-podaratsi/" },
-  ]}
+  breadcrumbs={hierarchy.breadcrumbs}
   primaryPills={primaryPills}
+  parentLink={hierarchy.parentLink}
 />

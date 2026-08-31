@@ -4,6 +4,7 @@ import { getCuratedTagPages } from "../../lib/curated-tags";
 import { getCategoryLabel } from "../../lib/taxonomy";
 import { loadProducts } from "../../lib/products";
 import { getProductBadges } from "../../lib/product-badges";
+import { getPublicBrowseForProduct } from "../../lib/public-browse-taxonomy";
 
 function priceLabel(p) {
   if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
@@ -85,10 +86,27 @@ if (!page) {
       </div>
 
       <ul class="grid" id="grid">
-        {page.products.map((p) => {
+        {page.products.map((p, index) => {
           const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
+          const publicBrowse = getPublicBrowseForProduct(p);
           return (
-          <li class="card">
+          <li
+            class="card"
+            data-product-slug={p.slug}
+            data-product-id={p.id}
+            data-product-name={p.name_bg}
+            data-brand-id={p.brand_id ?? ""}
+            data-brand-slug={p.brand_slug ?? ""}
+            data-brand-name={p.brand_name ?? ""}
+            data-brand={p.brand_slug ?? ""}
+            data-public-category={publicBrowse.categoryKey}
+            data-public-subcategory={publicBrowse.subcategoryKey}
+            data-product-type={p.product_type ?? ""}
+            data-price={priceLabel(p) ?? ""}
+            data-list-context="recommended"
+            data-list-name={page.label}
+            data-position={index + 1}
+          >
             <div class="card-top">
               <a class="card-imglink" href={`/p/${p.slug}/`}>
                 <div class="thumb">

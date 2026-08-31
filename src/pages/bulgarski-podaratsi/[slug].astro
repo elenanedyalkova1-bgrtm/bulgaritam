@@ -5,32 +5,42 @@ import {
   getProductsForIntentLanding,
   getSubcategoryLandings,
   getIntentLandingsForCategory,
+  getLandingPageHierarchy,
 } from "../../lib/seo-landings";
-import { getSubcategoryLabelForLang } from "../../lib/taxonomy";
 import { loadProducts } from "../../lib/products";
 
 const allProducts = await loadProducts();
-const giftSubcategoryLandings = getSubcategoryLandings("gifts");
-const giftIntentLandings = getIntentLandingsForCategory("gifts", "gifts");
 
 export async function getStaticPaths() {
   const products = await loadProducts();
   const giftSubcategoryLandings = getSubcategoryLandings("gifts");
   const giftIntentLandings = getIntentLandingsForCategory("gifts", "gifts");
+  const routedGiftIntentLandings = giftIntentLandings.filter((landing) => landing.path.startsWith("/bulgarski-podaratsi/"));
+
+  const exactTargets = {
+    gifts_for_her: { h1: "Подарък за жена", title: "Подарък за жена | Българитъм", description: "Открий подарък за жена от български брандове в Българитъм." },
+    gifts_for_him: { h1: "Подарък за мъж", title: "Подарък за мъж | Българитъм", description: "Открий подарък за мъж от български брандове в Българитъм." },
+    gifts_for_child: { h1: "Подарък за дете", title: "Подарък за дете | Българитъм", description: "Открий подарък за дете от български брандове в Българитъм." },
+    gifts_for_baby: { h1: "Подарък за бебе", title: "Подарък за бебе | Българитъм", description: "Открий подарък за бебе от български брандове в Българитъм." },
+  };
 
   const taxonomyEntries = giftSubcategoryLandings.map((landing) => ({
     params: { slug: landing.slug },
     props: {
       landing: {
         ...landing,
-        title: `${landing.viewAllLabel} | Българитъм`,
-        h1: landing.viewAllLabel,
+        title: exactTargets[landing.subcategoryKey]?.title || `${landing.viewAllLabel} | Българитъм`,
+        description: exactTargets[landing.subcategoryKey]?.description || landing.description,
+        h1: exactTargets[landing.subcategoryKey]?.h1 || landing.viewAllLabel,
+        intro: exactTargets[landing.subcategoryKey]
+          ? [`${exactTargets[landing.subcategoryKey].h1} може да бъде личен, практичен и създаден от български бранд.`, "Разгледай продуктите и използвай свързаните категории, за да стигнеш по-бързо до точния избор."]
+          : landing.intro,
       },
       products: getProductsForLanding(products, landing),
     },
   }));
 
-  const intentEntries = giftIntentLandings.map((landing) => ({
+  const intentEntries = routedGiftIntentLandings.map((landing) => ({
     params: { slug: landing.path.split("/").filter(Boolean).pop()! },
     props: {
       landing,
@@ -38,33 +48,14 @@ export async function getStaticPaths() {
     },
   }));
 
-  return [...taxonomyEntries, ...intentEntries].filter((entry) => entry.props.products.length > 0);
+  return [...taxonomyEntries, ...intentEntries];
 }
 
 const { landing, products } = Astro.props;
 
-const primaryPills = [
-  ...giftSubcategoryLandings
-    .map((entry) => ({
-      ...entry,
-      productCount: getProductsForLanding(allProducts, entry).length,
-    }))
-    .filter((entry) => entry.productCount > 0)
-    .map((entry) => ({
-      label: entry.label,
-      labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
-      href: `/bulgarski-podaratsi/${entry.slug}/`,
-      isActive: `/bulgarski-podaratsi/${entry.slug}/` === landing.path || entry.slug === landing.slug,
-    })),
-  ...giftIntentLandings.map((entry) => ({
-    label: entry.label,
-    labelEn: entry.labelEn,
-    href: entry.path,
-    isActive: entry.path === landing.path,
-  })),
-];
-
 const canonicalPath = landing.path || `/bulgarski-podaratsi/${landing.slug}/`;
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
+const primaryPills = [...hierarchy.primaryPills, ...hierarchy.secondaryPills];
 const seoEditorialBySlug = {
   "za-zhena": {
     header: {
@@ -200,12 +191,9 @@ const editorialContent = seoEditorialBySlug[landing.slug] || null;
   products={products}
   browseProducts={allProducts}
   canonicalPath={canonicalPath}
-  breadcrumbs={[
-    { name: "Начало", item: "/" },
-    { name: "Български подаръци", item: "/bulgarski-podaratsi/" },
-    { name: landing.label, item: canonicalPath },
-  ]}
+  breadcrumbs={hierarchy.breadcrumbs}
   primaryPills={primaryPills}
+  parentLink={hierarchy.parentLink}
   editorialHeader={editorialContent?.header}
   editorialSections={editorialContent?.sections || []}
 />

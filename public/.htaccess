@@ -1,5 +1,22 @@
 RewriteEngine On
 
+# Canonical SEO landing redirects. Keep every migration to one hop.
+RewriteRule ^category/podaratsi/?$ /bulgarski-podaratsi/ [R=301,L,NE]
+RewriteRule ^category/idei-za-podarak/?$ /bulgarski-podaratsi/ [R=301,L,NE]
+RewriteRule ^k/(podaraci|idei-za-podarak|bulgarski-podaratsi)/?$ /bulgarski-podaratsi/ [R=301,L,NE]
+RewriteRule ^k/(za-zhena|podaraci-za-jena)/?$ /bulgarski-podaratsi/za-zhena/ [R=301,L,NE]
+RewriteRule ^k/(za-mazh|podaraci-za-nego)/?$ /bulgarski-podaratsi/za-mazh/ [R=301,L,NE]
+RewriteRule ^k/(za-bebe|podaraci-za-bebe)/?$ /bulgarski-podaratsi/za-bebe/ [R=301,L,NE]
+RewriteRule ^k/(za-dete|podaraci-za-dete)/?$ /bulgarski-podaratsi/za-dete/ [R=301,L,NE]
+RewriteRule ^k/(za-svatba|podaraci-za-svatba)/?$ /bulgarski-podaratsi/za-svatba/ [R=301,L,NE]
+RewriteRule ^k/(bulgarski-drehi|obleklo)/?$ /bulgarski-drehi/ [R=301,L,NE]
+RewriteRule ^k/dom-i-interior/?$ /k/za-doma/ [R=301,L,NE]
+RewriteRule ^k/dekor/?$ /k/dekoraciq-za-doma/ [R=301,L,NE]
+RewriteRule ^k/detski-aksesoari/?$ /k/detski-mebeli-i-tekstil/ [R=301,L,NE]
+RewriteRule ^k/grizha-za-deca/?$ /k/kozmetika-za-deca/ [R=301,L,NE]
+RewriteRule ^k/(imunitet|vitamini)/?$ /k/dobavki-i-ekstrakti/ [R=301,L,NE]
+RewriteRule ^k/srebarni-bijuta/?$ /k/bijuta/ [R=301,L,NE]
+
 # Send directory URLs without a trailing slash directly to the one canonical URL.
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_URI} !/$

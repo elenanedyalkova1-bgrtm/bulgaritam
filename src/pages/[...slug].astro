@@ -1,0 +1,51 @@
+---
+import SeoProductLanding from "../components/SeoProductLanding.astro";
+import {
+  SEO_INTENT_LANDINGS,
+  getLandingPageHierarchy,
+  getProductsForIntentLanding,
+} from "../lib/seo-landings";
+import { loadProducts } from "../lib/products";
+
+export async function getStaticPaths() {
+  const products = await loadProducts();
+  const dedicatedPaths = new Set([
+    "/rachno-izraboteni/",
+    "/bulgarski-suveniri/",
+    "/bulgarski-mazhki-antsuzi/",
+    "/bulgarski-mazhki-pizhami/",
+    "/bulgarski-mazhki-puloveri/",
+    "/bulgarski-mazhki-yaketa/",
+    "/bulgarski-mazhki-obuvki/",
+  ]);
+
+  return SEO_INTENT_LANDINGS
+    .filter((landing) =>
+      !landing.path.startsWith("/bulgarski-podaratsi/") &&
+      !landing.path.startsWith("/bulgarski-drehi/") &&
+      !dedicatedPaths.has(landing.path)
+    )
+    .map((landing) => ({
+      params: { slug: landing.path.replace(/^\/+|\/+$/g, "") },
+      props: { landing, products: getProductsForIntentLanding(products, landing) },
+    }));
+}
+
+const { landing, products } = Astro.props;
+const allProducts = await loadProducts();
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
+---
+
+<SeoProductLanding
+  landing={hierarchy.seoLanding}
+  products={products}
+  browseProducts={allProducts}
+  canonicalPath={landing.path}
+  breadcrumbs={hierarchy.breadcrumbs}
+  primaryPills={hierarchy.primaryPills}
+  secondaryPills={hierarchy.secondaryPills}
+  parentLink={hierarchy.parentLink}
+  secondaryPillsTitle="Разгледай още"
+  editorialHeader={landing.editorialHeader}
+  editorialSections={landing.editorialSections || []}
+/>

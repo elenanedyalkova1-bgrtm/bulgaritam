@@ -2,8 +2,8 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { loadBrands } from "../../lib/brands";
 import { loadProducts } from "../../lib/products";
-import { getBrandInsights } from "../../lib/brand-insights";
 import { getProductBadges } from "../../lib/product-badges";
+import { getPublicLandingPathForStructuredTaxonomy } from "../../lib/seo-landings";
 import { getCategoryLabelForLang, getTaxonomyForProduct } from "../../lib/taxonomy";
 
 const clean = (v) => (v == null ? "" : String(v).trim());
@@ -50,7 +50,35 @@ const brandProducts = allProducts
   .filter((p) => p.brand_slug === brandSlug);
 
 const displayBrandProducts = brandProducts.filter((product) => getPrimaryImage(product));
-const brandInsights = getBrandInsights(brandRow?.intro_bg || "", brandProducts);
+const brandTaxonomyFrequency = new Map();
+brandProducts.forEach((product) => {
+  ([
+    ["category", product.category],
+    ["subcategory", product.subcategory],
+    ["product_type", product.product_type],
+  ] as const).forEach(([level, rawValue]) => {
+    const value = clean(rawValue);
+    if (!value) return;
+    const key = level === "category"
+      ? `${level}|${clean(product.category)}`
+      : level === "subcategory"
+        ? `${level}|${clean(product.category)}|${clean(product.subcategory)}`
+        : `${level}|${clean(product.category)}|${clean(product.subcategory)}|${value}`;
+    const current = brandTaxonomyFrequency.get(key) || {
+      value,
+      href: getPublicLandingPathForStructuredTaxonomy(product, level),
+      count: 0,
+    };
+    current.count += 1;
+    brandTaxonomyFrequency.set(key, current);
+  });
+});
+const brandFrequentTaxonomy = [...brandTaxonomyFrequency.entries()]
+  .map(([, entry]) => entry)
+  .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value, "bg"))
+  .slice(0, 5)
+  .map(({ value, href }) => ({ value, href }));
+const brandInsights = [];
 const brandPriceValues = brandProducts.flatMap((product) =>
   [product.price_min_eur, product.price_max_eur].filter((value) => typeof value === "number" && !Number.isNaN(value))
 );
@@ -80,20 +108,21 @@ const brandHeroPills = [
   brandHasBio ? { label: "Био", className: "brand-hero-pill--bio" } : null,
   brandHasEco ? { label: "Еко", className: "brand-hero-pill--eco" } : null,
   brandHasHandmade ? { label: "Ръчна изработка", className: "brand-hero-pill--handmade" } : null,
-  brandHasZeroWaste ? { label: "Zero Waste", className: "brand-hero-pill--zero-waste" } : null,
+  brandHasZeroWaste ? { label: "Без отпадък", className: "brand-hero-pill--zero-waste" } : null,
   brandHasGift ? { label: "Подарък", className: "brand-hero-pill--gift" } : null,
 ].filter(Boolean);
 
 const hasLogo = Boolean(brandRow?.brand_logo_url);
+const breadcrumbs = [
+  { label: "Начало", href: "/" },
+  { label: "Брандове", href: "/bulgarski-brandove/" },
+  { label: brandName, href: `/brand/${brandSlug}/` },
+];
 ---
 <BaseLayout seo={{ type: "brand", data: {
   brandName,
   description: brandRow?.intro_bg,
-  breadcrumbs: [
-    { name: "Начало", item: "/" },
-    { name: "Брандове", item: "/bulgarski-brandove/" },
-    { name: brandName, item: `/brand/${brandSlug}` },
-  ]
+  breadcrumbs: breadcrumbs.map((entry) => ({ name: entry.label, item: entry.href }))
 } }} i18n={{
   en: {
     "brand.aboutTitle": "About the brand",
@@ -104,6 +133,16 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
   }
 }}>
   <main class="wrap" data-page-brand data-brand data-brand-id={brandRow?.id ?? ""} data-brand-slug={brandSlug} data-brand-name={brandName} data-list-context="brand_page">
+    <nav aria-label="breadcrumbs" class="breadcrumbs">
+      <ol>
+        {breadcrumbs.map((crumb, index) => (
+          <li>
+            {index < breadcrumbs.length - 1 ? <a href={crumb.href}>{crumb.label}</a> : <span aria-current="page">{crumb.label}</span>}
+            {index < breadcrumbs.length - 1 ? <span class="sep">→</span> : null}
+          </li>
+        ))}
+      </ol>
+    </nav>
     <a class="back" href="/">← Начало</a>
 
     <div class="brand-hero-bar">
@@ -145,6 +184,13 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
       </div>
     </div>
 
+    {brandFrequentTaxonomy.length ? (
+      <section class="brand-frequency" aria-labelledby="brand-frequency-title">
+        <h2 id="brand-frequency-title">Най-често срещан в</h2>
+        <div>{brandFrequentTaxonomy.map(({ value, href }) => href ? <a href={href}>{value}</a> : <span>{value}</span>)}</div>
+      </section>
+    ) : null}
+
     {(brandInsights.length || brandPriceRange || brandRow?.intro_bg) ? (
       <section class="brand-overview" aria-label="По-бърз поглед към бранда">
         {(brandInsights.length || brandPriceRange) ? (
@@ -157,7 +203,7 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
             ) : null}
             {brandInsights.map((insight) => (
               <article class="brand-insight">
-                <p class="brand-insight__title">{insight.title === "Силен фокус" ? "Главен фокус" : insight.title}</p>
+                <p class="brand-insight__title">{insight.title}</p>
                 <p class="brand-insight__text">{insight.text}</p>
               </article>
             ))}
@@ -219,7 +265,7 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
 
     <h2 class="subhead">Продукти (<span id="brandCount">{displayBrandProducts.length}</span>)</h2>
 
-    <section class="grid" id="brandGrid">
+    <section class="grid" id="brandGrid" data-masonry-grid>
       {displayBrandProducts.map((product, index) => {
         const primaryImage = getPrimaryImage(product);
         const { isBio, isEco, isHandmade, isGift } = getProductBadges(product);
@@ -347,6 +393,36 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
       font-size: .95rem;
     }
     .back:hover{ color: var(--accent-strong); }
+
+    .breadcrumbs {
+      margin-bottom: 14px;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
+    .breadcrumbs ol {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .breadcrumbs a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+
+    .breadcrumbs a:hover {
+      border-bottom-color: currentColor;
+    }
+
+    .breadcrumbs .sep {
+      opacity: 0.6;
+      margin: 0 0.2rem;
+    }
 
     .h1{
       margin: 4px 0 0;
@@ -623,16 +699,27 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
 
     .grid {
       margin-top: 8px;
-      column-count: 4;
-      column-gap: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+      --masonry-row: 10px;
+      grid-auto-rows: auto;
+      grid-auto-flow: dense;
     }
 
+    .brand-frequency { margin: 18px 0 30px; text-align: center; }
+    .brand-frequency h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: rgba(26,26,26,.52); }
+    .brand-frequency div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .brand-frequency span, .brand-frequency a { padding: 8px 12px; border: 1px solid rgba(26,26,26,.09); border-radius: 999px; background: rgba(255,255,255,.7); color: inherit; font-size: 13px; text-decoration: none; }
+    .brand-frequency a:hover { border-color: rgba(26,26,26,.24); background: rgba(255,255,255,.95); }
+
     .card {
-      display: inline-block;
+      display: block;
       position: relative;
       width: 100%;
       margin: 0;
-      margin-bottom: 16px;
+      grid-row: auto;
       text-decoration: none;
       border: 1px solid rgba(0,0,0,.08);
       border-radius: 20px;
@@ -641,12 +728,12 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
       color: inherit;
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
       transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-      break-inside: avoid;
-      -webkit-column-break-inside: avoid;
-      page-break-inside: avoid;
       isolation: isolate;
       contain: paint;
     }
+
+    .grid.is-masonry-ready { grid-auto-rows: var(--masonry-row); }
+    .grid.is-masonry-ready .card { grid-row: span var(--masonry-span); }
 
     .card-link {
       display: block;
@@ -863,7 +950,7 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
       }
 
       .grid {
-        column-count: 3;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
 
@@ -894,10 +981,9 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
       }
 
       .grid {
-        display: block;
         width: 100%;
-        column-count: 2;
-        column-gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
       }
 
       .brand-actions {
@@ -958,8 +1044,8 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
 
       .grid {
         width: 100%;
-        column-count: 2;
-        column-gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
       }
     }
   </style>
@@ -995,7 +1081,6 @@ const hasLogo = Boolean(brandRow?.brand_logo_url);
         brandFeedSentinel.hidden = brandVisibleCount >= brandCards.length;
       }
 
-      window.dispatchEvent(new Event("resize"));
     }
 
     function loadMoreBrandCards() {

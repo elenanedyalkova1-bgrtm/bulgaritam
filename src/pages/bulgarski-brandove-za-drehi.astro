@@ -1,0 +1,17 @@
+---
+import BrandsDirectory from "../components/BrandsDirectory.astro";
+import { CLOTHING_BRANDS_LANDING, getLandingPageHierarchy } from "../lib/seo-landings";
+
+const hierarchy = getLandingPageHierarchy(CLOTHING_BRANDS_LANDING);
+const seoLanding = hierarchy.seoLanding;
+const landing = {
+  ...seoLanding,
+  intro: seoLanding.intro.join(" "),
+  productLinks: [
+    { href: "/bulgarski-drehi/", label: "Български дрехи" },
+    { href: "/bulgarski-drehi/rokli/", label: "Български рокли" },
+  ],
+};
+---
+
+<BrandsDirectory {landing} />

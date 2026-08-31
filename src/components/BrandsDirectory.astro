@@ -251,13 +251,13 @@ const editorialSections = [
         {categories.map((c) => {
           const seoPath = seoRoutes.get(c.key);
           if (seoPath) return (
-            <a class:list={["pill", activeCategoryKey === c.key && "is-active"]} href={seoPath} aria-current={activeCategoryKey === c.key ? "page" : undefined} data-i18n-bg={c.label} data-i18n-en={c.labelEn}>{c.label}</a>
+            <a class:list={["pill", activeCategoryKey === c.key && "is-active"]} href={seoPath} aria-current={activeCategoryKey === c.key ? "page" : undefined}>{c.emoji} {c.label}</a>
           );
           if (landing) return (
-            <a class="pill" href={`/bulgarski-brandove/?category=${c.key}`} data-i18n-bg={c.label} data-i18n-en={c.labelEn}>{c.label}</a>
+            <a class="pill" href={`/bulgarski-brandove/?category=${c.key}`}>{c.emoji} {c.label}</a>
           );
           return (
-            <button class="pill" type="button" data-filter={c.key} data-i18n-bg={c.label} data-i18n-en={c.labelEn}>{c.label}</button>
+            <button class="pill" type="button" data-filter={c.key}>{c.emoji} {c.label}</button>
           );
         })}
       </div>
@@ -289,7 +289,7 @@ const editorialSections = [
             data-occasion-keys={b.occasionKeys.join(",")}
             data-search={b.searchText}
             data-search-raw={b.rawSearchText}
-            data-brand-name={b.name.toLowerCase()}
+            data-brand-name={b.name}
             data-created-at={b.newestCreatedAt || 0}
             data-delivers-abroad={b.deliversAbroad ? "1" : "0"}
             data-original-index={index}
@@ -297,12 +297,9 @@ const editorialSections = [
             <a class="brand-link" href={`/brand/${b.slug}/`}>
               <div class="brand-card__top">
                 {b.logo ? (
-                  <img
-                    class="brand-logo"
-                    src={b.logo}
-                    alt={`${b.name} лого`}
-                    loading="lazy"
-                  />
+                  <div class="brand-logo" data-brand-logo-frame data-fallback-letter={b.name.slice(0, 1)}>
+                    <img src={b.logo} alt={`${b.name} лого`} loading="lazy" />
+                  </div>
                 ) : (
                   <div class="brand-logo brand-logo--fallback" aria-hidden="true">
                     {b.name.slice(0, 1)}
@@ -645,11 +642,23 @@ const editorialSections = [
     .brand-logo {
       width: 64px;
       height: 64px;
+      aspect-ratio: 1 / 1;
       border-radius: 18px;
-      object-fit: cover;
       flex: 0 0 64px;
       background: rgba(247, 244, 238, 0.88);
       border: 1px solid rgba(26, 26, 26, 0.08);
+      padding: 8px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .brand-logo img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
     }
 
     .brand-logo--fallback {
@@ -659,6 +668,10 @@ const editorialSections = [
       font-size: 28px;
       color: rgba(26, 26, 26, 0.7);
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(240, 234, 224, 0.9));
+    }
+
+    .brand-logo--fallback::before {
+      content: attr(data-fallback-letter);
     }
 
     .brand-headline {
@@ -1136,6 +1149,13 @@ const editorialSections = [
     let activeDeliveryOutside = false;
     let brandSearchTrackTimer = 0;
     let lastBrandSearchSignature = "";
+    document.querySelectorAll("[data-brand-logo-frame] img").forEach((image) => {
+      image.addEventListener("error", () => {
+        const frame = image.closest("[data-brand-logo-frame]");
+        image.remove();
+        frame?.classList.add("brand-logo--fallback");
+      }, { once: true });
+    });
     const brandTaxonomy = JSON.parse(document.getElementById("brand-taxonomy-data")?.textContent || "[]");
     const subcategoryFilters = document.getElementById("brand-subcategory-filters");
     const productTypeFilters = document.getElementById("brand-type-filters");

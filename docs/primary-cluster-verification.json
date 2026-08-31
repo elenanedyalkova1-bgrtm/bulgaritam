@@ -1,0 +1,294 @@
+{
+  "accepted": 187,
+  "verified": 187,
+  "sitemapUrlCount": 902,
+  "h1Violations": 0,
+  "missingTitle": 0,
+  "duplicateTitles": [],
+  "missingDescription": 0,
+  "duplicateDescriptions": [],
+  "missingIntro": 0,
+  "missingCollapsible": 0,
+  "duplicateCanonicalPaths": 0,
+  "duplicateSemanticStates": 0,
+  "stronglyTemplatedGroups": [
+    {
+      "pattern": "# # # # # # # #. # # # # # # # # #.",
+      "count": 14,
+      "urls": [
+        "/balgarsko-damsko-belo-pamuk/",
+        "/damski-bluzi-s-kas-rakav/",
+        "/damska-lenena-riza/",
+        "/kozmetika-za-uvredena-kosa/",
+        "/k/kozmetika-lice/",
+        "/kozmetika-za-dehidratirana-kozha/",
+        "/kozmetika-za-hidratatsiya/",
+        "/bizhuta-s-rubin/",
+        "/grivna-srebro/",
+        "/zlatni-obetsi-s-diamanti/",
+        "/zlatno-kolie-s-diamant/",
+        "/srebarni-kolieta/",
+        "/bulgarsko-spalno-belyo/",
+        "/bulgarski-detski-igrachki/"
+      ]
+    },
+    {
+      "pattern": "# # # # # # #. # # # # # # # # #.",
+      "count": 19,
+      "urls": [
+        "/bulgarsko-mazhko-belyo/",
+        "/byala-damska-riza/",
+        "/rozova-riza/",
+        "/bulgarski-domashni-chehli/",
+        "/prehodni-damski-yaketa/",
+        "/balni-rokli/",
+        "/bezhovi-rokli/",
+        "/zelena-roklya/",
+        "/zlatista-roklya/",
+        "/tamnosinya-roklya/",
+        "/chervena-roklya/",
+        "/kozmetika-za-protiv-brachki/",
+        "/bizhuta-s-izumrud/",
+        "/bizhuta-ot-kehlibar/",
+        "/bizhuta-s-labradorit/",
+        "/grivna-s-bukva/",
+        "/grivna-s-ime/",
+        "/kolieta-ot-meditsinska-stomana/",
+        "/mazhki-bizhuta/"
+      ]
+    },
+    {
+      "pattern": "# # # # # # # # #. # # # # # # # # #.",
+      "count": 11,
+      "urls": [
+        "/cherna-riza/",
+        "/bulgarski-obuvki-estestvena-kozha/",
+        "/beli-rokli/",
+        "/damski-rokli-s-dalag-rakav/",
+        "/damski-rokli-s-kas-rakav/",
+        "/kafyava-roklya/",
+        "/cherna-roklya/",
+        "/kozmetika-za-suha-kozha/",
+        "/bizhuta-s-tigrovo-oko/",
+        "/grivni-ot-meditsinska-stomana/",
+        "/zlaten-prasten/"
+      ]
+    },
+    {
+      "pattern": "# # # # „# #“. # # # # # # # # #.",
+      "count": 5,
+      "urls": [
+        "/bulgarski-drehi/rokli/",
+        "/bulgarski-mazhki-pizhami/",
+        "/pamuchni-rokli/",
+        "/k/bijuta/",
+        "/zlatna-grivna/"
+      ]
+    },
+    {
+      "pattern": "# # # # # #. # # # # # # # # #.",
+      "count": 17,
+      "urls": [
+        "/k/belio/",
+        "/bulgarski-boti/",
+        "/kafyavo-palto/",
+        "/cherno-palto/",
+        "/mazhki-leneni-rizi/",
+        "/dankova-roklya/",
+        "/roklya-saten/",
+        "/svetlosinya-roklya/",
+        "/sinya-roklya/",
+        "/bizhuta-s-perli/",
+        "/godezhni-prasteni/",
+        "/grivna-cherven-konets/",
+        "/zlatna-obetsa/",
+        "/hematit-grivna/",
+        "/tsitrin-grivna/",
+        "/bulgarski-sveshti/",
+        "/k/domashen-tekstil/"
+      ]
+    },
+    {
+      "pattern": "# # # # „# # # #“. # # # # # # # # #.",
+      "count": 7,
+      "urls": [
+        "/bulgarski-mazhki-zimni-yaketa/",
+        "/bulgarski-palta-ot-valna/",
+        "/kozmetika-za-mazna-kosa/",
+        "/bizhuta-ot-meditsinska-stomana/",
+        "/bizhuta-s-cheren-turmalin/",
+        "/zlaten-prasten-s-rubin/",
+        "/prasteni-ot-meditsinska-stomana/"
+      ]
+    },
+    {
+      "pattern": "# # # # „# # #“. # # # # # # # # #.",
+      "count": 7,
+      "urls": [
+        "/bulgarski-ezhednevni-rokli/",
+        "/bulgarski-letni-rokli/",
+        "/bulgarski-oficialni-rokli/",
+        "/kozmetika-za-kosopad/",
+        "/kozmetika-s-shafran/",
+        "/naturalna-bulgarska-kozmetika/",
+        "/prasteni-srebro/"
+      ]
+    },
+    {
+      "pattern": "# # # # # # # #. # # # # #: #.",
+      "count": 8,
+      "urls": [
+        "/podarak-za-bebe-momiche/",
+        "/podarak-za-bebe-momche/",
+        "/podarak-za-zhena-sportist/",
+        "/praktichen-podarak-za-zhena/",
+        "/podarak-za-kulinar-mazh/",
+        "/podarak-za-lovets-mazh/",
+        "/praktichen-podarak-za-mazh/",
+        "/romantichen-podarak-za-mazh/"
+      ]
+    },
+    {
+      "pattern": "# # # # # # # # # # #. # # # # #: #; #: # #.",
+      "count": 6,
+      "urls": [
+        "/originalen-podarak-za-10-godishno-momche/",
+        "/podarak-za-dete-na-3-godini/",
+        "/podarak-za-dete-na-4-godini/",
+        "/podarak-za-sveti-valentin-za-zhena/",
+        "/podarak-za-rozhden-den-na-zhena/",
+        "/podarak-za-mazh-na-50/"
+      ]
+    },
+    {
+      "pattern": "# # # # # # # # # #. # # # # #: #; #: # #.",
+      "count": 5,
+      "urls": [
+        "/podarak-za-dete-na-1-godina/",
+        "/podarak-za-dete-na-10-godini/",
+        "/podarak-za-8-mart-za-uchitelka/",
+        "/podarak-za-zhena-za-8-mart/",
+        "/podarak-za-40-godishnina-na-mazh/"
+      ]
+    }
+  ],
+  "representativeStateTests": [
+    {
+      "sourceRow": 20,
+      "expected": "/bulgarski-sandali-estestvena-kozha/",
+      "actual": "/bulgarski-sandali-estestvena-kozha/",
+      "pass": true
+    },
+    {
+      "sourceRow": 32,
+      "expected": "/beli-rokli/",
+      "actual": "/beli-rokli/",
+      "pass": true
+    },
+    {
+      "sourceRow": 58,
+      "expected": "/kozmetika-za-kosopad/",
+      "actual": "/kozmetika-za-kosopad/",
+      "pass": true
+    },
+    {
+      "sourceRow": 73,
+      "expected": "/podarak-za-bebe-momiche/",
+      "actual": "/podarak-za-bebe-momiche/",
+      "pass": true
+    },
+    {
+      "sourceRow": 80,
+      "expected": "/originalen-podarak-za-10-godishno-momche/",
+      "actual": "/originalen-podarak-za-10-godishno-momche/",
+      "pass": true
+    },
+    {
+      "sourceRow": 94,
+      "expected": "/zabaven-podarak-za-zhena/",
+      "actual": "/zabaven-podarak-za-zhena/",
+      "pass": true
+    },
+    {
+      "sourceRow": 112,
+      "expected": "/romantichen-podarak-za-zhena/",
+      "actual": "/romantichen-podarak-za-zhena/",
+      "pass": true
+    },
+    {
+      "sourceRow": 133,
+      "expected": "/praktichen-podarak-za-mazh/",
+      "actual": "/praktichen-podarak-za-mazh/",
+      "pass": true
+    },
+    {
+      "sourceRow": 143,
+      "expected": "/bizhuta-ot-meditsinska-stomana/",
+      "actual": "/bizhuta-ot-meditsinska-stomana/",
+      "pass": true
+    },
+    {
+      "sourceRow": 185,
+      "expected": "/k/domashen-tekstil/",
+      "actual": "/k/domashen-tekstil/",
+      "pass": true
+    },
+    {
+      "sourceRow": 187,
+      "expected": "/bulgarski-detski-igrachki/",
+      "actual": "/bulgarski-detski-igrachki/",
+      "pass": true
+    }
+  ],
+  "negativeStateTests": [
+    {
+      "state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Лилав"
+        ]
+      },
+      "actual": null,
+      "pass": true
+    },
+    {
+      "state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За двойка"
+        ],
+        "recipient_age": [
+          "33"
+        ]
+      },
+      "actual": null,
+      "pass": true
+    },
+    {
+      "state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "jewelry_detail": [
+          "Нерегистриран"
+        ]
+      },
+      "actual": null,
+      "pass": true
+    }
+  ],
+  "failures": []
+}

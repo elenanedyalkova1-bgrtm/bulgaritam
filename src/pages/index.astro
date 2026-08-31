@@ -34,10 +34,9 @@ function priceLabel(p) {
 
 <BaseLayout seo={{ type: "home" }} i18n={{
   en: {
-    "home.freshNote": "New brands every week",
+    "home.freshNote": "Discover what Bulgarian brands create and save your favorite products",
     "home.searchLabel": "Find a Bulgarian product",
     "home.searchPlaceholder": 'e.g. "silver earrings", "women\'s pajamas", "night cream"',
-    "home.searchHint": "Search starts automatically as you type",
     "home.viewAll": "View all",
     "home.occasion": "Gift & occasion",
     "home.filters": "Filters",
@@ -80,14 +79,14 @@ function priceLabel(p) {
           decoding="async"
         />}
       </div>
-      <p class="home-fresh-note" data-i18n="home.freshNote">Нови брандове всяка седмица</p>
+      <h1 class="home-fresh-note" data-i18n="home.freshNote">Открий какво създават българските брандове и запази любимите си продукти</h1>
     </section>
 
     <section class="home-search" id="product-search" aria-label="Търсене и категории">
       <div class="search search--home">
         <label class="search-label" for="q" data-i18n="home.searchLabel">Търси български продукт</label>
 
-        <div class="search-row">
+        <form class="search-row" id="searchForm" role="search">
           <input
             id="q"
             class="search-input"
@@ -96,11 +95,8 @@ function priceLabel(p) {
             data-i18n-placeholder="home.searchPlaceholder"
             autocomplete="off"
           />
-        </div>
-
-        <div class="search-hint" data-i18n="home.searchHint">
-          Търсенето започва автоматично докато пишеш
-        </div>
+          <button class="search-submit" id="searchBtn" type="submit">Търси</button>
+        </form>
       </div>
 
       <div class="discovery-shortcuts" role="group" aria-label="Бързо откриване">
@@ -119,10 +115,11 @@ function priceLabel(p) {
       <p class="chips-section-label chips-section-label--category">Търси по категория</p>
 
       <div class="chips chips--home" role="group" aria-label="Категории" id="mainChips"></div>
-      <p class="chips-section-label" id="subChipsLabel" hidden data-i18n="home.subcategories">Подкатегории</p>
+      <p class="chips-section-label" id="subChipsLabel" hidden>Избери подкатегория</p>
       <div class="chips chips-sub chips--home" role="group" aria-labelledby="subChipsLabel" id="subChips" hidden></div>
-      <p class="chips-section-label" id="typeChipsLabel" hidden>Тип продукт</p>
+      <p class="chips-section-label" id="typeChipsLabel" hidden>Избери тип продукт</p>
       <div class="chips chips-types chips--home" role="group" aria-labelledby="typeChipsLabel" id="typeChips" hidden></div>
+      <button class="taxonomy-results-cue" id="taxonomyResultsCue" type="button" hidden>Виж всички резултати ↓</button>
       <div
         id="homeLandingData"
         data-landings={JSON.stringify(
@@ -200,26 +197,27 @@ function priceLabel(p) {
           </button>
         </div>
 
-        <div class="filters-group">
+        <div class="filters-modal__body">
+        <div class="filters-group" data-dynamic-filter-group="price">
           <p class="filters-group__label">Цена</p>
 
-          <label class="filter-option">
+          <label class="filter-option" data-dynamic-filter-option>
             <input type="radio" name="priceFilter" value="all" checked />
             <span>Всички цени</span>
           </label>
-          <label class="filter-option">
+          <label class="filter-option" data-dynamic-filter-option>
             <input type="radio" name="priceFilter" value="0-25" />
             <span>До €25</span>
           </label>
-          <label class="filter-option">
+          <label class="filter-option" data-dynamic-filter-option>
             <input type="radio" name="priceFilter" value="25-50" />
             <span>€25–50</span>
           </label>
-          <label class="filter-option">
+          <label class="filter-option" data-dynamic-filter-option>
             <input type="radio" name="priceFilter" value="50-100" />
             <span>€50–100</span>
           </label>
-          <label class="filter-option">
+          <label class="filter-option" data-dynamic-filter-option>
             <input type="radio" name="priceFilter" value="100+" />
             <span>€100+</span>
           </label>
@@ -228,7 +226,7 @@ function priceLabel(p) {
         {attributeOptions.length ? (
           <div class="filters-group filters-group--spaced" data-dynamic-filter-group="attribute">
             <p class="filters-group__label">Характеристики</p>
-            <div class="filter-options-grid">
+            <div class="filter-options-grid" data-collapsible-options>
               {attributeOptions.map((attribute) => (
                 <label class="filter-option filter-option--checkbox" data-dynamic-filter-option>
                   <input type="checkbox" name="attributeFilter" value={attribute} />
@@ -239,17 +237,17 @@ function priceLabel(p) {
           </div>
         ) : null}
 
-        <div class="filters-group filters-group--spaced" data-dynamic-filter-group="material" hidden>
-          <p class="filters-group__label">Материал</p>
-          <div class="filter-options-grid">
-            {materialOptions.map((value) => <label class="filter-option filter-option--checkbox" data-dynamic-filter-option><input type="checkbox" name="materialFilter" value={value} /><span data-filter-label={value}>{value}</span></label>)}
+        <div class="filters-group filters-group--spaced" data-dynamic-filter-group="color" hidden>
+          <p class="filters-group__label">Цвят</p>
+          <div class="filter-options-grid" data-collapsible-options>
+            {colorOptions.map((value) => <label class="filter-option filter-option--checkbox" data-dynamic-filter-option><input type="checkbox" name="colorFilter" value={value} /><span data-filter-label={value}>{value}</span></label>)}
           </div>
         </div>
 
-        <div class="filters-group filters-group--spaced" data-dynamic-filter-group="color" hidden>
-          <p class="filters-group__label">Цвят</p>
-          <div class="filter-options-grid">
-            {colorOptions.map((value) => <label class="filter-option filter-option--checkbox" data-dynamic-filter-option><input type="checkbox" name="colorFilter" value={value} /><span data-filter-label={value}>{value}</span></label>)}
+        <div class="filters-group filters-group--spaced" data-dynamic-filter-group="material" hidden>
+          <p class="filters-group__label">Материал</p>
+          <div class="filter-options-grid" data-collapsible-options>
+            {materialOptions.map((value) => <label class="filter-option filter-option--checkbox" data-dynamic-filter-option><input type="checkbox" name="materialFilter" value={value} /><span data-filter-label={value}>{value}</span></label>)}
           </div>
         </div>
 
@@ -260,6 +258,7 @@ function priceLabel(p) {
             <input type="checkbox" id="deliveryOutsideHome" name="deliveryOutsideHome" />
             <span>Доставя извън България</span>
           </label>
+        </div>
         </div>
 
         <div class="filters-modal__actions">
@@ -293,33 +292,33 @@ function priceLabel(p) {
           </button>
         </div>
 
-        <div class="occasion-sheet">
-          <section class="occasion-group">
+        <div class="filters-modal__body occasion-sheet">
+          <section class="occasion-group" data-dynamic-filter-group="recipient">
             <h4 class="occasion-group__title">За кого</h4>
-            <div class="occasion-options">
-              {recipientOptions.map((value) => <label class="occasion-option"><input type="checkbox" name="giftFilter" value={`recipient:${value}`} /><span>{value}</span></label>)}
+            <div class="occasion-options" data-collapsible-options>
+              {recipientOptions.map((value) => <label class="occasion-option" data-dynamic-filter-option><input type="checkbox" name="giftFilter" value={`recipient:${value}`} /><span data-filter-label={value}>{value}</span></label>)}
             </div>
           </section>
-          <section class="occasion-group">
+          <section class="occasion-group" data-dynamic-filter-group="occasion">
             <h4 class="occasion-group__title">По повод</h4>
-            <div class="occasion-options">
-              {giftOccasionOptions.map((value) => <label class="occasion-option"><input type="checkbox" name="giftFilter" value={`occasion:${value}`} /><span>{value}</span></label>)}
+            <div class="occasion-options" data-collapsible-options>
+              {giftOccasionOptions.map((value) => <label class="occasion-option" data-dynamic-filter-option><input type="checkbox" name="giftFilter" value={`occasion:${value}`} /><span data-filter-label={value}>{value}</span></label>)}
             </div>
           </section>
-          <section class="occasion-group">
-            <h4 class="occasion-group__title">Още</h4>
+          <section class="occasion-group" data-dynamic-filter-group="giftPrice">
+            <h4 class="occasion-group__title">Цена</h4>
             <div class="occasion-options">
-              {giftAttributeOptions.map((value) => <label class="occasion-option"><input type="checkbox" name="giftFilter" value={`attribute:${value}`} /><span>{value}</span></label>)}
+              <label class="occasion-option" data-dynamic-filter-option><input type="radio" name="giftPriceFilter" value="all" checked /><span>Без ограничение</span></label>
+              <label class="occasion-option" data-dynamic-filter-option><input type="radio" name="giftPriceFilter" value="0-25" /><span>До €25</span></label>
+              <label class="occasion-option" data-dynamic-filter-option><input type="radio" name="giftPriceFilter" value="25-50" /><span>€25–50</span></label>
+              <label class="occasion-option" data-dynamic-filter-option><input type="radio" name="giftPriceFilter" value="50-100" /><span>€50–100</span></label>
+              <label class="occasion-option" data-dynamic-filter-option><input type="radio" name="giftPriceFilter" value="100+" /><span>€100+</span></label>
             </div>
           </section>
-          <section class="occasion-group">
-            <h4 class="occasion-group__title">Бюджет</h4>
-            <div class="occasion-options">
-              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="all" checked /><span>Без ограничение</span></label>
-              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="0-25" /><span>До €25</span></label>
-              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="25-50" /><span>€25–50</span></label>
-              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="50-100" /><span>€50–100</span></label>
-              <label class="occasion-option"><input type="radio" name="giftPriceFilter" value="100+" /><span>€100+</span></label>
+          <section class="occasion-group" data-dynamic-filter-group="giftAttribute">
+            <h4 class="occasion-group__title">Характеристики</h4>
+            <div class="occasion-options" data-collapsible-options>
+              {giftAttributeOptions.map((value) => <label class="occasion-option" data-dynamic-filter-option><input type="checkbox" name="giftFilter" value={`attribute:${value}`} /><span data-filter-label={value}>{value}</span></label>)}
             </div>
           </section>
         </div>
@@ -343,7 +342,7 @@ function priceLabel(p) {
         <p class="intent-status" id="intentStatus" hidden></p>
       </div>
 
-      <ul class="grid" id="grid">
+      <ul class="grid" id="grid" data-masonry-grid>
         {displayProducts.map((p, index) => {
           const taxonomy = getTaxonomyForProduct(p);
           const publicBrowse = getPublicBrowseForProduct(p);
@@ -354,6 +353,7 @@ function priceLabel(p) {
           return (
             <li
               class="card"
+              data-masonry-card
               data-analytics-kind="product"
               data-list-context="homepage_default"
               data-list-name="Начална discovery мрежа"
@@ -375,6 +375,7 @@ function priceLabel(p) {
               data-recipients={p.recipient.join("|")}
               data-gift-occasions={p.gift_occasion.join("|")}
               data-attributes={p.attributes.join("|")}
+              data-audience={p.audience.join("|")}
               data-materials={p.materials.join("|")}
               data-colors={p.colors.join("|")}
               data-search={buildSearchDocument([
@@ -383,6 +384,9 @@ function priceLabel(p) {
                 p.category,
                 p.subcategory,
                 p.product_type,
+                ...p.audience,
+                ...p.materials,
+                ...p.colors,
                 ...p.attributes,
                 ...(p.tags || []),
                 p.short_desc_bg,
@@ -394,6 +398,9 @@ function priceLabel(p) {
                 p.category,
                 p.subcategory,
                 p.product_type,
+                ...p.audience,
+                ...p.materials,
+                ...p.colors,
                 ...p.attributes,
                 ...(p.tags || []),
                 p.short_desc_bg,
@@ -470,6 +477,14 @@ function priceLabel(p) {
               </div>
 
               <div class="card-foot">
+                <button
+                  class="useful-result-signal"
+                  type="button"
+                  data-user-signal="useful_result"
+                  data-signal-context="search_results"
+                  aria-pressed="false"
+                  hidden
+                >Полезен резултат</button>
                 <a
                   class="cta-out"
                   href={p.product_url}
@@ -526,6 +541,7 @@ function priceLabel(p) {
       text-align: center;
       font-size: 12px;
       font-weight: 700;
+      font-family: var(--font-wordmark);
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.54);
@@ -551,10 +567,14 @@ function priceLabel(p) {
     }
 
     .search--home .search-row {
-      justify-content: flex-start;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
     }
 
     .search--home .search-input {
+      min-width: 0;
       max-width: 640px;
       width: 100%;
       height: 58px;
@@ -565,9 +585,17 @@ function priceLabel(p) {
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
-    .search--home .search-hint {
-      margin-top: 10px;
-      text-align: center;
+    .search-submit {
+      min-width: 104px;
+      height: 58px;
+      padding: 0 20px;
+      border: 1px solid rgba(26, 26, 26, 0.1);
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
     }
 
     .discovery-shortcuts {
@@ -777,7 +805,7 @@ function priceLabel(p) {
     .filters-modal {
       position: fixed;
       inset: 0;
-      z-index: 60;
+      z-index: 1000;
     }
 
     .filters-modal__backdrop {
@@ -791,21 +819,21 @@ function priceLabel(p) {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: min(92vw, 460px);
-      padding: 24px;
+      width: min(92vw, 680px);
       border-radius: 28px;
       border: 1px solid rgba(26, 26, 26, 0.08);
       background: rgba(250, 247, 242, 0.96);
       box-shadow: 0 28px 70px rgba(0, 0, 0, 0.16);
       transform: translate(-50%, -50%);
-      max-height: min(88dvh, 760px);
-      overflow-y: auto;
+      height: min(88dvh, 760px);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
       overscroll-behavior: contain;
     }
 
     .filters-modal__panel--occasion {
-      width: min(94vw, 760px);
-      max-height: min(88dvh, 760px);
+      width: min(94vw, 820px);
     }
 
     .filters-modal__head {
@@ -813,8 +841,22 @@ function priceLabel(p) {
       align-items: flex-start;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 20px;
+      padding: 24px 24px 18px;
+      z-index: 3;
+      background: rgba(250, 247, 242, 0.98);
     }
+
+    .filters-modal__body {
+      min-height: 0;
+      padding: 2px 24px 24px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+    }
+
+    .chips-types { padding: 12px; border-radius: 18px; background: rgba(95, 127, 107, 0.07); }
+    .taxonomy-results-cue { display: block; margin: 12px auto 0; border: 0; background: transparent; color: var(--accent-strong); font: 700 13px var(--font-body); cursor: pointer; }
+    .taxonomy-results-cue[hidden] { display: none; }
 
     .filters-modal__eyebrow {
       margin: 0 0 6px;
@@ -949,16 +991,24 @@ function priceLabel(p) {
       display: flex;
       justify-content: flex-end;
       gap: 10px;
-      margin-top: 22px;
-      position: sticky;
       z-index: 2;
-      bottom: -24px;
-      margin-inline: -24px;
-      margin-bottom: -24px;
-      padding: 16px 24px 24px;
+      padding: 16px 24px 20px;
       border-top: 1px solid rgba(26, 26, 26, 0.07);
       background: rgba(250, 247, 242, 0.98);
     }
+
+    .filter-options-more {
+      align-self: flex-start;
+      margin-top: 10px;
+      padding: 8px 0;
+      border: 0;
+      background: transparent;
+      color: var(--accent-strong);
+      font: 700 13px var(--font-body);
+      cursor: pointer;
+    }
+
+    [data-dynamic-filter-option].is-overflow-option { display: none; }
 
     .filters-action {
       min-height: 44px;
@@ -1075,16 +1125,21 @@ function priceLabel(p) {
       list-style: none;
       padding: 0;
       margin: 0;
-      column-count: 4;
-      column-gap: 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      align-items: start;
+      --masonry-row: 10px;
+      grid-auto-rows: auto;
+      grid-auto-flow: dense;
     }
 
     .card {
-      display: inline-block;
+      display: block;
       vertical-align: top;
       width: 100%;
       margin: 0;
-      margin-bottom: 18px;
+      grid-row: auto;
       background: rgba(255, 255, 255, 0.72);
       border: 1px solid rgba(26, 26, 26, 0.08);
       border-radius: 22px;
@@ -1096,14 +1151,14 @@ function priceLabel(p) {
         box-shadow 0.22s ease,
         border-color 0.22s ease,
         background 0.22s ease;
-      break-inside: avoid;
-      -webkit-column-break-inside: avoid;
-      page-break-inside: avoid;
       contain: layout paint;
       transform: translateZ(0);
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
+
+    .grid.is-masonry-ready { grid-auto-rows: var(--masonry-row); }
+    .grid.is-masonry-ready .card { grid-row: span var(--masonry-span); }
 
     .card:nth-child(9n + 1) {
       width: 100%;
@@ -1354,6 +1409,21 @@ function priceLabel(p) {
       -webkit-backface-visibility: hidden;
     }
 
+    .useful-result-signal {
+      width: 100%;
+      min-height: 36px;
+      margin: 0 0 8px;
+      border: 1px solid rgba(95, 127, 107, 0.24);
+      border-radius: 999px;
+      background: rgba(95, 127, 107, 0.08);
+      color: rgba(26, 26, 26, 0.78);
+      font: 700 12px var(--font-body);
+      cursor: pointer;
+    }
+
+    .useful-result-signal[hidden] { display: none; }
+    .useful-result-signal[aria-pressed="true"] { color: var(--accent-strong); cursor: default; }
+
     .cta-out {
       width: 100%;
       min-height: 38px;
@@ -1373,7 +1443,7 @@ function priceLabel(p) {
 
     @media (max-width: 1024px) {
       .grid {
-        column-count: 3;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
 
@@ -1420,9 +1490,10 @@ function priceLabel(p) {
         font-size: 16px;
       }
 
-      .search--home .search-hint {
-        text-align: center;
-        margin-top: 8px;
+      .search-submit {
+        min-width: 88px;
+        height: 54px;
+        padding: 0 14px;
       }
 
       .chips--home {
@@ -1505,7 +1576,7 @@ function priceLabel(p) {
 
       .filters-modal__panel--occasion {
         width: min(94vw, 560px);
-        max-height: min(84vh, 720px);
+        height: min(90dvh, 720px);
       }
 
       .occasion-options {
@@ -1536,21 +1607,19 @@ function priceLabel(p) {
       }
 
       .grid {
-        display: block;
         width: 100%;
         max-width: none;
-        column-count: 2;
-        column-gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
       }
 
       .card {
-        display: inline-block;
+        display: block;
         width: 100%;
         max-width: none;
-        margin: 0 0 12px;
+        margin: 0;
         border-radius: 22px;
         box-shadow: 0 14px 30px rgba(0, 0, 0, 0.05);
-        break-inside: avoid;
         -webkit-column-break-inside: avoid;
         page-break-inside: avoid;
       }
@@ -1690,16 +1759,17 @@ function priceLabel(p) {
       .discovery-shortcut { font-size: 13px; }
 
       .filters-modal__panel {
-        width: min(100vw - 24px, 460px);
-        padding: 18px;
+        width: calc(100vw - 16px);
+        height: calc(100vh - 16px);
+        height: calc(100dvh - 16px);
         border-radius: 24px;
       }
 
+      .filters-modal__head { padding: 18px 18px 14px; }
+      .filters-modal__body { padding: 2px 18px 18px; }
+
       .filters-modal__actions {
         flex-direction: column-reverse;
-        bottom: -18px;
-        margin-inline: -18px;
-        margin-bottom: -18px;
         padding: 14px 18px 18px;
       }
 
@@ -1710,8 +1780,8 @@ function priceLabel(p) {
       .grid {
         width: 100%;
         max-width: none;
-        column-count: 2;
-        column-gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
       }
 
       .card {
@@ -1736,17 +1806,18 @@ function priceLabel(p) {
     import { parseBulgarianShoppingIntent } from "../lib/search-intent";
 
     const q = document.getElementById("q") as HTMLInputElement;
+    const searchForm = document.getElementById("searchForm");
     const grid = document.getElementById("grid");
     const count = document.getElementById("count");
     const hint = document.getElementById("hint");
     const intentStatus = document.getElementById("intentStatus");
-    const btn = document.getElementById("searchBtn");
 
     const mainChips = document.getElementById("mainChips");
     const subChips = document.getElementById("subChips");
     const subChipsLabel = document.getElementById("subChipsLabel");
     const typeChips = document.getElementById("typeChips");
     const typeChipsLabel = document.getElementById("typeChipsLabel");
+    const taxonomyResultsCue = document.getElementById("taxonomyResultsCue");
     const activeSelections = document.getElementById("activeSelections");
     const feedStatus = document.getElementById("feedStatus");
     const feedSentinel = document.getElementById("feedSentinel");
@@ -1764,6 +1835,7 @@ function priceLabel(p) {
     const filtersApply = document.getElementById("filtersApply");
     const filtersReset = document.getElementById("filtersReset");
     const allCards = Array.from(grid.querySelectorAll("li.card"));
+    const catalogueMaterials = [...new Set(allCards.flatMap((card) => String(card.dataset.materials || "").split("|").filter(Boolean)))];
 
     const createShuffledOrder = (items) => {
       const shuffled = [...items];
@@ -1802,8 +1874,8 @@ function priceLabel(p) {
     let selectedMaterials = [];
     let selectedColors = [];
     let currentSearchIntent = null;
+    let executedSearchContext = null;
     let searchFallbackRequired = false;
-    let searchTrackTimer = 0;
     let resultFocusTimer = 0;
     let lastTrackedSearchSignature = "";
     const SEO_LANDING_LINKS = homeLandingData?.dataset.landings
@@ -1947,6 +2019,7 @@ function priceLabel(p) {
       ["organic", "органичен", "органична", "органично", "bio", "био"],
       ["eco", "еко", "sustainable", "устойчив", "reusable", "многократен", "biodegradable", "биоразградим"],
     ];
+    const BG_SEARCH_STOP_WORDS = new Set(["за", "от", "с", "на"]);
 
     const normalizeSearchText = (value) =>
       String(value || "")
@@ -1966,7 +2039,7 @@ function priceLabel(p) {
       normalizeSearchText(value)
         .split(/\s+/)
         .map((token) => token.trim())
-        .filter(Boolean);
+        .filter((token) => token && !BG_SEARCH_STOP_WORDS.has(token));
 
     const expandSearchToken = (token) => {
       const forms = new Set();
@@ -2004,6 +2077,15 @@ function priceLabel(p) {
       return rawTokens.map((token) => expandSearchToken(token));
     };
 
+    const buildSearchQuery = (value) => {
+      const normalized = normalizeSearchText(value);
+      return {
+        normalized,
+        latin: transliterateBulgarianToLatin(normalized),
+        groups: buildSearchGroups(normalized),
+      };
+    };
+
     const buildSearchDocumentString = (value) => {
       const tokens = new Set();
       [normalizeSearchText(value), transliterateBulgarianToLatin(value)].forEach((entry) => {
@@ -2015,10 +2097,10 @@ function priceLabel(p) {
     };
 
     const scheduleSearchTracking = (value) => {
-      window.clearTimeout(searchTrackTimer);
       const normalized = normalizeSearchText(value);
       if (normalized.length < 2) {
         lastTrackedSearchSignature = "";
+        executedSearchContext = null;
         return;
       }
 
@@ -2027,19 +2109,19 @@ function priceLabel(p) {
         ...(window.__bulgaritamDiscoveryContext || {}),
         search_id: searchId,
       };
-      searchTrackTimer = window.setTimeout(() => {
-        const signature = [
-          normalized,
-          activeCategoryKey || "all",
-          activeSubcategoryKey || "all",
-          selectedSort || "featured",
-          matchedCards.length,
-        ].join("|");
+      executedSearchContext = { search_id: searchId, search_term: String(value || "").trim() };
+      const signature = [
+        normalized,
+        activeCategoryKey || "all",
+        activeSubcategoryKey || "all",
+        selectedSort || "featured",
+        matchedCards.length,
+      ].join("|");
 
-        lastTrackedSearchSignature = signature;
+      lastTrackedSearchSignature = signature;
 
-        const intent = currentSearchIntent;
-        const searchParams = {
+      const intent = currentSearchIntent;
+      const searchParams = {
           search_id: searchId,
           query: String(value || "").trim(),
           search_term: String(value || "").trim(),
@@ -2053,48 +2135,66 @@ function priceLabel(p) {
           product_type: intent?.productType || activeProductType || "",
           gift_recipient: intent?.recipients?.join(",") || "",
           gift_occasion: intent?.occasions?.join(",") || "",
-        };
-        const returnedProducts = matchedCards.map((card, position) => [
-          card.dataset.productId || "",
-          card.dataset.brandId || "",
-          position + 1,
-        ]);
-        window.bulgaritamTrack?.("search", {
-          ...searchParams,
-          returned_products_json: JSON.stringify(returnedProducts),
-        });
-        window.bulgaritamTrack?.(matchedCards.length ? "search_results_view" : "search_no_results", searchParams);
-      }, 700);
+          audience: intent?.audienceKey || "",
+          materials: intent?.materials?.join(",") || "",
+          max_price_eur: intent?.maxPriceEur ?? "",
+      };
+      const returnedProducts = matchedCards.map((card, position) => [
+        card.dataset.productId || "",
+        card.dataset.brandId || "",
+        position + 1,
+      ]);
+      window.bulgaritamTrack?.("search", {
+        ...searchParams,
+        returned_products_json: JSON.stringify(returnedProducts),
+      });
+      window.bulgaritamTrack?.(matchedCards.length ? "search_results_view" : "search_no_results", searchParams);
     };
 
-    const docTokenCache = new WeakMap();
+    const updateUsefulResultSignals = () => {
+      const activeSearchId = executedSearchContext?.search_id || "";
+      allCards.forEach((card) => {
+        const button = card.querySelector("[data-user-signal='useful_result']");
+        if (!button) return;
+        button.hidden = !activeSearchId || !matchedCards.includes(card) || card.dataset.listContext !== "search_results";
+      });
+    };
 
-    const getDocumentTokens = (card) => {
-      if (!docTokenCache.has(card)) {
+    const searchCardCache = new WeakMap();
+
+    const getSearchCardData = (card) => {
+      if (!searchCardCache.has(card)) {
         const raw = normalizeSearchText(card?.dataset?.searchRaw || "");
         const rawLatin = transliterateBulgarianToLatin(raw);
         const structured = String(card?.dataset?.search || card?.search || "");
-        docTokenCache.set(
-          card,
-          new Set([
+        const searchable = `${raw} ${structured}`.trim();
+        const productName = normalizeSearchText(card?.dataset?.productName || "");
+        const brandName = normalizeSearchText(card?.dataset?.brandName || "");
+        searchCardCache.set(card, {
+          raw,
+          rawLatin,
+          searchable,
+          searchableLatin: transliterateBulgarianToLatin(searchable),
+          productName,
+          productNameLatin: transliterateBulgarianToLatin(productName),
+          brandName,
+          brandNameLatin: transliterateBulgarianToLatin(brandName),
+          tokens: new Set([
             ...structured.split(/\s+/).filter(Boolean),
             ...tokenizeSearchText(raw),
             ...tokenizeSearchText(rawLatin),
-          ])
-        );
+          ]),
+        });
       }
-      return docTokenCache.get(card);
+      return searchCardCache.get(card);
     };
 
     const matchesSearchDocument = (card, value) => {
-      const normalizedQuery = normalizeSearchText(value);
+      const query = typeof value === "string" ? buildSearchQuery(value) : value;
+      const normalizedQuery = query.normalized;
       if (!normalizedQuery) return true;
-      const raw = normalizeSearchText(card?.dataset?.searchRaw || "");
-      const searchDocument = String(card?.dataset?.search || card?.search || "");
-      const searchable = `${raw} ${searchDocument}`.trim();
-      const searchableLatin = transliterateBulgarianToLatin(searchable);
-      const rawLatin = transliterateBulgarianToLatin(raw);
-      const queryLatin = transliterateBulgarianToLatin(normalizedQuery);
+      const { raw, rawLatin, searchable, searchableLatin, tokens } = getSearchCardData(card);
+      const queryLatin = query.latin;
       if (
         raw.includes(normalizedQuery) ||
         raw.includes(queryLatin) ||
@@ -2107,15 +2207,14 @@ function priceLabel(p) {
       ) {
         return true;
       }
-      const groups = buildSearchGroups(value);
+      const groups = query.groups;
       if (!groups.length) return true;
       return groups.every((group) =>
         group.some((token) => {
           if (!token) return false;
           if (token.length < 3) return false;
-          const docTokens = getDocumentTokens(card);
-          if (docTokens.has(token)) return true;
-          for (const docToken of docTokens) {
+          if (tokens.has(token)) return true;
+          for (const docToken of tokens) {
             if (docToken.startsWith(token)) return true;
           }
           return false;
@@ -2124,20 +2223,13 @@ function priceLabel(p) {
     };
 
     const getSearchRelevanceScore = (card, value) => {
-      const normalizedQuery = normalizeSearchText(value);
+      const query = typeof value === "string" ? buildSearchQuery(value) : value;
+      const normalizedQuery = query.normalized;
       if (!normalizedQuery) return 0;
 
-      const queryLatin = transliterateBulgarianToLatin(normalizedQuery);
-      const productName = normalizeSearchText(card?.dataset?.productName || "");
-      const productNameLatin = transliterateBulgarianToLatin(productName);
-      const brandName = normalizeSearchText(card?.dataset?.brandName || "");
-      const brandNameLatin = transliterateBulgarianToLatin(brandName);
-      const raw = normalizeSearchText(card?.dataset?.searchRaw || "");
-      const rawLatin = transliterateBulgarianToLatin(raw);
-      const searchDocument = String(card?.dataset?.search || "");
-      const searchable = `${raw} ${searchDocument}`.trim();
-      const searchableLatin = transliterateBulgarianToLatin(searchable);
-      const queryGroups = buildSearchGroups(value);
+      const queryLatin = query.latin;
+      const { productName, productNameLatin, brandName, brandNameLatin, raw, rawLatin, searchable, searchableLatin } = getSearchCardData(card);
+      const queryGroups = query.groups;
       let score = 0;
 
       if (productName === normalizedQuery || productNameLatin === queryLatin) score += 260;
@@ -2162,12 +2254,15 @@ function priceLabel(p) {
       return score;
     };
 
-    const sortCardsForSearch = (cards, value) =>
-      [...cards].sort((a, b) => {
-        const scoreDiff = getSearchRelevanceScore(b, value) - getSearchRelevanceScore(a, value);
+    const sortCardsForSearch = (cards, value) => {
+      const query = typeof value === "string" ? buildSearchQuery(value) : value;
+      const scores = new Map(cards.map((card) => [card, getSearchRelevanceScore(card, query)]));
+      return [...cards].sort((a, b) => {
+        const scoreDiff = scores.get(b) - scores.get(a);
         if (scoreDiff !== 0) return scoreDiff;
         return Number(a.dataset.featuredIndex) - Number(b.dataset.featuredIndex);
       });
+    };
 
     const findLandingByQuery = (value) => {
       const query = normalizeSearchText(value);
@@ -2210,9 +2305,15 @@ function priceLabel(p) {
     };
 
     matchedCards = sortCards([...allCards], "featured");
+    let lastRenderedOrder = [];
 
     const syncGridOrder = () => {
-      matchedCards.forEach((card) => grid.appendChild(card));
+      const orderChanged = matchedCards.length !== lastRenderedOrder.length || matchedCards.some((card, index) => card !== lastRenderedOrder[index]);
+      if (!orderChanged) return;
+      const fragment = document.createDocumentFragment();
+      matchedCards.forEach((card) => fragment.appendChild(card));
+      grid.appendChild(fragment);
+      lastRenderedOrder = [...matchedCards];
     };
 
     const updateGridLayoutState = () => {
@@ -2223,8 +2324,9 @@ function priceLabel(p) {
     function updateFeedVisibility() {
       syncGridOrder();
       updateGridLayoutState();
-      allCards.forEach((card, index) => {
-        const shouldShow = matchedCards.includes(card) && matchedCards.indexOf(card) < visibleCount;
+      const visibleCards = new Set(matchedCards.slice(0, visibleCount));
+      allCards.forEach((card) => {
+        const shouldShow = visibleCards.has(card);
         card.style.display = shouldShow ? "" : "none";
       });
 
@@ -2283,6 +2385,32 @@ function priceLabel(p) {
     }
 
     const splitPipeValues = (value) => String(value || "").split("|").map((item) => item.trim()).filter(Boolean);
+    const AUDIENCE_VALUE_TERMS = {
+      woman: ["жена", "жени", "дамски", "дамско", "women", "woman"],
+      man: ["мъж", "мъже", "мъжки", "мъжко", "men", "man"],
+      child: ["дете", "деца", "детски", "детско", "children", "kids"],
+      baby: ["бебе", "бебета", "бебешки", "бебешко", "baby"],
+    };
+    const matchesAudience = (card, audienceKey) => {
+      if (!audienceKey) return true;
+      const values = splitPipeValues(card.dataset.audience).map(normalizeSearchText);
+      const terms = AUDIENCE_VALUE_TERMS[audienceKey] || [];
+      if (values.length) {
+        return values.includes("унисекс") || values.some((value) => terms.some((term) => value === term || value.includes(term)));
+      }
+      const publicSubcategory = normalizeSearchText(card.dataset.publicSubcategory || "");
+      if (publicSubcategory.includes("унисекс")) return audienceKey === "woman" || audienceKey === "man";
+      if (audienceKey === "woman" && publicSubcategory === "clothing women") return true;
+      if (audienceKey === "man" && publicSubcategory === "clothing men") return true;
+      return false;
+    };
+    const matchesMaximumPrice = (card, maximum) => {
+      if (!Number.isFinite(maximum)) return true;
+      const low = Number(card.dataset.priceMin);
+      const high = Number(card.dataset.priceMax);
+      const highestKnownPrice = Number.isFinite(high) && high > 0 ? high : low;
+      return Number.isFinite(highestKnownPrice) && highestKnownPrice > 0 && highestKnownPrice <= maximum;
+    };
     const categoryLabel = (key) => {
       const item = CATEGORIES.find((category) => category.key === key);
       return item ? (getCurrentLang() === "en" ? item.labelEn || item.label : item.label) : "";
@@ -2353,7 +2481,7 @@ function priceLabel(p) {
 
     function applyDiscovery(value = q.value) {
       const v = value || "";
-      currentSearchIntent = parseBulgarianShoppingIntent(v);
+      currentSearchIntent = parseBulgarianShoppingIntent(v, { materials: catalogueMaterials });
       searchFallbackRequired = false;
       const categoryFilterKey = activeCategoryKey || "";
       const subcategoryFilterKey = activeSubcategoryKey || "";
@@ -2389,19 +2517,24 @@ function priceLabel(p) {
         const attributes = splitPipeValues(card.dataset.attributes);
         const recipients = splitPipeValues(card.dataset.recipients);
         const giftOccasions = splitPipeValues(card.dataset.giftOccasions);
+        const materials = splitPipeValues(card.dataset.materials);
         if (currentSearchIntent.categoryKey && card.dataset.publicCategory !== currentSearchIntent.categoryKey) return false;
         if (currentSearchIntent.subcategoryKey && card.dataset.publicSubcategory !== currentSearchIntent.subcategoryKey) return false;
         if (currentSearchIntent.productType && card.dataset.productType !== currentSearchIntent.productType) return false;
         if (currentSearchIntent.giftable && card.dataset.giftable !== "1") return false;
+        if (!currentSearchIntent.recipients.length && !matchesAudience(card, currentSearchIntent.audienceKey)) return false;
         if (currentSearchIntent.recipients.some((entry) => !recipients.includes(entry))) return false;
         if (currentSearchIntent.occasions.some((entry) => !giftOccasions.includes(entry))) return false;
         if (currentSearchIntent.attributes.some((entry) => !attributes.includes(entry))) return false;
+        if (currentSearchIntent.materials.length && !currentSearchIntent.materials.some((entry) => materials.includes(entry))) return false;
+        if (!matchesMaximumPrice(card, currentSearchIntent.maxPriceEur)) return false;
         return true;
       };
 
+      const textQuery = currentSearchIntent ? currentSearchIntent.residualQuery : v;
+      const searchQuery = buildSearchQuery(textQuery);
       allCards.forEach((card) => {
-        const textQuery = currentSearchIntent ? currentSearchIntent.residualQuery : v;
-        if (matchesSearchDocument(card, textQuery) && matchesIntent(card) && matchesManualFilters(card)) {
+        if (matchesSearchDocument(card, searchQuery) && matchesIntent(card) && matchesManualFilters(card)) {
           filteredCards.push(card);
         }
       });
@@ -2412,20 +2545,24 @@ function priceLabel(p) {
           const attributes = splitPipeValues(card.dataset.attributes);
           const recipients = splitPipeValues(card.dataset.recipients);
           const giftOccasions = splitPipeValues(card.dataset.giftOccasions);
+          const materials = splitPipeValues(card.dataset.materials);
           const isCompatibleLegacyFallback =
             (!currentSearchIntent.categoryKey || card.dataset.publicCategory === currentSearchIntent.categoryKey) &&
             (!currentSearchIntent.subcategoryKey || card.dataset.publicSubcategory === currentSearchIntent.subcategoryKey) &&
             (!currentSearchIntent.productType || !card.dataset.productType || card.dataset.productType === currentSearchIntent.productType) &&
             (!currentSearchIntent.giftable || card.dataset.giftable === "1") &&
+            (currentSearchIntent.recipients.length > 0 || matchesAudience(card, currentSearchIntent.audienceKey)) &&
             currentSearchIntent.recipients.every((entry) => !recipients.length || recipients.includes(entry)) &&
             currentSearchIntent.occasions.every((entry) => !giftOccasions.length || giftOccasions.includes(entry)) &&
-            currentSearchIntent.attributes.every((entry) => !attributes.length || attributes.includes(entry));
+            currentSearchIntent.attributes.every((entry) => !attributes.length || attributes.includes(entry)) &&
+            (!currentSearchIntent.materials.length || currentSearchIntent.materials.some((entry) => materials.includes(entry))) &&
+            matchesMaximumPrice(card, currentSearchIntent.maxPriceEur);
           if (isCompatibleLegacyFallback && matchesManualFilters(card) && matchesSearchDocument(card, fallbackQuery)) filteredCards.push(card);
         });
         searchFallbackRequired = filteredCards.length > 0;
       }
 
-      matchedCards = v.trim() ? sortCardsForSearch(filteredCards, v) : sortCards(filteredCards, selectedSort);
+      matchedCards = v.trim() ? sortCardsForSearch(filteredCards, searchQuery) : sortCards(filteredCards, selectedSort);
       const derivedListContext = currentSearchIntent?.giftable || currentSearchIntent?.recipients?.length || currentSearchIntent?.occasions?.length || selectedGiftFilters.length
         ? "gift_discovery"
         : v.trim()
@@ -2438,6 +2575,7 @@ function priceLabel(p) {
                 ? "category"
                 : "homepage_default";
       window.__bulgaritamDiscoveryContext = {
+        ...(executedSearchContext && executedSearchContext.search_term === v.trim() ? executedSearchContext : {}),
         query: v.trim(),
         search_term: v.trim(),
         normalized_query: normalizeSearchText(v),
@@ -2448,6 +2586,9 @@ function priceLabel(p) {
         product_type: currentSearchIntent?.productType || activeProductType || "",
         gift_recipient: currentSearchIntent?.recipients?.join(",") || selectedGiftFilters.filter((entry) => entry.startsWith("recipient:")).map((entry) => entry.slice(10)).join(","),
         gift_occasion: currentSearchIntent?.occasions?.join(",") || selectedGiftFilters.filter((entry) => entry.startsWith("occasion:")).map((entry) => entry.slice(9)).join(","),
+        audience: currentSearchIntent?.audienceKey || "",
+        materials: currentSearchIntent?.materials?.join(",") || selectedMaterials.join(","),
+        max_price_eur: currentSearchIntent?.maxPriceEur ?? "",
         active_filters: [...selectedAttributes, ...selectedMaterials, ...selectedColors, selectedPriceRange !== "all" ? selectedPriceRange : "", selectedDeliveryOutside ? "delivery_abroad" : ""].filter(Boolean).join(","),
         list_context: derivedListContext,
         list_name: "Начална discovery мрежа",
@@ -2493,6 +2634,7 @@ function priceLabel(p) {
         ? Math.min(matchedCards.length, Math.max(getBatchSize() * 2, 24))
         : getBatchSize();
       updateFeedVisibility();
+      updateUsefulResultSignals();
       updateActiveChips();
       updateFiltersBadge();
       updateOccasionBadge();
@@ -2545,11 +2687,14 @@ function priceLabel(p) {
         subChips.innerHTML = "";
         return;
       }
-      if (subChipsLabel) subChipsLabel.hidden = false;
-      subChips.hidden = false;
       subChips.innerHTML = "";
 
-      cat.subcategories.forEach((s) => {
+      const availableSubcategories = cat.subcategories.filter((subcategory) =>
+        allCards.some((card) => card.dataset.publicCategory === cat.key && card.dataset.publicSubcategory === subcategory.key)
+      );
+      if (subChipsLabel) subChipsLabel.hidden = availableSubcategories.length === 0;
+      subChips.hidden = availableSubcategories.length === 0;
+      availableSubcategories.forEach((s) => {
         const b = document.createElement("button");
         b.className = "chip chip-sub";
         b.type = "button";
@@ -2574,17 +2719,23 @@ function priceLabel(p) {
           renderTypeChips();
           applyDiscovery(q.value || "");
           pulseResults();
-          focusResults();
+          gentlyRevealTaxonomy(typeChipsLabel?.hidden ? taxonomyResultsCue : typeChipsLabel);
         });
 
         subChips.appendChild(b);
       });
     }
 
+    const gentlyRevealTaxonomy = (node) => {
+      if (!node || window.innerWidth > 768) return;
+      window.requestAnimationFrame(() => node.scrollIntoView({ behavior: "smooth", block: "center" }));
+    };
+
     function renderTypeChips() {
       if (!typeChips || !typeChipsLabel || !activeSubcategoryKey) {
         if (typeChips) { typeChips.hidden = true; typeChips.innerHTML = ""; }
         if (typeChipsLabel) typeChipsLabel.hidden = true;
+        if (taxonomyResultsCue) taxonomyResultsCue.hidden = !activeCategoryKey;
         return;
       }
       const counts = new Map();
@@ -2615,12 +2766,13 @@ function priceLabel(p) {
           window.bulgaritamTrack?.("select_product_type", { selected_value: value, filter_name: "product_type", filter_value: value, ...(window.__bulgaritamDiscoveryContext || {}) });
           applyDiscovery(q.value || "");
           pulseResults();
-          focusResults();
+          gentlyRevealTaxonomy(taxonomyResultsCue);
         });
         typeChips.appendChild(button);
       });
       typeChips.hidden = types.length === 0;
       typeChipsLabel.hidden = types.length === 0;
+      if (taxonomyResultsCue) taxonomyResultsCue.hidden = !activeCategoryKey;
     }
 
     function syncDiscoveryModalState() {
@@ -2633,35 +2785,84 @@ function priceLabel(p) {
     }
 
     function updateDynamicFilterOptions() {
-      const candidates = allCards.filter((card) =>
-        (!activeCategoryKey || card.dataset.publicCategory === activeCategoryKey) &&
-        (!activeSubcategoryKey || card.dataset.publicSubcategory === activeSubcategoryKey) &&
-        (!activeProductType || card.dataset.productType === activeProductType)
-      );
-      [["attribute", "attributes", selectedAttributes], ["material", "materials", selectedMaterials], ["color", "colors", selectedColors]].forEach(([groupName, dataKey, selected]) => {
-        const group = filtersModal?.querySelector(`[data-dynamic-filter-group="${groupName}"]`);
+      const modalAttributes = Array.from(filtersModal?.querySelectorAll('input[name="attributeFilter"]:checked') || []).map((input) => input.value);
+      const modalMaterials = Array.from(filtersModal?.querySelectorAll('input[name="materialFilter"]:checked') || []).map((input) => input.value);
+      const modalColors = Array.from(filtersModal?.querySelectorAll('input[name="colorFilter"]:checked') || []).map((input) => input.value);
+      const modalPrice = filtersModal?.querySelector('input[name="priceFilter"]:checked')?.value || selectedPriceRange;
+      const modalDelivery = Boolean(filtersModal?.querySelector('#deliveryOutsideHome')?.checked);
+      const modalGiftFilters = Array.from(occasionModal?.querySelectorAll('input[name="giftFilter"]:checked') || []).map((input) => input.value);
+      const modalGiftPrice = occasionModal?.querySelector('input[name="giftPriceFilter"]:checked')?.value || selectedPriceRange;
+      const groups = [
+        { root: filtersModal, name: "price", selected: [modalPrice], values: (card) => ["all", "0-25", "25-50", "50-100", "100+"].filter((range) => matchesPriceRange(card, range)) },
+        { root: filtersModal, name: "attribute", selected: modalAttributes, values: (card) => splitPipeValues(card.dataset.attributes) },
+        { root: filtersModal, name: "material", selected: modalMaterials, values: (card) => splitPipeValues(card.dataset.materials) },
+        { root: filtersModal, name: "color", selected: modalColors, values: (card) => splitPipeValues(card.dataset.colors) },
+        { root: occasionModal, name: "recipient", selected: modalGiftFilters.filter((v) => v.startsWith("recipient:")), values: (card) => splitPipeValues(card.dataset.recipients).map((v) => `recipient:${v}`) },
+        { root: occasionModal, name: "occasion", selected: modalGiftFilters.filter((v) => v.startsWith("occasion:")), values: (card) => splitPipeValues(card.dataset.giftOccasions).map((v) => `occasion:${v}`) },
+        { root: occasionModal, name: "giftAttribute", selected: modalGiftFilters.filter((v) => v.startsWith("attribute:")), values: (card) => splitPipeValues(card.dataset.attributes).map((v) => `attribute:${v}`) },
+        { root: occasionModal, name: "giftPrice", selected: [modalGiftPrice], values: (card) => ["all", "0-25", "25-50", "50-100", "100+"].filter((range) => matchesPriceRange(card, range)) },
+      ];
+      const matchesPending = (card, omitted) => {
+        const attributes = splitPipeValues(card.dataset.attributes);
+        const materials = splitPipeValues(card.dataset.materials);
+        const colors = splitPipeValues(card.dataset.colors);
+        const recipients = splitPipeValues(card.dataset.recipients);
+        const occasions = splitPipeValues(card.dataset.giftOccasions);
+        const giftMatch = modalGiftFilters.every((filter) => {
+          const [kind, ...rest] = filter.split(":"); const value = rest.join(":");
+          if (omitted === kind || (omitted === "giftAttribute" && kind === "attribute")) return true;
+          return kind === "recipient" ? recipients.includes(value) : kind === "occasion" ? occasions.includes(value) : kind === "attribute" ? attributes.includes(value) : true;
+        });
+        return (!activeCategoryKey || card.dataset.publicCategory === activeCategoryKey) &&
+          (!activeSubcategoryKey || card.dataset.publicSubcategory === activeSubcategoryKey) &&
+          (!activeProductType || card.dataset.productType === activeProductType) &&
+          (omitted === "attribute" || !modalAttributes.length || modalAttributes.every((v) => attributes.includes(v))) &&
+          (omitted === "material" || !modalMaterials.length || modalMaterials.some((v) => materials.includes(v))) &&
+          (omitted === "color" || !modalColors.length || modalColors.some((v) => colors.includes(v))) &&
+          giftMatch && (omitted === "price" || matchesPriceRange(card, modalPrice)) &&
+          (omitted === "giftPrice" || matchesPriceRange(card, modalGiftPrice)) &&
+          (!modalDelivery || card.dataset.deliversAbroad === "1");
+      };
+      groups.forEach(({ root, name, selected, values }) => {
+        const group = root?.querySelector(`[data-dynamic-filter-group="${name}"]`);
         if (!group) return;
+        const candidates = allCards.filter((card) => matchesPending(card, name));
         const counts = new Map();
-        candidates.forEach((card) => splitPipeValues(card.dataset[dataKey]).forEach((value) => counts.set(value, (counts.get(value) || 0) + 1)));
+        candidates.forEach((card) => values(card).forEach((value) => counts.set(value, (counts.get(value) || 0) + 1)));
         let available = 0;
         group.querySelectorAll("[data-dynamic-filter-option]").forEach((option) => {
           const input = option.querySelector("input");
           const count = counts.get(input.value) || 0;
-          const isSelected = selected.includes(input.value);
+          const isSelected = input.checked || selected.includes(input.value);
           option.hidden = count === 0 && !isSelected;
           input.disabled = count === 0 && !isSelected;
           const label = option.querySelector("[data-filter-label]");
           if (label) label.textContent = `${label.dataset.filterLabel} (${count})`;
           if (count > 0) available += 1;
         });
-        group.hidden = available < 2 && selected.length === 0;
+        group.hidden = !["price", "giftPrice"].includes(name) && available === 0 && selected.length === 0;
+      });
+      updateCollapsibleOptions();
+    }
+
+    function updateCollapsibleOptions() {
+      document.querySelectorAll("[data-collapsible-options]").forEach((container) => {
+        const options = Array.from(container.querySelectorAll("[data-dynamic-filter-option]")).filter((option) => !option.hidden);
+        let button = container.parentElement?.querySelector(":scope > .filter-options-more");
+        if (options.length <= 8) { options.forEach((option) => option.classList.remove("is-overflow-option")); button?.remove(); return; }
+        if (!button) { button = document.createElement("button"); button.type = "button"; button.className = "filter-options-more"; container.insertAdjacentElement("afterend", button); }
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        options.forEach((option, index) => option.classList.toggle("is-overflow-option", !expanded && index >= 8 && !option.querySelector("input")?.checked));
+        button.textContent = expanded ? "Покажи по-малко" : `Покажи още (${options.length - 8})`;
+        button.setAttribute("aria-expanded", String(expanded));
+        button.onclick = () => { button.setAttribute("aria-expanded", String(!expanded)); updateCollapsibleOptions(); };
       });
     }
 
     function openFilters() {
       if (!filtersModal) return;
-      updateDynamicFilterOptions();
       syncFilterInputs();
+      updateDynamicFilterOptions();
       filtersModal.removeAttribute("hidden");
       filtersToggle?.setAttribute("aria-expanded", "true");
       syncDiscoveryModalState();
@@ -2697,6 +2898,7 @@ function priceLabel(p) {
     function openOccasions() {
       if (!occasionModal) return;
       syncOccasionInputs();
+      updateDynamicFilterOptions();
       occasionModal.removeAttribute("hidden");
       occasionToggle?.setAttribute("aria-expanded", "true");
       syncDiscoveryModalState();
@@ -2719,8 +2921,7 @@ function priceLabel(p) {
       renderSubChips(category);
       renderTypeChips();
       applyDiscovery(q.value || "");
-      pulseResults();
-      focusResults();
+      gentlyRevealTaxonomy(subChipsLabel?.hidden ? taxonomyResultsCue : subChipsLabel);
       if (sourceContext !== "homepage_discovery") {
         window.bulgaritamTrack?.("select_category", {
           selected_value: category.label,
@@ -2737,6 +2938,7 @@ function priceLabel(p) {
     updateFeedVisibility();
     updateFiltersBadge();
     updateOccasionBadge();
+    taxonomyResultsCue?.addEventListener("click", () => focusResults());
     window.addEventListener("bulgaritam:lang", () => {
       renderMainChips();
       const activeCategory = CATEGORIES.find((cat) => cat.key === activeCategoryKey);
@@ -2748,21 +2950,44 @@ function priceLabel(p) {
     });
 
     // Existing listeners
-    const handleHomeSearchInput = (value) => {
-      const nextValue = value || "";
-      applyDiscovery(nextValue);
-      scheduleSearchTracking(nextValue);
-      if (nextValue) pulseResults();
-      if (nextValue.trim().length >= 2) focusResults(450);
+    const executeHomeSearch = () => {
+      const value = q.value || "";
+      if (value.trim()) {
+        activeCategoryKey = "";
+        activeSubcategoryKey = "";
+        activeProductType = "";
+        selfChoices?.setAttribute("hidden", "");
+        selfToggle?.setAttribute("aria-expanded", "false");
+        renderMainChips();
+        renderSubChips(null);
+        renderTypeChips();
+      } else {
+        executedSearchContext = null;
+      }
+      applyDiscovery(value);
+      scheduleSearchTracking(value);
+      updateUsefulResultSignals();
+      if (value.trim()) {
+        pulseResults();
+        focusResults(120);
+      }
     };
 
     q.addEventListener("input", (e) => {
-      handleHomeSearchInput(e.target.value || "");
+      if (!(e.target.value || "").trim()) applyDiscovery("");
     });
 
     q.addEventListener("search", (e) => {
-      const nextValue = e.target.value || "";
-      handleHomeSearchInput(nextValue);
+      if (!(e.target.value || "").trim()) applyDiscovery("");
+    });
+    q.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      executeHomeSearch();
+    });
+    searchForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      executeHomeSearch();
     });
     document.querySelectorAll("[data-discovery-category]").forEach((shortcut) => {
       shortcut.addEventListener("click", () => {
@@ -2808,15 +3033,10 @@ function priceLabel(p) {
       });
       window.location.assign(link.href);
     });
-    if (btn) btn.addEventListener("click", () => {
-      applyDiscovery(q.value);
-      scheduleSearchTracking(q.value);
-    });
-
     const initialQuery = new URLSearchParams(window.location.search).get("q")?.trim() || "";
     if (initialQuery) {
       q.value = initialQuery;
-      handleHomeSearchInput(initialQuery);
+      executeHomeSearch();
     }
     sortSelect?.addEventListener("change", (e) => {
       selectedSort = e.target.value || "featured";
@@ -2829,6 +3049,12 @@ function priceLabel(p) {
     });
 
     occasionToggle?.addEventListener("click", openOccasions);
+    filtersModal?.addEventListener("change", (event) => {
+      if (event.target.matches("input")) updateDynamicFilterOptions();
+    });
+    occasionModal?.addEventListener("change", (event) => {
+      if (event.target.matches("input")) updateDynamicFilterOptions();
+    });
     occasionModal?.addEventListener("click", (e) => {
       if (e.target.closest("[data-occasion-close]")) closeOccasions();
     });

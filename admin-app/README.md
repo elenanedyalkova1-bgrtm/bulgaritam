@@ -9,6 +9,8 @@ Required environment variables in the repository `.env`:
 - `BASEROW_API_TOKEN`
 - `BASEROW_TABLE_ID=906650`
 - `BASEROW_BRANDS_TABLE_ID=1133942` (optional; this ID is the fallback)
+- `BASEROW_NEWSLETTER_SUBSCRIBERS_TABLE_ID=1154960` (optional; this ID is the fallback)
+- `BASEROW_BRAND_APPLICATIONS_TABLE_ID=1167849` (optional; this ID is the fallback)
 - `RESEND_API_KEY` (server-only key used by the public Brand Application endpoint)
 - `ADMIN_PASSWORD_HASH`
 - `ADMIN_SESSION_SECRET` (at least 32 random characters)
@@ -34,4 +36,4 @@ Do not deploy this app as static files: authentication and Baserow writes requir
 
 ## Brand Applications
 
-The public partner form posts to the unauthenticated, validated `/api/brand-applications/` endpoint. The endpoint sends one email through Resend to `info@bulgaritam.bg`; it does not persist the submission or create Brands, Products, accounts, profiles, dashboards, or Admin workflow records. Configure `RESEND_API_KEY` only in the server-side Admin/Vercel environment.
+The public partner form posts to the unauthenticated, validated `/api/brand-applications/` endpoint. Valid submissions are persisted in Baserow before newsletter synchronization and the Resend notification to `info@bulgaritam.bg`. A notification failure is recorded on the durable application row and does not require the applicant to resubmit. Configure `RESEND_API_KEY` only in the server-side Admin/Vercel environment.

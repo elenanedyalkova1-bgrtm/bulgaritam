@@ -129,6 +129,8 @@ const SEMANTIC_GROUPS = [
   ["eco", "еко", "sustainable", "устойчив", "reusable", "многократен", "biodegradable", "биоразградим"],
 ];
 
+export const BG_SEARCH_STOP_WORDS = new Set(["за", "от", "с", "на"]);
+
 export const normalizeSearchText = (value: unknown) =>
   String(value ?? "")
     .toLowerCase()
@@ -147,7 +149,7 @@ const tokenize = (value: string) =>
   normalizeSearchText(value)
     .split(/\s+/)
     .map((token) => token.trim())
-    .filter(Boolean);
+    .filter((token) => token && !BG_SEARCH_STOP_WORDS.has(token));
 
 const expandToken = (token: string) => {
   const forms = new Set<string>();

@@ -186,6 +186,7 @@ const openGraphType = seoType === "product" ? "product" : "website";
 const gaMeasurementId = normalizeText(import.meta.env.PUBLIC_GA_MEASUREMENT_ID) || "G-7XT69Z6DKS";
 const gtmContainerId = normalizeText(import.meta.env.PUBLIC_GTM_CONTAINER_ID) || "GTM-58MC374T";
 const newsletterEndpoint = normalizeText(import.meta.env.PUBLIC_NEWSLETTER_ENDPOINT) || "https://admin.bulgaritam.bg/api/newsletter/";
+const suppressNewsletterAutoOpen = pathname === "/partnyori/" || pathname === "/partnyori";
 const faviconSvg = "/favicon.svg";
 const faviconPng48 = "/favicon-48x48.png";
 const faviconPng192 = "/favicon-192x192.png";
@@ -582,6 +583,9 @@ if (seoType === "category" && seoData.category) {
             product_type: payload.product_type,
             gift_recipient: payload.gift_recipient,
             gift_occasion: payload.gift_occasion,
+            audience: payload.audience,
+            materials: payload.materials,
+            max_price_eur: payload.max_price_eur,
             active_filters: payload.active_filters,
             source_context: payload.source_context || payload.list_context,
           });
@@ -678,6 +682,45 @@ if (seoType === "category" && seoData.category) {
         document.addEventListener("click", (event) => {
           const target = event.target instanceof Element ? event.target : null;
           if (!target) return;
+
+          const signalButton = target.closest("button[data-user-signal]");
+          if (signalButton) {
+            if (signalButton.disabled || signalButton.dataset.signalRecorded === "1") return;
+            const signalType = signalButton.dataset.userSignal || "";
+            const productContext = getProductContext(signalButton);
+            const discoveryContext = getDiscoveryContext();
+            if (!signalType || !productContext.product_slug) return;
+            if (signalType === "useful_result" && (!discoveryContext.search_id || productContext.list_context !== "search_results")) return;
+
+            const signature = [signalType, productContext.product_slug, discoveryContext.search_id || ""].join(":");
+            try {
+              if (window.sessionStorage?.getItem(`bulgaritam_signal_${signature}`) === "1") {
+                signalButton.dataset.signalRecorded = "1";
+                signalButton.disabled = true;
+                signalButton.setAttribute("aria-pressed", "true");
+                signalButton.textContent = "Записано";
+                return;
+              }
+            } catch {}
+
+            signalButton.disabled = true;
+            const accepted = window.bulgaritamTrack?.("user_signal", {
+              signal_type: signalType,
+              ...productContext,
+              search_id: discoveryContext.search_id,
+              search_term: discoveryContext.search_term || discoveryContext.query,
+              source_context: signalButton.dataset.signalContext || productContext.list_context || window.location.pathname,
+            });
+            if (!accepted) {
+              signalButton.disabled = false;
+              return;
+            }
+            signalButton.dataset.signalRecorded = "1";
+            signalButton.setAttribute("aria-pressed", "true");
+            signalButton.textContent = "Записано";
+            try { window.sessionStorage?.setItem(`bulgaritam_signal_${signature}`, "1"); } catch {}
+            return;
+          }
 
           const outboundLink = target.closest("a.cta-out, a[data-analytics-event='outbound_brand_click']");
           if (outboundLink) {
@@ -1327,7 +1370,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
         <div class="footer-col">
           <div class="footer-title" data-i18n="footer.categories">Категории</div>
           <nav class="footer-nav" aria-label="Категории">
-            <a class="footer-link" href="/k/obleklo/" data-i18n="category.clothing">Облекло</a>
+          <a class="footer-link" href="/bulgarski-drehi/" data-i18n="category.clothing">Облекло</a>
             <a class="footer-link" href="/k/za-doma/" data-i18n="category.home">Дом и интериор</a>
             <a class="footer-link" href="/k/kozmetika/" data-i18n="category.cosmetics">Козметика</a>
             <a class="footer-link" href="/bulgarski-podaratsi/" data-i18n="category.gifts">Подаръци</a>
@@ -1375,7 +1418,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
         </form>
       </section>
     </div>
-    <script is:inline define:vars={{ newsletterEndpoint }}>
+    <script is:inline define:vars={{ newsletterEndpoint, suppressNewsletterAutoOpen }}>
       (() => {
         const modal = document.getElementById("newsletter-modal");
         const form = modal?.querySelector("form");
@@ -1439,7 +1482,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
         preferenceInputs.forEach((input) => input.addEventListener("change", () => preferenceInputs[0]?.setCustomValidity("")));
         let dismissed = false;
         try { dismissed = sessionStorage.getItem(storageKey) === "1"; } catch {}
-        if (!dismissed) window.setTimeout(() => {
+        if (!dismissed && !suppressNewsletterAutoOpen) window.setTimeout(() => {
           modal?.removeAttribute("hidden");
           document.documentElement.classList.add("newsletter-open");
           window.setTimeout(() => modal?.querySelector("input")?.focus(), 180);
@@ -1585,24 +1628,34 @@ window.addEventListener("bulgaritam:saved", (e) => {
         const disableOnMobile = grid.dataset.masonryMobile === "off" && window.innerWidth <= 768;
         const cards = Array.from(grid.querySelectorAll("[data-masonry-card]"));
 
-        if (disableOnMobile) {
+        if (disableOnMobile || cards.length === 0) {
+          grid.classList.remove("is-masonry-ready");
           cards.forEach((card) => card.style.removeProperty("--masonry-span"));
           return;
         }
 
         const computed = window.getComputedStyle(grid);
         const rowGap = Number.parseFloat(computed.rowGap || computed.gap || "0") || 0;
-        const autoRow = Number.parseFloat(computed.gridAutoRows || "1") || 1;
+        const autoRow = Number.parseFloat(computed.getPropertyValue("--masonry-row")) || 10;
 
+        let hasInvalidSpan = false;
         cards.forEach((card) => {
           if (card.style.display === "none") {
             card.style.removeProperty("--masonry-span");
             return;
           }
 
-          const span = Math.max(1, Math.ceil((card.getBoundingClientRect().height + rowGap) / (autoRow + rowGap)));
+          const cardHeight = card.getBoundingClientRect().height;
+          const span = Math.ceil((cardHeight + rowGap) / (autoRow + rowGap));
+          if (!Number.isFinite(span) || span < 1 || cardHeight <= 0) {
+            hasInvalidSpan = true;
+            card.style.removeProperty("--masonry-span");
+            return;
+          }
           card.style.setProperty("--masonry-span", String(span));
         });
+
+        grid.classList.toggle("is-masonry-ready", !hasInvalidSpan);
       };
 
       const scheduleMasonry = (grid) => {
@@ -1613,17 +1666,32 @@ window.addEventListener("bulgaritam:saved", (e) => {
       masonryGrids.forEach((grid) => {
         scheduleMasonry(grid);
 
-        Array.from(grid.querySelectorAll("img")).forEach((img) => {
-          if (img.complete) return;
-          img.addEventListener("load", () => scheduleMasonry(grid), { once: true });
-          img.addEventListener("error", () => scheduleMasonry(grid), { once: true });
-        });
+        grid.addEventListener("load", () => scheduleMasonry(grid), true);
+        grid.addEventListener("error", () => scheduleMasonry(grid), true);
 
         if ("ResizeObserver" in window) {
           const resizeObserver = new ResizeObserver(() => scheduleMasonry(grid));
           resizeObserver.observe(grid);
           Array.from(grid.querySelectorAll("[data-masonry-card]")).forEach((card) => resizeObserver.observe(card));
+
+          if ("MutationObserver" in window) {
+            const mutationObserver = new MutationObserver((mutations) => {
+              mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                  if (!(node instanceof Element)) return;
+                  if (node.matches("[data-masonry-card]")) resizeObserver.observe(node);
+                  node.querySelectorAll?.("[data-masonry-card]").forEach((card) => resizeObserver.observe(card));
+                });
+              });
+              scheduleMasonry(grid);
+            });
+            mutationObserver.observe(grid, { childList: true, subtree: true });
+          }
         }
+      });
+
+      document.fonts?.ready.then(() => {
+        masonryGrids.forEach((grid) => scheduleMasonry(grid));
       });
 
       window.addEventListener("resize", () => {

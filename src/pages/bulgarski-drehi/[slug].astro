@@ -1,7 +1,6 @@
 ---
 import SeoProductLanding from "../../components/SeoProductLanding.astro";
-import { SEO_INTENT_LANDINGS, getProductsForIntentLanding, getProductsForLanding, getSubcategoryLandings, getIntentLandingsForCategory, getIntentLandingsForAudienceSubcategory, getClothingEditorialForLanding } from "../../lib/seo-landings";
-import { getSubcategoryLabelForLang } from "../../lib/taxonomy";
+import { SEO_INTENT_LANDINGS, getProductsForIntentLanding, getClothingEditorialForLanding, getLandingPageHierarchy } from "../../lib/seo-landings";
 import { loadProducts } from "../../lib/products";
 
 const allProducts = await loadProducts();
@@ -19,51 +18,20 @@ export async function getStaticPaths() {
 
 const { landing, products } = Astro.props;
 
-const primaryPills = (
-  landing.audienceSubcategoryKey === "clothing_women"
-    ? [{ label: "Дамско", labelEn: "Women", href: "/k/damsko-obleklo/", isActive: true }]
-    : landing.audienceSubcategoryKey === "clothing_men"
-      ? [{ label: "Мъжко", labelEn: "Men", href: "/k/mazhko-obleklo/", isActive: true }]
-      : getSubcategoryLandings("clothing")
-          .map((entry) => ({
-            ...entry,
-            productCount: getProductsForLanding(allProducts, entry).length,
-          }))
-          .filter((entry) => entry.productCount > 0)
-          .map((entry) => ({
-            label: entry.label,
-            labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
-            href: `/k/${entry.slug}/`,
-            isActive: false,
-          }))
-);
-
-const secondaryPills = (
-  landing.audienceSubcategoryKey
-    ? getIntentLandingsForAudienceSubcategory("clothing", landing.audienceSubcategoryKey, "clothing")
-    : getIntentLandingsForCategory("clothing", "clothing")
-).map((entry) => ({
-  label: entry.label,
-  labelEn: entry.labelEn,
-  href: entry.path,
-  isActive: entry.path === landing.path,
-}));
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
 
 const clothingEditorial = getClothingEditorialForLanding(landing);
 ---
 
 <SeoProductLanding
-  landing={landing}
+  landing={hierarchy.seoLanding}
   products={products}
   browseProducts={allProducts}
   canonicalPath={landing.path}
-  breadcrumbs={[
-    { name: "Начало", item: "/" },
-    { name: "Български дрехи", item: "/bulgarski-drehi/" },
-    { name: landing.label, item: landing.path },
-  ]}
-  primaryPills={primaryPills}
-  secondaryPills={secondaryPills}
+  breadcrumbs={hierarchy.breadcrumbs}
+  primaryPills={hierarchy.primaryPills}
+  secondaryPills={hierarchy.secondaryPills}
+  parentLink={hierarchy.parentLink}
   editorialHeader={clothingEditorial?.header}
   editorialSections={clothingEditorial?.sections || []}
 />

@@ -105,10 +105,19 @@ async function confirmGone(url) {
 async function confirmBrokenImage(url, initial) {
   if (!url) return { confirmed: true, attempts: [initial], reason: "missing" };
   if (initial.state === "invalid_url") return { confirmed: true, attempts: [initial], reason: "invalid_url" };
-  if (!["gone", "not_image"].includes(initial.state)) return { confirmed: false, attempts: [initial], reason: initial.state };
+  const deterministicClientError =
+    initial.state === "http_error" &&
+    initial.status >= 400 &&
+    initial.status < 500;
+  if (!["gone", "not_image"].includes(initial.state) && !deterministicClientError) {
+    return { confirmed: false, attempts: [initial], reason: initial.state };
+  }
   const attempts = [initial];
   for (let index = 1; index < 3; index += 1) attempts.push(await probe(url, "image"));
-  const confirmed = attempts.length === 3 && attempts.every((item) => item.state === initial.state);
+  const confirmed = attempts.length === 3 && attempts.every((item) =>
+    item.state === initial.state &&
+    (!deterministicClientError || item.status === initial.status)
+  );
   return { confirmed, attempts, reason: confirmed ? initial.state : "inconsistent_response" };
 }
 

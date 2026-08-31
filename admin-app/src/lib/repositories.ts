@@ -1,4 +1,6 @@
 import { BRANDS_TABLE, PRODUCTS_TABLE, createRow, getRow, listFields, listRows, updateRow } from "./baserow";
+import { STRUCTURED_FACET_OPTIONS, structuredCategoryForSubcategory } from "./product-taxonomy";
+import { brandMirrorFields, resolveOrCreateBrand } from "./brand-sync";
 
 export const productFields = ["name_bg","slug","category","subcategory","product_type","tags","price_min_eur","price_max_eur","currency","short_desc_bg","long_desc_bg","product_url","image_urls","created_at","meta_title_bg","meta_desc_bg","rating"] as const;
 export const brandFields = ["brand_name","brand_slug","brand_url","description_bg","instagram_url","logo_url","address"] as const;
@@ -26,39 +28,42 @@ function validateUrl(value: string, label: string, required = false) {
 
 export async function saveProduct(form: FormData, rowId?: number) {
   const values = Object.fromEntries(productFields.map((field) => [field, text(form.get(field))]));
+  if (!values.category) values.category = structuredCategoryForSubcategory(values.subcategory, values.category);
   if (!values.name_bg) throw new Error("Product name is required.");
   validateSlug(values.slug);
   validateUrl(values.product_url, "Product URL", true);
   const brandId = Number(text(form.get("brand_ref")));
-  if (!brandId) throw new Error("Brand is required.");
-  const [products, brand, schema] = await Promise.all([listProducts(), findBrand(brandId), getProductFieldSchema()]);
+  const [products, schema] = await Promise.all([listProducts(), getProductFieldSchema()]);
+  const brand = await resolveOrCreateBrand({
+    preferredBrandId: brandId || undefined,
+    brandName: text(form.get("new_brand_name")),
+    brandSlug: text(form.get("new_brand_slug")),
+    brandUrl: text(form.get("new_brand_url")),
+  });
   if (products.some((row) => row.id !== rowId && String(row.slug).trim() === values.slug)) throw new Error("A Product with this slug already exists.");
   if (!brand?.brand_slug || !brand?.brand_name) throw new Error("Selected Brand is invalid.");
   const fields: Record<string, unknown> = {
     ...values,
-    brand_ref: [brandId],
+    ...brandMirrorFields(brand),
     is_active: form.get("is_active") === "true" ? "true" : "false",
-    // Compatibility mirrors. Brand editing never reads from these fields.
-    brand_name: brand.brand_name,
-    brand_slug: brand.brand_slug,
-    brand_url: brand.brand_url || "",
-    intro_bg: brand.description_bg || "",
-    address: brand.address || "",
   };
-  const optionIds = (fieldName: string, submitted: string[]) => {
+  const structuredValue = (fieldName: string, submitted: string[]) => {
     const field = schema.find((item: any) => item.name === fieldName);
     if (!field) throw new Error(`Baserow field ${fieldName} is missing.`);
-    return submitted.map((value) => field.select_options?.find((option: any) => option.value === value)?.id).filter(Number.isFinite);
+    if (field.type === "multiple_select") {
+      return submitted.map((value) => field.select_options?.find((option: any) => option.value === value)?.id).filter(Number.isFinite);
+    }
+    if (field.type === "single_select") {
+      return field.select_options?.find((option: any) => option.value === submitted[0])?.id || null;
+    }
+    return submitted.join(", ");
   };
-  fields.subcategory = optionIds("subcategory", [values.subcategory])[0] || null;
-  fields.product_type = optionIds("product_type", [values.product_type])[0] || null;
+  fields.subcategory = structuredValue("subcategory", [values.subcategory]);
+  fields.product_type = structuredValue("product_type", [values.product_type]);
   fields.giftable = form.get("giftable") === "true";
-  fields.recipient = optionIds("recipient", form.getAll("recipient").map(text));
-  fields.gift_occasion = optionIds("gift_occasion", form.getAll("gift_occasion").map(text));
-  fields.attributes = optionIds("attributes", form.getAll("attributes").map(text));
-  fields.audience = optionIds("audience", form.getAll("audience").map(text));
-  fields.colors = optionIds("colors", form.getAll("colors").map(text));
-  fields.materials = optionIds("materials", form.getAll("materials").map(text));
+  for (const fieldName of ["recipient", "gift_occasion", "attributes", "audience", "colors", "materials", ...Object.keys(STRUCTURED_FACET_OPTIONS)]) {
+    if (schema.some((item: any) => item.name === fieldName)) fields[fieldName] = structuredValue(fieldName, form.getAll(fieldName).map(text));
+  }
   if (!rowId) {
     const legacyIds = products.map((row) => Number(row["id 2"])).filter(Number.isFinite);
     fields["id 2"] = String(Math.max(0, ...legacyIds) + 1);
@@ -66,7 +71,7 @@ export async function saveProduct(form: FormData, rowId?: number) {
   }
   const saved = rowId ? await updateRow(PRODUCTS_TABLE, rowId, fields) : await createRow(PRODUCTS_TABLE, fields);
   const verified = await findProduct(saved.id);
-  if (Number(verified.brand_ref?.[0]?.id) !== brandId) throw new Error("Product saved, but Brand link verification failed.");
+  if (Number(verified.brand_ref?.[0]?.id) !== Number(brand.id)) throw new Error("Product saved, but Brand link verification failed.");
   return verified;
 }
 

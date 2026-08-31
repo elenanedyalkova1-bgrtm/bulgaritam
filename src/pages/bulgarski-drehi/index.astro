@@ -1,7 +1,6 @@
 ---
 import SeoProductLanding from "../../components/SeoProductLanding.astro";
-import { getCategoryLanding, getProductsForLanding, getSubcategoryLandings, getIntentLandingsForCategory, getClothingEditorialForLanding } from "../../lib/seo-landings";
-import { getSubcategoryLabelForLang } from "../../lib/taxonomy";
+import { getCategoryLanding, getProductsForLanding, getClothingEditorialForLanding, getLandingPageHierarchy } from "../../lib/seo-landings";
 import { loadProducts } from "../../lib/products";
 
 const allProducts = await loadProducts();
@@ -11,52 +10,21 @@ if (!landing) {
   throw new Error("Missing clothing landing");
 }
 
-const seoLanding = {
-  ...landing,
-  h1: "Български дрехи",
-  title: "Български дрехи | Българитъм",
-  description: "Открий български дрехи и модни находки от локални марки в Българитъм.",
-  intro: [
-    "Открий български дрехи от локални марки, подредени така, че по-лесно да стигаш до точния стил, материя и продукт.",
-    "Запазвай моделите, които ти правят впечатление, събирай идеи в свои списъци и се връщай към тях, когато искаш да сравниш спокойно."
-  ],
-};
-
 const products = getProductsForLanding(allProducts, landing);
-const primaryPills = getSubcategoryLandings("clothing")
-  .map((entry) => ({
-    ...entry,
-    productCount: getProductsForLanding(allProducts, entry).length,
-  }))
-  .filter((entry) => entry.productCount > 0)
-  .map((entry) => ({
-    label: entry.label,
-    labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
-    href: `/k/${entry.slug}/`,
-    isActive: false,
-  }));
-
-const secondaryPills = getIntentLandingsForCategory("clothing", "clothing").map((entry) => ({
-  label: entry.label,
-  labelEn: entry.labelEn,
-  href: entry.path,
-  isActive: false,
-}));
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
 
 const clothingEditorial = getClothingEditorialForLanding({ categoryKey: "clothing" });
 ---
 
 <SeoProductLanding
-  landing={seoLanding}
+  landing={hierarchy.seoLanding}
   products={products}
   browseProducts={allProducts}
   canonicalPath="/bulgarski-drehi/"
-  breadcrumbs={[
-    { name: "Начало", item: "/" },
-    { name: "Български дрехи", item: "/bulgarski-drehi/" },
-  ]}
-  primaryPills={primaryPills}
-  secondaryPills={secondaryPills}
+  breadcrumbs={hierarchy.breadcrumbs}
+  primaryPills={hierarchy.primaryPills}
+  secondaryPills={hierarchy.secondaryPills}
+  parentLink={hierarchy.parentLink}
   editorialHeader={clothingEditorial?.header}
   editorialSections={clothingEditorial?.sections || []}
 />

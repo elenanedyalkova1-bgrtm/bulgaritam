@@ -3,13 +3,10 @@ import SeoProductLanding from "../../components/SeoProductLanding.astro";
 import {
   getCanonicalPathForLanding,
   getClothingEditorialForLanding,
+  getLandingPageHierarchy,
   getProductsForLanding,
-  getSubcategoryLandings,
-  getIntentLandingsForCategory,
-  getIntentLandingsForAudienceSubcategory,
   SEO_LANDINGS,
 } from "../../lib/seo-landings";
-import { getSubcategoryLabelForLang } from "../../lib/taxonomy";
 import { MEN_CLOTHING_TYPE_OPTIONS, WOMEN_CLOTHING_TYPE_OPTIONS } from "../../lib/clothing-types";
 import { loadProducts } from "../../lib/products";
 
@@ -17,6 +14,12 @@ const allProducts = await loadProducts();
 
 export async function getStaticPaths() {
   const products = await loadProducts();
+  const preservedEmptySlugs = new Set([
+    "zabavlenie", "hrana-i-napitki", "belio", "banya", "detski-knigi",
+    "kozmetika-za-deca", "detski-mebeli-i-tekstil", "chai-i-bilki", "sport",
+    "kozmetika-tyalo", "kozmetika-za-mazhe", "igri", "aksesoari-za-domashni-lyubimci",
+    "napitki", "detski-aksesoari",
+  ]);
 
   return SEO_LANDINGS.map((landing) => ({
     params: { slug: landing.slug },
@@ -24,7 +27,7 @@ export async function getStaticPaths() {
       landing,
       products: getProductsForLanding(products, landing),
     },
-  })).filter((entry) => entry.props.products.length > 0);
+  })).filter((entry) => entry.props.products.length > 0 || preservedEmptySlugs.has(entry.params.slug));
 }
 
 const { landing, products } = Astro.props;
@@ -33,39 +36,7 @@ if (!landing) {
   throw new Error(`Unknown SEO landing page: ${Astro.params.slug}`);
 }
 
-const primaryPills = getSubcategoryLandings(landing.categoryKey)
-  .map((entry) => ({
-    ...entry,
-    productCount: getProductsForLanding(allProducts, entry).length,
-  }))
-  .filter((entry) => entry.productCount > 0)
-  .map((entry) => ({
-    label: entry.label,
-    labelEn: entry.subcategoryKey ? getSubcategoryLabelForLang(entry.subcategoryKey, "en") : entry.label,
-    href: `/k/${entry.slug}/`,
-    isActive: Boolean(entry.subcategoryKey && entry.subcategoryKey === landing.subcategoryKey),
-  }));
-
-const secondaryPills = (
-  landing.subcategoryKey === "clothing_women" || landing.subcategoryKey === "clothing_men"
-    ? getIntentLandingsForAudienceSubcategory(landing.categoryKey, landing.subcategoryKey, "clothing")
-    : getIntentLandingsForCategory(landing.categoryKey)
-).filter((entry) => !entry.path.startsWith("/bulgarski-podaratsi/"))
-  .map((entry) => ({
-    label: entry.label,
-    labelEn: entry.labelEn,
-    href: entry.path,
-    isActive: getCanonicalPathForLanding(landing) === entry.path,
-  }));
-
-const breadcrumbs = [
-  { name: "Начало", item: "/" },
-  ...(landing.kind === "subcategory" ? (() => {
-    const parent = SEO_LANDINGS.find((entry) => entry.kind === "category" && entry.categoryKey === landing.categoryKey);
-    return parent ? [{ name: parent.h1, item: getCanonicalPathForLanding(parent) }] : [];
-  })() : []),
-  { name: landing.h1, item: getCanonicalPathForLanding(landing) },
-];
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
 
 const refinementOptions =
   landing.subcategoryKey === "clothing_women"
@@ -75,19 +46,21 @@ const refinementOptions =
       : [];
 
 const clothingEditorial = getClothingEditorialForLanding(landing);
+const registeredEditorial = hierarchy.seoLanding.editorialSections || [];
 ---
 
 <SeoProductLanding
-  landing={landing}
+  landing={hierarchy.seoLanding}
   products={products}
   browseProducts={allProducts}
   canonicalPath={getCanonicalPathForLanding(landing)}
-  breadcrumbs={breadcrumbs}
-  primaryPills={primaryPills}
-  secondaryPills={secondaryPills}
+  breadcrumbs={hierarchy.breadcrumbs}
+  primaryPills={hierarchy.primaryPills}
+  secondaryPills={hierarchy.secondaryPills}
+  parentLink={hierarchy.parentLink}
   secondaryPillsTitle={landing.subcategoryKey === "clothing_women" || landing.subcategoryKey === "clothing_men" ? "Най-търсени" : ""}
   refinementOptions={refinementOptions}
-  refinementTitle="Вид облекло"
+  refinementTitle={landing.categoryKey === "clothing" ? "Вид облекло" : "Вид продукт"}
   editorialHeader={clothingEditorial?.header}
-  editorialSections={clothingEditorial?.sections || []}
+  editorialSections={registeredEditorial.length ? registeredEditorial : clothingEditorial?.sections || []}
 />

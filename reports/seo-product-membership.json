@@ -1,0 +1,3966 @@
+{
+  "total_landings": 187,
+  "pass": 187,
+  "fail": 0,
+  "results": [
+    {
+      "primary_keyword": "българско дамско бельо памук",
+      "url": "/balgarsko-damsko-belo-pamuk/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Бельо"
+        ],
+        "audience": [
+          "Жени"
+        ],
+        "materials": [
+          "Памук"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "българско мъжко бельо",
+      "url": "/bulgarsko-mazhko-belyo/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Бельо"
+        ],
+        "audience": [
+          "Мъже"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бели дамски ризи",
+      "url": "/byala-damska-riza/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Ризи"
+        ],
+        "colors": [
+          "Бял"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "дамски блузи с дълъг ръкав",
+      "url": "/damski-bluzi-s-dalag-rakav/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Блузи"
+        ],
+        "sleeve": [
+          "Дълъг ръкав"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "дамски блузи с къс ръкав",
+      "url": "/damski-bluzi-s-kas-rakav/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Блузи"
+        ],
+        "sleeve": [
+          "Къс ръкав"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "дамска ленена риза",
+      "url": "/damska-lenena-riza/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Ризи"
+        ],
+        "materials": [
+          "Лен"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "розови ризи",
+      "url": "/rozova-riza/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Ризи"
+        ],
+        "colors": [
+          "Розов"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "черни ризи",
+      "url": "/cherna-riza/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Ризи"
+        ],
+        "colors": [
+          "Черен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български дамски спортни екипи",
+      "url": "/bulgarski-damski-sportni-ekipi/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Спортни екипи"
+        ]
+      },
+      "expected_product_count": 36,
+      "rendered_product_count": 36,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български рокли",
+      "url": "/bulgarski-drehi/rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ]
+      },
+      "expected_product_count": 17,
+      "rendered_product_count": 17,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "мъжки пижами",
+      "url": "/bulgarski-mazhki-pizhami/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Мъжко облекло"
+        ],
+        "product_type": [
+          "Пижами и домашни комплекти"
+        ]
+      },
+      "expected_product_count": 7,
+      "rendered_product_count": 7,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български ленени дрехи",
+      "url": "/bulgarski-leneni-drehi/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "materials": [
+          "Лен"
+        ]
+      },
+      "expected_product_count": 13,
+      "rendered_product_count": 13,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "българско бельо",
+      "url": "/k/belio/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Бельо"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български боти",
+      "url": "/bulgarski-boti/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Обувки"
+        ],
+        "product_type": [
+          "Боти"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български домашни чехли",
+      "url": "/bulgarski-domashni-chehli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Обувки"
+        ],
+        "product_type": [
+          "Чехли"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български маратонки",
+      "url": "/balgarski-maratonki/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Обувки"
+        ],
+        "product_type": [
+          "Маратонки"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български мъжки обувки от естествена кожа",
+      "url": "/bulgarski-mazhki-obuvki-estestvena-kozha/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Обувки"
+        ],
+        "audience": [
+          "Мъже"
+        ],
+        "materials": [
+          "Естествена кожа"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български обувки естествена кожа",
+      "url": "/bulgarski-obuvki-estestvena-kozha/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Обувки"
+        ],
+        "materials": [
+          "Естествена кожа"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български сандали естествена кожа",
+      "url": "/bulgarski-sandali-estestvena-kozha/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Обувки"
+        ],
+        "product_type": [
+          "Сандали"
+        ],
+        "materials": [
+          "Естествена кожа"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български кожени якета естествена кожа",
+      "url": "/bulgarski-kozeni-yaketa/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Якета"
+        ],
+        "materials": [
+          "Естествена кожа"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български мъжки зимни якета",
+      "url": "/bulgarski-mazhki-zimni-yaketa/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Мъжко облекло"
+        ],
+        "product_type": [
+          "Якета"
+        ],
+        "season": [
+          "Зимен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български палта от вълна",
+      "url": "/bulgarski-palta-ot-valna/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Палта"
+        ],
+        "materials": [
+          "Вълна"
+        ]
+      },
+      "expected_product_count": 8,
+      "rendered_product_count": 8,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "зелени палта",
+      "url": "/zeleno-palto/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Палта"
+        ],
+        "colors": [
+          "Зелен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "кафяви палта",
+      "url": "/kafyavo-palto/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Палта"
+        ],
+        "colors": [
+          "Кафяв"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "преходни дамски якета",
+      "url": "/prehodni-damski-yaketa/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Якета"
+        ],
+        "season": [
+          "Преходен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "черени палта",
+      "url": "/cherno-palto/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Палта"
+        ],
+        "colors": [
+          "Черен"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "дамска пижама памук",
+      "url": "/damska-pizhama-pamuk/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Пижами и домашни комплекти"
+        ],
+        "materials": [
+          "Памук"
+        ]
+      },
+      "expected_product_count": 10,
+      "rendered_product_count": 10,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "мъжки ленени ризи",
+      "url": "/mazhki-leneni-rizi/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Мъжко облекло"
+        ],
+        "product_type": [
+          "Ризи"
+        ],
+        "materials": [
+          "Лен"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бални рокли",
+      "url": "/balni-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "clothing_style": [
+          "Бален"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бежови рокли",
+      "url": "/bezhovi-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Бежов"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бели рокли",
+      "url": "/beli-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Бял"
+        ]
+      },
+      "expected_product_count": 3,
+      "rendered_product_count": 3,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бохо рокля",
+      "url": "/boho-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "clothing_style": [
+          "Бохо"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български ежедневни рокли",
+      "url": "/bulgarski-ezhednevni-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "clothing_style": [
+          "Ежедневен"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български летни рокли",
+      "url": "/bulgarski-letni-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "season": [
+          "Летен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "вечерна рокля",
+      "url": "/vecherna-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Черен"
+        ],
+        "clothing_style": [
+          "Вечерен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "дамски рокли с дълъг ръкав",
+      "url": "/damski-rokli-s-dalag-rakav/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "sleeve": [
+          "Дълъг ръкав"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "дамски рокли с къс ръкав",
+      "url": "/damski-rokli-s-kas-rakav/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "sleeve": [
+          "Къс ръкав"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "дънкова рокля",
+      "url": "/dankova-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "materials": [
+          "Деним"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "есенни рокли",
+      "url": "/esenni-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "season": [
+          "Есенен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "жълти рокли",
+      "url": "/zhalta-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Жълт"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "зелени рокли",
+      "url": "/zelena-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Зелен"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златисти рокли",
+      "url": "/zlatista-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Златист"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "кафяви рокли",
+      "url": "/kafyava-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Кафяв"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "ленена рокля",
+      "url": "/lenena-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "materials": [
+          "Лен"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "официални български рокли",
+      "url": "/bulgarski-oficialni-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "clothing_style": [
+          "Официален"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "памучни рокли",
+      "url": "/pamuchni-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "materials": [
+          "Памук"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "розови рокли",
+      "url": "/rozovi-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Розов"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "рокля сатен",
+      "url": "/roklya-saten/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "materials": [
+          "Сатен"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "светлосини рокли",
+      "url": "/svetlosinya-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Светлосин"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "сини рокли",
+      "url": "/sinya-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Син"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "спортни рокли",
+      "url": "/sportni-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "clothing_style": [
+          "Спортен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "сребристи рокли",
+      "url": "/srebarni-rokli/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Сребрист"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "тъмносини рокли",
+      "url": "/tamnosinya-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Тъмносин"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "червени рокли",
+      "url": "/chervena-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Червен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "черни рокли",
+      "url": "/cherna-roklya/",
+      "structured_state": {
+        "category": [
+          "Облекло"
+        ],
+        "subcategory": [
+          "Дамско облекло"
+        ],
+        "product_type": [
+          "Рокли"
+        ],
+        "colors": [
+          "Черен"
+        ]
+      },
+      "expected_product_count": 3,
+      "rendered_product_count": 3,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "българска козметика за коса",
+      "url": "/k/kozmetika-kosa/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за косата"
+        ]
+      },
+      "expected_product_count": 8,
+      "rendered_product_count": 8,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за косопад",
+      "url": "/kozmetika-za-kosopad/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за косата"
+        ],
+        "hair_need": [
+          "Против косопад"
+        ]
+      },
+      "expected_product_count": 3,
+      "rendered_product_count": 3,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за мазна коса",
+      "url": "/kozmetika-za-mazna-kosa/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за косата"
+        ],
+        "hair_need": [
+          "За мазна коса"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за суха коса",
+      "url": "/kozmetika-za-suha-kosa/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за косата"
+        ],
+        "hair_need": [
+          "За суха коса"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за увредена коса",
+      "url": "/kozmetika-za-uvredena-kosa/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за косата"
+        ],
+        "hair_need": [
+          "За увредена коса"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "българска козметика за лице",
+      "url": "/k/kozmetika-lice/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за лицето"
+        ]
+      },
+      "expected_product_count": 13,
+      "rendered_product_count": 13,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за дехидратирана кожа",
+      "url": "/kozmetika-za-dehidratirana-kozha/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за лицето"
+        ],
+        "skin_type": [
+          "Дехидратирана кожа"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за мазна кожа",
+      "url": "/kozmetika-za-mazna-kozha/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за лицето"
+        ],
+        "skin_type": [
+          "Мазна кожа"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за против бръчки",
+      "url": "/kozmetika-za-protiv-brachki/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за лицето"
+        ],
+        "skin_need": [
+          "Против бръчки"
+        ]
+      },
+      "expected_product_count": 3,
+      "rendered_product_count": 3,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за суха кожа",
+      "url": "/kozmetika-za-suha-kozha/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за лицето"
+        ],
+        "skin_type": [
+          "Суха кожа"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за хидратация",
+      "url": "/kozmetika-za-hidratatsiya/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за лицето"
+        ],
+        "skin_need": [
+          "Хидратация"
+        ]
+      },
+      "expected_product_count": 9,
+      "rendered_product_count": 9,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика за чувствителна кожа",
+      "url": "/kozmetika-za-chuvstvitelna-kozha/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "subcategory": [
+          "Грижа за лицето"
+        ],
+        "skin_type": [
+          "Чувствителна кожа"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "българска козметика с роза",
+      "url": "/bulgarska-kozmetika-s-roza/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "ingredient": [
+          "Розово масло"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "козметика с шафран",
+      "url": "/kozmetika-s-shafran/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "ingredient": [
+          "Шафран"
+        ]
+      },
+      "expected_product_count": 6,
+      "rendered_product_count": 6,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "българска натурална козметика",
+      "url": "/naturalna-bulgarska-kozmetika/",
+      "structured_state": {
+        "category": [
+          "Козметика"
+        ],
+        "attributes": [
+          "Натурален"
+        ]
+      },
+      "expected_product_count": 21,
+      "rendered_product_count": 21,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "персонализиран подарък за бебе",
+      "url": "/personaliziran-podarak-za-bebe/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За бебе"
+        ],
+        "attributes": [
+          "Персонализируем"
+        ]
+      },
+      "expected_product_count": 15,
+      "rendered_product_count": 15,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за бебе момиче",
+      "url": "/podarak-za-bebe-momiche/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За бебе"
+        ],
+        "recipient_gender": [
+          "Момиче"
+        ]
+      },
+      "expected_product_count": 24,
+      "rendered_product_count": 24,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за бебе момче",
+      "url": "/podarak-za-bebe-momche/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За бебе"
+        ],
+        "recipient_gender": [
+          "Момче"
+        ]
+      },
+      "expected_product_count": 21,
+      "rendered_product_count": 21,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за изписване",
+      "url": "/podarak-za-izpisvane-na-bebe/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За бебе"
+        ],
+        "gift_occasion": [
+          "Изписване"
+        ]
+      },
+      "expected_product_count": 5,
+      "rendered_product_count": 5,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за кръщене",
+      "url": "/podarak-za-krashtene/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Кръщене"
+        ]
+      },
+      "expected_product_count": 10,
+      "rendered_product_count": 10,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за новородено",
+      "url": "/podarak-za-novorodeno/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За бебе"
+        ],
+        "gift_occasion": [
+          "Новородено"
+        ]
+      },
+      "expected_product_count": 18,
+      "rendered_product_count": 18,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за погача",
+      "url": "/podaratsi-za-pogacha-na-momche/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За бебе"
+        ],
+        "gift_occasion": [
+          "Погача"
+        ]
+      },
+      "expected_product_count": 5,
+      "rendered_product_count": 5,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 10-годишно момиче",
+      "url": "/originalen-podarak-za-10-godishno-momiche/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_gender": [
+          "Момиче"
+        ],
+        "recipient_age": [
+          "10"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 10-годишно момче",
+      "url": "/originalen-podarak-za-10-godishno-momche/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_gender": [
+          "Момче"
+        ],
+        "recipient_age": [
+          "10"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 14-годишно момиче",
+      "url": "/originalen-podarak-za-momiche-na-14-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_gender": [
+          "Момиче"
+        ],
+        "recipient_age": [
+          "14"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 14-годишно момче",
+      "url": "/originalen-podarak-za-momche-na-14-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_gender": [
+          "Момче"
+        ],
+        "recipient_age": [
+          "14"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 4-годишно момче",
+      "url": "/podarak-za-4-godishno-momche/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_gender": [
+          "Момче"
+        ],
+        "recipient_age": [
+          "4"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 7-годишно момиче",
+      "url": "/originalen-podarak-za-momiche-na-7-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_gender": [
+          "Момиче"
+        ],
+        "recipient_age": [
+          "7"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 9-годишно момиче",
+      "url": "/originalen-podarak-za-9-godishno-momiche/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_gender": [
+          "Момиче"
+        ],
+        "recipient_age": [
+          "9"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за дете на 1 година",
+      "url": "/podarak-za-dete-na-1-godina/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_age": [
+          "1"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за дете на 10 години",
+      "url": "/podarak-za-dete-na-10-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_age": [
+          "10"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за дете на 14 години",
+      "url": "/podarak-za-dete-na-14-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_age": [
+          "14"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за дете на 2 години",
+      "url": "/podarak-za-dete-na-2-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_age": [
+          "2"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за дете на 3 години",
+      "url": "/podarak-za-dete-na-3-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_age": [
+          "3"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за дете на 4 години",
+      "url": "/podarak-za-dete-na-4-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_age": [
+          "4"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за дете на 7 години",
+      "url": "/podarak-za-dete-na-7-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_age": [
+          "7"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за дете на 9 години",
+      "url": "/podarak-za-dete-na-9-godini/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За дете"
+        ],
+        "recipient_age": [
+          "9"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "забавен подарък за жена",
+      "url": "/zabaven-podarak-za-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "attributes": [
+          "Забавен"
+        ]
+      },
+      "expected_product_count": 10,
+      "rendered_product_count": 10,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "коледен подарък за жена",
+      "url": "/koleden-podarak-za-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "gift_occasion": [
+          "Коледа"
+        ]
+      },
+      "expected_product_count": 3,
+      "rendered_product_count": 3,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "персонализиран подарък за жена",
+      "url": "/personaliziran-podarak-za-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "attributes": [
+          "Персонализируем"
+        ]
+      },
+      "expected_product_count": 15,
+      "rendered_product_count": 15,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 8 март за учителка",
+      "url": "/podarak-za-8-mart-za-uchitelka/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "gift_occasion": [
+          "8 март"
+        ],
+        "role_interest": [
+          "Учителка"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена за 8 март",
+      "url": "/podarak-za-zhena-za-8-mart/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "gift_occasion": [
+          "8 март"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена за дипломиране",
+      "url": "/podarak-za-zhena-za-diplomirane/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "gift_occasion": [
+          "Дипломиране"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена за имен ден",
+      "url": "/podarak-za-imen-den-na-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "gift_occasion": [
+          "Имен ден"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена за пенсиониране",
+      "url": "/podarak-za-pensionirane-na-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "gift_occasion": [
+          "Пенсиониране"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена за свети валентин",
+      "url": "/podarak-za-sveti-valentin-za-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "gift_occasion": [
+          "Свети Валентин"
+        ]
+      },
+      "expected_product_count": 23,
+      "rendered_product_count": 23,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за рожден ден на жена",
+      "url": "/podarak-za-rozhden-den-na-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "gift_occasion": [
+          "Рожден ден"
+        ]
+      },
+      "expected_product_count": 112,
+      "rendered_product_count": 112,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена на 30",
+      "url": "/podarak-za-30-godishen-yubiley-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "recipient_age": [
+          "30"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена на 50",
+      "url": "/podarak-za-zhena-na-50/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "recipient_age": [
+          "50"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена на 60",
+      "url": "/podarak-za-zhena-na-60/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "recipient_age": [
+          "60"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена на 70",
+      "url": "/podarak-za-70-godishen-yubiley-na-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "recipient_age": [
+          "70"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена на 80",
+      "url": "/podarak-za-80-godishen-yubiley-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "recipient_age": [
+          "80"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за жена спортист",
+      "url": "/podarak-za-zhena-sportist/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "role_interest": [
+          "Спортист"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за учителка",
+      "url": "/luksozen-podarak-za-uchitelka/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "role_interest": [
+          "Учителка"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "практичен подарък за жена",
+      "url": "/praktichen-podarak-za-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "attributes": [
+          "Практичен"
+        ]
+      },
+      "expected_product_count": 5,
+      "rendered_product_count": 5,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "романтичен подарък за жена",
+      "url": "/romantichen-podarak-za-zhena/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За жена"
+        ],
+        "attributes": [
+          "Романтичен"
+        ]
+      },
+      "expected_product_count": 11,
+      "rendered_product_count": 11,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "забавен подарък за мъж",
+      "url": "/zabaven-podarak-za-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "attributes": [
+          "Забавен"
+        ]
+      },
+      "expected_product_count": 7,
+      "rendered_product_count": 7,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "коледен подарък за мъж",
+      "url": "/koleden-podarak-za-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "gift_occasion": [
+          "Коледа"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "персонализиран подарък за мъж",
+      "url": "/personaliziran-podarak-za-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "attributes": [
+          "Персонализируем"
+        ]
+      },
+      "expected_product_count": 10,
+      "rendered_product_count": 10,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж за дипломиране",
+      "url": "/podarak-za-mazh-za-diplomirane/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "gift_occasion": [
+          "Дипломиране"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж за пенсиониране",
+      "url": "/podarak-za-pensionirane-na-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "gift_occasion": [
+          "Пенсиониране"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за свети валентин за мъж",
+      "url": "/podarak-za-mazh-za-sveti-valentin/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "gift_occasion": [
+          "Свети Валентин"
+        ]
+      },
+      "expected_product_count": 11,
+      "rendered_product_count": 11,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за имен ден на мъж",
+      "url": "/podarak-za-mazh-za-imen-den/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "gift_occasion": [
+          "Имен ден"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж за рожден ден",
+      "url": "/podarak-za-mazh-za-rozhden-den/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "gift_occasion": [
+          "Рожден ден"
+        ]
+      },
+      "expected_product_count": 51,
+      "rendered_product_count": 51,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж кулинар",
+      "url": "/podarak-za-kulinar-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "role_interest": [
+          "Кулинар"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж ловец",
+      "url": "/podarak-za-lovets-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "role_interest": [
+          "Ловец"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж на 20",
+      "url": "/podarak-za-20-godishen-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "recipient_age": [
+          "20"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж на 25",
+      "url": "/podarak-za-25-godishen-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "recipient_age": [
+          "25"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж на 30",
+      "url": "/podarak-za-30-godishnina-na-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "recipient_age": [
+          "30"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж на 40",
+      "url": "/podarak-za-40-godishnina-na-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "recipient_age": [
+          "40"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 50 годишнина на мъж",
+      "url": "/podarak-za-mazh-na-50/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "recipient_age": [
+          "50"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж на 60",
+      "url": "/podarak-za-60-godishen-yubiley-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "recipient_age": [
+          "60"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж на 70",
+      "url": "/podarak-za-70-godishnina-na-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "recipient_age": [
+          "70"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж на 80",
+      "url": "/podarak-za-80-godishnina-na-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "recipient_age": [
+          "80"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж рибар",
+      "url": "/podarak-za-mazh-ribar/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "role_interest": [
+          "Рибар"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за мъж спортист",
+      "url": "/podarak-za-mazh-sportist/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "role_interest": [
+          "Спортист"
+        ]
+      },
+      "expected_product_count": 3,
+      "rendered_product_count": 3,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "практичен подарък за мъж",
+      "url": "/praktichen-podarak-za-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "attributes": [
+          "Практичен"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "романтичен подарък за мъж",
+      "url": "/romantichen-podarak-za-mazh/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "recipient": [
+          "За мъж"
+        ],
+        "attributes": [
+          "Романтичен"
+        ]
+      },
+      "expected_product_count": 5,
+      "rendered_product_count": 5,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "20 годишнина от сватба подарък",
+      "url": "/20-godishnina-ot-svatba-podarak/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Сватба"
+        ],
+        "wedding_anniversary_type": [
+          "20 годишнина"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 10 годишнина от сватба",
+      "url": "/podarak-za-10-godishnina-ot-svatba/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Сватба"
+        ],
+        "wedding_anniversary_type": [
+          "10 годишнина"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за 40 годишнина от сватба",
+      "url": "/podarak-za-40-godishnina-ot-svatba/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Сватба"
+        ],
+        "wedding_anniversary_type": [
+          "40 годишнина"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за годишнина от сватба",
+      "url": "/podarak-za-godishnina-ot-svatba/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Сватба"
+        ],
+        "wedding_anniversary_type": [
+          "Обща годишнина"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за златна сватба",
+      "url": "/podarak-za-zlatna-svatba/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Сватба"
+        ],
+        "wedding_anniversary_type": [
+          "Златна сватба"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за перлена сватба",
+      "url": "/podarak-za-perlena-svatba/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Сватба"
+        ],
+        "wedding_anniversary_type": [
+          "Перлена сватба"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за първа годишнина от сватба",
+      "url": "/podarak-za-parva-godishnina-ot-svatba/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Сватба"
+        ],
+        "wedding_anniversary_type": [
+          "Първа годишнина"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "подарък за сребърна сватба",
+      "url": "/podarak-za-srebarna-svatba/",
+      "structured_state": {
+        "giftable": [
+          "true"
+        ],
+        "gift_occasion": [
+          "Сватба"
+        ],
+        "wedding_anniversary_type": [
+          "Сребърна сватба"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута от медицинска стомана",
+      "url": "/bizhuta-ot-meditsinska-stomana/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "materials": [
+          "Медицинска стомана"
+        ]
+      },
+      "expected_product_count": 3,
+      "rendered_product_count": 3,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с диамант",
+      "url": "/bizhuta-s-diamanti/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Диамант"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с изумруд",
+      "url": "/bizhuta-s-izumrud/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Изумруд"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с кехлибар",
+      "url": "/bizhuta-ot-kehlibar/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Кехлибар"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с лабрадорит",
+      "url": "/bizhuta-s-labradorit/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Лабрадорит"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с мойсанит",
+      "url": "/bizhuta-s-moysanit/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Мойсанит"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с перли",
+      "url": "/bizhuta-s-perli/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Перла"
+        ]
+      },
+      "expected_product_count": 11,
+      "rendered_product_count": 11,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с рубин",
+      "url": "/bizhuta-s-rubin/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Рубин"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с тигрово око",
+      "url": "/bizhuta-s-tigrovo-oko/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Тигрово око"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с хематит",
+      "url": "/bizhuta-s-hematit/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Хематит"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с цитрин",
+      "url": "/bizhuta-s-tsitrin/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Цитрин"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "бижута с черен турмалин",
+      "url": "/bizhuta-s-cheren-turmalin/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "gemstone": [
+          "Черен турмалин"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български бижута",
+      "url": "/k/bijuta/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ]
+      },
+      "expected_product_count": 36,
+      "rendered_product_count": 36,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "годежен пръстен с диамант",
+      "url": "/godezhen-prasten-s-diamant/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Пръстени"
+        ],
+        "gemstone": [
+          "Диамант"
+        ],
+        "jewelry_detail": [
+          "Годежен"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "годежни пръстени",
+      "url": "/godezhni-prasteni/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Пръстени"
+        ],
+        "jewelry_detail": [
+          "Годежен"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "гривна с буква",
+      "url": "/grivna-s-bukva/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "jewelry_detail": [
+          "Буква"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "гривна с име",
+      "url": "/grivna-s-ime/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "jewelry_detail": [
+          "Име"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "гривна с кръст",
+      "url": "/grivna-s-krast/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "jewelry_detail": [
+          "Кръст"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "гривна червен конец",
+      "url": "/grivna-cherven-konets/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "jewelry_detail": [
+          "Червен конец"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "гривни от медицинска стомана",
+      "url": "/grivni-ot-meditsinska-stomana/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "materials": [
+          "Медицинска стомана"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "гривни от сребро",
+      "url": "/grivna-srebro/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "materials": [
+          "Сребро"
+        ]
+      },
+      "expected_product_count": 1,
+      "rendered_product_count": 1,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златен пръстен",
+      "url": "/zlaten-prasten/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Пръстени"
+        ],
+        "materials": [
+          "Злато"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златен пръстен с диамант",
+      "url": "/zlaten-prasten-s-diamant/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Пръстени"
+        ],
+        "materials": [
+          "Злато"
+        ],
+        "gemstone": [
+          "Диамант"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златен пръстен с рубин",
+      "url": "/zlaten-prasten-s-rubin/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Пръстени"
+        ],
+        "materials": [
+          "Злато"
+        ],
+        "gemstone": [
+          "Рубин"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златна гривна",
+      "url": "/zlatna-grivna/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "materials": [
+          "Злато"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златни колиета",
+      "url": "/zlatni-kolieta/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Колиета"
+        ],
+        "materials": [
+          "Злато"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златни обеци",
+      "url": "/zlatna-obetsa/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Обеци"
+        ],
+        "materials": [
+          "Злато"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златни обеци с диаманти",
+      "url": "/zlatni-obetsi-s-diamanti/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Обеци"
+        ],
+        "materials": [
+          "Злато"
+        ],
+        "gemstone": [
+          "Диамант"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златно колие с диамант",
+      "url": "/zlatno-kolie-s-diamant/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Колиета"
+        ],
+        "materials": [
+          "Злато"
+        ],
+        "gemstone": [
+          "Диамант"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "златно колие с перла",
+      "url": "/zlatno-kolie-s-perla/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Колиета"
+        ],
+        "materials": [
+          "Злато"
+        ],
+        "gemstone": [
+          "Перла"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "колиета от медицинска стомана",
+      "url": "/kolieta-ot-meditsinska-stomana/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Колиета"
+        ],
+        "materials": [
+          "Медицинска стомана"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "колиета от сребро",
+      "url": "/srebarni-kolieta/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Колиета"
+        ],
+        "materials": [
+          "Сребро"
+        ]
+      },
+      "expected_product_count": 4,
+      "rendered_product_count": 4,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "мъжки бижута",
+      "url": "/mazhki-bizhuta/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Мъжки бижута"
+        ]
+      },
+      "expected_product_count": 12,
+      "rendered_product_count": 12,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "обеци от медицинска стомана",
+      "url": "/obetsi-ot-meditsinska-stomana/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Обеци"
+        ],
+        "materials": [
+          "Медицинска стомана"
+        ]
+      },
+      "expected_product_count": 3,
+      "rendered_product_count": 3,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "обеци от сребро",
+      "url": "/obetsi-ot-srebro/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Обеци"
+        ],
+        "materials": [
+          "Сребро"
+        ]
+      },
+      "expected_product_count": 9,
+      "rendered_product_count": 9,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "пръстени от медицинска стомана",
+      "url": "/prasteni-ot-meditsinska-stomana/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Пръстени"
+        ],
+        "materials": [
+          "Медицинска стомана"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "пръстени от сребро",
+      "url": "/prasteni-srebro/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Пръстени"
+        ],
+        "materials": [
+          "Сребро"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "тигрово око гривна",
+      "url": "/tigrovo-oko-grivna/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "gemstone": [
+          "Тигрово око"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "хематит гривна",
+      "url": "/hematit-grivna/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "gemstone": [
+          "Хематит"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "цитрин гривна",
+      "url": "/tsitrin-grivna/",
+      "structured_state": {
+        "category": [
+          "Аксесоари"
+        ],
+        "subcategory": [
+          "Бижута"
+        ],
+        "product_type": [
+          "Гривни"
+        ],
+        "gemstone": [
+          "Цитрин"
+        ]
+      },
+      "expected_product_count": 0,
+      "rendered_product_count": 0,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български свещи",
+      "url": "/bulgarski-sveshti/",
+      "structured_state": {
+        "category": [
+          "Дом и интериор"
+        ],
+        "subcategory": [
+          "Аромати за дома"
+        ],
+        "product_type": [
+          "Ароматни свещи"
+        ]
+      },
+      "expected_product_count": 6,
+      "rendered_product_count": 6,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "българска бебешка козметика",
+      "url": "/bulgarska-bebeshka-kozmetika/",
+      "structured_state": {
+        "category": [
+          "Деца и бебе"
+        ],
+        "subcategory": [
+          "Бебешка грижа"
+        ]
+      },
+      "expected_product_count": 5,
+      "rendered_product_count": 5,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български домашен текстил",
+      "url": "/k/domashen-tekstil/",
+      "structured_state": {
+        "category": [
+          "Дом и интериор"
+        ],
+        "subcategory": [
+          "Домашен текстил"
+        ]
+      },
+      "expected_product_count": 13,
+      "rendered_product_count": 13,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български спално бельо",
+      "url": "/bulgarsko-spalno-belyo/",
+      "structured_state": {
+        "category": [
+          "Дом и интериор"
+        ],
+        "subcategory": [
+          "Домашен текстил"
+        ],
+        "product_type": [
+          "Спално бельо"
+        ]
+      },
+      "expected_product_count": 13,
+      "rendered_product_count": 13,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български детски играчки",
+      "url": "/bulgarski-detski-igrachki/",
+      "structured_state": {
+        "category": [
+          "Деца и бебе"
+        ],
+        "subcategory": [
+          "Играчки"
+        ]
+      },
+      "expected_product_count": 9,
+      "rendered_product_count": 9,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    },
+    {
+      "primary_keyword": "български детски книги",
+      "url": "/bulgarski-detski-knigi/",
+      "structured_state": {
+        "category": [
+          "Книги, игри и творчество"
+        ],
+        "subcategory": [
+          "Книги"
+        ],
+        "product_type": [
+          "Детски книги"
+        ]
+      },
+      "expected_product_count": 2,
+      "rendered_product_count": 2,
+      "unexpected_products": [],
+      "missing_products": [],
+      "status": "PASS"
+    }
+  ]
+}

@@ -1,5 +1,4 @@
 import type { Product } from "./products";
-import type { GiftTarget } from "./gifts";
 
 export type CategoryKey =
   | "gifts"
@@ -1095,8 +1094,7 @@ const getDefaultSubcategoryKeys = (product: Product, categoryKey: CategoryKey | 
 const matchesCategoryTerms = (category: TaxonomyCategory, corpus: string) =>
   [category.label, ...category.queryAliases, ...(category.legacyLabels || [])].some((term) => corpusIncludes(corpus, term));
 
-const CATEGORY_DEFAULT_SUBCATEGORY: Record<CategoryKey, SubcategoryKey> = {
-  gifts: "gifts_for_wedding",
+const CATEGORY_DEFAULT_SUBCATEGORY: Partial<Record<CategoryKey, SubcategoryKey>> = {
   clothing: "clothing_women",
   home: "home_decor",
   kids: "kids_toys",
@@ -1194,6 +1192,8 @@ const resolveCanonicalSubcategoryKey = (
   fullCorpus: string,
   explicitCategoryKey: CategoryKey | ""
 ) => {
+  if (category.key === "gifts") return getGiftSubcategoryKeys(product)[0];
+
   const explicitDefaults = getDefaultSubcategoryKeys(product, category.key);
   if (explicitDefaults.length) return explicitDefaults[0];
 
@@ -1203,18 +1203,17 @@ const resolveCanonicalSubcategoryKey = (
   return CATEGORY_DEFAULT_SUBCATEGORY[category.key];
 };
 
-const GIFT_TARGET_TO_SUBCATEGORY: Record<GiftTarget, SubcategoryKey> = {
-  her: "gifts_for_her",
-  him: "gifts_for_him",
-  child: "gifts_for_child",
-  baby: "gifts_for_baby",
-  wedding: "gifts_for_wedding",
-};
-
 const getGiftSubcategoryKeys = (product: Product) => {
   if (!product.giftable) return [];
-  const targets = product.gift_targets.length ? product.gift_targets : [];
-  return targets.map((target) => GIFT_TARGET_TO_SUBCATEGORY[target]).filter(Boolean);
+  const values = new Set(product.recipient.map((value) => normalize(value)));
+  const occasions = new Set(product.gift_occasion.map((value) => normalize(value)));
+  return [
+    values.has(normalize("За жена")) ? "gifts_for_her" : null,
+    values.has(normalize("За мъж")) ? "gifts_for_him" : null,
+    values.has(normalize("За дете")) ? "gifts_for_child" : null,
+    values.has(normalize("За бебе")) ? "gifts_for_baby" : null,
+    occasions.has(normalize("Сватба")) ? "gifts_for_wedding" : null,
+  ].filter((key): key is SubcategoryKey => Boolean(key));
 };
 
 const getSupplementalClothingSubcategoryKeys = (product: Product, keywordCorpus: string) => {
@@ -1263,7 +1262,7 @@ export const getCategoryChipLabelForLang = (categoryKey: CategoryKey, lang: Supp
 };
 
 export const getSubcategoryLabelForLang = (subcategoryKey: SubcategoryKey, lang: SupportedLang = "bg") => {
-  const subcategory = SUBCATEGORY_BY_KEY.get(subcategoryKey);
+  const subcategory = subcategoryKey ? SUBCATEGORY_BY_KEY.get(subcategoryKey) : undefined;
   if (!subcategory) return "";
   return lang === "en" ? SUBCATEGORY_EN_LABELS[subcategory.key] || subcategory.label : subcategory.label;
 };
@@ -1307,7 +1306,7 @@ export const getTaxonomyForProduct = (product: Product): ProductTaxonomy => {
   const categoryKeys: CategoryKey[] = [category.key];
   const subcategoryKeys: SubcategoryKey[] = subcategory ? [subcategory.key] : [];
 
-  if (category.key !== "gifts" && product.giftable) {
+  if (product.giftable) {
     if (!categoryKeys.includes("gifts")) categoryKeys.push("gifts");
     const giftSubcategoryKeys = getGiftSubcategoryKeys(product);
     if (giftSubcategoryKeys.length) {

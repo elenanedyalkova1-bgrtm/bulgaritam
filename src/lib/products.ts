@@ -20,9 +20,22 @@ export type Product = {
   recipient: string[];
   gift_occasion: string[];
   attributes: string[];
+  recipient_age: string[];
+  recipient_gender: string[];
+  role_interest: string[];
+  wedding_anniversary_type: string[];
   audience: string[];
   colors: string[];
   materials: string[];
+  gemstone: string[];
+  jewelry_detail: string[];
+  clothing_style: string[];
+  sleeve: string[];
+  season: string[];
+  ingredient: string[];
+  skin_type: string[];
+  skin_need: string[];
+  hair_need: string[];
   giftable: boolean;
   gift_targets: GiftTarget[];
   gift_match_score: number;
@@ -61,12 +74,13 @@ export type Product = {
   meta_desc_bg: string;
 };
 
-const BASEROW_API_TOKEN = import.meta.env.BASEROW_API_TOKEN;
-const BASEROW_TABLE_ID = import.meta.env.BASEROW_TABLE_ID || "906650";
+const runtimeEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env || process.env;
+const BASEROW_API_TOKEN = runtimeEnv.BASEROW_API_TOKEN;
+const BASEROW_TABLE_ID = runtimeEnv.BASEROW_TABLE_ID || "906650";
 const BASEROW_API_URL = `https://api.baserow.io/api/database/rows/table/${BASEROW_TABLE_ID}/?user_field_names=true&size=200`;
 
 function healthExcludedSlugs() {
-  const reportPath = import.meta.env.PRODUCT_HEALTH_REPORT_PATH;
+  const reportPath = runtimeEnv.PRODUCT_HEALTH_REPORT_PATH;
   if (!reportPath) return new Set<string>();
   try {
     const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
@@ -113,9 +127,22 @@ type BaserowRow = {
   recipient?: Array<{ value?: string }>;
   gift_occasion?: Array<{ value?: string }>;
   attributes?: Array<{ value?: string }>;
+  recipient_age?: Array<{ value?: string }>;
+  recipient_gender?: Array<{ value?: string }>;
+  role_interest?: Array<{ value?: string }> | string;
+  wedding_anniversary_type?: Array<{ value?: string }> | string;
   audience?: Array<{ value?: string }>;
   colors?: Array<{ value?: string }>;
   materials?: Array<{ value?: string }>;
+  gemstone?: Array<{ value?: string }> | string;
+  jewelry_detail?: Array<{ value?: string }> | string;
+  clothing_style?: Array<{ value?: string }> | string;
+  sleeve?: Array<{ value?: string }> | string;
+  season?: Array<{ value?: string }> | string;
+  ingredient?: Array<{ value?: string }> | string;
+  skin_type?: Array<{ value?: string }> | string;
+  skin_need?: Array<{ value?: string }> | string;
+  hair_need?: Array<{ value?: string }> | string;
   price_min_eur?: string;
   price_max_eur?: string;
   currency?: string;
@@ -177,8 +204,8 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
   const structuredGiftable = row.giftable === true;
   const selectValue = (value: BaserowRow["subcategory"]) =>
     norm(typeof value === "object" && value !== null ? value.value : value);
-  const multiSelectValues = (value: Array<{ value?: string }> | undefined) =>
-    Array.isArray(value) ? value.map((item) => norm(item?.value)).filter(Boolean) : [];
+  const multiSelectValues = (value: Array<{ value?: string }> | string | undefined) =>
+    Array.isArray(value) ? value.map((item) => norm(item?.value)).filter(Boolean) : splitList(value);
 
   return {
     ...legacyGiftMeta,
@@ -193,13 +220,26 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
     tags,
     subcategory: selectValue(row.subcategory),
     product_type: selectValue(row.product_type),
-    recipient: [...new Set([...multiSelectValues(row.recipient), ...multiSelectValues(row.audience)])],
+    recipient: multiSelectValues(row.recipient),
     gift_occasion: multiSelectValues(row.gift_occasion),
     attributes: multiSelectValues(row.attributes),
+    recipient_age: multiSelectValues(row.recipient_age),
+    recipient_gender: multiSelectValues(row.recipient_gender),
+    role_interest: multiSelectValues(row.role_interest),
+    wedding_anniversary_type: multiSelectValues(row.wedding_anniversary_type),
     audience: multiSelectValues(row.audience),
     colors: multiSelectValues(row.colors),
     materials: multiSelectValues(row.materials),
-    giftable: structuredGiftable || (!row.subcategory && legacyGiftMeta.giftable),
+    gemstone: multiSelectValues(row.gemstone),
+    jewelry_detail: multiSelectValues(row.jewelry_detail),
+    clothing_style: multiSelectValues(row.clothing_style),
+    sleeve: multiSelectValues(row.sleeve),
+    season: multiSelectValues(row.season),
+    ingredient: multiSelectValues(row.ingredient),
+    skin_type: multiSelectValues(row.skin_type),
+    skin_need: multiSelectValues(row.skin_need),
+    hair_need: multiSelectValues(row.hair_need),
+    giftable: structuredGiftable,
 
     price_min_eur: toNum(row.price_min_eur),
     price_max_eur: toNum(row.price_max_eur),
@@ -264,7 +304,7 @@ async function fetchAllRows(): Promise<BaserowRow[]> {
 }
 
 async function fetchAllBrandRows(): Promise<BaserowBrandRow[]> {
-  const tableId = import.meta.env.BASEROW_BRANDS_TABLE_ID || "1133942";
+  const tableId = runtimeEnv.BASEROW_BRANDS_TABLE_ID || "1133942";
   const rows: BaserowBrandRow[] = [];
   let nextUrl: string | null = `https://api.baserow.io/api/database/rows/table/${tableId}/?user_field_names=true&size=200`;
 
@@ -278,7 +318,9 @@ async function fetchAllBrandRows(): Promise<BaserowBrandRow[]> {
   return rows;
 }
 
-export async function loadProducts(): Promise<Product[]> {
+let productsPromise: Promise<Product[]> | null = null;
+
+async function loadProductsUncached(): Promise<Product[]> {
   const [rows, brandRows] = await Promise.all([fetchAllRows(), fetchAllBrandRows()]);
   const brandsById = new Map(brandRows.map((brand) => [Number(brand.id), brand]));
   const brandsBySlug = new Map(brandRows.filter((brand) => norm(brand.brand_slug)).map((brand) => [norm(brand.brand_slug), brand]));
@@ -301,4 +343,14 @@ export async function loadProducts(): Promise<Product[]> {
   });
 
   return products;
+}
+
+export function loadProducts(): Promise<Product[]> {
+  if (!productsPromise) {
+    productsPromise = loadProductsUncached().catch((error) => {
+      productsPromise = null;
+      throw error;
+    });
+  }
+  return productsPromise;
 }

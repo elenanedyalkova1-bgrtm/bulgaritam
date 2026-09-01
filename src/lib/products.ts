@@ -79,6 +79,20 @@ const BASEROW_API_TOKEN = runtimeEnv.BASEROW_API_TOKEN;
 const BASEROW_TABLE_ID = runtimeEnv.BASEROW_TABLE_ID || "906650";
 const BASEROW_API_URL = `https://api.baserow.io/api/database/rows/table/${BASEROW_TABLE_ID}/?user_field_names=true&size=200`;
 
+const LOCAL_PRODUCT_IMAGE_OVERRIDES: Record<string, string> = {
+  "byal-polar-damski": "/images/products/razgar/razgar-byal-polar-damski.avif",
+  "kasetka-kasa-bira": "/images/products/razgar/razgar-kasetka-kasa-bira.avif",
+  "kompaktna-karpa": "/images/products/razgar/razgar-kompaktna-kurpa.avif",
+  "komplekt-chorapi-planina": "/images/products/razgar/razgar-komplekt-chorapi-planina.avif",
+  "razgar-kompakt": "/images/products/razgar/razgar-kompakt.avif",
+  "korkov-yoga-mat": "/images/products/razgar/razgar-korkov-yoga-mat.avif",
+  "plazhna-karpa": "/images/products/razgar/razgar-plazhna-kurpa.avif",
+  "suitchar-s-tsip": "/images/products/razgar/razgar-suitchar-s-cip.avif",
+  "hamak-pirin": "/images/products/razgar/razgar-hamak-pirin.avif",
+  "shapka-s-periferiya-uvp-50": "/images/products/razgar/razgar-shapka-uvp-50.avif",
+  "havliena-karpa-pirin": "/images/products/razgar/razgar-havliena-kurpa-pirin.avif",
+};
+
 function healthExcludedSlugs() {
   const reportPath = runtimeEnv.PRODUCT_HEALTH_REPORT_PATH;
   if (!reportPath) return new Set<string>();
@@ -251,7 +265,7 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
     product_url: norm(row.product_url),
     brand_url: norm(brand?.brand_url) || norm(row.brand_url),
 
-    image_urls: splitList(row.image_urls),
+    image_urls: splitList(LOCAL_PRODUCT_IMAGE_OVERRIDES[slug] || row.image_urls),
 
     is_active,
     created_at: norm(row.created_at),
@@ -328,9 +342,11 @@ async function loadProductsUncached(): Promise<Product[]> {
   const excludedSlugs = healthExcludedSlugs();
   const products = rows
     .map((row) => {
+      const slug = norm(row.slug);
       const brandId = Number(row.brand_ref?.[0]?.id);
       const brand = brandsById.get(brandId) || brandsBySlug.get(norm(row.brand_slug));
-      if (!brand || brand.is_active !== true || !String(row.image_urls || "").trim() || excludedSlugs.has(String(row.slug || "").trim())) return null;
+      const localImage = LOCAL_PRODUCT_IMAGE_OVERRIDES[slug];
+      if (!brand || brand.is_active !== true || (!localImage && !String(row.image_urls || "").trim()) || (!localImage && excludedSlugs.has(slug))) return null;
       return parseRow(row, brand);
     })
     .filter((p): p is Product => Boolean(p && p.is_active));

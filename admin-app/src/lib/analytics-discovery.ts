@@ -67,7 +67,7 @@ export function sanitizeDiscoverySnapshot(input: Record<string, unknown>) {
     const position = Number(row.position);
     if ((entityType !== "product" && entityType !== "brand") || position !== index + 1 ||
         (entityType === "product" && !productId) || (entityType === "brand" && (!brandId || productId))) return null;
-    const identity = `${entityType}:${productId || brandId}`;
+    const identity = `${entityType}:${productId || ""}:${brandId || ""}`;
     if (seenEntities.has(identity)) return null;
     seenEntities.add(identity);
     results.push({ entity_type: entityType, product_id: productId, brand_id: brandId, position });

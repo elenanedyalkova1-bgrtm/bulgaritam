@@ -34,6 +34,17 @@ assert.deepEqual(brandSnapshot.results.map(({ entity_type, brand_id }) => [entit
 assert.equal(sanitizeDiscoverySnapshot({ state, results: results.slice(0, 1) }), null, "count mismatch must fail");
 assert.equal(sanitizeDiscoverySnapshot({ state, results: [{ ...results[0], position: 2 }, results[1]] }), null, "positions must be ordered and 1-based");
 assert.equal(sanitizeDiscoverySnapshot({ state, results: [results[0], { ...results[0], position: 2 }] }), null, "duplicate entities must fail");
+assert.ok(sanitizeDiscoverySnapshot({
+  state,
+  results: [results[0], { ...results[0], brand_id: "brand-2", position: 2 }],
+}), "the same product_id from different brands must be allowed");
+assert.equal(sanitizeDiscoverySnapshot({
+  state: { ...state, surface_type: "brand_directory" },
+  results: [
+    { entity_type: "brand", brand_id: "brand-1", position: 1 },
+    { entity_type: "brand", brand_id: "brand-1", position: 2 },
+  ],
+}), null, "duplicate brand entities must fail");
 assert.equal(sanitizeDiscoverySnapshot({ state, results: [{ entity_type: "brand", brand_id: "", position: 1 }, results[1]] }), null);
 
 const largeResults = Array.from({ length: 1_200 }, (_, index) => ({

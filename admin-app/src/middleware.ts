@@ -11,7 +11,7 @@ function secure(response: Response) {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const pathname = context.url.pathname;
-  if (["/api/events", "/api/events/", "/api/brand-applications", "/api/brand-applications/", "/api/newsletter", "/api/newsletter/"].includes(pathname)) return secure(await next());
+  if (["/api/events", "/api/events/", "/api/discovery-states", "/api/discovery-states/", "/api/brand-applications", "/api/brand-applications/", "/api/newsletter", "/api/newsletter/"].includes(pathname)) return secure(await next());
   const isLogin = pathname === "/login/" || pathname === "/login";
   const session = await readSession(context.cookies.get(sessionCookie.name)?.value);
   context.locals.admin = { authenticated: Boolean(session), csrf: session?.csrf || "" };

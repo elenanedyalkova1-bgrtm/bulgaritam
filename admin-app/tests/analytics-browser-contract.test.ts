@@ -7,6 +7,7 @@ const base = readFileSync(resolve(root, "src/layouts/BaseLayout.astro"), "utf8")
 const home = readFileSync(resolve(root, "src/pages/index.astro"), "utf8");
 const brands = readFileSync(resolve(root, "src/components/BrandsDirectory.astro"), "utf8");
 const seo = readFileSync(resolve(root, "src/components/SeoProductLanding.astro"), "utf8");
+const middleware = readFileSync(resolve(root, "admin-app/src/middleware.ts"), "utf8");
 const migration = readFileSync(resolve(root, "supabase/migrations/202609120002_create_analytics_discovery_states.sql"), "utf8");
 
 assert.match(base, /const signature = node\.dataset\.discoveryStateId \|\| `legacy:/, "same node/state impressions must dedupe by canonical state");
@@ -31,6 +32,8 @@ assert.match(brands, /entity_type: "brand"/);
 assert.ok(brands.indexOf("const orderedCards =") < brands.indexOf("commitBrandDiscoveryState(orderedCards"),
   "brand membership must be committed only after final ordering");
 assert.match(seo, /commitSeoDiscoveryState\(filteredCards\)/);
+assert.match(middleware, /"\/api\/discovery-states", "\/api\/discovery-states\/"/,
+  "the public discovery ingestion endpoint must bypass admin authentication");
 assert.match(migration, /create or replace function public\.insert_analytics_discovery_state/);
 assert.match(migration, /expected_count <> actual_count/);
 assert.match(migration, /revoke all on table public\.analytics_discovery_states, public\.analytics_discovery_results from anon, authenticated/);

@@ -149,9 +149,42 @@ export function mapSupabaseRowToAnalyticsEvent(row: SupabaseAnalyticsRow): Analy
 export class AnalyticsRepositoryError extends Error {
   constructor(operation: string, cause: unknown) {
     const detail = cause && typeof cause === "object" && "message" in cause ? String(cause.message) : "unknown error";
-    super(`Supabase analytics ${operation} failed: ${detail}`);
+    const underlying = cause && typeof cause === "object" && "cause" in cause && cause.cause ? cause.cause : cause;
+    super(`Supabase analytics ${operation} failed: ${detail}`, { cause: underlying });
     this.name = "AnalyticsRepositoryError";
   }
+}
+
+const diagnosticText = (value: unknown) => typeof value === "string" ? value : undefined;
+const diagnosticNumber = (value: unknown) => typeof value === "number" ? value : undefined;
+
+export function safeAnalyticsErrorDiagnostics(error: unknown) {
+  const outer = error && typeof error === "object" ? error as Record<string, unknown> : {};
+  const cause = outer.cause && typeof outer.cause === "object" ? outer.cause as Record<string, unknown> : {};
+  return {
+    name: diagnosticText(outer.name),
+    message: diagnosticText(outer.message),
+    cause: {
+      name: diagnosticText(cause.name),
+      code: diagnosticText(cause.code),
+      message: diagnosticText(cause.message),
+      errno: diagnosticNumber(cause.errno),
+      syscall: diagnosticText(cause.syscall),
+      hostname: diagnosticText(cause.hostname),
+    },
+  };
+}
+
+export function createDiagnosticFetch(baseFetch: typeof fetch = globalThis.fetch): typeof fetch {
+  return async (input, init) => {
+    try {
+      return await baseFetch(input, init);
+    } catch (error) {
+      // Never log input/init: they can contain the service-role URL and headers.
+      console.error("Supabase analytics network request failed", safeAnalyticsErrorDiagnostics(error));
+      throw error;
+    }
+  };
 }
 
 export class SupabaseAnalyticsRepository {
@@ -190,6 +223,7 @@ export function createServerSupabaseAnalyticsRepository() {
   if (!url || !serviceRoleKey) throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for Supabase analytics.");
   const client = createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { fetch: createDiagnosticFetch() },
   });
   return new SupabaseAnalyticsRepository(client);
 }

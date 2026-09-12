@@ -1,4 +1,4 @@
-import { mapAnalyticsPayloadToInsert, type AnalyticsEventInsert } from "./supabase-analytics";
+import { mapAnalyticsPayloadToInsert, safeAnalyticsErrorDiagnostics, type AnalyticsEventInsert } from "./supabase-analytics";
 
 export const ALLOWED_ANALYTICS_ORIGINS = new Set(["https://bulgaritam.bg", "https://www.bulgaritam.bg"]);
 export const ALLOWED_ANALYTICS_EVENTS = new Set([
@@ -104,7 +104,7 @@ export async function handleAnalyticsEventPost(
   try {
     await repository.insert(event);
   } catch (cause) {
-    console.error("First-party analytics write failed: Supabase", cause);
+    console.error("First-party analytics write failed: Supabase", safeAnalyticsErrorDiagnostics(cause));
     return analyticsTextResponse("Storage unavailable", 502, origin);
   }
 

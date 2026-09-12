@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import {
   AnalyticsRepositoryError,
+  createDiagnosticFetch,
   mapAnalyticsPayloadToInsert,
   mapBaserowAnalyticsRowToInsert,
   mapSupabaseRowToAnalyticsEvent,
+  safeAnalyticsErrorDiagnostics,
   SupabaseAnalyticsRepository,
   type AnalyticsEventInsert,
 } from "../src/lib/supabase-analytics";
@@ -75,10 +77,62 @@ assert.deepEqual((upsert?.args[1] as object), { onConflict: "event_id", ignoreDu
 const insertMock = mockClient([{ data: { id: 9 }, error: null }]);
 assert.equal((await new SupabaseAnalyticsRepository(insertMock.client).insert(insert)).duplicateIgnored, false);
 
-const failureMock = mockClient([{ data: null, error: { message: "database unavailable" } }]);
+const networkCause = Object.assign(new Error("getaddrinfo ENOTFOUND example.supabase.co"), {
+  name: "Error",
+  code: "ENOTFOUND",
+  errno: -3008,
+  syscall: "getaddrinfo",
+  hostname: "example.supabase.co",
+});
+const networkError = new TypeError("fetch failed", { cause: networkCause });
+const originalConsoleError = console.error;
+const networkLogs: unknown[][] = [];
+console.error = (...args: unknown[]) => { networkLogs.push(args); };
+try {
+  const diagnosticFetch = createDiagnosticFetch(async () => { throw networkError; });
+  await assert.rejects(() => diagnosticFetch("https://example.supabase.co/rest/v1/analytics_events", {
+    headers: { apikey: "must-not-be-logged", Authorization: "Bearer must-not-be-logged" },
+  }), networkError);
+} finally {
+  console.error = originalConsoleError;
+}
+assert.deepEqual(networkLogs, [[
+  "Supabase analytics network request failed",
+  {
+    name: "TypeError",
+    message: "fetch failed",
+    cause: {
+      name: "Error",
+      code: "ENOTFOUND",
+      message: "getaddrinfo ENOTFOUND example.supabase.co",
+      errno: -3008,
+      syscall: "getaddrinfo",
+      hostname: "example.supabase.co",
+    },
+  },
+]]);
+assert.equal(JSON.stringify(networkLogs).includes("must-not-be-logged"), false);
+
+const failureMock = mockClient([{ data: null, error: networkError }]);
 await assert.rejects(
   () => new SupabaseAnalyticsRepository(failureMock.client).insert(insert),
-  (error: unknown) => error instanceof AnalyticsRepositoryError && error.message.includes("database unavailable"),
+  (error: unknown) => {
+    assert.ok(error instanceof AnalyticsRepositoryError);
+    assert.equal(error.cause, networkCause);
+    assert.deepEqual(safeAnalyticsErrorDiagnostics(error), {
+      name: "AnalyticsRepositoryError",
+      message: "Supabase analytics insert failed: fetch failed",
+      cause: {
+        name: "Error",
+        code: "ENOTFOUND",
+        message: "getaddrinfo ENOTFOUND example.supabase.co",
+        errno: -3008,
+        syscall: "getaddrinfo",
+        hostname: "example.supabase.co",
+      },
+    });
+    return true;
+  },
 );
 
 const readRow: AnalyticsEventInsert & { id: number } = { id: 9, ...insert };

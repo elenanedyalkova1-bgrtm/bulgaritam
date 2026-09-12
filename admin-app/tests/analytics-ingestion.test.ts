@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { handleAnalyticsEventPost, sanitizeAnalyticsEvent, type AnalyticsInsertRepository } from "../src/lib/analytics-ingestion";
-import type { AnalyticsEventInsert } from "../src/lib/supabase-analytics";
+import { AnalyticsRepositoryError, type AnalyticsEventInsert } from "../src/lib/supabase-analytics";
 
 const endpoint = "https://admin.bulgaritam.bg/api/events/";
 const origin = "https://bulgaritam.bg";
@@ -86,14 +86,39 @@ const duplicateRepository: AnalyticsInsertRepository = {
 assert.equal((await handleAnalyticsEventPost(request(fullPayload), () => duplicateRepository)).status, 202);
 
 const originalError = console.error;
-console.error = () => {};
+const logged: unknown[][] = [];
+console.error = (...args: unknown[]) => { logged.push(args); };
 try {
+  const fetchCause = Object.assign(new TypeError("fetch failed"), {
+    code: "ENOTFOUND",
+    errno: -3008,
+    syscall: "getaddrinfo",
+    hostname: "example.supabase.co",
+  });
   const failingRepository: AnalyticsInsertRepository = {
-    async insert() { throw new Error("Supabase unavailable"); },
+    async insert() { throw new AnalyticsRepositoryError("insert", fetchCause); },
   };
   const failed = await handleAnalyticsEventPost(request(fullPayload), () => failingRepository);
   assert.equal(failed.status, 502);
   assert.equal(await failed.text(), "Storage unavailable");
+  assert.deepEqual(logged[0], [
+    "First-party analytics write failed: Supabase",
+    {
+      name: "AnalyticsRepositoryError",
+      message: "Supabase analytics insert failed: fetch failed",
+      cause: {
+        name: "TypeError",
+        code: "ENOTFOUND",
+        message: "fetch failed",
+        errno: -3008,
+        syscall: "getaddrinfo",
+        hostname: "example.supabase.co",
+      },
+    },
+  ]);
+  assert.equal(JSON.stringify(logged).includes("SUPABASE_SERVICE_ROLE_KEY"), false);
+  assert.equal(JSON.stringify(logged).includes("Authorization"), false);
+  assert.equal(JSON.stringify(logged).includes("apikey"), false);
 
   const unconfigured = await handleAnalyticsEventPost(request(fullPayload), () => { throw new Error("Missing environment"); });
   assert.equal(unconfigured.status, 503);

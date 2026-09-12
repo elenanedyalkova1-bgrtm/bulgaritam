@@ -92,6 +92,7 @@ if (!page) {
           return (
           <li
             class="card"
+            data-analytics-kind="product"
             data-product-slug={p.slug}
             data-product-id={p.id}
             data-product-name={p.name_bg}
@@ -103,7 +104,7 @@ if (!page) {
             data-public-subcategory={publicBrowse.subcategoryKey}
             data-product-type={p.product_type ?? ""}
             data-price={priceLabel(p) ?? ""}
-            data-list-context="recommended"
+            data-list-context="blog_recommendations"
             data-list-name={page.label}
             data-position={index + 1}
           >

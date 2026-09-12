@@ -313,12 +313,17 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
         </div>
 
         <ul class="related-grid" data-masonry-grid>
-          {sameBrandProducts.map((r) => {
+          {sameBrandProducts.map((r, index) => {
             const { isBio, isEco, isHandmade, isGift } = getProductBadges(r);
             return (
               <li
                 class="related-card"
                 data-masonry-card
+                data-analytics-kind="product"
+                data-list-context="more_from_brand"
+                data-position={index + 1}
+                data-origin-product-id={product.id}
+                data-origin-product-slug={product.slug}
                 data-product-id={r.id}
                 data-product-slug={r.slug}
                 data-product-name={r.name_bg}
@@ -407,12 +412,17 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
         </div>
 
         <ul class="related-grid" data-masonry-grid>
-          {related.map((r) => {
+          {related.map((r, index) => {
             const { isBio, isEco, isHandmade, isGift } = getProductBadges(r);
             return (
               <li
                 class="related-card"
                 data-masonry-card
+                data-analytics-kind="product"
+                data-list-context="related_products"
+                data-position={index + 1}
+                data-origin-product-id={product.id}
+                data-origin-product-slug={product.slug}
                 data-product-id={r.id}
                 data-product-slug={r.slug}
                 data-product-name={r.name_bg}

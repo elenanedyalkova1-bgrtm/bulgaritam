@@ -274,7 +274,7 @@ const description = "Запазени продукти и колекции – �
 
       empty.setAttribute("hidden", "");
 
-      grid.innerHTML = items.map((item) => {
+      grid.innerHTML = items.map((item, index) => {
         const url = item?.url || "#";
         const itemTitle = item?.title || tSaved().savedProduct;
         const brand = item?.brand || "";
@@ -284,7 +284,19 @@ const description = "Запазени продукти и колекции – �
         const buttonLabel = board.id === SAVED_PAGE_DEFAULT_ID ? tSaved().removeEverywhere : tSaved().removeFromCollection;
 
         return `
-          <article class="saved-card">
+          <article
+            class="saved-card"
+            data-analytics-kind="product"
+            data-product-slug="${escapeSavedPageHtml(id)}"
+            data-product-id="${escapeSavedPageHtml(item?.productId || "")}"
+            data-product-name="${escapeSavedPageHtml(itemTitle)}"
+            data-brand-id="${escapeSavedPageHtml(item?.brandId || "")}"
+            data-brand-slug="${escapeSavedPageHtml(item?.brandSlug || "")}"
+            data-brand-name="${escapeSavedPageHtml(brand)}"
+            data-list-context="${board.id === SAVED_PAGE_DEFAULT_ID ? "saved_products" : "named_collection"}"
+            data-position="${index + 1}"
+            data-collection-id="${escapeSavedPageHtml(board.id)}"
+          >
             <a class="saved-link" href="${escapeSavedPageHtml(url)}">
               <div class="saved-media">
                 ${image ? `<img src="${escapeSavedPageHtml(image)}" alt="${escapeSavedPageHtml(itemTitle)}" loading="lazy" />` : ""}
@@ -311,6 +323,9 @@ const description = "Запазени продукти и колекции – �
           </article>
         `;
       }).join("");
+      window.dispatchEvent(new CustomEvent("bulgaritam:products-appended", {
+        detail: { nodes: Array.from(grid.querySelectorAll("[data-analytics-kind]")) },
+      }));
     }
 
     function render() {

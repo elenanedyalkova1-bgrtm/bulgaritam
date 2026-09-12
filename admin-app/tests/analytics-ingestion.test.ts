@@ -76,6 +76,11 @@ for (const forbidden of ["email", "phone", "name", "collection_name", "destinati
 assert.equal(String(sanitized.metadata.long_value).length, 240);
 assert.equal(String(sanitized.metadata.returned_products_json).length, fullPayload.returned_products_json.length);
 
+const stagedView = sanitizeAnalyticsEvent({ ...fullPayload, event_name: "view_product", view_stage: "selection_click" });
+assert.equal(stagedView?.metadata.view_stage, "selection_click");
+assert.ok(sanitizeAnalyticsEvent({ ...fullPayload, event_name: "view_product" }),
+  "legacy view_product events without view_stage must remain valid");
+
 assert.equal((await handleAnalyticsEventPost(request({ event_name: "not_allowed" }), () => repository)).status, 400);
 assert.equal((await handleAnalyticsEventPost(request("not-json"), () => repository)).status, 400);
 assert.equal((await handleAnalyticsEventPost(request(fullPayload, "https://attacker.example"), () => repository)).status, 403);

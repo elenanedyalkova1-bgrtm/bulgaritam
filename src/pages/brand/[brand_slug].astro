@@ -166,6 +166,11 @@ const breadcrumbs = [
             href={brandRow.website_url}
             target="_blank"
             rel="noopener noreferrer"
+            data-analytics-event="outbound_brand_click"
+            data-brand
+            data-brand-id={brandRow.id}
+            data-brand-slug={brandSlug}
+            data-brand-name={brandName}
             data-i18n="brand.visitWebsite"
           >
             Виж сайта на бранда →
@@ -178,6 +183,11 @@ const breadcrumbs = [
             href={brandRow.instagram_url}
             target="_blank"
             rel="noopener noreferrer"
+            data-analytics-event="outbound_brand_click"
+            data-brand
+            data-brand-id={brandRow.id}
+            data-brand-slug={brandSlug}
+            data-brand-name={brandName}
             data-i18n="brand.instagram"
           >
             Instagram
@@ -248,6 +258,11 @@ const breadcrumbs = [
                     href={brandRow.instagram_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-analytics-event="outbound_brand_click"
+                    data-brand
+                    data-brand-id={brandRow.id}
+                    data-brand-slug={brandSlug}
+                    data-brand-name={brandName}
                     data-i18n="brand.instagram"
                   >
                     Instagram
@@ -279,7 +294,7 @@ const breadcrumbs = [
           <article
             class="card"
             data-analytics-kind="product"
-            data-list-context="brand_page"
+            data-list-context="brand_page_products"
             data-list-name={brandName}
             data-position={index + 1}
             data-product-id={product.id}

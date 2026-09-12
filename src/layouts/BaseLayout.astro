@@ -792,6 +792,9 @@ if (seoType === "category" && seoData.category) {
             list_context: scope.dataset.listContext,
             list_name: scope.dataset.listName,
             position: scope.dataset.position,
+            collection_id: scope.dataset.collectionId,
+            origin_product_id: scope.dataset.originProductId,
+            origin_product_slug: scope.dataset.originProductSlug,
             ...getDirectSourceContext(scope),
           });
         };
@@ -868,10 +871,11 @@ if (seoType === "category" && seoData.category) {
             return;
           }
 
-          const productLink = target.closest("a.card-titlelink, a.card-imglink, a.related-link, a.shared-card__media, a.shared-card__cta");
+          const productLink = target.closest("a.card-titlelink, a.card-imglink, a.card-link, a.related-link, a.saved-link, a.shared-card__media, a.shared-card__cta");
           if (productLink) {
             window.bulgaritamTrack?.("view_product", {
               ...getProductContext(productLink),
+              view_stage: "selection_click",
               target_path: productLink.getAttribute("href") || "",
             });
             return;
@@ -881,6 +885,7 @@ if (seoType === "category" && seoData.category) {
           if (brandLink) {
             window.bulgaritamTrack?.("view_brand", {
               ...getBrandContext(brandLink),
+              view_stage: "selection_click",
               target_path: brandLink.getAttribute("href") || "",
             });
           }
@@ -936,8 +941,8 @@ if (seoType === "category" && seoData.category) {
         window.addEventListener("load", () => {
           const productPage = document.querySelector("[data-page-product]");
           const brandPage = document.querySelector("[data-page-brand]");
-          if (productPage) window.bulgaritamTrack?.("view_product", { ...getProductContext(productPage), source_context: "product_page" });
-          if (brandPage) window.bulgaritamTrack?.("view_brand", { ...getBrandContext(brandPage), source_context: "brand_page" });
+          if (productPage) window.bulgaritamTrack?.("view_product", { ...getProductContext(productPage), view_stage: "page_load", source_context: "product_page" });
+          if (brandPage) window.bulgaritamTrack?.("view_brand", { ...getBrandContext(brandPage), view_stage: "page_load", source_context: "brand_page" });
         }, { once: true });
       })();
     </script>

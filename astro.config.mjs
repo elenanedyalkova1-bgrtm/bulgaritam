@@ -9,6 +9,7 @@ export default defineConfig({
   integrations: [sitemap({
     filter: (page) => ![
       '/category/podaratsi/', '/category/idei-za-podarak/',
+      '/blog/', '/politika-na-poveritelnost/', '/spodelena-kolekciya/', '/zapazeni/',
       '/k/podaraci/', '/k/idei-za-podarak/', '/k/bulgarski-podaratsi/',
       '/k/za-zhena/', '/k/podaraci-za-jena/', '/k/za-mazh/', '/k/podaraci-za-nego/',
       '/k/za-bebe/', '/k/podaraci-za-bebe/', '/k/za-dete/', '/k/podaraci-za-dete/',

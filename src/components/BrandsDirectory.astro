@@ -265,11 +265,12 @@ const editorialSections = [
       <div class="pills pills--secondary" id="brand-subcategory-filters" hidden></div>
       <p class="brand-filter-level" id="brand-type-label" hidden>Избери тип продукт</p>
       <div class="pills pills--secondary" id="brand-type-filters" hidden></div>
+      <a class="brand-results-cue is-active" id="brand-results-cue" href="#podbrani-balgarski-brandove">Виж всички брандове</a>
       <script id="brand-taxonomy-data" type="application/json" set:html={JSON.stringify(categories)}></script>
     </section>
 
     <!-- BRANDS -->
-    <section class="section">
+    <section class="section" id="podbrani-balgarski-brandove">
       <h2 class="section-title" data-i18n="brands.curatedTitle">Подбрани български брандове</h2>
 
       <ul class="brand-grid" id="brand-grid">
@@ -508,10 +509,11 @@ const editorialSections = [
     }
 
     .pills--secondary { margin-top: 10px; }
-    .pills--secondary .pill { box-shadow: none; border-style: dashed; font-weight: 700; }
+    .pills--secondary :global(.pill) { box-shadow: none; font-weight: 700; }
     .brand-filter-level { margin: 16px 0 8px; text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(26,26,26,.52); }
 
-    .pill {
+    .pill,
+    .pills--secondary :global(.pill) {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -537,18 +539,46 @@ const editorialSections = [
       text-align: center;
     }
 
-    .pill:hover {
+    .pill:hover,
+    .pills--secondary :global(.pill:hover) {
       background: rgba(255, 255, 255, 0.86);
+      border-color: rgba(95, 127, 107, 0.34);
     }
 
-    .pill:active {
+    .pill:active,
+    .pills--secondary :global(.pill:active) {
       transform: scale(0.99);
     }
 
-    .pill.is-active {
+    .pill.is-active,
+    .pills--secondary :global(.pill.is-active) {
       border-color: rgba(95, 127, 107, 0.45);
       background: rgba(95, 127, 107, 0.12);
       color: rgba(26, 26, 26, 0.92);
+    }
+
+    .brand-results-cue {
+      display: block;
+      min-height: 42px;
+      margin: 16px auto 0;
+      padding: 9px 16px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--accent-strong);
+      font: 700 14px var(--font-body);
+      cursor: pointer;
+    }
+
+    .brand-results-cue:hover,
+    .brand-results-cue.is-active {
+      border-color: rgba(95, 127, 107, 0.2);
+      background: rgba(95, 127, 107, 0.08);
+    }
+
+    .brand-results-cue:focus-visible {
+      outline: 2px solid var(--accent-strong);
+      outline-offset: 2px;
     }
 
     /* Brands grid */
@@ -560,6 +590,8 @@ const editorialSections = [
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 18px;
     }
+
+    #podbrani-balgarski-brandove { scroll-margin-top: 96px; }
 
     .brand-grid.is-updated {
       animation: brandResultsPulse 0.55s ease;
@@ -1015,7 +1047,8 @@ const editorialSections = [
         justify-content: center;
       }
 
-      .pill {
+      .pill,
+      .pills--secondary :global(.pill) {
         flex: 1 1 145px;
         padding: 10px 12px;
         font-size: 14px;
@@ -1161,6 +1194,13 @@ const editorialSections = [
     const productTypeFilters = document.getElementById("brand-type-filters");
     const subcategoryLabel = document.getElementById("brand-subcategory-label");
     const productTypeLabel = document.getElementById("brand-type-label");
+    const brandResultsCue = document.getElementById("brand-results-cue");
+
+    const syncBrandResultsCue = () => {
+      const isAllForCurrentCategory = !activeSubcategory && !activeProductType;
+      brandResultsCue?.classList.toggle("is-active", isAllForCurrentCategory);
+      brandResultsCue?.setAttribute("aria-current", isAllForCurrentCategory ? "true" : "false");
+    };
 
     const renderProductTypes = () => {
       const category = brandTaxonomy.find((item) => item.key === activeFilter);
@@ -1175,7 +1215,7 @@ const editorialSections = [
         button.addEventListener("click", () => {
           activeProductType = activeProductType === type ? "" : type;
           productTypeFilters.querySelectorAll(".pill").forEach((item) => item.classList.toggle("is-active", item === button && Boolean(activeProductType)));
-          applyDiscovery(); pulseResults(); scrollToResults();
+          applyDiscovery(); pulseResults(); syncBrandResultsCue();
           window.bulgaritamTrack?.("select_product_type", {
             source_context: "brand_directory",
             category: activeFilter,
@@ -1201,7 +1241,7 @@ const editorialSections = [
         button.addEventListener("click", () => {
           activeSubcategory = subcategory.key; activeProductType = "";
           subcategoryFilters.querySelectorAll(".pill").forEach((item) => item.classList.toggle("is-active", item === button));
-          renderProductTypes(); applyDiscovery(); pulseResults(); scrollToResults();
+          renderProductTypes(); applyDiscovery(); pulseResults(); syncBrandResultsCue();
           window.bulgaritamTrack?.("select_subcategory", {
             source_context: "brand_directory",
             category: activeFilter,
@@ -1227,14 +1267,6 @@ const editorialSections = [
         brandGrid.classList.add("is-updated");
         window.setTimeout(() => brandGrid.classList.remove("is-updated"), 650);
       });
-    };
-
-    const scrollToResults = () => {
-      if (!brandGrid) return;
-      window.requestAnimationFrame(() => brandGrid.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-        block: "start",
-      }));
     };
 
     const getKeys = (el) =>
@@ -1619,7 +1651,7 @@ const editorialSections = [
         filter_value: key,
       });
       pulseResults();
-      scrollToResults();
+      syncBrandResultsCue();
     });
 
     const handleBrandSearchInput = (value) => {
@@ -1632,7 +1664,6 @@ const editorialSections = [
       applyDiscovery();
       scheduleBrandSearchTracking(activeQuery);
       pulseResults();
-      if (activeQuery.trim()) scrollToResults();
     };
 
     brandSearchInput?.addEventListener("input", (e) => {
@@ -1653,7 +1684,6 @@ const editorialSections = [
         category: activeFilter,
       });
       pulseResults();
-      scrollToResults();
     });
 
     brandDeliveryOutside?.addEventListener("change", (e) => {
@@ -1666,7 +1696,6 @@ const editorialSections = [
         delivers_outside_bulgaria: activeDeliveryOutside,
       });
       pulseResults();
-      scrollToResults();
     });
 
     brandOccasionToggle?.addEventListener("click", openOccasionModal);
@@ -1689,7 +1718,6 @@ const editorialSections = [
         filter_value: occasion,
       }));
       pulseResults();
-      scrollToResults();
     });
 
     brandOccasionReset?.addEventListener("click", () => {
@@ -1704,7 +1732,6 @@ const editorialSections = [
       updateOccasionBadge();
       applyDiscovery();
       pulseResults();
-      scrollToResults();
     });
 
     document.addEventListener("keydown", (e) => {
@@ -1718,5 +1745,6 @@ const editorialSections = [
     else activeFilter = "all";
     updateOccasionBadge();
     applyDiscovery();
+    syncBrandResultsCue();
   </script>
 </BaseLayout>

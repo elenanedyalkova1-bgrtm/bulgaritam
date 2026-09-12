@@ -26,6 +26,7 @@ const {
 const clean = (value) => String(value ?? "").trim();
 const resolvedRefinementTitle = refinementTitle ||
   (landing.group === "clothing" || landing.categoryKey === "clothing" ? "Вид облекло" : "Вид продукт");
+const resolvedSecondaryPillsTitle = secondaryPillsTitle || "Най-търсени";
 const getPrimaryImage = (product) =>
   Array.isArray(product?.image_urls)
     ? product.image_urls.find((url) => /^https?:\/\//i.test(clean(url))) || product.image_urls.find((url) => clean(url))
@@ -51,9 +52,9 @@ const structuredRefinementOptions = Array.from(structuredTypeCounts.entries())
   .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "bg"))
   .map(([value, productCount]) => ({ key: value, label: `${value} (${productCount})`, baseLabel: value }));
 const allowedProductTypes = new Set(
-  PUBLIC_BROWSE_CATEGORIES.find((category) => category.key === browseCategoryKey)
-    ?.subcategories.find((subcategory) => subcategory.key === browseSubcategoryKey)
-    ?.productTypes || []
+  browseSubcategory
+    ? browseSubcategory.productTypes
+    : browseCategory?.subcategories.flatMap((subcategory) => subcategory.productTypes) || []
 );
 const refinementOptions = structuredRefinementOptions.filter((option) => allowedProductTypes.has(option.key));
 const buildFacetOptions = (field) => {
@@ -95,7 +96,7 @@ const additionalFacetSpecs = [
   ...(isJewelryContext ? [{ group: "gemstone", field: "gemstone", label: "Камък", options: approvedFacetOptions("gemstone", STRUCTURED_FACET_OPTIONS.gemstone) }] : []),
   ...(isJewelryContext ? [{ group: "jewelry_detail", field: "jewelry_detail", label: "Детайл", options: approvedFacetOptions("jewelry_detail", STRUCTURED_FACET_OPTIONS.jewelry_detail) }] : []),
   ...(isClothingContext && !isShoeContext ? [
-    { group: "clothing_style", field: "clothing_style", label: "Стил / тип", options: approvedFacetOptions("clothing_style", STRUCTURED_FACET_OPTIONS.clothing_style) },
+    { group: "clothing_style", field: "clothing_style", label: "Стил", options: approvedFacetOptions("clothing_style", STRUCTURED_FACET_OPTIONS.clothing_style) },
     { group: "sleeve", field: "sleeve", label: "Ръкав", options: approvedFacetOptions("sleeve", STRUCTURED_FACET_OPTIONS.sleeve) },
     { group: "season", field: "season", label: "Сезон", options: approvedFacetOptions("season", STRUCTURED_FACET_OPTIONS.season) },
   ] : []),
@@ -174,6 +175,66 @@ const orderedFacetSpecs = orderPublicFilters([
   ...additionalFacetSpecs.map((spec) => ({ ...spec, optionKind: "additional" })),
 ], filterContext);
 
+const trimDescription = (value, max = 160) => {
+  const text = clean(value).replace(/\s+/g, " ");
+  if (text.length <= max) return text;
+  const slice = text.slice(0, max - 1);
+  const cut = slice.lastIndexOf(" ");
+  return `${slice.slice(0, cut > 125 ? cut : max - 1).replace(/[,:;\s]+$/u, "")}…`;
+};
+
+const buildSeoDescription = () => {
+  const current = clean(landing.description);
+  if (current.length >= 100) return current;
+
+  const variant = Array.from(clean(canonicalPath)).reduce((sum, char) => sum + char.codePointAt(0), 0) % 4;
+  const additionOptions = isGiftContext
+    ? [
+        ["Сравни идеите по повод, получател и вид продукт.", "Детайлите са при бранда."],
+        ["Ориентирай се по интереси, възраст и конкретен повод.", "Условията са при бранда."],
+        ["Подреди избора според човека, повода и вида подарък.", "Виж данните от бранда."],
+        ["Прецени вариантите според повода и предпочитанията.", "Провери ги при бранда."],
+      ]
+    : isJewelryContext
+      ? [
+          ["Сравни моделите по материал, размер, детайли и закопчаване.", "Детайлите са при бранда."],
+          ["Провери материала, размерите и начина на закопчаване.", "Данните са от бранда."],
+          ["Ориентирай се по вид бижу, материал, камък и размер.", "Виж данните от бранда."],
+          ["Съпостави изработката, размерите и важните детайли.", "Провери ги при бранда."],
+        ]
+      : isCosmeticsContext
+        ? [
+            ["Сравни продуктите по предназначение, състав и употреба.", "Детайлите са при бранда."],
+            ["Ориентирай се по нужда, формула и начин на използване.", "Данните са от бранда."],
+            ["Провери съставките, типа грижа и указанията за употреба.", "Виж данните от бранда."],
+            ["Съпостави формулите според нуждата и своята рутина.", "Провери ги при бранда."],
+          ]
+        : isClothingContext || isShoeContext
+          ? [
+              ["Сравни моделите по материя, кройка, размер и предназначение.", "Детайлите са при бранда."],
+              ["Ориентирай се по състав, силует и таблица с размери.", "Данните са от бранда."],
+              ["Провери материята, размерите и указанията за поддръжка.", "Виж данните от бранда."],
+              ["Съпостави кройките, материите и начина на носене.", "Провери ги при бранда."],
+            ]
+          : [
+              ["Сравни предложенията по вид, материали и предназначение.", "Детайлите са при бранда."],
+              ["Ориентирай се по функция, изработка и приложението им.", "Данните са от бранда."],
+              ["Провери материалите, особеностите и начина на използване.", "Виж данните от бранда."],
+              ["Съпостави вариантите според нуждата и употребата.", "Провери ги при бранда."],
+            ];
+  const additions = additionOptions[variant];
+
+  let expanded = current;
+  for (const addition of additions) {
+    const candidate = `${expanded} ${addition}`;
+    if (candidate.length <= 160) expanded = candidate;
+    if (expanded.length >= 135) break;
+  }
+  return trimDescription(expanded);
+};
+
+const seoDescription = buildSeoDescription();
+
 function priceLabel(p) {
   if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
   if (p.price_min_eur != null) return `${p.price_min_eur}+ ${p.currency}`;
@@ -185,10 +246,10 @@ function priceLabel(p) {
   seo={{
     type: "category",
     title: landing.title,
-    description: landing.description,
+    description: seoDescription,
     data: {
       category: landing.h1,
-      description: landing.description,
+      description: seoDescription,
       breadcrumbs,
     }
   }}
@@ -238,7 +299,7 @@ function priceLabel(p) {
 
       {secondaryPills.length ? (
         <div class="landing-secondary-group">
-          {secondaryPillsTitle ? <p class="landing-secondary-title">{secondaryPillsTitle}</p> : null}
+          <p class="landing-secondary-title">{resolvedSecondaryPillsTitle}</p>
           <div class="landing-subcategories landing-subcategories--secondary" aria-label={secondaryPillsAriaLabel}>
             {secondaryPills.map((entry) => (
               <a
@@ -269,7 +330,7 @@ function priceLabel(p) {
       {hasRefinements ? (
         <details class="landing-refinements">
           <summary class="landing-refinements__summary">
-            <span class="landing-refinements__label">{resolvedRefinementTitle}</span>
+            <span class="landing-refinements__label">{refinementOptions.length ? resolvedRefinementTitle : "Филтри"}</span>
             <span class="landing-refinements__toggle">Филтрирай</span>
           </summary>
 
@@ -618,6 +679,8 @@ function priceLabel(p) {
       text-align: center;
     }
 
+    .landing-refinements__option[hidden] { display: none; }
+
     .landing-refinements__option input {
       position: absolute;
       inset: 0;
@@ -637,7 +700,22 @@ function priceLabel(p) {
     }
 
     .landing-refinements__option.is-overflow-option { display: none; }
-    .landing-refinements__more { justify-self: start; padding: 8px 0; border: 0; background: transparent; color: var(--accent-strong); font: 700 13px var(--font-body); cursor: pointer; }
+    :global(.landing-refinements__more) {
+      appearance: none;
+      justify-self: start;
+      min-height: 38px;
+      margin-top: 2px;
+      padding: 8px 14px;
+      border: 1px solid rgba(26, 26, 26, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.66);
+      color: var(--accent-strong);
+      font: 700 13px/1.2 var(--font-body);
+      cursor: pointer;
+      transition: background-color .18s ease, border-color .18s ease;
+    }
+    :global(.landing-refinements__more:hover) { border-color: rgba(95, 127, 107, 0.3); background: rgba(95, 127, 107, 0.08); }
+    :global(.landing-refinements__more:focus-visible) { outline: 2px solid var(--accent-strong); outline-offset: 3px; }
 
     .section-head--centered {
       display: flex;
@@ -1213,6 +1291,7 @@ function priceLabel(p) {
     };
 
     let visibleCount = getBatchSize();
+    let lastTrackedResultCount = 0;
 
     const serializeState = (state) => Object.entries(state)
       .filter(([, values]) => Array.isArray(values) && values.length)
@@ -1331,8 +1410,11 @@ function priceLabel(p) {
         grid?.classList.remove("grid--ordered");
       }
 
+      grid?.classList.remove("is-masonry-ready");
+
       allCards.forEach((card) => {
         card.style.display = "none";
+        card.style.removeProperty("--masonry-span");
       });
 
       filteredCards.forEach((card, index) => {
@@ -1353,6 +1435,8 @@ function priceLabel(p) {
       }
 
       updateFacetAvailability();
+      lastTrackedResultCount = filteredCards.length;
+      window.bulgaritamScheduleMasonry?.(grid);
     };
 
     const loadMore = () => {
@@ -1365,8 +1449,10 @@ function priceLabel(p) {
 
     refinementInputs.forEach((input) => {
       input.addEventListener("change", () => {
+        const resultsBefore = lastTrackedResultCount;
         visibleCount = getBatchSize();
         updateFeedVisibility();
+        window.bulgaritamTrack?.("apply_filter", { filter_name: input.dataset.filterGroup || "facet", filter_value: input.value, selected_value: input.value, filter_action: input.checked ? "add" : "remove", results_before: resultsBefore, results_after: lastTrackedResultCount, result_count: lastTrackedResultCount, source_context: "seo_landing_page" });
         startCanonicalNavigation();
       });
     });

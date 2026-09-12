@@ -1,4 +1,19 @@
 ---
-const {heads,rows,id,emphasizeColumn,emphasizeValue}=Astro.props;
+const {heads,rows,id,emphasizeColumn,emphasizeValue,paginate=false}=Astro.props;
+const initialRows=paginate?rows.slice(0,20):rows;
 ---
-<div class="table-wrap"><table id={id} data-sortable><thead><tr>{heads.map((h:string)=><th>{h}</th>)}</tr></thead><tbody>{rows.map((row:any[])=><tr class:list={{signal:emphasizeColumn!==undefined&&row[emphasizeColumn]===emphasizeValue}}>{row.map(value=><td>{value}</td>)}</tr>)}</tbody></table>{!rows.length&&<p class="muted">Няма данни за избрания период.</p>}</div>
+<div class="analytics-table" data-paginated={paginate?"true":undefined}>
+  <div class="table-wrap"><table id={id} data-sortable><thead><tr>{heads.map((h:string)=><th>{h}</th>)}</tr></thead><tbody>{initialRows.map((row:any[])=><tr class:list={{signal:emphasizeColumn!==undefined&&row[emphasizeColumn]===emphasizeValue}}>{row.map(value=><td>{value}</td>)}</tr>)}</tbody></table>{!rows.length&&<p class="muted">Няма данни за избрания период.</p>}</div>
+  {paginate&&rows.length>20?<><script type="application/json" data-table-rows set:html={JSON.stringify(rows).replaceAll("<","\\u003c")}></script><div class="table-actions"><button type="button" class="secondary" data-show-more>Покажи още</button><button type="button" class="secondary" data-show-all>Покажи всички</button></div></>:null}
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('.analytics-table[data-paginated="true"]:not([data-ready])').forEach((root)=>{
+    root.dataset.ready="1";const table=root.querySelector("table"),body=table?.tBodies[0],source=root.querySelector("[data-table-rows]");if(!body||!source)return;
+    let allRows:any[]=[],rows:any[]=[];try{allRows=JSON.parse(source.textContent||"[]");rows=[...allRows]}catch{}let shown=20,sortIndex=-1,sortDirection=1;
+    const sortRows=()=>{if(sortIndex<0)return;rows.sort((left,right)=>{const a=String(left[sortIndex]??""),b=String(right[sortIndex]??""),an=Number(a.replace(",",".")),bn=Number(b.replace(",","."));return(Number.isFinite(an)&&Number.isFinite(bn)?an-bn:a.localeCompare(b,"bg"))*sortDirection})};
+    const render=()=>{body.textContent="";rows.slice(0,shown).forEach(row=>{const tr=document.createElement("tr");row.forEach((value:any)=>{const td=document.createElement("td");td.textContent=String(value??"");tr.appendChild(td)});body.appendChild(tr)});root.querySelectorAll<HTMLButtonElement>("[data-show-more],[data-show-all]").forEach(button=>button.hidden=shown>=rows.length)};
+    table.querySelectorAll("th").forEach((header,index)=>header.addEventListener("click",(event)=>{event.stopImmediatePropagation();sortIndex=index;sortDirection=header.dataset.d==="a"?-1:1;header.dataset.d=sortDirection===1?"a":"d";sortRows();shown=Math.min(Math.max(shown,20),rows.length);render()},{capture:true}));
+    const search=document.querySelector<HTMLInputElement>(`[data-filter-table="${table.id}"]`);search?.addEventListener("input",()=>{const query=search.value.toLocaleLowerCase("bg");rows=allRows.filter(row=>!query||row.some((value:any)=>String(value??"").toLocaleLowerCase("bg").includes(query)));sortRows();shown=Math.min(20,rows.length);render()});
+    root.querySelector("[data-show-more]")?.addEventListener("click",()=>{shown=Math.min(rows.length,shown+20);render()});root.querySelector("[data-show-all]")?.addEventListener("click",()=>{shown=rows.length;render()});
+  });
+</script>

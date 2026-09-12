@@ -16,6 +16,9 @@ Transport: consent-gated `window.dataLayer.push({ event, ...parameters })` → G
 | `destination_domain` | Merchant hostname only; URL paths/query parameters are excluded |
 | `page_path`, `page_title`, `page_type`, `language`, `device_type` | Non-identifying page/session context |
 | `landing_page`, `referrer_domain`, `utm_source`, `utm_medium`, `utm_campaign` | Acquisition context without full referrer URLs |
+| `event_id`, `occurred_at_client`, `sequence_number` | Opaque event identity, client time and ordering within the analytics session |
+| `acquisition_channel` | Immutable session channel: Direct, Organic Search, Social, Referral, Email, Paid / UTM or Unknown |
+| `search_id`, `discovery_state_id`, `search_revision` | Explicit search and discovery/filter-state attribution |
 
 `list_context` values: `homepage_default`, `search_results`, `category`, `subcategory`, `product_type`, `gift_discovery`, `brand_page`, `recommended`, `saved_collection`, `seo_landing_page`, `brand_directory`.
 
@@ -59,7 +62,9 @@ Allowed collection parameters: opaque local `collection_id`, `item_count`/`colle
 
 After analytics consent, the same sanitized event is optionally sent to `PUBLIC_ANALYTICS_ENDPOINT`. The implementation endpoint is `https://admin.bulgaritam.bg/api/events/` and stores rows server-side in the Baserow table configured as `BASEROW_ANALYTICS_EVENTS_TABLE_ID`. The public browser never receives a Baserow token.
 
-The store uses an opaque per-tab/session ID in `sessionStorage` and an opaque journey ID in `localStorage`; both are created only after consent when an event is sent. Search/discovery context is retained in `sessionStorage` and added to downstream product, save, collection and outbound events. No account identity, IP-derived field, email, phone, collection name, full destination URL or URL query string is stored.
+The store uses an opaque analytics session ID persisted in `localStorage` and renewed after 30 minutes of inactivity. The existing opaque journey ID remains the backward-compatible anonymous visitor identity. Session acquisition is captured once and remains immutable across internal navigation. Search/discovery context is retained in `sessionStorage` and added to downstream product, save, collection and outbound events. No account identity, IP-derived field, email, phone, collection name, full destination URL or URL query string is stored.
+
+New first-party events include `event_id`, `occurred_at_client` and `sequence_number`. The endpoint adds `received_at_server` inside `payload_json`, avoiding a destructive Baserow migration. Multi-value parameters use JSON array strings; aggregation accepts both that representation and legacy comma-separated values.
 
 Required Analytics Events fields: `event_name`, `occurred_at`, `anonymous_session_id`, `anonymous_journey_id`, `product_id`, `product_name`, `brand_id`, `brand_name`, `category`, `subcategory`, `product_type`, `search_term`, `search_results_count`, `collection_id`, `source_context`, `destination_domain`, and `payload_json`.
 

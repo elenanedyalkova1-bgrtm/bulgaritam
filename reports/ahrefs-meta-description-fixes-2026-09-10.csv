@@ -1,0 +1,128 @@
+﻿URL,PAGE TYPE,OLD DESCRIPTION LENGTH,NEW DESCRIPTION LENGTH,SOURCE CHANGED,STATUS
+https://bulgaritam.bg/k/bijuta/,TAXONOMY LANDING,74,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/rachno-izraboteni/,SEO LANDING,67,146,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-podaratsi/,GIFT LANDING,89,142,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/kozmetika/,TAXONOMY LANDING,78,153,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/kozmetika-lice/,TAXONOMY LANDING,66,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/damsko-obleklo/,TAXONOMY LANDING,96,141,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/rachno-izraboteni-bizhuta/,SEO LANDING,81,135,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-podaratsi/za-mazh/,GIFT LANDING,57,136,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-damski-sportni-ekipi/,SEO LANDING,98,148,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-podaratsi/za-bebe/,GIFT LANDING,58,133,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/k/mazhko-obleklo/,TAXONOMY LANDING,98,148,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-podaratsi/za-zhena/,GIFT LANDING,58,133,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/bulgarski-podaratsi/za-dete/,GIFT LANDING,58,133,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/k/chanti/,TAXONOMY LANDING,97,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-po-porachka/,SEO LANDING,45,120,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/pamuchni-rokli/,SEO LANDING,90,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-s-perli/,SEO LANDING,86,139,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/rachno-izraboteni-grivni/,SEO LANDING,59,135,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/mazhki-bizhuta/,SEO LANDING,70,146,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-drehi/pizhami/,CLOTHING LANDING,56,142,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/pozlateni-bizhuta/,SEO LANDING,89,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-damski-pizhami/,SEO LANDING,84,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/beli-rokli/,SEO LANDING,86,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/obetsi-ot-srebro/,SEO LANDING,98,151,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-drehi/rokli/,CLOTHING LANDING,83,148,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/svatben-album-rachna-izrabotka/,SEO LANDING,57,134,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/k/za-glava/,TAXONOMY LANDING,94,144,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/kolani/,TAXONOMY LANDING,84,142,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/kozmetika-tyalo/,TAXONOMY LANDING,93,148,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/rachno-izraboteni-obetsi/,SEO LANDING,50,135,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/kozmetika-kosa/,TAXONOMY LANDING,66,146,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/roklya-saten/,SEO LANDING,91,152,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-s-tsitrin/,SEO LANDING,88,140,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-s-moysanit/,SEO LANDING,92,145,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-za-protiv-brachki/,SEO LANDING,63,138,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/zlatna-obetsa/,SEO LANDING,94,146,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/p/cheresha/,PRODUCT,97,125,src/pages/p/[slug].astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/bizhuta-s-rubin/,SEO LANDING,86,139,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/rozovi-rokli/,SEO LANDING,88,141,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/zlatna-grivna/,SEO LANDING,96,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-za-chuvstvitelna-kozha/,SEO LANDING,71,152,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarska-kozmetika-s-roza/,SEO LANDING,81,148,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-s-shafran/,SEO LANDING,59,136,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/detsko-obleklo/,TAXONOMY LANDING,94,144,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-s-labradorit/,SEO LANDING,96,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-za-suha-kosa/,SEO LANDING,64,144,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-s-izumrud/,SEO LANDING,90,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-domashni-chehli/,SEO LANDING,91,152,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/esenni-rokli/,SEO LANDING,93,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-leneni-drehi/,SEO LANDING,99,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-suveniri/,SEO LANDING,63,145,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/boho-roklya/,SEO LANDING,78,153,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-ezhednevni-rokli/,SEO LANDING,93,146,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarska-bio-kozmetika/,SEO LANDING,64,141,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/sinya-roklya/,SEO LANDING,86,139,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/cherna-roklya/,SEO LANDING,87,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/damski-rokli-s-kas-rakav/,SEO LANDING,92,142,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/sportni-rokli/,SEO LANDING,81,154,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-boti/,SEO LANDING,82,135,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/detski-knigi/,TAXONOMY LANDING,99,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-za-dehidratirana-kozha/,SEO LANDING,73,154,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/p/roklya-dot/,PRODUCT,99,128,src/pages/p/[slug].astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/mazhki-leneni-rizi/,SEO LANDING,94,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/svetlosinya-roklya/,SEO LANDING,92,148,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/grim/,TAXONOMY LANDING,55,130,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/chervena-roklya/,SEO LANDING,89,142,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-drehi/obuvki/,CLOTHING LANDING,84,140,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/balgarski-maratonki/,SEO LANDING,87,140,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/tamnosinya-roklya/,SEO LANDING,91,152,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-s-diamanti/,SEO LANDING,91,145,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/damski-rokli-s-dalag-rakav/,SEO LANDING,94,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-za-uvredena-kosa/,SEO LANDING,72,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/detski-igrachki/,TAXONOMY LANDING,94,144,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kafyava-roklya/,SEO LANDING,88,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/p/samodiva/,PRODUCT,98,130,src/pages/p/[slug].astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/bulgarski-mazhki-pizhami/,SEO LANDING,80,136,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-za-mazna-kozha/,SEO LANDING,57,132,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/bulgarski-oficialni-rokli/,SEO LANDING,93,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-mazhki-yaketa/,SEO LANDING,46,119,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/kozmetika-za-suha-kozha/,SEO LANDING,55,132,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/zlatni-kolieta/,SEO LANDING,98,151,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/byala-damska-riza/,SEO LANDING,92,153,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/cherna-riza/,SEO LANDING,86,142,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/rozova-riza/,SEO LANDING,87,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/belio/,TAXONOMY LANDING,83,148,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/grivna-s-bukva/,SEO LANDING,95,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarska-bebeshka-kozmetika/,SEO LANDING,64,146,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/grivna-s-krast/,SEO LANDING,95,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-mazhki-puloveri/,SEO LANDING,49,128,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/balni-rokli/,SEO LANDING,79,135,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-za-mazna-kosa/,SEO LANDING,66,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/zhalta-roklya/,SEO LANDING,87,140,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/rachno-izraboteni-sveshti/,SEO LANDING,49,131,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/bulgarski-mazhki-obuvki/,SEO LANDING,60,146,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/zeleno-palto/,SEO LANDING,88,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-s-hematit/,SEO LANDING,90,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/naturalna-bulgarska-kozmetika/,SEO LANDING,73,150,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-mazhki-antsuzi/,SEO LANDING,60,139,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kutiya-za-bizhuta/,SEO LANDING,58,135,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/kozmetika-za-mazhe/,TAXONOMY LANDING,99,154,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/dankova-roklya/,SEO LANDING,90,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/k/igri/,TAXONOMY LANDING,97,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/p/set-lora/,PRODUCT,98,132,src/pages/p/[slug].astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/grivna-s-ime/,SEO LANDING,91,145,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/p/svatba-e/,PRODUCT,99,134,src/pages/p/[slug].astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/kafyavo-palto/,SEO LANDING,88,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/hematit-grivna/,SEO LANDING,98,151,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/kozmetika-za-hidratatsiya/,SEO LANDING,57,134,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/bezhovi-rokli/,SEO LANDING,88,138,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/cherno-palto/,SEO LANDING,87,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/rachno-izraboteni-kartichki/,SEO LANDING,53,135,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/podarak-za-zhena-za-rozhden-den/,SEO LANDING,56,132,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/bulgarski-drehi/damski-chanti/,CLOTHING LANDING,60,133,src/components/SeoProductLanding.astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/p/kaisiya/,PRODUCT,97,125,src/pages/p/[slug].astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/zlatista-roklya/,SEO LANDING,90,143,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-podaratsi/rachno-izraboteni/,GIFT LANDING,65,139,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-ot-kehlibar/,SEO LANDING,92,152,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/srebarni-rokli/,SEO LANDING,91,147,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarski-kozeni-yaketa/,SEO LANDING,99,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/lenena-roklya/,SEO LANDING,89,150,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bizhuta-s-tigrovo-oko/,SEO LANDING,98,151,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/p/az-i-ti/,PRODUCT,99,134,src/pages/p/[slug].astro,"IMPROVED (quality-first, below 135)"
+https://bulgaritam.bg/kozmetika-za-kosopad/,SEO LANDING,61,136,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/bulgarsko-mazhko-belyo/,SEO LANDING,89,139,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/zelena-roklya/,SEO LANDING,88,149,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/tsitrin-grivna/,SEO LANDING,96,148,src/components/SeoProductLanding.astro,FIXED
+https://bulgaritam.bg/vecherna-roklya/,SEO LANDING,89,142,src/components/SeoProductLanding.astro,FIXED

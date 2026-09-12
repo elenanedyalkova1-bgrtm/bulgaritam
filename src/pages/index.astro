@@ -1,18 +1,16 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import HomepageProductCard from "../components/HomepageProductCard.astro";
 import { Image } from "astro:assets";
 import { CATEGORY_LANDINGS, SUBCATEGORY_LANDINGS } from "../lib/seo-landings";
-import { buildSearchDocument } from "../lib/search";
-import { getCategoryLabelForLang, getSubcategoryViewAllLabelForLang, getTaxonomyForProduct } from "../lib/taxonomy";
+import { getCategoryLabelForLang, getSubcategoryViewAllLabelForLang } from "../lib/taxonomy";
 import { loadProducts } from "../lib/products";
-import { getProductBadges } from "../lib/product-badges";
-import { getAvailablePublicBrowse, getPublicBrowseForProduct, PUBLIC_GIFT_OCCASIONS } from "../lib/public-browse-taxonomy";
+import { getAvailablePublicBrowse, PUBLIC_GIFT_OCCASIONS } from "../lib/public-browse-taxonomy";
 import { loadHomepageSettings } from "../lib/site-settings";
 import defaultHomeHero from "../assets/home-hero-fashion-collage.webp";
 
 const [products, homepageSettings] = await Promise.all([loadProducts(), loadHomepageSettings()]);
 const displayProducts = products.filter((product) => product.image_urls?.[0]);
-const LAZY_IMAGE_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 const homeCategories = getAvailablePublicBrowse(displayProducts, true);
 const structuredAttributes = new Set(displayProducts.flatMap((product) => product.attributes));
 const attributeOptions = ["Веган", "Еко", "Натурален", "Органичен памук", "Ръчна изработка", "Персонализируем"].filter((value) => structuredAttributes.has(value));
@@ -25,11 +23,6 @@ const giftOccasionOptions = ["Рожден ден", "Сватба", "Новор�
 );
 const giftAttributeOptions = attributeOptions.filter((value) => ["Персонализируем", "Ръчна изработка"].includes(value));
 
-function priceLabel(p) {
-  if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
-  if (p.price_min_eur != null) return `${p.price_min_eur}+ ${p.currency}`;
-  return "";
-}
 ---
 
 <BaseLayout seo={{ type: "home" }} i18n={{
@@ -105,6 +98,7 @@ function priceLabel(p) {
         <button class="discovery-shortcut" type="button" data-discovery-gift>🎁 <span>Търся нещо за подарък</span></button>
         <button class="discovery-shortcut" type="button" data-discovery-surprise>🎲 <span>Изненадай ме</span></button>
       </div>
+      <div class="gift-hub-entry"><a href="/bulgarski-drehi/"><span>👕</span> Разгледай български дрехи <span aria-hidden="true">→</span></a></div>
       <div class="gift-hub-entry"><a href="/bulgarski-podaratsi/"><span>🎁</span> Разгледай всички идеи за подарък <span aria-hidden="true">→</span></a></div>
       <div class="self-category-choices" id="selfCategoryChoices" role="group" aria-label="Избери категория" hidden>
         {[["clothing","Облекло"],["accessories","Аксесоари"],["cosmetics","Козметика"],["health","Здраве и грижа"],["books","Книги, игри и творчество"]].map(([key,label]) =>
@@ -336,173 +330,21 @@ function priceLabel(p) {
 
     <section class="section section--feed" id="products">
       <div id="activeSelections" class="active-selections" aria-live="polite" hidden></div>
-      <div class="section-head section-head--centered">
+      <div class="section-head section-head--centered" id="productResultsStart">
         <h2 class="h2">Продукти (<span id="count">{displayProducts.length}</span>)</h2>
         <div class="hint" id="hint"></div>
         <p class="intent-status" id="intentStatus" hidden></p>
       </div>
 
-      <ul class="grid" id="grid" data-masonry-grid>
-        {displayProducts.map((p, index) => {
-          const taxonomy = getTaxonomyForProduct(p);
-          const publicBrowse = getPublicBrowseForProduct(p);
-          const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
-          const shouldEagerLoad = index < 4;
-          const categoryLabelBg = taxonomy.categoryLabel;
-          const categoryLabelEn = getCategoryLabelForLang(taxonomy.categoryKey, "en");
-          return (
-            <li
-              class="card"
-              data-masonry-card
-              data-analytics-kind="product"
-              data-list-context="homepage_default"
-              data-list-name="Начална discovery мрежа"
-              data-position={index + 1}
-              data-product-id={p.id}
-              data-product-slug={p.slug}
-              data-product-name={p.name_bg}
-              data-brand-slug={p.brand_slug}
-              data-brand-id={p.brand_id ?? ""}
-              data-brand-name={p.brand_name}
-              data-product-url={p.product_url}
-              data-category-key={taxonomy.categoryKey}
-              data-category-keys={taxonomy.categoryKeys.join(",")}
-              data-subcategory-keys={taxonomy.subcategoryKeys.join(",")}
-              data-public-category={publicBrowse.categoryKey}
-              data-public-subcategory={publicBrowse.subcategoryKey}
-              data-product-type={p.product_type}
-              data-giftable={p.giftable ? "1" : "0"}
-              data-recipients={p.recipient.join("|")}
-              data-gift-occasions={p.gift_occasion.join("|")}
-              data-attributes={p.attributes.join("|")}
-              data-audience={p.audience.join("|")}
-              data-materials={p.materials.join("|")}
-              data-colors={p.colors.join("|")}
-              data-search={buildSearchDocument([
-                p.name_bg,
-                p.brand_name,
-                p.category,
-                p.subcategory,
-                p.product_type,
-                ...p.audience,
-                ...p.materials,
-                ...p.colors,
-                ...p.attributes,
-                ...(p.tags || []),
-                p.short_desc_bg,
-                p.long_desc_bg,
-              ])}
-              data-search-raw={[
-                p.name_bg,
-                p.brand_name,
-                p.category,
-                p.subcategory,
-                p.product_type,
-                ...p.audience,
-                ...p.materials,
-                ...p.colors,
-                ...p.attributes,
-                ...(p.tags || []),
-                p.short_desc_bg,
-                p.long_desc_bg,
-              ].filter(Boolean).join(" ")}
-              data-tags={(p.tags || []).join(",")}
-              data-brand={p.brand_slug}
-              data-delivers-abroad={p.delivers_abroad ? "1" : "0"}
-              data-price-min={p.price_min_eur ?? ""}
-              data-price-max={p.price_max_eur ?? ""}
-              data-created-at={p.created_at ?? ""}
-            >
-              <div class="card-top">
-                <a class="card-imglink" href={`/p/${p.slug}/`}>
-                  <div class="thumb">
-                    {p.image_urls?.[0] ? (
-                      <img
-                        class="thumb-img"
-                        src={shouldEagerLoad ? p.image_urls[0] : LAZY_IMAGE_PLACEHOLDER}
-                        data-lazy-src={shouldEagerLoad ? undefined : p.image_urls[0]}
-                        alt={p.name_bg}
-                        loading={shouldEagerLoad ? "eager" : undefined}
-                        fetchpriority={index < 4 ? "high" : undefined}
-                        decoding="async"
-                        width="800"
-                        height="1000"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <div class="thumb-ph" aria-hidden="true"></div>
-                    )}
-                  </div>
-                </a>
-
-                <button
-                  class="save-btn save-btn--card"
-                  type="button"
-                  aria-label="Запази продукта"
-                  aria-pressed="false"
-                  data-save-id={p.slug}
-                  data-save-url={`/p/${p.slug}/`}
-                  data-save-title={p.name_bg}
-                  data-save-brand={p.brand_name}
-                  data-save-price={priceLabel(p)}
-                  data-save-image={p.image_urls?.[0] || ""}
-                >
-                  <svg class="save-ic" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M7 3h10a2 2 0 0 1 2 2v16l-7-4-7 4V5a2 2 0 0 1 2-2z" />
-                  </svg>
-                </button>
-              </div>
-
-              <div class="card-body">
-                <div class="card-meta-row">
-                  <div class="card-badges">
-                    <span class="cat" data-i18n-bg={categoryLabelBg} data-i18n-en={categoryLabelEn}>{categoryLabelBg}</span>
-                    {isBio ? <span class="cat cat--bio">Био</span> : null}
-                    {isEco ? <span class="cat cat--eco">Еко</span> : null}
-                    {isHandmade ? <span class="cat cat--handmade">Ръчна изработка</span> : null}
-                    {isGift ? <span class="cat cat--gift">Подарък</span> : null}
-                  </div>
-                  {priceLabel(p) ? <span class="price price--inline">{priceLabel(p)}</span> : null}
-                </div>
-
-                <a class="card-titlelink" href={`/p/${p.slug}/`}>{p.name_bg}</a>
-
-                <div class="card-sub">
-                  {p.brand_name && p.brand_slug ? (
-                    <a class="brand-link" href={`/brand/${p.brand_slug}/`}>
-                      {p.brand_name}
-                    </a>
-                  ) : null}
-                </div>
-              </div>
-
-              <div class="card-foot">
-                <button
-                  class="useful-result-signal"
-                  type="button"
-                  data-user-signal="useful_result"
-                  data-signal-context="search_results"
-                  aria-pressed="false"
-                  hidden
-                >Полезен резултат</button>
-                <a
-                  class="cta-out"
-                  href={p.product_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-i18n="home.cardCta"
-                >
-                  Виж в сайта на бранда ↗
-                </a>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <ul class="grid" id="grid" data-masonry-grid></ul>
+      <template id="productCardCatalogue">
+        {displayProducts.map((product, index) => <HomepageProductCard product={product} index={index} />)}
+      </template>
 
       <div class="feed-meta">
         <p class="feed-status" id="feedStatus" aria-live="polite"></p>
         <div class="feed-sentinel" id="feedSentinel" aria-hidden="true"></div>
+        <button class="feed-load-more" id="feedLoadMore" type="button" hidden>Покажи още</button>
       </div>
     </section>
   </main>
@@ -997,17 +839,25 @@ function priceLabel(p) {
       background: rgba(250, 247, 242, 0.98);
     }
 
-    .filter-options-more {
+    :global(.filter-options-more) {
+      appearance: none;
       align-self: flex-start;
       margin-top: 10px;
-      padding: 8px 0;
-      border: 0;
-      background: transparent;
+      min-height: 38px;
+      padding: 8px 14px;
+      border: 1px solid rgba(26, 26, 26, 0.12);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.66);
       color: var(--accent-strong);
-      font: 700 13px var(--font-body);
+      font: 700 13px/1.2 var(--font-body);
       cursor: pointer;
+      transition: background-color .18s ease, border-color .18s ease;
     }
 
+    :global(.filter-options-more:hover) { border-color: rgba(95, 127, 107, 0.3); background: rgba(95, 127, 107, 0.08); }
+    :global(.filter-options-more:focus-visible) { outline: 2px solid var(--accent-strong); outline-offset: 3px; }
+
+    [data-dynamic-filter-option][hidden],
     [data-dynamic-filter-option].is-overflow-option { display: none; }
 
     .filters-action {
@@ -1031,6 +881,10 @@ function priceLabel(p) {
       padding-top: 10px;
     }
 
+    #productResultsStart {
+      scroll-margin-top: 96px;
+    }
+
     .intent-status {
       max-width: 720px;
       margin: 2px auto 0;
@@ -1046,31 +900,72 @@ function priceLabel(p) {
     .active-selections {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       justify-content: center;
       gap: 8px;
+      width: 100%;
       max-width: 1100px;
       margin: 0 auto 18px;
     }
 
-    .active-selection {
-      min-height: 36px;
-      padding: 7px 12px;
+    :global(.active-selection) {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      max-width: 100%;
+      padding: 7px 11px 7px 13px;
       border-radius: 999px;
-      border: 1px solid rgba(95, 127, 107, 0.25);
-      background: rgba(95, 127, 107, 0.1);
+      border: 1px solid rgba(95, 127, 107, 0.24);
+      background: rgba(255, 255, 255, 0.7);
       color: rgba(26, 26, 26, 0.84);
-      font: inherit;
-      font-size: 13px;
-      font-weight: 700;
+      font: 700 13px/1.25 var(--font-body);
       cursor: pointer;
+      text-align: left;
+      transition: background-color .18s ease, border-color .18s ease, color .18s ease;
     }
 
-    .active-selection--clear {
-      border-color: transparent;
+    :global(.active-selection:hover) {
+      border-color: rgba(95, 127, 107, 0.42);
+      background: rgba(95, 127, 107, 0.09);
+    }
+
+    :global(.active-selection:focus-visible) {
+      outline: 2px solid var(--accent-strong);
+      outline-offset: 2px;
+    }
+
+    :global(.active-selection__label) {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    :global(.active-selection__remove) {
+      display: inline-grid;
+      flex: 0 0 auto;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      color: rgba(26, 26, 26, 0.58);
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    :global(.active-selection--clear) {
+      min-height: 36px;
+      padding: 7px 12px;
+      border-color: rgba(123, 64, 59, 0.2);
       background: transparent;
       color: #7b403b;
-      text-decoration: underline;
-      text-underline-offset: 3px;
+      font-weight: 650;
+    }
+
+    :global(.active-selection--clear:hover) {
+      border-color: rgba(123, 64, 59, 0.36);
+      background: rgba(123, 64, 59, 0.05);
     }
 
     .section-head--centered {
@@ -1111,6 +1006,19 @@ function priceLabel(p) {
       height: 2px;
     }
 
+    .feed-load-more {
+      min-height: 42px;
+      padding: 0 18px;
+      border: 1px solid rgba(26, 26, 26, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--text);
+      font: 700 14px var(--font-body);
+      cursor: pointer;
+    }
+
+    .feed-load-more[hidden] { display: none; }
+
     .grid.is-updated {
       animation: homeResultsPulse 0.55s ease;
     }
@@ -1134,312 +1042,8 @@ function priceLabel(p) {
       grid-auto-flow: dense;
     }
 
-    .card {
-      display: block;
-      vertical-align: top;
-      width: 100%;
-      margin: 0;
-      grid-row: auto;
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(26, 26, 26, 0.08);
-      border-radius: 22px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.045);
-      overflow: hidden;
-      transform: translateY(0);
-      transition:
-        transform 0.22s ease,
-        box-shadow 0.22s ease,
-        border-color 0.22s ease,
-        background 0.22s ease;
-      contain: layout paint;
-      transform: translateZ(0);
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-    }
-
     .grid.is-masonry-ready { grid-auto-rows: var(--masonry-row); }
-    .grid.is-masonry-ready .card { grid-row: span var(--masonry-span); }
-
-    .card:nth-child(9n + 1) {
-      width: 100%;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
-      border-color: rgba(26, 26, 26, 0.14);
-      background: rgba(255, 255, 255, 0.9);
-    }
-
-    .card-top {
-      position: relative;
-    }
-
-    .thumb {
-      position: relative;
-      aspect-ratio: 4 / 5;
-      overflow: hidden;
-      isolation: isolate;
-      border-bottom: 0;
-      border-radius: 22px 22px 0 0;
-      background: linear-gradient(180deg, rgba(95, 127, 107, 0.1), rgba(26, 26, 26, 0.04));
-    }
-
-    .card:nth-child(8n + 2) .thumb {
-      aspect-ratio: 4 / 6;
-    }
-
-    .card:nth-child(8n + 3) .thumb {
-      aspect-ratio: 1 / 1;
-    }
-
-    .card:nth-child(8n + 5) .thumb {
-      aspect-ratio: 4 / 4.6;
-    }
-
-    .card:nth-child(8n + 7) .thumb {
-      aspect-ratio: 4 / 5.8;
-    }
-
-    .card:nth-child(9n + 1) .thumb {
-      aspect-ratio: 16 / 11;
-    }
-
-    .thumb-img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: translateZ(0);
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      transition: transform 0.38s ease, filter 0.38s ease;
-    }
-
-    .thumb-ph {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .card:hover .thumb-img {
-      transform: translateZ(0) scale(1.045);
-      filter: saturate(1.02) contrast(1.01);
-    }
-
-    .save-btn--card {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      background: rgba(255, 255, 255, 0.92);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-    }
-
-    .save-btn--card .save-ic {
-      width: 20px;
-      height: 20px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.6;
-    }
-
-    .save-btn--card.is-saved {
-      border-color: rgba(0, 0, 0, 0.12);
-    }
-
-    .save-btn--card.is-saved .save-ic {
-      fill: currentColor;
-      stroke: none;
-    }
-
-    .save-btn--card:focus-visible {
-      outline: 2px solid rgba(0, 0, 0, 0.35);
-      outline-offset: 2px;
-    }
-
-    .card-corner-badges {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 2;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      pointer-events: none;
-    }
-
-    .badge-corner {
-      display: inline-flex;
-      align-items: center;
-      min-height: 24px;
-      padding: 0 10px;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-
-    .card-body {
-      padding: 12px 14px 8px;
-      position: relative;
-      z-index: 1;
-      background: rgba(255, 255, 255, 0.88);
-      transform: translateZ(0);
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-    }
-
-    .card-meta-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .card-badges {
-      display: inline-flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .cat {
-      display: inline-flex;
-      align-items: center;
-      min-height: 28px;
-      padding: 0 10px;
-      border-radius: 999px;
-      background: rgba(95, 127, 107, 0.1);
-      color: rgba(26, 26, 26, 0.72);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .cat--bio {
-      background: rgba(87, 112, 88, 0.12);
-      color: rgba(68, 93, 70, 0.92);
-      border: 1px solid rgba(87, 112, 88, 0.1);
-    }
-
-    .cat--eco {
-      background: rgba(111, 129, 112, 0.11);
-      color: rgba(84, 103, 85, 0.9);
-      border: 1px solid rgba(111, 129, 112, 0.12);
-    }
-
-    .cat--handmade {
-      background: rgba(137, 96, 74, 0.12);
-      color: #6c4f3f;
-      border: 1px solid rgba(137, 96, 74, 0.14);
-      font-size: 10px;
-    }
-
-    .cat--gift {
-      background: rgba(123, 64, 59, 0.1);
-      color: #7b403b;
-      border: 1px solid rgba(123, 64, 59, 0.12);
-    }
-
-    .price--inline {
-      font-size: 12px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: rgba(26, 26, 26, 0.62);
-    }
-
-    .card-titlelink {
-      display: block;
-      font-size: clamp(17px, 1.4vw, 21px);
-      line-height: 1.12;
-      letter-spacing: -0.02em;
-      text-decoration: none;
-      text-wrap: balance;
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      overflow: hidden;
-    }
-
-    .card-titlelink:hover {
-      text-decoration: none;
-      opacity: 0.88;
-    }
-
-    .card-sub {
-      margin-top: 6px;
-      min-height: 20px;
-      font-size: 13px;
-      color: rgba(26, 26, 26, 0.62);
-    }
-
-    .brand-link {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .brand-link:hover {
-      text-decoration: underline;
-    }
-
-    .card-foot {
-      padding: 0 14px 14px;
-      position: relative;
-      z-index: 1;
-      background: rgba(255, 255, 255, 0.88);
-      transform: translateZ(0);
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-    }
-
-    .useful-result-signal {
-      width: 100%;
-      min-height: 36px;
-      margin: 0 0 8px;
-      border: 1px solid rgba(95, 127, 107, 0.24);
-      border-radius: 999px;
-      background: rgba(95, 127, 107, 0.08);
-      color: rgba(26, 26, 26, 0.78);
-      font: 700 12px var(--font-body);
-      cursor: pointer;
-    }
-
-    .useful-result-signal[hidden] { display: none; }
-    .useful-result-signal[aria-pressed="true"] { color: var(--accent-strong); cursor: default; }
-
-    .cta-out {
-      width: 100%;
-      min-height: 38px;
-      padding: 9px 12px;
-      justify-content: center;
-      background: transparent;
-      border: 1px solid rgba(26, 26, 26, 0.1);
-      color: rgba(26, 26, 26, 0.76);
-      font-size: 12px;
-    }
-
-    .cta-out:hover {
-      background: rgba(95, 127, 107, 0.08);
-      border-color: rgba(95, 127, 107, 0.22);
-      color: rgba(26, 26, 26, 0.92);
-    }
+    :global(#grid.is-masonry-ready > [data-masonry-card]) { grid-row: span var(--masonry-span); }
 
     @media (max-width: 1024px) {
       .grid {
@@ -1596,14 +1200,16 @@ function priceLabel(p) {
 
       .active-selections {
         justify-content: flex-start;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding-bottom: 6px;
-        scrollbar-width: none;
+        flex-wrap: wrap;
+        gap: 7px;
+        padding: 0 4px;
+        overflow: visible;
       }
 
-      .active-selection {
-        flex: 0 0 auto;
+      :global(.active-selection) {
+        flex: 0 1 auto;
+        min-height: 36px;
+        padding-block: 6px;
       }
 
       .grid {
@@ -1611,124 +1217,6 @@ function priceLabel(p) {
         max-width: none;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 12px;
-      }
-
-      .card {
-        display: block;
-        width: 100%;
-        max-width: none;
-        margin: 0;
-        border-radius: 22px;
-        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.05);
-        -webkit-column-break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
-      .card:nth-child(9n + 1) {
-        width: 100%;
-      }
-
-      .thumb {
-        border-radius: 22px 22px 0 0;
-        aspect-ratio: 4 / 5.7;
-      }
-
-      .card:nth-child(6n + 1) .thumb {
-        aspect-ratio: 4 / 5.45;
-      }
-
-      .card:nth-child(6n + 2) .thumb {
-        aspect-ratio: 4 / 6;
-      }
-
-      .card:nth-child(6n + 3) .thumb {
-        aspect-ratio: 4 / 5.55;
-      }
-
-      .card:nth-child(6n + 4) .thumb {
-        aspect-ratio: 4 / 6.1;
-      }
-
-      .card:nth-child(6n + 5) .thumb {
-        aspect-ratio: 4 / 5.5;
-      }
-
-      .card:nth-child(6n + 6) .thumb {
-        aspect-ratio: 4 / 5.85;
-      }
-
-      .save-btn--card {
-        top: 14px;
-        right: 14px;
-        width: 40px;
-        height: 40px;
-      }
-
-      .card-corner-badges {
-        top: 10px;
-        left: 10px;
-      }
-
-      .badge-corner {
-        min-height: 22px;
-        padding: 0 8px;
-        font-size: 9px;
-      }
-
-      .card-body {
-        padding: 8px 10px 4px;
-      }
-
-      .card-titlelink {
-        font-size: clamp(15px, 4.1vw, 18px);
-        line-height: 1.08;
-        -webkit-line-clamp: 2;
-      }
-
-      .card-sub {
-        margin-top: 4px;
-        min-height: 0;
-        font-size: 11px;
-        line-height: 1.25;
-        color: rgba(26, 26, 26, 0.56);
-      }
-
-      .card-foot {
-        padding: 0 10px 8px;
-      }
-
-      .cat {
-        min-height: 22px;
-        padding: 0 7px;
-        font-size: 9px;
-      }
-
-      .price--inline {
-        font-size: 10px;
-        letter-spacing: 0.03em;
-      }
-
-      .card-meta-row {
-        margin-bottom: 8px;
-        gap: 6px;
-      }
-
-      .card-badges {
-        gap: 5px;
-      }
-
-      .card-badges .cat:nth-child(n + 4) {
-        display: none;
-      }
-
-      .cta-out {
-        min-height: 32px;
-        padding: 6px 10px;
-        border-width: 1px;
-        font-size: 10px;
-        line-height: 1.2;
-        background: rgba(255, 255, 255, 0.36);
-        box-shadow: none;
       }
 
       .section-head--centered {
@@ -1784,21 +1272,6 @@ function priceLabel(p) {
         gap: 12px;
       }
 
-      .card {
-        border-radius: 20px;
-      }
-
-      .thumb {
-        border-radius: 20px 20px 0 0;
-      }
-
-      .card-body {
-        padding: 8px 10px 4px;
-      }
-
-      .card-foot {
-        padding: 0 10px 8px;
-      }
     }
   </style>
 
@@ -1821,6 +1294,8 @@ function priceLabel(p) {
     const activeSelections = document.getElementById("activeSelections");
     const feedStatus = document.getElementById("feedStatus");
     const feedSentinel = document.getElementById("feedSentinel");
+    const feedLoadMore = document.getElementById("feedLoadMore");
+    const productCardCatalogue = document.querySelector("template#productCardCatalogue");
     const homeLandingData = document.getElementById("homeLandingData");
     const homeCategoriesData = document.getElementById("homeCategoriesData");
     const occasionToggle = document.getElementById("occasionToggle");
@@ -1834,7 +1309,7 @@ function priceLabel(p) {
     const filtersBadge = document.getElementById("filtersBadge");
     const filtersApply = document.getElementById("filtersApply");
     const filtersReset = document.getElementById("filtersReset");
-    const allCards = Array.from(grid.querySelectorAll("li.card"));
+    const allCards = Array.from(productCardCatalogue?.content.querySelectorAll("li.card") || []);
     const catalogueMaterials = [...new Set(allCards.flatMap((card) => String(card.dataset.materials || "").split("|").filter(Boolean)))];
 
     const createShuffledOrder = (items) => {
@@ -1862,6 +1337,8 @@ function priceLabel(p) {
 
     let visibleCount = getBatchSize();
     let matchedCards = [...allCards];
+    let appendInProgress = false;
+    let feedObserver = null;
     let gridPulseFrame = 0;
     let activeCategoryKey = "";
     let activeSubcategoryKey = "";
@@ -1876,7 +1353,6 @@ function priceLabel(p) {
     let currentSearchIntent = null;
     let executedSearchContext = null;
     let searchFallbackRequired = false;
-    let resultFocusTimer = 0;
     let lastTrackedSearchSignature = "";
     const SEO_LANDING_LINKS = homeLandingData?.dataset.landings
       ? JSON.parse(homeLandingData.dataset.landings)
@@ -1886,14 +1362,13 @@ function priceLabel(p) {
       : [];
     const getCurrentLang = () => localStorage.getItem("bulgaritam_lang_v1") === "en" ? "en" : "bg";
 
-    const focusResults = (delay = 0) => {
-      window.clearTimeout(resultFocusTimer);
-      resultFocusTimer = window.setTimeout(() => {
-        document.getElementById("products")?.scrollIntoView({
+    const focusResults = () => {
+      window.requestAnimationFrame(() => {
+        document.getElementById("productResultsStart")?.scrollIntoView({
           behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
           block: "start",
         });
-      }, delay);
+      });
     };
 
     const removeStructuredTermsFromSearch = () => {
@@ -2305,15 +1780,21 @@ function priceLabel(p) {
     };
 
     matchedCards = sortCards([...allCards], "featured");
-    let lastRenderedOrder = [];
-
-    const syncGridOrder = () => {
-      const orderChanged = matchedCards.length !== lastRenderedOrder.length || matchedCards.some((card, index) => card !== lastRenderedOrder[index]);
-      if (!orderChanged) return;
+    const renderVisibleCards = () => {
+      const desiredCards = matchedCards.slice(0, visibleCount);
+      const currentCards = Array.from(grid.children);
+      const unchanged = desiredCards.length === currentCards.length && desiredCards.every((card, index) => card === currentCards[index]);
+      if (unchanged) return;
+      grid.classList.remove("is-masonry-ready");
       const fragment = document.createDocumentFragment();
-      matchedCards.forEach((card) => fragment.appendChild(card));
-      grid.appendChild(fragment);
-      lastRenderedOrder = [...matchedCards];
+      desiredCards.forEach((card) => {
+        card.style.removeProperty("display");
+        card.style.removeProperty("--masonry-span");
+        fragment.appendChild(card);
+      });
+      grid.replaceChildren(fragment);
+      window.bulgaritamScheduleMasonry?.(grid);
+      window.dispatchEvent(new CustomEvent("bulgaritam:products-appended", { detail: { nodes: desiredCards } }));
     };
 
     const updateGridLayoutState = () => {
@@ -2322,13 +1803,8 @@ function priceLabel(p) {
     };
 
     function updateFeedVisibility() {
-      syncGridOrder();
       updateGridLayoutState();
-      const visibleCards = new Set(matchedCards.slice(0, visibleCount));
-      allCards.forEach((card) => {
-        const shouldShow = visibleCards.has(card);
-        card.style.display = shouldShow ? "" : "none";
-      });
+      renderVisibleCards();
 
       if (feedStatus) {
         const shown = Math.min(visibleCount, matchedCards.length);
@@ -2339,15 +1815,24 @@ function priceLabel(p) {
       if (feedSentinel) {
         feedSentinel.hidden = matchedCards.length <= visibleCount;
       }
+      if (matchedCards.length <= visibleCount) feedObserver?.disconnect();
+      else if (feedObserver && feedSentinel) feedObserver.observe(feedSentinel);
+      if (feedLoadMore) {
+        feedLoadMore.hidden = "IntersectionObserver" in window || matchedCards.length <= visibleCount;
+      }
 
-      window.bulgaritamHydrateLazyImages?.(grid);
       if (typeof window.syncSaveButtons === "function") window.syncSaveButtons();
     }
 
     function loadMore() {
-      if (visibleCount >= matchedCards.length) return;
-      visibleCount += getBatchSize();
-      updateFeedVisibility();
+      if (appendInProgress || visibleCount >= matchedCards.length) return;
+      appendInProgress = true;
+      try {
+        visibleCount = Math.min(matchedCards.length, visibleCount + getBatchSize());
+        updateFeedVisibility();
+      } finally {
+        appendInProgress = false;
+      }
     }
 
     function updateActiveChips() {
@@ -2439,7 +1924,15 @@ function priceLabel(p) {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "active-selection";
-        button.textContent = `${label} ×`;
+        button.setAttribute("aria-label", `Премахни филтър: ${label}`);
+        const labelNode = document.createElement("span");
+        labelNode.className = "active-selection__label";
+        labelNode.textContent = label;
+        const removeNode = document.createElement("span");
+        removeNode.className = "active-selection__remove";
+        removeNode.setAttribute("aria-hidden", "true");
+        removeNode.textContent = "×";
+        button.append(labelNode, removeNode);
         button.addEventListener("click", () => clearSelection(key));
         activeSelections.appendChild(button);
       });
@@ -2468,7 +1961,6 @@ function priceLabel(p) {
       else if (key.startsWith("color:")) selectedColors = selectedColors.filter((value) => value !== key.slice(6));
       else if (key.startsWith("gift:")) selectedGiftFilters = selectedGiftFilters.filter((value) => value !== key.slice(5));
       applyDiscovery(q.value || "");
-      focusResults();
     }
 
     function clearAllSelections() {
@@ -2476,7 +1968,6 @@ function priceLabel(p) {
       activeCategoryKey = ""; activeSubcategoryKey = ""; activeProductType = "";
       selectedPriceRange = "all"; selectedDeliveryOutside = false; selectedAttributes = []; selectedMaterials = []; selectedColors = []; selectedGiftFilters = []; q.value = "";
       renderSubChips(null); renderTypeChips(); syncFilterInputs(); syncOccasionInputs(); applyDiscovery("");
-      focusResults();
     }
 
     function applyDiscovery(value = q.value) {
@@ -2759,14 +2250,15 @@ function priceLabel(p) {
         button.dataset.productType = value;
         button.textContent = `${value} (${productCount})`;
         button.addEventListener("click", () => {
-          activeProductType = activeProductType === value ? "" : value;
+          const isApplyingProductType = activeProductType !== value;
+          activeProductType = isApplyingProductType ? value : "";
           selectedMaterials = [];
           selectedColors = [];
           removeStructuredTermsFromSearch();
           window.bulgaritamTrack?.("select_product_type", { selected_value: value, filter_name: "product_type", filter_value: value, ...(window.__bulgaritamDiscoveryContext || {}) });
           applyDiscovery(q.value || "");
           pulseResults();
-          gentlyRevealTaxonomy(taxonomyResultsCue);
+          if (isApplyingProductType) focusResults();
         });
         typeChips.appendChild(button);
       });
@@ -2969,7 +2461,6 @@ function priceLabel(p) {
       updateUsefulResultSignals();
       if (value.trim()) {
         pulseResults();
-        focusResults(120);
       }
     };
 
@@ -3086,7 +2577,6 @@ function priceLabel(p) {
       closeOccasions();
       applyDiscovery(q.value);
       pulseResults();
-      focusResults();
     });
 
     occasionReset?.addEventListener("click", () => {
@@ -3129,7 +2619,6 @@ function priceLabel(p) {
         ...(window.__bulgaritamDiscoveryContext || {}),
       });
       pulseResults();
-      focusResults();
     });
 
     filtersReset?.addEventListener("click", () => {
@@ -3160,14 +2649,18 @@ function priceLabel(p) {
       if (occasionModal && !occasionModal.hasAttribute("hidden")) closeOccasions();
     });
 
+    feedLoadMore?.addEventListener("click", loadMore);
+
     if ("IntersectionObserver" in window && feedSentinel) {
-      const observer = new IntersectionObserver((entries) => {
+      feedObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) loadMore();
         });
-      }, { rootMargin: "320px 0px" });
+      }, { rootMargin: "900px 0px" });
 
-      observer.observe(feedSentinel);
+      if (matchedCards.length > visibleCount) feedObserver.observe(feedSentinel);
+    } else if (feedLoadMore && matchedCards.length > visibleCount) {
+      feedLoadMore.hidden = false;
     }
 
     window.addEventListener("resize", () => {

@@ -1,14 +1,14 @@
 export type PublicFilterContext = "gift" | "clothing" | "jewelry" | "shoes" | "cosmetics_face" | "cosmetics_hair" | "cosmetics" | "default";
 
 const FILTER_ORDER: Record<PublicFilterContext, readonly string[]> = {
-  gift: ["price", "gift_occasion", "attributes", "recipient", "role_interest", "recipient_age", "recipient_gender", "wedding_anniversary_type", "color", "material", "type"],
-  clothing: ["price", "color", "material", "clothing_style", "type", "sleeve", "season"],
-  jewelry: ["price", "type", "material", "color", "gemstone", "jewelry_detail"],
-  shoes: ["price", "type", "color", "material", "clothing_style", "season"],
-  cosmetics_face: ["price", "type", "skin_type", "skin_need", "ingredient", "attributes"],
-  cosmetics_hair: ["price", "type", "hair_need", "ingredient", "attributes"],
-  cosmetics: ["price", "type", "ingredient", "attributes"],
-  default: ["price", "type", "attributes", "color", "material"],
+  gift: ["type", "price", "gift_occasion", "attributes", "recipient", "role_interest", "recipient_age", "recipient_gender", "wedding_anniversary_type", "color", "material"],
+  clothing: ["type", "price", "color", "material", "clothing_style", "sleeve", "season"],
+  jewelry: ["type", "price", "material", "color", "gemstone", "jewelry_detail"],
+  shoes: ["type", "price", "color", "material", "clothing_style", "season"],
+  cosmetics_face: ["type", "price", "skin_type", "skin_need", "ingredient", "attributes"],
+  cosmetics_hair: ["type", "price", "hair_need", "ingredient", "attributes"],
+  cosmetics: ["type", "price", "ingredient", "attributes"],
+  default: ["type", "price", "attributes", "color", "material"],
 };
 
 export function orderPublicFilters<T extends { group: string }>(filters: readonly T[], context: PublicFilterContext): T[] {

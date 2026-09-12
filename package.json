@@ -18,6 +18,8 @@
     "health:products:apply": "node scripts/check-product-health.mjs --apply",
     "verify:public-build": "node scripts/verify-public-build.mjs",
     "verify:seo-membership": "admin-app/node_modules/.bin/tsx scripts/verify-seo-product-membership.ts",
+    "verify:seo-content": "node scripts/validate-primary-cluster-content.mjs",
+    "verify:internal-links": "node scripts/validate-internal-linking.mjs",
     "setup:product-facets": "node scripts/setup-product-facets.mjs"
   },
   "dependencies": {

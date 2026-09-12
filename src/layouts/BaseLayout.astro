@@ -239,6 +239,11 @@ if (breadcrumbItems.length > 1) {
 if (seoType === "product" && seoData.productName) {
   const productImage = normalizeUrl(seoData.image);
   const brandName = normalizeText(seoData.brandName);
+  const productUrl = normalizeUrl(seoData.productUrl);
+  const brandUrl = normalizeUrl(seoData.brandUrl);
+  const exactPrice = Number(seoData.exactPrice);
+  const priceCurrency = normalizeText(seoData.currency).toUpperCase();
+  const hasTrustworthyOffer = productUrl && Number.isFinite(exactPrice) && exactPrice > 0 && /^[A-Z]{3}$/.test(priceCurrency);
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -248,17 +253,33 @@ if (seoType === "product" && seoData.productName) {
     image: productImage ? [productImage] : undefined,
     brand: brandName ? { "@type": "Brand", name: brandName } : undefined,
     category: normalizeText(seoData.category) || undefined,
+    offers: hasTrustworthyOffer ? {
+      "@type": "Offer",
+      url: productUrl,
+      price: exactPrice,
+      priceCurrency,
+      seller: brandName ? {
+        "@type": "Organization",
+        name: brandName,
+        url: brandUrl || undefined,
+      } : undefined,
+    } : undefined,
   };
 
   structuredData.push(productSchema);
 }
 
 if (seoType === "brand" && seoData.brandName) {
+  const officialUrl = normalizeUrl(seoData.officialUrl);
+  const instagramUrl = normalizeUrl(seoData.instagramUrl);
+  const brandLogo = normalizeUrl(seoData.logo);
   structuredData.push({
     "@context": "https://schema.org",
     "@type": "Brand",
     name: normalizeText(seoData.brandName),
-    url: resolvedCanonical,
+    url: officialUrl || resolvedCanonical,
+    sameAs: [resolvedCanonical, instagramUrl].filter(Boolean),
+    logo: brandLogo || undefined,
     description: normalizeText(seoData.description) || resolvedDescription,
   });
 }
@@ -281,6 +302,7 @@ if (seoType === "category" && seoData.category) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="ahrefs-site-verification" content="8b049526486cd03e70979d79a9f3e6f770478208a904d6c25fb4ffa9bc4c8a83" />
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="sZO57m9hfE6W88VMDeiAcQ" async></script>
 
     <title>{resolvedTitle}</title>
     <meta name="description" content={resolvedDescription} />
@@ -404,7 +426,7 @@ if (seoType === "category" && seoData.category) {
 
     {gtmContainerId ? (
       <script is:inline define:vars={{ gtmContainerId }}>
-        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer',gtmContainerId);
+        if (!document.cookie.split(";").some((part) => part.trim() === "bulgaritam_analytics_excluded=1")) (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer',gtmContainerId);
       </script>
     ) : null}
     {!gtmContainerId && gaMeasurementId ? (
@@ -447,22 +469,54 @@ if (seoType === "category" && seoData.category) {
           } catch { return fallbackFactory(); }
         };
         const randomId = () => globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-        const getSessionId = () => safeStorage(window.sessionStorage, "bulgaritam_analytics_session_v1", randomId);
+        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+        const sessionStorageKey = "bulgaritam_analytics_session_v2";
         const getJourneyId = () => safeStorage(window.localStorage, "bulgaritam_analytics_journey_v1", randomId);
         const safeReferrerDomain = () => {
           try { return document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, "") : ""; }
           catch { return ""; }
         };
-        const initialAcquisition = (() => {
+        const deriveAcquisitionChannel = ({ referrer_domain, utm_source, utm_medium, utm_campaign }) => {
+          const source = String(utm_source || "").toLowerCase();
+          const medium = String(utm_medium || "").toLowerCase();
+          const referrer = String(referrer_domain || "").toLowerCase();
+          if (utm_campaign || source || medium) {
+            if (medium.includes("email") || source.includes("newsletter")) return "Email";
+            return "Paid / UTM";
+          }
+          if (!referrer) return "Direct";
+          if (/(google\.|bing\.|yahoo\.|duckduckgo\.|yandex\.)/.test(referrer)) return "Organic Search";
+          if (/(facebook\.|instagram\.|linkedin\.|tiktok\.|pinterest\.|youtube\.|x\.com$|twitter\.)/.test(referrer)) return "Social";
+          if (referrer === "bulgaritam.bg" || referrer.endsWith(".bulgaritam.bg")) return "Unknown";
+          return "Referral";
+        };
+        const createAcquisition = () => {
           const query = new URLSearchParams(window.location.search);
-          return {
+          const acquisition = {
             landing_page: window.location.pathname,
             referrer_domain: safeReferrerDomain(),
             utm_source: query.get("utm_source") || "",
             utm_medium: query.get("utm_medium") || "",
             utm_campaign: query.get("utm_campaign") || "",
           };
-        })();
+          return { ...acquisition, acquisition_channel: deriveAcquisitionChannel(acquisition) };
+        };
+        const readAnalyticsSession = () => {
+          const now = Date.now();
+          try {
+            const previous = JSON.parse(window.localStorage?.getItem(sessionStorageKey) || "null");
+            if (previous?.id && now - Number(previous.last_activity_at || 0) < SESSION_TIMEOUT_MS) return previous;
+          } catch {}
+          return { id: randomId(), started_at: new Date(now).toISOString(), last_activity_at: now, sequence_number: 0, acquisition: createAcquisition() };
+        };
+        const touchAnalyticsSession = () => {
+          const session = readAnalyticsSession();
+          session.last_activity_at = Date.now();
+          session.sequence_number = Number(session.sequence_number || 0) + 1;
+          if (!session.acquisition) session.acquisition = createAcquisition();
+          try { window.localStorage?.setItem(sessionStorageKey, JSON.stringify(session)); } catch {}
+          return session;
+        };
 
         const redactPotentialPii = (value) => {
           const text = String(value || "");
@@ -472,7 +526,7 @@ if (seoType === "category" && seoData.category) {
         };
 
         const sanitizeValue = (value, key = "") => {
-          if (Array.isArray(value)) return value.filter(Boolean).join(",");
+          if (Array.isArray(value)) return JSON.stringify(value.filter(Boolean));
           if (value == null) return undefined;
           if (typeof value === "boolean") return value ? "1" : "0";
           if (["board_name", "collection_name", "email", "phone", "destination_url"].includes(key)) return undefined;
@@ -563,7 +617,7 @@ if (seoType === "category" && seoData.category) {
           language: getLanguage(),
           device_type: getDeviceType(),
           page_type: document.body?.dataset?.pageType || (window.location.pathname.startsWith("/p/") ? "product" : window.location.pathname.startsWith("/brand/") ? "brand" : window.location.pathname === "/" ? "discovery" : "content"),
-          ...initialAcquisition,
+          ...readAnalyticsSession().acquisition,
         });
 
         const readPersistedDiscoveryContext = () => {
@@ -573,7 +627,7 @@ if (seoType === "category" && seoData.category) {
 
         const persistDiscoveryContext = (payload) => {
           const searchTerm = payload.search_term || payload.query;
-          if (!searchTerm && !payload.category && !payload.subcategory && !payload.active_filters) return;
+          if (!searchTerm && !payload.category && !payload.subcategory && !payload.active_filters && !payload.discovery_state_id && !payload.filter_name) return;
           const context = sanitizeParams({
             search_id: payload.search_id,
             search_term: searchTerm,
@@ -589,43 +643,70 @@ if (seoType === "category" && seoData.category) {
             max_price_eur: payload.max_price_eur,
             active_filters: payload.active_filters,
             source_context: payload.source_context || payload.list_context,
+            discovery_state_id: payload.discovery_state_id,
+            search_revision: payload.search_revision,
+            last_result_count: payload.search_results_count ?? payload.result_count ?? payload.results_after,
+            filter_name: payload.filter_name,
+            filter_value: payload.filter_value,
           });
           try { window.sessionStorage?.setItem("bulgaritam_discovery_context_v1", JSON.stringify(context)); } catch {}
         };
 
-        const sendFirstParty = (eventName, payload) => {
+        const sendFirstParty = (eventName, payload, identity) => {
           if (!firstPartyEndpoint) return;
           const body = JSON.stringify({
             event_name: eventName,
-            occurred_at: new Date().toISOString(),
-            anonymous_session_id: getSessionId(),
+            event_id: identity.event_id,
+            occurred_at: identity.occurred_at_client,
+            occurred_at_client: identity.occurred_at_client,
+            sequence_number: identity.sequence_number,
+            anonymous_session_id: identity.session_id,
             anonymous_journey_id: getJourneyId(),
             ...payload,
           });
           try {
-            if (navigator.sendBeacon) {
-              navigator.sendBeacon(firstPartyEndpoint, new Blob([body], { type: "application/json" }));
-            } else {
-              fetch(firstPartyEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true, credentials: "omit" }).catch(() => {});
-            }
+            fetch(firstPartyEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true, credentials: "omit" }).catch(() => {});
           } catch {}
         };
 
         window.bulgaritamTrack = (eventName, params = {}) => {
           if ((!measurementId && !containerId && !firstPartyEndpoint) || !hasAnalyticsConsent() || isAnalyticsExcluded() || !eventName) return false;
 
+          const previousContext = readPersistedDiscoveryContext();
+          const isDiscoveryMutation = ["select_category", "select_subcategory", "select_product_type", "select_gift_recipient", "select_gift_occasion", "apply_filter", "remove_filter", "clear_filters", "change_sort"].includes(eventName);
+          const nextRevision = isDiscoveryMutation ? Number(previousContext.search_revision || 0) + 1 : Number(previousContext.search_revision || 0);
           const payload = {
             ...buildCommonParams(),
-            ...readPersistedDiscoveryContext(),
+            ...previousContext,
             ...sanitizeParams(params),
           };
 
+          if (isDiscoveryMutation) {
+            payload.search_revision = String(nextRevision);
+            payload.discovery_state_id = randomId();
+            payload.filter_action = payload.filter_action || (eventName === "remove_filter" ? "remove" : eventName === "clear_filters" ? "clear" : "add");
+            if (payload.results_before === undefined && previousContext.last_result_count !== undefined) payload.results_before = previousContext.last_result_count;
+            if (payload.results_after === undefined && payload.result_count !== undefined) payload.results_after = payload.result_count;
+            persistDiscoveryContext(payload);
+          }
+
+          if (eventName === "search") {
+            payload.discovery_state_id = randomId();
+            payload.search_revision = "0";
+          }
+
           if (eventName === "search" || eventName === "search_results_view" || eventName === "search_no_results") persistDiscoveryContext(payload);
+
+          const session = touchAnalyticsSession();
+          const identity = { event_id: randomId(), occurred_at_client: new Date().toISOString(), session_id: session.id, sequence_number: session.sequence_number };
+          payload.event_id = identity.event_id;
+          payload.sequence_number = String(identity.sequence_number);
+          payload.occurred_at_client = identity.occurred_at_client;
 
           window.dataLayer = window.dataLayer || [];
           const dataLayerEvent = { event: eventName, ...payload };
           window.dataLayer.push(dataLayerEvent);
-          sendFirstParty(eventName, payload);
+          sendFirstParty(eventName, payload, identity);
 
           if (!containerId && typeof window.gtag === "function") {
             window.gtag("event", eventName, payload);
@@ -784,6 +865,11 @@ if (seoType === "category" && seoData.category) {
             });
           }, { threshold: [0.5] });
           document.querySelectorAll("[data-analytics-kind]").forEach((node) => observer.observe(node));
+          window.addEventListener("bulgaritam:products-appended", (event) => {
+            Array.from(event.detail?.nodes || []).forEach((node) => {
+              if (node instanceof Element && node.matches("[data-analytics-kind]")) observer.observe(node);
+            });
+          });
         };
 
         if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", observeImpressions, { once: true });
@@ -1351,7 +1437,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
           <a class="footer-brand footer-link" href="/">БЪЛГАРИТЪМ</a>
           <div class="footer-positioning-title">Откривай какво се създава в България</div>
           <div class="footer-note" data-i18n="footer.note">
-            Намери бранд, конкретен продукт или просто следващата си находка. Разглеждай по категория, повод и това, което наистина търсиш, и запазвай нещата, към които искаш да се върнеш.
+            Намери бранд, конкретен продукт или просто разглеждай, докато попаднеш на нещо неочаквано. Запазвай находките, към които искаш да се върнеш.
           </div>
           <div class="footer-made" data-i18n="footer.made">Създадено в България 🇧🇬</div>
         </div>
@@ -1384,6 +1470,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
           <a class="footer-link" href="mailto:info@bulgaritam.bg">info@bulgaritam.bg</a>
           <a class="footer-link" href="/partnyori/" data-i18n="nav.partner">Стани партньор</a>
           <a class="footer-link" href="/politika-na-poveritelnost/" data-i18n="footer.privacy">Политика за поверителност</a>
+          <button class="footer-newsletter-cta" type="button" data-newsletter-open>Искаш да получаваш новини от Българитъм?</button>
         </div>
       </div>
 
@@ -1427,11 +1514,26 @@ window.addEventListener("bulgaritam:saved", (e) => {
         const submitButton = form?.querySelector('button[type="submit"]');
         const status = form?.querySelector(".newsletter-form__status");
         const storageKey = "bulgaritam_newsletter_dismissed_v1";
+        let previouslyFocused = null;
+        let autoOpenTimer = 0;
+        const open = () => {
+          if (!modal) return;
+          previouslyFocused = document.activeElement;
+          modal.removeAttribute("hidden");
+          document.documentElement.classList.add("newsletter-open");
+          window.setTimeout(() => modal.querySelector("input")?.focus(), 0);
+        };
         const close = () => {
+          window.clearTimeout(autoOpenTimer);
           modal?.setAttribute("hidden", "");
           document.documentElement.classList.remove("newsletter-open");
           try { sessionStorage.setItem(storageKey, "1"); } catch {}
+          previouslyFocused?.focus?.();
         };
+        document.querySelectorAll("[data-newsletter-open]").forEach((button) => button.addEventListener("click", () => {
+          window.clearTimeout(autoOpenTimer);
+          open();
+        }));
         modal?.querySelectorAll("[data-newsletter-close]").forEach((button) => button.addEventListener("click", close));
         document.addEventListener("keydown", (event) => { if (event.key === "Escape" && modal && !modal.hidden) close(); });
         form?.addEventListener("submit", async (event) => {
@@ -1483,10 +1585,8 @@ window.addEventListener("bulgaritam:saved", (e) => {
         preferenceInputs.forEach((input) => input.addEventListener("change", () => preferenceInputs[0]?.setCustomValidity("")));
         let dismissed = false;
         try { dismissed = sessionStorage.getItem(storageKey) === "1"; } catch {}
-        if (!dismissed && !suppressNewsletterAutoOpen) window.setTimeout(() => {
-          modal?.removeAttribute("hidden");
-          document.documentElement.classList.add("newsletter-open");
-          window.setTimeout(() => modal?.querySelector("input")?.focus(), 180);
+        if (!dismissed && !suppressNewsletterAutoOpen) autoOpenTimer = window.setTimeout(() => {
+          open();
         }, 15000);
       })();
     </script>
@@ -1629,8 +1729,9 @@ window.addEventListener("bulgaritam:saved", (e) => {
         const disableOnMobile = grid.dataset.masonryMobile === "off" && window.innerWidth <= 768;
         const cards = Array.from(grid.querySelectorAll("[data-masonry-card]"));
 
+        grid.classList.remove("is-masonry-ready");
+
         if (disableOnMobile || cards.length === 0) {
-          grid.classList.remove("is-masonry-ready");
           cards.forEach((card) => card.style.removeProperty("--masonry-span"));
           return;
         }
@@ -1664,6 +1765,8 @@ window.addEventListener("bulgaritam:saved", (e) => {
         grid.__masonryFrame = requestAnimationFrame(() => measureMasonryGrid(grid));
       };
 
+      window.bulgaritamScheduleMasonry = scheduleMasonry;
+
       masonryGrids.forEach((grid) => {
         scheduleMasonry(grid);
 
@@ -1678,6 +1781,11 @@ window.addEventListener("bulgaritam:saved", (e) => {
           if ("MutationObserver" in window) {
             const mutationObserver = new MutationObserver((mutations) => {
               mutations.forEach((mutation) => {
+                mutation.removedNodes.forEach((node) => {
+                  if (!(node instanceof Element)) return;
+                  if (node.matches("[data-masonry-card]")) resizeObserver.unobserve(node);
+                  node.querySelectorAll?.("[data-masonry-card]").forEach((card) => resizeObserver.unobserve(card));
+                });
                 mutation.addedNodes.forEach((node) => {
                   if (!(node instanceof Element)) return;
                   if (node.matches("[data-masonry-card]")) resizeObserver.observe(node);
@@ -1742,7 +1850,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
           "nav.partner": "Стани партньор",
           "nav.apply": "Кандидатствай",
           "nav.menu": "Меню",
-          "footer.note": "Намери бранд, конкретен продукт или просто следващата си находка. Разглеждай по категория, повод и това, което наистина търсиш, и запазвай нещата, към които искаш да се върнеш.",
+          "footer.note": "Намери бранд, конкретен продукт или просто разглеждай, докато попаднеш на нещо неочаквано. Запазвай находките, към които искаш да се върнеш.",
           "footer.made": "Създадено в България 🇧🇬",
           "footer.explore": "Разгледай",
           "footer.categories": "Категории",

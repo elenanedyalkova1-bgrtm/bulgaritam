@@ -1,0 +1,1527 @@
+{
+  "generated_pages": 926,
+  "sitemap_pages": 900,
+  "contentful_indexable_sitemap_landings": [
+    {
+      "url": "/bizhuta-s-hematit/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarska-bio-kozmetika/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarska-kozmetika-s-roza/",
+      "product_count": 1,
+      "incoming_link_count": 3,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/damska-lenena-riza/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/dankova-roklya/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/grivna-srebro/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-za-mazna-kozha/",
+      "product_count": 1,
+      "incoming_link_count": 6,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/luksozen-podarak-za-uchitelka/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/originalen-podarak-za-momche-na-14-godini/",
+      "product_count": 1,
+      "incoming_link_count": 16,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/originalen-podarak-za-momiche-na-14-godini/",
+      "product_count": 1,
+      "incoming_link_count": 16,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-20-godishen-mazh/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-30-godishnina-na-mazh/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-dete-na-14-godini/",
+      "product_count": 1,
+      "incoming_link_count": 16,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-kulinar-mazh/",
+      "product_count": 1,
+      "incoming_link_count": 24,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-zhena-za-8-mart/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/praktichen-podarak-za-mazh/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rozova-riza/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/sinya-roklya/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/zelena-roklya/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bezhovi-rokli/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-detski-knigi/",
+      "product_count": 2,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": false
+    },
+    {
+      "url": "/bulgarski-ezhednevni-rokli/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-oficialni-rokli/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/byala-damska-riza/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/cherno-palto/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/godezhni-prasteni/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/grim/",
+      "product_count": 2,
+      "incoming_link_count": 21,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kafyavo-palto/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-za-mazna-kosa/",
+      "product_count": 2,
+      "incoming_link_count": 4,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-za-uvredena-kosa/",
+      "product_count": 2,
+      "incoming_link_count": 4,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/lenena-roklya/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rozovi-rokli/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/zlatni-kolieta/",
+      "product_count": 2,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/beli-rokli/",
+      "product_count": 3,
+      "incoming_link_count": 43,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bizhuta-ot-meditsinska-stomana/",
+      "product_count": 3,
+      "incoming_link_count": 46,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/cherna-roklya/",
+      "product_count": 3,
+      "incoming_link_count": 3,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/grizha-za-domashni-lyubimci/",
+      "product_count": 3,
+      "incoming_link_count": 6,
+      "incoming_source_types": [
+        "brand",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/kolani/",
+      "product_count": 3,
+      "incoming_link_count": 63,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/za-glava/",
+      "product_count": 3,
+      "incoming_link_count": 63,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/koleden-podarak-za-zhena/",
+      "product_count": 3,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-za-kosopad/",
+      "product_count": 3,
+      "incoming_link_count": 4,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-za-protiv-brachki/",
+      "product_count": 3,
+      "incoming_link_count": 6,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/obetsi-ot-meditsinska-stomana/",
+      "product_count": 3,
+      "incoming_link_count": 3,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-mazh-sportist/",
+      "product_count": 3,
+      "incoming_link_count": 24,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/pochistvane/",
+      "product_count": 4,
+      "incoming_link_count": 16,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-za-chuvstvitelna-kozha/",
+      "product_count": 4,
+      "incoming_link_count": 6,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-za-suha-kozha/",
+      "product_count": 4,
+      "incoming_link_count": 6,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/mazhki-leneni-rizi/",
+      "product_count": 4,
+      "incoming_link_count": 7,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/pamuchni-rokli/",
+      "product_count": 4,
+      "incoming_link_count": 43,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-mazh-za-imen-den/",
+      "product_count": 4,
+      "incoming_link_count": 24,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-zhena-sportist/",
+      "product_count": 4,
+      "incoming_link_count": 4,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/roklya-saten/",
+      "product_count": 4,
+      "incoming_link_count": 43,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/srebarni-kolieta/",
+      "product_count": 4,
+      "incoming_link_count": 4,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/zlaten-prasten/",
+      "product_count": 4,
+      "incoming_link_count": 4,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarska-bebeshka-kozmetika/",
+      "product_count": 5,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": false
+    },
+    {
+      "url": "/podarak-za-izpisvane-na-bebe/",
+      "product_count": 5,
+      "incoming_link_count": 8,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podaratsi-za-pogacha-na-momche/",
+      "product_count": 5,
+      "incoming_link_count": 8,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/praktichen-podarak-za-zhena/",
+      "product_count": 5,
+      "incoming_link_count": 5,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/romantichen-podarak-za-mazh/",
+      "product_count": 5,
+      "incoming_link_count": 24,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-drehi/chanti/",
+      "product_count": 6,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-s-shafran/",
+      "product_count": 6,
+      "incoming_link_count": 3,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/pozlateni-bizhuta/",
+      "product_count": 6,
+      "incoming_link_count": 46,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-drehi/damski-chanti/",
+      "product_count": 7,
+      "incoming_link_count": 10,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-mazhki-antsuzi/",
+      "product_count": 7,
+      "incoming_link_count": 7,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-mazhki-pizhami/",
+      "product_count": 7,
+      "incoming_link_count": 16,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/chanti/",
+      "product_count": 7,
+      "incoming_link_count": 67,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/domashni-lyubimci/",
+      "product_count": 7,
+      "incoming_link_count": 11,
+      "incoming_source_types": [
+        "brand",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-imen-den-na-zhena/",
+      "product_count": 7,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rachno-izraboteni-sveshti/",
+      "product_count": 7,
+      "incoming_link_count": 13,
+      "incoming_source_types": [
+        "brand",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/zabaven-podarak-za-mazh/",
+      "product_count": 7,
+      "incoming_link_count": 24,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-palta-ot-valna/",
+      "product_count": 8,
+      "incoming_link_count": 43,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-sveshti/",
+      "product_count": 8,
+      "incoming_link_count": 2,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/detsko-obleklo/",
+      "product_count": 8,
+      "incoming_link_count": 19,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/kozmetika-kosa/",
+      "product_count": 8,
+      "incoming_link_count": 30,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-detski-igrachki/",
+      "product_count": 9,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/detski-igrachki/",
+      "product_count": 9,
+      "incoming_link_count": 21,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/kozmetika-za-hidratatsiya/",
+      "product_count": 9,
+      "incoming_link_count": 6,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/obetsi-ot-srebro/",
+      "product_count": 9,
+      "incoming_link_count": 46,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/personaliziran-podarak-za-mazh/",
+      "product_count": 9,
+      "incoming_link_count": 24,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rachno-izraboteni-grivni/",
+      "product_count": 9,
+      "incoming_link_count": 55,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/damska-pizhama-pamuk/",
+      "product_count": 10,
+      "incoming_link_count": 43,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-krashtene/",
+      "product_count": 10,
+      "incoming_link_count": 14,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/zabaven-podarak-za-zhena/",
+      "product_count": 10,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bizhuta-s-perli/",
+      "product_count": 11,
+      "incoming_link_count": 46,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-mazh-za-sveti-valentin/",
+      "product_count": 11,
+      "incoming_link_count": 24,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rachno-izraboteni-obetsi/",
+      "product_count": 11,
+      "incoming_link_count": 58,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/romantichen-podarak-za-zhena/",
+      "product_count": 11,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/kozmetika-tyalo/",
+      "product_count": 12,
+      "incoming_link_count": 34,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/mazhki-bizhuta/",
+      "product_count": 12,
+      "incoming_link_count": 61,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-leneni-drehi/",
+      "product_count": 13,
+      "incoming_link_count": 3,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarsko-spalno-belyo/",
+      "product_count": 13,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/dobavki-i-ekstrakti/",
+      "product_count": 13,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "brand",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/domashen-tekstil/",
+      "product_count": 13,
+      "incoming_link_count": 25,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/kozmetika-lice/",
+      "product_count": 13,
+      "incoming_link_count": 37,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/dekoraciq-za-doma/",
+      "product_count": 15,
+      "incoming_link_count": 30,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/personaliziran-podarak-za-bebe/",
+      "product_count": 15,
+      "incoming_link_count": 8,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/personaliziran-podarak-za-zhena/",
+      "product_count": 15,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rachno-izraboteni-kartichki/",
+      "product_count": 15,
+      "incoming_link_count": 15,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/kuhnya/",
+      "product_count": 16,
+      "incoming_link_count": 29,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-drehi/rokli/",
+      "product_count": 17,
+      "incoming_link_count": 44,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/zdrave-i-grizha/",
+      "product_count": 18,
+      "incoming_link_count": 29,
+      "incoming_source_types": [
+        "brand",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-novorodeno/",
+      "product_count": 18,
+      "incoming_link_count": 8,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/svatben-album-rachna-izrabotka/",
+      "product_count": 18,
+      "incoming_link_count": 29,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/naturalna-bulgarska-kozmetika/",
+      "product_count": 21,
+      "incoming_link_count": 3,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-bebe-momche/",
+      "product_count": 21,
+      "incoming_link_count": 8,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-podaratsi/za-dete/",
+      "product_count": 22,
+      "incoming_link_count": 92,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-sveti-valentin-za-zhena/",
+      "product_count": 23,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-bebe-momiche/",
+      "product_count": 24,
+      "incoming_link_count": 8,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-damski-pizhami/",
+      "product_count": 25,
+      "incoming_link_count": 68,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-drehi/pizhami/",
+      "product_count": 25,
+      "incoming_link_count": 32,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-podaratsi/za-bebe/",
+      "product_count": 25,
+      "incoming_link_count": 92,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-podaratsi/za-svatba/",
+      "product_count": 27,
+      "incoming_link_count": 92,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rachno-izraboteni-bizhuta/",
+      "product_count": 27,
+      "incoming_link_count": 82,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-suveniri/",
+      "product_count": 32,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": false
+    },
+    {
+      "url": "/bulgarski-damski-sportni-ekipi/",
+      "product_count": 36,
+      "incoming_link_count": 84,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/bijuta/",
+      "product_count": 36,
+      "incoming_link_count": 923,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/mazhko-obleklo/",
+      "product_count": 38,
+      "incoming_link_count": 106,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/kozmetika/",
+      "product_count": 44,
+      "incoming_link_count": 923,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/deca/",
+      "product_count": 49,
+      "incoming_link_count": 72,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-mazh-za-rozhden-den/",
+      "product_count": 53,
+      "incoming_link_count": 24,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/za-doma/",
+      "product_count": 68,
+      "incoming_link_count": 923,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-podaratsi/za-mazh/",
+      "product_count": 70,
+      "incoming_link_count": 92,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/aksesoari/",
+      "product_count": 79,
+      "incoming_link_count": 923,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-podaratsi/rachno-izraboteni/",
+      "product_count": 109,
+      "incoming_link_count": 14,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-rozhden-den-na-zhena/",
+      "product_count": 115,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-zhena-za-rozhden-den/",
+      "product_count": 115,
+      "incoming_link_count": 22,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-podaratsi/za-zhena/",
+      "product_count": 134,
+      "incoming_link_count": 92,
+      "incoming_source_types": [
+        "intent_or_hub",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rachno-izraboteni/",
+      "product_count": 138,
+      "incoming_link_count": 923,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/k/damsko-obleklo/",
+      "product_count": 150,
+      "incoming_link_count": 237,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-drehi/",
+      "product_count": 203,
+      "incoming_link_count": 923,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-podaratsi/",
+      "product_count": 242,
+      "incoming_link_count": 925,
+      "incoming_source_types": [
+        "brand",
+        "intent_or_hub",
+        "product",
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    }
+  ],
+  "remaining_zero_incoming": [],
+  "exactly_one_incoming": [
+    {
+      "url": "/bizhuta-s-hematit/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarska-bio-kozmetika/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/damska-lenena-riza/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/dankova-roklya/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/grivna-srebro/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/luksozen-podarak-za-uchitelka/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-20-godishen-mazh/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-30-godishnina-na-mazh/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/podarak-za-zhena-za-8-mart/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/praktichen-podarak-za-mazh/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/rozova-riza/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/sinya-roklya/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/zelena-roklya/",
+      "product_count": 1,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "product"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-detski-knigi/",
+      "product_count": 2,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": false
+    },
+    {
+      "url": "/bulgarska-bebeshka-kozmetika/",
+      "product_count": 5,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": false
+    },
+    {
+      "url": "/bulgarski-detski-igrachki/",
+      "product_count": 9,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarsko-spalno-belyo/",
+      "product_count": 13,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": true
+    },
+    {
+      "url": "/bulgarski-suveniri/",
+      "product_count": 32,
+      "incoming_link_count": 1,
+      "incoming_source_types": [
+        "taxonomy"
+      ],
+      "reachable_from_homepage": false
+    }
+  ],
+  "metrics": {
+    "contentful_zero_incoming": 0,
+    "contentful_exactly_one_incoming": 18,
+    "contentful_two_or_more_incoming": 113,
+    "unreachable_contentful_landings": 3,
+    "target_contextual_links_added": 71,
+    "max_target_links_added_on_single_page": 2,
+    "broken_internal_destinations": 0,
+    "product_urls_in_sitemap": 552,
+    "product_urls_reachable": 552,
+    "brand_urls_in_sitemap": 93,
+    "brand_urls_reachable": 93
+  },
+  "broken_internal_destinations": {}
+}

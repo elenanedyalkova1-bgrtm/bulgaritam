@@ -1,0 +1,272 @@
+URL,PAGE_TYPE,PRODUCT_COUNT,INCOMING_HTML_PAGES,REACHABLE_FROM_HOME,IN_SITEMAP,INDEXABILITY,TITLE,GENERATED_BY
+/20-godishnina-ot-svatba-podarak/,intent_landing,0,0,NO,YES,INDEX,Подарък за 20 години от сватбата | Българитъм,src/pages/[...slug].astro or dedicated route
+/balgarski-maratonki/,intent_landing,0,0,NO,YES,INDEX,Български маратонки – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/balgarsko-damsko-belo-pamuk/,intent_landing,0,0,NO,YES,INDEX,Българско дамско бельо от памук – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/balni-rokli/,intent_landing,0,0,NO,YES,INDEX,Бални рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-ot-kehlibar/,intent_landing,0,0,NO,YES,INDEX,Бижута с кехлибар – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-po-porachka/,intent_landing,0,26,YES,YES,INDEX,Бижута по поръчка | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-cheren-turmalin/,intent_landing,0,0,NO,YES,INDEX,Бижута с черен турмалин – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-diamanti/,intent_landing,0,0,NO,YES,INDEX,Бижута с диаманти – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-izumrud/,intent_landing,0,0,NO,YES,INDEX,Бижута с изумруд – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-labradorit/,intent_landing,0,0,NO,YES,INDEX,Бижута с лабрадорит – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-moysanit/,intent_landing,0,0,NO,YES,INDEX,Бижута с мойсанит – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-rubin/,intent_landing,0,0,NO,YES,INDEX,Бижута с рубин – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-tigrovo-oko/,intent_landing,0,0,NO,YES,INDEX,Бижута с тигрово око – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-tsitrin/,intent_landing,0,0,NO,YES,INDEX,Бижута с цитрин – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/boho-roklya/,intent_landing,0,0,NO,YES,INDEX,Бохо рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-boti/,intent_landing,0,0,NO,YES,INDEX,Български боти – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-brandove-za-drehi/,intent_landing,0,2,YES,YES,INDEX,Български брандове за дрехи и модни марки | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-brandove/,intent_landing,0,923,YES,YES,INDEX,Български брандове – каталог на родни марки | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-domashni-chehli/,intent_landing,0,0,NO,YES,INDEX,Български домашни чехли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-drehi/obuvki/,clothing_landing,0,7,NO,YES,INDEX,Български обувки от локални марки | Българитъм,src/pages/bulgarski-drehi/[slug].astro
+/bulgarski-kozeni-yaketa/,intent_landing,0,0,NO,YES,INDEX,Български кожени якета – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-letni-rokli/,intent_landing,0,0,NO,YES,INDEX,Български летни рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-mazhki-obuvki-estestvena-kozha/,intent_landing,0,0,NO,YES,INDEX,Български мъжки обувки от естествена кожа | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-mazhki-obuvki/,intent_landing,0,0,NO,YES,INDEX,Български мъжки обувки | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-mazhki-puloveri/,intent_landing,0,0,NO,YES,INDEX,Български мъжки пуловери | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-mazhki-yaketa/,intent_landing,0,0,NO,YES,INDEX,Български мъжки якета | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-mazhki-zimni-yaketa/,intent_landing,0,0,NO,YES,INDEX,Български мъжки зимни якета – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-obuvki-estestvena-kozha/,intent_landing,0,0,NO,YES,INDEX,Български обувки от естествена кожа | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-sandali-estestvena-kozha/,intent_landing,0,0,NO,YES,INDEX,Български сандали от естествена кожа | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarsko-mazhko-belyo/,intent_landing,0,0,NO,YES,INDEX,Българско мъжко бельо – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/cherna-riza/,intent_landing,0,0,NO,YES,INDEX,Черни ризи – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/chervena-roklya/,intent_landing,0,0,NO,YES,INDEX,Червени рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/damski-bluzi-s-dalag-rakav/,intent_landing,0,0,NO,YES,INDEX,Дамски блузи с дълъг ръкав – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/damski-bluzi-s-kas-rakav/,intent_landing,0,0,NO,YES,INDEX,Дамски блузи с къс ръкав – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/damski-rokli-s-dalag-rakav/,intent_landing,0,0,NO,YES,INDEX,Дамски рокли с дълъг ръкав – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/damski-rokli-s-kas-rakav/,intent_landing,0,0,NO,YES,INDEX,Дамски рокли с къс ръкав – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/esenni-rokli/,intent_landing,0,0,NO,YES,INDEX,Есенни рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/godezhen-prasten-s-diamant/,intent_landing,0,0,NO,YES,INDEX,Годежни пръстени с диамант – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/grivna-cherven-konets/,intent_landing,0,0,NO,YES,INDEX,Гривни с червен конец – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/grivna-s-bukva/,intent_landing,0,0,NO,YES,INDEX,Гривни с буква – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/grivna-s-ime/,intent_landing,0,0,NO,YES,INDEX,Гривни с име – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/grivna-s-krast/,intent_landing,0,0,NO,YES,INDEX,Гривни с кръст – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/grivni-ot-meditsinska-stomana/,intent_landing,0,0,NO,YES,INDEX,Гривни от медицинска стомана | Българитъм,src/pages/[...slug].astro or dedicated route
+/hematit-grivna/,intent_landing,0,0,NO,YES,INDEX,Гривни с хематит – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/aksesoari-za-domashni-lyubimci/,taxonomy_landing,0,0,NO,YES,INDEX,Аксесоари | Домашни любимци | Българитъм,src/pages/k/[slug].astro
+/k/banya/,taxonomy_landing,0,0,NO,YES,INDEX,Баня | Дом и интериор | Българитъм,src/pages/k/[slug].astro
+/k/belio/,taxonomy_landing,0,3,YES,YES,INDEX,Българско бельо – модели и идеи | Българитъм,src/pages/k/[slug].astro
+/k/chai-i-bilki/,taxonomy_landing,0,0,NO,YES,INDEX,Чай и билки | Здраве и грижа | Българитъм,src/pages/k/[slug].astro
+/k/detski-aksesoari/,taxonomy_landing,0,0,NO,NO,INDEX,Детски мебели и текстил | Деца | Българитъм,src/pages/k/[slug].astro
+/k/detski-knigi/,taxonomy_landing,0,0,NO,YES,INDEX,Детски книги | Деца | Българитъм,src/pages/k/[slug].astro
+/k/detski-mebeli-i-tekstil/,taxonomy_landing,0,0,NO,YES,INDEX,Детски мебели и текстил | Деца | Българитъм,src/pages/k/[slug].astro
+/k/hrana-i-napitki/,taxonomy_landing,0,4,YES,YES,INDEX,Храна и напитки | Български продукти | Българитъм,src/pages/k/[slug].astro
+/k/igri/,taxonomy_landing,0,0,NO,YES,INDEX,Игри | Забавление | Българитъм,src/pages/k/[slug].astro
+/k/kozmetika-za-deca/,taxonomy_landing,0,1,NO,YES,INDEX,Козметика за деца | Деца | Българитъм,src/pages/k/[slug].astro
+/k/kozmetika-za-mazhe/,taxonomy_landing,0,0,NO,YES,INDEX,За мъже | Козметика | Българитъм,src/pages/k/[slug].astro
+/k/napitki/,taxonomy_landing,0,0,NO,YES,INDEX,Напитки | Храна и напитки | Българитъм,src/pages/k/[slug].astro
+/k/sport/,taxonomy_landing,0,0,NO,YES,INDEX,Спорт | Здраве и грижа | Българитъм,src/pages/k/[slug].astro
+/k/zabavlenie/,taxonomy_landing,0,3,NO,YES,INDEX,Забавление | Български продукти | Българитъм,src/pages/k/[slug].astro
+/kafyava-roklya/,intent_landing,0,0,NO,YES,INDEX,Кафяви рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/koleden-podarak-za-mazh/,intent_landing,0,0,NO,YES,INDEX,Коледен подарък за мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/kolieta-ot-meditsinska-stomana/,intent_landing,0,0,NO,YES,INDEX,Колиета от медицинска стомана | Българитъм,src/pages/[...slug].astro or dedicated route
+/kozmetika-za-dehidratirana-kozha/,intent_landing,0,0,NO,YES,INDEX,Козметика за дехидратирана кожа | Българитъм,src/pages/[...slug].astro or dedicated route
+/kozmetika-za-suha-kosa/,intent_landing,0,0,NO,YES,INDEX,Козметика за суха коса – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/kutiya-za-bizhuta/,intent_landing,0,0,NO,YES,INDEX,Кутия за бижута | Българитъм,src/pages/[...slug].astro or dedicated route
+/originalen-podarak-za-10-godishno-momche/,intent_landing,0,0,NO,YES,INDEX,Подарък за 10-годишно момче – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/originalen-podarak-za-10-godishno-momiche/,intent_landing,0,0,NO,YES,INDEX,Подарък за 10-годишно момиче – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/originalen-podarak-za-9-godishno-momiche/,intent_landing,0,0,NO,YES,INDEX,Подарък за 9-годишно момиче – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/originalen-podarak-za-momiche-na-7-godini/,intent_landing,0,0,NO,YES,INDEX,Подарък за 7-годишно момиче – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-10-godishnina-ot-svatba/,intent_landing,0,0,NO,YES,INDEX,Подарък за 10 години от сватбата | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-25-godishen-mazh/,intent_landing,0,0,NO,YES,INDEX,Подарък за 25-годишен мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-30-godishen-yubiley-zhena/,intent_landing,0,0,NO,YES,INDEX,Подарък за 30-годишна жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-4-godishno-momche/,intent_landing,0,0,NO,YES,INDEX,Подарък за 4-годишно момче – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-40-godishnina-na-mazh/,intent_landing,0,0,NO,YES,INDEX,Подарък за 40-годишен мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-40-godishnina-ot-svatba/,intent_landing,0,0,NO,YES,INDEX,Подарък за 40 години от сватбата | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-60-godishen-yubiley-mazh/,intent_landing,0,0,NO,YES,INDEX,Подарък за 60-годишен мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-70-godishen-yubiley-na-zhena/,intent_landing,0,0,NO,YES,INDEX,Подарък за 70-годишна жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-70-godishnina-na-mazh/,intent_landing,0,0,NO,YES,INDEX,Подарък за 70-годишен мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-8-mart-za-uchitelka/,intent_landing,0,0,NO,YES,INDEX,Подарък за учителка за 8 март – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-80-godishen-yubiley-zhena/,intent_landing,0,0,NO,YES,INDEX,Подарък за 80-годишна жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-80-godishnina-na-mazh/,intent_landing,0,0,NO,YES,INDEX,Подарък за 80-годишен мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-dete-na-1-godina/,intent_landing,0,0,NO,YES,INDEX,Подарък за дете на 1 година – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-dete-na-10-godini/,intent_landing,0,0,NO,YES,INDEX,Подарък за дете на 10 години – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-dete-na-2-godini/,intent_landing,0,0,NO,YES,INDEX,Подарък за дете на 2 години – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-dete-na-3-godini/,intent_landing,0,0,NO,YES,INDEX,Подарък за дете на 3 години – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-dete-na-4-godini/,intent_landing,0,0,NO,YES,INDEX,Подарък за дете на 4 години – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-dete-na-7-godini/,intent_landing,0,0,NO,YES,INDEX,Подарък за дете на 7 години – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-dete-na-9-godini/,intent_landing,0,0,NO,YES,INDEX,Подарък за дете на 9 години – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-godishnina-ot-svatba/,intent_landing,0,0,NO,YES,INDEX,Подарък за годишнина от сватба | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-lovets-mazh/,intent_landing,0,0,NO,YES,INDEX,Подарък за ловец – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-mazh-na-50/,intent_landing,0,0,NO,YES,INDEX,Подарък за 50-годишен мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-mazh-ribar/,intent_landing,0,0,NO,YES,INDEX,Подарък за рибар – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-mazh-za-diplomirane/,intent_landing,0,0,NO,YES,INDEX,Подарък за дипломиране на мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-parva-godishnina-ot-svatba/,intent_landing,0,0,NO,YES,INDEX,Подарък за първа годишнина от сватба | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-pensionirane-na-mazh/,intent_landing,0,0,NO,YES,INDEX,Подарък за пенсиониране на мъж | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-pensionirane-na-zhena/,intent_landing,0,0,NO,YES,INDEX,Подарък за пенсиониране на жена | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-perlena-svatba/,intent_landing,0,0,NO,YES,INDEX,Подарък за перлена сватба – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-srebarna-svatba/,intent_landing,0,0,NO,YES,INDEX,Подарък за сребърна сватба – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-zhena-na-50/,intent_landing,0,0,NO,YES,INDEX,Подарък за 50-годишна жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-zhena-na-60/,intent_landing,0,0,NO,YES,INDEX,Подарък за 60-годишна жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-zhena-za-diplomirane/,intent_landing,0,0,NO,YES,INDEX,Подарък за дипломиране на жена | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-zlatna-svatba/,intent_landing,0,0,NO,YES,INDEX,Подарък за златна сватба – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/prasteni-ot-meditsinska-stomana/,intent_landing,0,0,NO,YES,INDEX,Пръстени от медицинска стомана | Българитъм,src/pages/[...slug].astro or dedicated route
+/prasteni-srebro/,intent_landing,0,0,NO,YES,INDEX,Пръстени от сребро – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/prehodni-damski-yaketa/,intent_landing,0,0,NO,YES,INDEX,Преходни дамски якета – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/sportni-rokli/,intent_landing,0,0,NO,YES,INDEX,Спортни рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/srebarni-rokli/,intent_landing,0,0,NO,YES,INDEX,Сребристи рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/svetlosinya-roklya/,intent_landing,0,0,NO,YES,INDEX,Светлосини рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/tamnosinya-roklya/,intent_landing,0,0,NO,YES,INDEX,Тъмносини рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/tigrovo-oko-grivna/,intent_landing,0,0,NO,YES,INDEX,Гривни с тигрово око – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/tsitrin-grivna/,intent_landing,0,0,NO,YES,INDEX,Гривни с цитрин – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/vecherna-roklya/,intent_landing,0,0,NO,YES,INDEX,Вечерни рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/zeleno-palto/,intent_landing,0,0,NO,YES,INDEX,Зелени палта – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/zhalta-roklya/,intent_landing,0,0,NO,YES,INDEX,Жълти рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlaten-prasten-s-diamant/,intent_landing,0,0,NO,YES,INDEX,Златни пръстени с диамант – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlaten-prasten-s-rubin/,intent_landing,0,0,NO,YES,INDEX,Златни пръстени с рубин – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlatista-roklya/,intent_landing,0,0,NO,YES,INDEX,Златисти рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlatna-grivna/,intent_landing,0,0,NO,YES,INDEX,Златни гривни – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlatna-obetsa/,intent_landing,0,0,NO,YES,INDEX,Златни обеци – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlatni-obetsi-s-diamanti/,intent_landing,0,0,NO,YES,INDEX,Златни обеци с диаманти – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlatno-kolie-s-diamant/,intent_landing,0,0,NO,YES,INDEX,Златни колиета с диамант – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlatno-kolie-s-perla/,intent_landing,0,0,NO,YES,INDEX,Златни колиета с перла – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-hematit/,intent_landing,1,0,NO,YES,INDEX,Бижута с хематит – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarska-bio-kozmetika/,intent_landing,1,0,NO,YES,INDEX,Българска био козметика | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarska-kozmetika-s-roza/,intent_landing,1,3,YES,YES,INDEX,Българска козметика с розово масло | Българитъм,src/pages/[...slug].astro or dedicated route
+/damska-lenena-riza/,intent_landing,1,0,NO,YES,INDEX,Дамски ленени ризи – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/dankova-roklya/,intent_landing,1,0,NO,YES,INDEX,Дънкови рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/grivna-srebro/,intent_landing,1,0,NO,YES,INDEX,Гривни от сребро – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/kozmetika-za-mazna-kozha/,intent_landing,1,6,YES,YES,INDEX,Козметика за мазна кожа – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/luksozen-podarak-za-uchitelka/,intent_landing,1,0,NO,YES,INDEX,Подарък за учителка – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/originalen-podarak-za-momche-na-14-godini/,intent_landing,1,16,YES,YES,INDEX,Подарък за 14-годишно момче – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/originalen-podarak-za-momiche-na-14-godini/,intent_landing,1,16,YES,YES,INDEX,Подарък за 14-годишно момиче – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-20-godishen-mazh/,intent_landing,1,0,NO,YES,INDEX,Подарък за 20-годишен мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-30-godishnina-na-mazh/,intent_landing,1,0,NO,YES,INDEX,Подарък за 30-годишен мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-dete-na-14-godini/,intent_landing,1,16,YES,YES,INDEX,Подарък за дете на 14 години – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-kulinar-mazh/,intent_landing,1,24,YES,YES,INDEX,"Подарък за мъж, който обича да готви | Българитъм",src/pages/[...slug].astro or dedicated route
+/podarak-za-zhena-za-8-mart/,intent_landing,1,0,NO,YES,INDEX,Подарък за жена за 8 март – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/praktichen-podarak-za-mazh/,intent_landing,1,0,NO,YES,INDEX,Практичен подарък за мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/rozova-riza/,intent_landing,1,0,NO,YES,INDEX,Розови ризи – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/sinya-roklya/,intent_landing,1,0,NO,YES,INDEX,Сини рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/zelena-roklya/,intent_landing,1,0,NO,YES,INDEX,Зелени рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bezhovi-rokli/,intent_landing,2,0,NO,YES,INDEX,Бежови рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-detski-knigi/,intent_landing,2,0,NO,YES,INDEX,Български детски книги – за деца и семейства | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-ezhednevni-rokli/,intent_landing,2,0,NO,YES,INDEX,Български ежедневни рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-oficialni-rokli/,intent_landing,2,0,NO,YES,INDEX,Български официални рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/byala-damska-riza/,intent_landing,2,0,NO,YES,INDEX,Бели дамски ризи – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/cherno-palto/,intent_landing,2,0,NO,YES,INDEX,Черни палта – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/godezhni-prasteni/,intent_landing,2,0,NO,YES,INDEX,Годежни пръстени – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/grim/,taxonomy_landing,2,22,YES,YES,INDEX,Български грим от локални марки | Българитъм,src/pages/k/[slug].astro
+/kafyavo-palto/,intent_landing,2,0,NO,YES,INDEX,Кафяви палта – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/kozmetika-za-mazna-kosa/,intent_landing,2,4,YES,YES,INDEX,Козметика за мазна коса – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/kozmetika-za-uvredena-kosa/,intent_landing,2,4,YES,YES,INDEX,Козметика за увредена коса – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/lenena-roklya/,intent_landing,2,0,NO,YES,INDEX,Ленени рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/rozovi-rokli/,intent_landing,2,0,NO,YES,INDEX,Розови рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlatni-kolieta/,intent_landing,2,0,NO,YES,INDEX,Златни колиета – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/beli-rokli/,intent_landing,3,43,YES,YES,INDEX,Бели рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-ot-meditsinska-stomana/,intent_landing,3,46,YES,YES,INDEX,Бижута от медицинска стомана | Българитъм,src/pages/[...slug].astro or dedicated route
+/cherna-roklya/,intent_landing,3,0,NO,YES,INDEX,Черни рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/grizha-za-domashni-lyubimci/,taxonomy_landing,3,7,YES,YES,INDEX,Всички продукти | Домашни любимци | Българитъм,src/pages/k/[slug].astro
+/k/kolani/,taxonomy_landing,3,64,YES,YES,INDEX,Български колани от локални марки | Българитъм,src/pages/k/[slug].astro
+/k/za-glava/,taxonomy_landing,3,64,YES,YES,INDEX,Български аксесоари за коса | Българитъм,src/pages/k/[slug].astro
+/koleden-podarak-za-zhena/,intent_landing,3,22,YES,YES,INDEX,Коледен подарък за жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/kozmetika-za-kosopad/,intent_landing,3,4,YES,YES,INDEX,Козметика за косопад – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/kozmetika-za-protiv-brachki/,intent_landing,3,6,YES,YES,INDEX,Козметика против бръчки – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/obetsi-ot-meditsinska-stomana/,intent_landing,3,0,NO,YES,INDEX,Обеци от медицинска стомана | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-mazh-sportist/,intent_landing,3,24,YES,YES,INDEX,Подарък за спортуващ мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/pochistvane/,taxonomy_landing,4,17,YES,YES,INDEX,Почистване | Дом и интериор | Българитъм,src/pages/k/[slug].astro
+/kozmetika-za-chuvstvitelna-kozha/,intent_landing,4,6,YES,YES,INDEX,Козметика за чувствителна кожа – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/kozmetika-za-suha-kozha/,intent_landing,4,6,YES,YES,INDEX,Козметика за суха кожа – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/mazhki-leneni-rizi/,intent_landing,4,7,YES,YES,INDEX,Мъжки ленени ризи – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/pamuchni-rokli/,intent_landing,4,43,YES,YES,INDEX,Памучни рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-mazh-za-imen-den/,intent_landing,4,24,YES,YES,INDEX,Подарък за имен ден на мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-zhena-sportist/,intent_landing,4,0,NO,YES,INDEX,Подарък за спортуваща жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/roklya-saten/,intent_landing,4,43,YES,YES,INDEX,Сатенени рокли – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/srebarni-kolieta/,intent_landing,4,0,NO,YES,INDEX,Колиета от сребро – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/zlaten-prasten/,intent_landing,4,0,NO,YES,INDEX,Златни пръстени – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarska-bebeshka-kozmetika/,intent_landing,5,1,NO,YES,INDEX,Българска бебешка козметика – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-izpisvane-na-bebe/,intent_landing,5,8,YES,YES,INDEX,Подарък за изписване – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podaratsi-za-pogacha-na-momche/,intent_landing,5,8,YES,YES,INDEX,Подарък за погача – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/praktichen-podarak-za-zhena/,intent_landing,5,0,NO,YES,INDEX,Практичен подарък за жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/romantichen-podarak-za-mazh/,intent_landing,5,24,YES,YES,INDEX,Романтичен подарък за мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-drehi/chanti/,clothing_landing,6,2,YES,YES,INDEX,Български чанти от локални марки | Българитъм,src/pages/bulgarski-drehi/[slug].astro
+/kozmetika-s-shafran/,intent_landing,6,3,YES,YES,INDEX,Козметика с шафран – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/pozlateni-bizhuta/,intent_landing,6,46,YES,YES,INDEX,Български позлатени бижута от локални марки | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-drehi/damski-chanti/,clothing_landing,7,10,YES,YES,INDEX,Български дамски чанти | Българитъм,src/pages/bulgarski-drehi/[slug].astro
+/bulgarski-mazhki-antsuzi/,intent_landing,7,7,YES,YES,INDEX,Български мъжки анцузи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-mazhki-pizhami/,intent_landing,7,16,YES,YES,INDEX,Мъжки пижами – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/chanti/,taxonomy_landing,7,68,YES,YES,INDEX,Чанти | Аксесоари | Българитъм,src/pages/k/[slug].astro
+/k/domashni-lyubimci/,taxonomy_landing,7,11,YES,YES,INDEX,Домашни любимци | Български продукти | Българитъм,src/pages/k/[slug].astro
+/podarak-za-imen-den-na-zhena/,intent_landing,7,22,YES,YES,INDEX,Подарък за имен ден на жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/rachno-izraboteni-sveshti/,intent_landing,7,13,YES,YES,INDEX,Ръчно изработени свещи | Българитъм,src/pages/[...slug].astro or dedicated route
+/zabaven-podarak-za-mazh/,intent_landing,7,24,YES,YES,INDEX,Забавен подарък за мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-palta-ot-valna/,intent_landing,8,43,YES,YES,INDEX,Български палта от вълна – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-sveshti/,intent_landing,8,2,YES,YES,INDEX,Български свещи – за дома | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/detsko-obleklo/,taxonomy_landing,8,20,YES,YES,INDEX,Облекло | Деца | Българитъм,src/pages/k/[slug].astro
+/k/kozmetika-kosa/,taxonomy_landing,8,31,YES,YES,INDEX,Българска козметика за коса – грижа и състав | Българитъм,src/pages/k/[slug].astro
+/bulgarski-detski-igrachki/,intent_landing,9,1,YES,YES,INDEX,Български детски играчки – за деца и семейства | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/detski-igrachki/,taxonomy_landing,9,22,YES,YES,INDEX,Играчки | Деца | Българитъм,src/pages/k/[slug].astro
+/kozmetika-za-hidratatsiya/,intent_landing,9,6,YES,YES,INDEX,Козметика за хидратация – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/obetsi-ot-srebro/,intent_landing,9,46,YES,YES,INDEX,Обеци от сребро – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/personaliziran-podarak-za-mazh/,intent_landing,9,24,YES,YES,INDEX,Персонализиран подарък за мъж – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/rachno-izraboteni-grivni/,intent_landing,9,55,YES,YES,INDEX,Ръчно изработени гривни | Българитъм,src/pages/[...slug].astro or dedicated route
+/damska-pizhama-pamuk/,intent_landing,10,43,YES,YES,INDEX,Дамски памучни пижами – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-krashtene/,intent_landing,10,14,YES,YES,INDEX,Подарък за кръщене – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/zabaven-podarak-za-zhena/,intent_landing,10,22,YES,YES,INDEX,Забавен подарък за жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/bizhuta-s-perli/,intent_landing,11,46,YES,YES,INDEX,Бижута с перли – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-mazh-za-sveti-valentin/,intent_landing,11,24,YES,YES,INDEX,Подарък за мъж за Свети Валентин | Българитъм,src/pages/[...slug].astro or dedicated route
+/rachno-izraboteni-obetsi/,intent_landing,11,58,YES,YES,INDEX,Ръчно изработени обеци | Българитъм,src/pages/[...slug].astro or dedicated route
+/romantichen-podarak-za-zhena/,intent_landing,11,22,YES,YES,INDEX,Романтичен подарък за жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/kozmetika-tyalo/,taxonomy_landing,12,35,YES,YES,INDEX,Българска козметика за тяло | Българитъм,src/pages/k/[slug].astro
+/mazhki-bizhuta/,intent_landing,12,61,YES,YES,INDEX,Мъжки бижута – материал и детайли | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-leneni-drehi/,intent_landing,13,3,YES,YES,INDEX,Български ленени дрехи – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarsko-spalno-belyo/,intent_landing,13,1,YES,YES,INDEX,Българско спално бельо – за дома | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/dobavki-i-ekstrakti/,taxonomy_landing,13,23,YES,YES,INDEX,Добавки и екстракти | Здраве и грижа | Българитъм,src/pages/k/[slug].astro
+/k/domashen-tekstil/,taxonomy_landing,13,26,YES,YES,INDEX,Български домашен текстил – за дома | Българитъм,src/pages/k/[slug].astro
+/k/imunitet/,taxonomy_landing,13,0,NO,NO,INDEX,Добавки и екстракти | Здраве и грижа | Българитъм,src/pages/k/[slug].astro
+/k/kozmetika-lice/,taxonomy_landing,13,38,YES,YES,INDEX,Българска козметика за лице – грижа и състав | Българитъм,src/pages/k/[slug].astro
+/k/vitamini/,taxonomy_landing,13,0,NO,NO,INDEX,Добавки и екстракти | Здраве и грижа | Българитъм,src/pages/k/[slug].astro
+/k/dekor/,taxonomy_landing,15,0,NO,NO,INDEX,Декор | Дом и интериор | Българитъм,src/pages/k/[slug].astro
+/k/dekoraciq-za-doma/,taxonomy_landing,15,31,YES,YES,INDEX,Декор | Дом и интериор | Българитъм,src/pages/k/[slug].astro
+/personaliziran-podarak-za-bebe/,intent_landing,15,8,YES,YES,INDEX,Персонализиран подарък за бебе | Българитъм,src/pages/[...slug].astro or dedicated route
+/personaliziran-podarak-za-zhena/,intent_landing,15,22,YES,YES,INDEX,Персонализиран подарък за жена | Българитъм,src/pages/[...slug].astro or dedicated route
+/rachno-izraboteni-kartichki/,intent_landing,15,0,NO,YES,INDEX,Ръчно изработени картички | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/kuhnya/,taxonomy_landing,16,30,YES,YES,INDEX,Кухня | Дом и интериор | Българитъм,src/pages/k/[slug].astro
+/bulgarski-drehi/rokli/,clothing_landing,17,44,YES,YES,INDEX,Български рокли – модели и идеи | Българитъм,src/pages/bulgarski-drehi/[slug].astro
+/k/zdrave-i-grizha/,taxonomy_landing,18,29,YES,YES,INDEX,Здраве и грижа | Български продукти | Българитъм,src/pages/k/[slug].astro
+/podarak-za-novorodeno/,intent_landing,18,8,YES,YES,INDEX,Подарък за новородено – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/svatben-album-rachna-izrabotka/,intent_landing,18,29,YES,YES,INDEX,Сватбен албум ръчна изработка | Българитъм,src/pages/[...slug].astro or dedicated route
+/naturalna-bulgarska-kozmetika/,intent_landing,21,3,YES,YES,INDEX,Българска натурална козметика – грижа и състав | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-bebe-momche/,intent_landing,21,8,YES,YES,INDEX,Подарък за бебе момченце – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-podaratsi/za-dete/,gift_landing,22,93,YES,YES,INDEX,Подарък за дете | Българитъм,src/pages/bulgarski-podaratsi/[slug].astro
+/k/za-dete/,taxonomy_landing,22,0,NO,NO,INDEX,Подаръци за дете | Подаръци | Българитъм,src/pages/k/[slug].astro
+/podarak-za-sveti-valentin-za-zhena/,intent_landing,23,22,YES,YES,INDEX,Подарък за жена за Свети Валентин | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-bebe-momiche/,intent_landing,24,8,YES,YES,INDEX,Подарък за бебе момиченце – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-damski-pizhami/,intent_landing,25,68,YES,YES,INDEX,Български дамски пижами от локални марки | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-drehi/pizhami/,clothing_landing,25,32,YES,YES,INDEX,Български пижами | Българитъм,src/pages/bulgarski-drehi/[slug].astro
+/bulgarski-podaratsi/za-bebe/,gift_landing,25,93,YES,YES,INDEX,Подарък за бебе | Българитъм,src/pages/bulgarski-podaratsi/[slug].astro
+/k/podaraci-za-bebe/,taxonomy_landing,25,0,NO,NO,INDEX,Подаръци за бебе | Подаръци | Българитъм,src/pages/k/[slug].astro
+/k/za-bebe/,taxonomy_landing,25,0,NO,NO,INDEX,Подаръци за бебе | Подаръци | Българитъм,src/pages/k/[slug].astro
+/bulgarski-podaratsi/za-svatba/,gift_landing,27,93,YES,YES,INDEX,Подаръци за сватба | Българитъм,src/pages/bulgarski-podaratsi/[slug].astro
+/k/podaraci-za-svatba/,taxonomy_landing,27,0,NO,NO,INDEX,Подаръци за сватба | Подаръци | Българитъм,src/pages/k/[slug].astro
+/k/za-svatba/,taxonomy_landing,27,0,NO,NO,INDEX,Подаръци за сватба | Подаръци | Българитъм,src/pages/k/[slug].astro
+/rachno-izraboteni-bizhuta/,intent_landing,27,82,YES,YES,INDEX,Български ръчно изработени бижута | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-suveniri/,intent_landing,32,1,NO,YES,INDEX,Български сувенири | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-damski-sportni-ekipi/,intent_landing,36,84,YES,YES,INDEX,Български дамски спортни екипи – модели и идеи | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/bijuta/,taxonomy_landing,36,923,YES,YES,INDEX,Български бижута – материал и детайли | Българитъм,src/pages/k/[slug].astro
+/k/srebarni-bijuta/,taxonomy_landing,36,0,NO,NO,INDEX,Български бижута – материал и детайли | Българитъм,src/pages/k/[slug].astro
+/k/mazhko-obleklo/,taxonomy_landing,38,107,YES,YES,INDEX,Български мъжки дрехи от локални марки | Българитъм,src/pages/k/[slug].astro
+/k/kozmetika/,taxonomy_landing,44,923,YES,YES,INDEX,Българска козметика | Българитъм,src/pages/k/[slug].astro
+/k/deca/,taxonomy_landing,49,72,YES,YES,INDEX,Деца | Български продукти | Българитъм,src/pages/k/[slug].astro
+/podarak-za-mazh-za-rozhden-den/,intent_landing,53,24,YES,YES,INDEX,Подарък за мъж за рожден ден – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/dom-i-interior/,taxonomy_landing,68,0,NO,NO,INDEX,Дом и интериор | Български продукти | Българитъм,src/pages/k/[slug].astro
+/k/za-doma/,taxonomy_landing,68,923,YES,YES,INDEX,Дом и интериор | Български продукти | Българитъм,src/pages/k/[slug].astro
+/bulgarski-podaratsi/za-mazh/,gift_landing,70,93,YES,YES,INDEX,Подарък за мъж | Българитъм,src/pages/bulgarski-podaratsi/[slug].astro
+/k/podaraci-za-nego/,taxonomy_landing,70,0,NO,NO,INDEX,Подаръци за мъж | Подаръци | Българитъм,src/pages/k/[slug].astro
+/k/za-mazh/,taxonomy_landing,70,0,NO,NO,INDEX,Подаръци за мъж | Подаръци | Българитъм,src/pages/k/[slug].astro
+/k/aksesoari/,taxonomy_landing,79,923,YES,YES,INDEX,Аксесоари | Български продукти | Българитъм,src/pages/k/[slug].astro
+/bulgarski-podaratsi/rachno-izraboteni/,gift_landing,109,14,YES,YES,INDEX,Ръчно изработени подаръци | Българитъм,src/pages/bulgarski-podaratsi/[slug].astro
+/podarak-za-rozhden-den-na-zhena/,intent_landing,115,22,YES,YES,INDEX,Подарък за рожден ден на жена – идеи за подарък | Българитъм,src/pages/[...slug].astro or dedicated route
+/podarak-za-zhena-za-rozhden-den/,intent_landing,115,22,YES,YES,INDEX,Подарък за жена за рожден ден | Българитъм,src/pages/[...slug].astro or dedicated route
+/bulgarski-podaratsi/za-zhena/,gift_landing,134,93,YES,YES,INDEX,Подарък за жена | Българитъм,src/pages/bulgarski-podaratsi/[slug].astro
+/k/podaraci-za-jena/,taxonomy_landing,134,0,NO,NO,INDEX,Подаръци за жена | Подаръци | Българитъм,src/pages/k/[slug].astro
+/k/za-zhena/,taxonomy_landing,134,0,NO,NO,INDEX,Подаръци за жена | Подаръци | Българитъм,src/pages/k/[slug].astro
+/rachno-izraboteni/,intent_landing,138,923,YES,YES,INDEX,Ръчно изработени | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/damsko-obleklo/,taxonomy_landing,150,238,YES,YES,INDEX,Български дамски дрехи от локални марки | Българитъм,src/pages/k/[slug].astro
+/bulgarski-drehi/,clothing_landing,203,923,YES,YES,INDEX,Качествени български дрехи от български марки | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/bulgarski-drehi/,taxonomy_landing,203,0,NO,NO,INDEX,Качествени български дрехи от български марки | Българитъм,src/pages/k/[slug].astro
+/k/obleklo/,taxonomy_landing,203,0,NO,NO,INDEX,Качествени български дрехи от български марки | Българитъм,src/pages/k/[slug].astro
+/bulgarski-podaratsi/,gift_landing,242,925,YES,YES,INDEX,Идеи за подарък от български брандове | Българитъм,src/pages/[...slug].astro or dedicated route
+/k/bulgarski-podaratsi/,taxonomy_landing,242,0,NO,NO,INDEX,Подаръци | Български продукти | Българитъм,src/pages/k/[slug].astro
+/k/idei-za-podarak/,taxonomy_landing,242,0,NO,NO,INDEX,Подаръци | Български продукти | Българитъм,src/pages/k/[slug].astro
+/k/podaraci/,taxonomy_landing,242,0,NO,NO,INDEX,Подаръци | Български продукти | Българитъм,src/pages/k/[slug].astro

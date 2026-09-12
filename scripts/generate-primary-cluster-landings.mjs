@@ -3,6 +3,7 @@ import path from "node:path";
 
 const input = process.argv[2];
 if (!input) throw new Error("Usage: node scripts/generate-primary-cluster-landings.mjs <csv>");
+const refreshContentOnly = input === "--refresh-content";
 
 const parseCsv = (text) => {
   const rows = [];
@@ -116,86 +117,195 @@ const clusterContentByRow = {
   187: ["При търсене на български производители на дървени играчки провери материала, възрастовите указания, информацията за безопасност и изрично посочения произход."],
   188: ["При детски книги от български автори провери възрастовата препоръка, темата, формата и информацията за автора и издателя."],
 };
-const describedFacets = (state) => Object.keys(fieldLabels).flatMap((field) => {
-  const values = valuesFor(state, field);
-  if (!values.length || field === "product_type") return [];
-  const formatted = field === "recipient_age" ? values.map((value) => `${value} г.`) : values.map((value) => value.toLocaleLowerCase("bg"));
-  return [`${fieldLabels[field]}: ${joinBg(formatted)}`];
-});
-const buildContent = (h1, state, clusterKeywords, sourceRow) => {
-  const h1Lower = lowerFirst(h1);
-  const isGift = state.giftable?.includes("true") || state.recipient?.length || state.gift_occasion?.length;
-  const isJewelry = state.subcategory?.includes("Бижута") || state.subcategory?.includes("Мъжки бижута");
-  const isCosmetics = state.category?.includes("Козметика") || state.subcategory?.some((value) => /грижа/i.test(value));
-  const isClothing = state.category?.includes("Облекло");
-  const facets = describedFacets(state);
-  const facetText = facets.slice(0, 3).join("; ");
-  let titleTail = "селекция от български брандове";
-  let metaTail = "Сравни наличните предложения и отвори продуктовите страници за подробности.";
-  let introOne = `Тук можеш да разгледаш „${h1}“ като самостоятелна продуктова селекция от български брандове.`;
-  let introTwo = facetText
-    ? `Селекцията е фокусирана върху ${facetText}; отвори конкретния продукт, за да провериш всички негови характеристики.`
-    : "Разгледай отделните предложения и провери характеристиките, вариантите и информацията от бранда на продуктовата страница.";
-  let sectionTitle = "Как да сравниш предложенията";
-  let sectionParagraph = "Сравни предназначението и изрично посочените характеристики на всеки продукт. Общото име на селекцията не означава, че всички модели са еднакви.";
-  if (isGift) {
-    titleTail = state.gift_occasion?.length ? "идеи за конкретния повод" : state.recipient_age?.length ? "идеи според възрастта" : "идеи според получателя";
-    const recipient = joinBg(valuesFor(state, "recipient").map((value) => value.replace(/^За\s+/i, "").toLocaleLowerCase("bg")));
-    const occasion = joinBg(valuesFor(state, "gift_occasion").map((value) => value.toLocaleLowerCase("bg")));
-    const ages = joinBg(valuesFor(state, "recipient_age").map((age) => `${age} години`));
-    const context = [recipient && `получател: ${recipient}`, ages && `възраст: ${ages}`, occasion && `повод: ${occasion}`].filter(Boolean).join("; ");
-    metaTail = context ? `Селекцията е насочена към ${context}.` : "Сравни идеи според човека, повода и предназначението им.";
-    introTwo = "Помисли за повода, интересите и практичността на подаръка, а после отвори продукта за точните му характеристики.";
-    introOne = `„${h1}“ събира идеи, насочени към конкретен получател, възраст или повод.`;
-    sectionTitle = "Избор според човека и повода";
-    sectionParagraph = "Полезният избор започва от получателя и повода. Сравни предназначението, персонализацията и реалните продуктови детайли, когато са налични.";
-  } else if (isJewelry) {
-    titleTail = state.gemstone?.length ? "бижута според камъка" : state.jewelry_detail?.length ? "бижута според детайла" : "модели по вид и материал";
-    sectionTitle = "Вид, материал и детайл";
-    sectionParagraph = "При бижутата разгледай отделно вида, материала, камъка и декоративния детайл. Те описват различни характеристики и не трябва да се заменят една с друга.";
-    introOne = `В „${h1}“ са събрани бижута според конкретния вид, материал, камък или декоративен детайл.`;
-  } else if (isCosmetics) {
-    titleTail = state.hair_need?.length || state.skin_need?.length ? "грижа според нуждата" : state.ingredient?.length ? "продукти според съставката" : "продукти по вид грижа";
-    sectionTitle = "Избор според вида грижа";
-    sectionParagraph = "Съобрази избора с зоната на приложение, нуждата и съставките, които са изрично посочени за продукта. Провери пълната информация на продуктовата страница.";
-    introOne = `„${h1}“ обединява козметични продукти според зоната на приложение, съставката или посочената нужда.`;
-  } else if (isClothing) {
-    titleTail = state.materials?.length ? "материи и модели" : state.colors?.length ? "цветове и модели" : "модели по вид и стил";
-    sectionTitle = "Материя, кройка и предназначение";
-    sectionParagraph = "Сравни материята, сезона, ръкава и стила само когато са попълнени за конкретния модел. Така близки категории остават ясно разграничени.";
-    introOne = `В „${h1}“ можеш да разгледаш облекло, обединено от конкретен вид, материя, цвят, сезон или стил.`;
-  }
-  const title = `${h1} – ${titleTail} | Българитъм`;
-  const descriptionVariants = [
-    `Разгледай ${h1Lower} от български брандове. ${metaTail}`,
-    `Открий ${h1Lower} на едно място. ${metaTail}`,
-    `${h1} в подредена продуктова селекция. ${metaTail}`,
-    `Търсиш ${h1Lower}? ${metaTail}`,
-    `Виж предложения за ${h1Lower}. ${metaTail}`,
-    `Ориентирай се сред предложенията за ${h1Lower}. ${metaTail}`,
-    `Селекция за ${h1Lower} от български брандове. ${metaTail}`,
-    `Намери ${h1Lower} и прегледай подробностите за всеки продукт. ${metaTail}`,
-    `Разгледай темата „${h1}“ и сравни подходящите предложения. ${metaTail}`,
-    `Открий продукти в селекцията „${h1}“. ${metaTail}`,
-    `Сравни предложения в категорията „${h1}“. ${metaTail}`,
-    `Прегледай селекцията „${h1}“ от български брандове. ${metaTail}`,
-  ];
-  const intro = [
-    introOne,
-    introTwo,
-  ];
-  const editorialSections = [
-    { title: sectionTitle, paragraphs: [sectionParagraph, facetText ? `За тази селекция са важни следните ориентири: ${facetText}. Провери ги и в описанието на конкретния продукт.` : "Използвай наличните характеристики като отправна точка и провери подробностите за конкретното предложение.", ...(clusterContentByRow[sourceRow] || [])] },
-    { title: isGift ? "Преди да избереш подарък" : isJewelry ? "Преди да избереш бижу" : isCosmetics ? "Преди да избереш продукт" : isClothing ? "Преди да избереш модел" : "Преди да избереш", paragraphs: ["Провери предназначението, варианта и информацията от бранда. Запази подходящите предложения, за да ги сравниш спокойно."] },
-  ];
-  return {
-    title,
-    description: descriptionVariants[(sourceRow - 1) % descriptionVariants.length],
-    intro,
-    editorialSections,
-    clusterKeywordsUsed: [],
-  };
+const h1OverridesByRow = {
+  1: "Българско дамско бельо от памук",
+  6: "Дамски ленени ризи", 19: "Български обувки от естествена кожа",
+  20: "Български сандали от естествена кожа", 21: "Български кожени якета",
+  33: "Бохо рокли", 36: "Вечерни рокли", 39: "Дънкови рокли", 45: "Ленени рокли", 46: "Български официални рокли", 49: "Сатенени рокли",
+  65: "Козметика против бръчки", 69: "Българска козметика с розово масло",
+  73: "Подарък за бебе момиченце", 74: "Подарък за бебе момченце",
+  97: "Подарък за учителка за 8 март", 99: "Подарък за дипломиране на жена",
+  100: "Подарък за имен ден на жена", 101: "Подарък за пенсиониране на жена",
+  102: "Подарък за жена за Свети Валентин", 104: "Подарък за 30-годишна жена",
+  105: "Подарък за 50-годишна жена", 106: "Подарък за 60-годишна жена",
+  107: "Подарък за 70-годишна жена", 108: "Подарък за 80-годишна жена",
+  109: "Подарък за спортуваща жена", 116: "Подарък за дипломиране на мъж",
+  117: "Подарък за пенсиониране на мъж", 121: "Подарък за мъж, който обича да готви",
+  122: "Подарък за ловец", 123: "Подарък за 20-годишен мъж", 124: "Подарък за 25-годишен мъж",
+  125: "Подарък за 30-годишен мъж", 126: "Подарък за 40-годишен мъж",
+  127: "Подарък за 50-годишен мъж", 128: "Подарък за 60-годишен мъж",
+  129: "Подарък за 70-годишен мъж", 130: "Подарък за 80-годишен мъж",
+  131: "Подарък за рибар", 132: "Подарък за спортуващ мъж",
+  135: "Подарък за 20 години от сватбата", 136: "Подарък за 10 години от сватбата",
+  137: "Подарък за 40 години от сватбата", 144: "Бижута с диаманти",
+  156: "Годежни пръстени с диамант", 158: "Гривни с буква",
+  159: "Гривни с име", 160: "Гривни с кръст", 161: "Гривни с червен конец",
+  164: "Златни пръстени", 165: "Златни пръстени с диамант", 166: "Златни пръстени с рубин",
+  167: "Златни гривни", 171: "Златни колиета с диамант", 172: "Златни колиета с перла",
+  180: "Гривни с тигрово око", 181: "Гривни с хематит", 182: "Гривни с цитрин",
 };
+const normalizeDisplayH1 = ({ h1, sourceRow }) => h1OverridesByRow[sourceRow] || clean(h1)
+  .replace(/^Рокля сатен$/i, "Сатенени рокли")
+  .replace(/^Черени палта$/i, "Черни палта");
+const hasState = (state, field) => valuesFor(state, field).length > 0;
+const landingFamily = (state) => {
+  if (state.giftable?.includes("true") || hasState(state, "recipient") || hasState(state, "gift_occasion")) return "gift";
+  if (state.subcategory?.some((value) => /бижута/i.test(value))) return "jewelry";
+  if (state.category?.includes("Козметика") || state.subcategory?.some((value) => /грижа/i.test(value))) return "cosmetics";
+  if (state.category?.includes("Облекло")) return "clothing";
+  if (state.category?.includes("Дом и интериор")) return "home";
+  if (state.category?.includes("Деца и бебе") || state.category?.includes("Книги, игри и творчество")) return "children";
+  return "discovery";
+};
+const naturalList = (values) => joinBg(values.map((value) => lowerFirst(value)));
+const titleFor = (h1, family, state) => {
+  const tail = family === "gift" ? "идеи за подарък" : family === "jewelry" ? "материал и детайли"
+    : family === "cosmetics" ? "грижа и състав" : family === "clothing" ? "модели и идеи"
+      : family === "home" ? "за дома" : family === "children" ? "за деца и семейства" : "от български брандове";
+  const expanded = `${h1} – ${tail} | Българитъм`;
+  return expanded.length <= 60 ? expanded : `${h1} | Българитъм`;
+};
+const intentDetails = (state) => [
+  hasState(state, "materials") && `материята ${naturalList(valuesFor(state, "materials"))}`,
+  hasState(state, "colors") && `цвета ${naturalList(valuesFor(state, "colors"))}`,
+  hasState(state, "season") && `сезона ${naturalList(valuesFor(state, "season"))}`,
+  hasState(state, "sleeve") && `ръкава ${naturalList(valuesFor(state, "sleeve"))}`,
+  hasState(state, "gemstone") && `камъка ${naturalList(valuesFor(state, "gemstone"))}`,
+  hasState(state, "ingredient") && `съставката ${naturalList(valuesFor(state, "ingredient"))}`,
+].filter(Boolean);
+const buildContent = (h1, state, clusterKeywords, sourceRow) => {
+  const family = landingFamily(state);
+  const h1Lower = lowerFirst(h1);
+  const details = intentDetails(state);
+  let description = `Ориентир за ${h1Lower} от български брандове: какво да сравниш и къде да провериш подробностите за конкретния продукт.`;
+  let intro = [];
+  let editorialSections = [];
+
+  if (family === "clothing") {
+    const material = naturalList(valuesFor(state, "materials"));
+    const color = naturalList(valuesFor(state, "colors"));
+    const season = naturalList(valuesFor(state, "season"));
+    const product = naturalList(valuesFor(state, "product_type")) || "облекло";
+    description = `${h1}: сравни ${[material && "състава", color && "нюанса", season && "сезонността", "кройката и размерите"].filter(Boolean).join(", ")} в предложенията от български брандове.`;
+    intro = [
+      material
+        ? `При ${h1Lower} съставът има значение наред с кройката и начина на носене.`
+        : color
+          ? `При ${h1Lower} цветът е на преден план, но силуетът, материята и детайлите остават също толкова важни.`
+          : season
+            ? `При ${h1Lower} сезонът насочва към подходящи материи и различни начини на комбиниране.`
+            : `При ${h1Lower} можеш да сравниш ${product} според кройката, материята и повода.`,
+      `При ${h1Lower} провери размерите, точния състав и указанията за поддръжка в информацията от бранда.`,
+    ];
+    editorialSections = [
+      { title: material ? `Какво да знаеш за ${material}` : color ? `Как да избереш подходящия нюанс` : "Как да сравниш моделите", paragraphs: [
+        material ? `Материя като ${material} може да присъства в различни смеси и плътности. За ${h1Lower} сравнявай реалния състав, а не само името на модела.` : `При ${h1Lower} започни от силуета и предназначението, след това сравни материята, дължината и детайлите.`,
+        ...(clusterContentByRow[sourceRow] || []),
+      ] },
+      { title: "Размер, кройка и поддръжка", paragraphs: [`За ${h1Lower} използвай таблицата с размери на конкретния бранд и провери дали има специални указания за пране, гладене или съхранение.`] },
+    ];
+  } else if (family === "jewelry") {
+    const product = naturalList(valuesFor(state, "product_type")) || "бижута";
+    const material = naturalList(valuesFor(state, "materials"));
+    const stone = naturalList(valuesFor(state, "gemstone"));
+    const detail = naturalList(valuesFor(state, "jewelry_detail"));
+    const jewelryComparisons = [
+      hasState(state, "product_type") && product,
+      material && `материала ${material}`,
+      stone && `камъка ${stone}`,
+      detail && `детайла ${detail}`,
+      "размера и закопчаването",
+    ].filter(Boolean);
+    description = `${h1}: сравни ${jewelryComparisons.join(", ")} в информацията от бранда.`;
+    intro = [
+      stone
+        ? `При ${h1Lower} ${stone} е водещият камък, а материалът и обковът допълват избора.`
+        : material
+          ? `При ${h1Lower} материалът ${material} е отправната точка, следвана от формата, размера и покритието.`
+          : detail
+            ? `При ${h1Lower} детайлът ${detail} определя темата, но материалът и конструкцията остават важни.`
+            : `При ${h1Lower} сравни материала, формата, размера и начина на закопчаване.`,
+      `Преди избор на ${h1Lower} провери точния материал, размерите и начина на поддръжка, посочени за конкретното бижу.`,
+    ];
+    editorialSections = [
+      { title: stone ? `Камъкът и неговият обков` : material ? `Материал и покритие` : detail ? `Форма и декоративен детайл` : "Вид и изработка", paragraphs: [
+        stone ? `При ${h1Lower} провери как е описан камъкът, как е закрепен и от какъв материал е основата на бижуто.` : material ? `При ${h1Lower} търси ясно посочен материал, проба или покритие. Близките на вид метали могат да изискват различна поддръжка.` : `При ${h1Lower} сравни размерите, теглото и конструкцията, а не само снимката.`,
+        ...(clusterContentByRow[sourceRow] || []),
+      ] },
+      { title: "Размер и поддръжка", paragraphs: [`За ${h1Lower} провери дължината или размера, вида на закопчаването и препоръките на бранда за съхранение и почистване.`] },
+    ];
+  } else if (family === "gift") {
+    const recipient = naturalList(valuesFor(state, "recipient").map((value) => value.replace(/^За\s+/i, "")));
+    const occasion = naturalList(valuesFor(state, "gift_occasion"));
+    const age = naturalList(valuesFor(state, "recipient_age").map((value) => `${value} години`));
+    const interest = naturalList(valuesFor(state, "role_interest"));
+    const giftContext = occasion ? `повода ${occasion}` : age ? `възрастта ${age}` : interest ? `интересите на получателя` : recipient ? `конкретния получател` : "човека и повода";
+    description = `${h1}: идеи според ${giftContext}, с подробности за вариантите, персонализацията и доставката при бранда.`;
+    intro = [
+      `Изборът на ${h1Lower} започва от човека${occasion ? ` и повода ${occasion}` : ""}, а не от универсален списък с подаръци.`,
+      `Когато търсиш ${h1Lower}, съобрази избора с интересите, ежедневието и начина на поднасяне; при персонализирани продукти провери и срока за изработка.`,
+    ];
+    editorialSections = [
+      { title: age ? `Идея, съобразена с възрастта` : interest ? `Идея според интересите` : occasion ? `Подарък с мисъл за повода` : "Подарък с личен контекст", paragraphs: [
+        `${h1} е по-смислен избор, когато отразява конкретния човек, вместо да разчита само на възраст, пол или общ повод.`,
+        ...(clusterContentByRow[sourceRow] || []),
+      ] },
+      { title: "Преди да поръчаш", paragraphs: [`За ${h1Lower} провери размера, варианта, възможностите за персонализация и срока за доставка директно в сайта на бранда.`] },
+    ];
+  } else if (family === "cosmetics") {
+    const area = naturalList(valuesFor(state, "subcategory"));
+    const need = naturalList([...valuesFor(state, "skin_need"), ...valuesFor(state, "hair_need")]);
+    const needPhrase = need.replace(/^против\s+/i, "грижа при ").replace(/^за\s+/i, "грижа за ");
+    const skin = naturalList(valuesFor(state, "skin_type"));
+    const ingredient = naturalList(valuesFor(state, "ingredient"));
+    description = `${h1}: ориентирай се според ${[needPhrase, skin, ingredient && `съставката ${ingredient}`, !needPhrase && !skin && !ingredient && area].filter(Boolean).join(", ") || "вида грижа и състава"}.`;
+    intro = [
+      `При ${h1Lower} изборът се насочва към ${needPhrase || skin || area || "вида грижа"}${ingredient ? ` и присъствието на ${ingredient} в състава` : ""}.`,
+      `При ${h1Lower} прочети начина на употреба и пълния INCI списък на конкретния продукт, особено ако имаш чувствителност или установена кожна нужда.`,
+    ];
+    editorialSections = [
+      { title: ingredient ? `Как да разчетеш ролята на ${ingredient}` : need ? `Грижа според конкретната нужда` : "Място в ежедневната рутина", paragraphs: [
+        ingredient ? `При ${h1Lower} провери къде се намира ${ingredient} в INCI списъка и как брандът описва начина на употреба.` : `При ${h1Lower} сравни предназначението, текстурата и начина на включване в рутината, без да приемаш общото име за гарантиран резултат.`,
+        ...(clusterContentByRow[sourceRow] || []),
+      ] },
+      { title: "Състав и употреба", paragraphs: [`За ${h1Lower} следвай указанията на производителя и провери предупрежденията, честотата на употреба и съвместимостта с останалата част от рутината.`] },
+    ];
+  } else {
+    const subject = naturalList(valuesFor(state, "product_type")) || naturalList(valuesFor(state, "subcategory")) || h1Lower;
+    description = `${h1}: сравни предназначението, материалите, размерите и информацията за употреба в предложенията от български брандове.`;
+    intro = [`При ${h1Lower} можеш да се ориентираш сред ${subject} според предназначението и изрично посочените характеристики.`, `За ${h1Lower} провери конкретните размери, материали и начин на употреба в информацията от бранда.`];
+    editorialSections = [
+      { title: family === "home" ? "Материал и място в дома" : family === "children" ? "Възраст и предназначение" : "Какво да сравниш", paragraphs: [`При ${h1Lower} сравни предназначението, размерите и материалите, които са изрично посочени за конкретния продукт.`, ...(clusterContentByRow[sourceRow] || [])] },
+      { title: "Практични подробности", paragraphs: [`За ${h1Lower} провери поддръжката, указанията за безопасност или употреба и условията за доставка в сайта на бранда.`] },
+    ];
+  }
+
+  return { title: titleFor(h1, family, state), description, intro, editorialSections, clusterKeywordsUsed: [] };
+};
+
+if (refreshContentOnly) {
+  const registryPath = path.resolve("src/data/primary-cluster-landings.json");
+  const auditPath = path.resolve("docs/primary-cluster-seo-audit.csv");
+  const specs = JSON.parse(fs.readFileSync(registryPath, "utf8"));
+  const refreshed = specs.map((spec) => {
+    const h1 = normalizeDisplayH1(spec);
+    return { ...spec, h1, ...buildContent(h1, spec.structuredState || {}, spec.clusterKeywords || [], spec.sourceRow) };
+  });
+  fs.writeFileSync(registryPath, JSON.stringify(refreshed, null, 2) + "\n");
+  if (fs.existsSync(auditPath)) {
+    const auditRows = parseCsv(fs.readFileSync(auditPath, "utf8"));
+    const refreshedByPath = new Map(refreshed.map((spec) => [spec.path, spec]));
+    const updatedRows = auditRows.map((row) => {
+      const spec = refreshedByPath.get(normalizePath(row.canonical_url));
+      return spec ? { ...row, H1: spec.h1, seo_title: spec.title, meta_description: spec.description } : row;
+    });
+    const headers = Object.keys(auditRows[0] || {});
+    const csvCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+    fs.writeFileSync(auditPath, [headers.join(","), ...updatedRows.map((row) => headers.map((header) => csvCell(row[header])).join(","))].join("\n") + "\n");
+  }
+  console.log(JSON.stringify({ refreshed: refreshed.length }, null, 2));
+  process.exit(0);
+}
 
 const rows = parseCsv(fs.readFileSync(input, "utf8"));
 const accepted = [];
@@ -230,7 +340,8 @@ for (const row of rows) {
       reason = `Exact structured state already resolves to ${prior.canonicalUrl}.`;
     } else seenStates.set(normalizedState, { canonicalUrl, number });
   }
-  const h1 = number === 1 ? "Българско дамско памучно бельо" : number === 28 ? "Дамски памучни пижами" : number === 186 ? "Българско спално бельо" : clean(row.H1_target);
+  const rawH1 = number === 1 ? "Българско дамско памучно бельо" : number === 28 ? "Дамски памучни пижами" : number === 186 ? "Българско спално бельо" : clean(row.H1_target);
+  const h1 = normalizeDisplayH1({ h1: rawH1, sourceRow: number });
   const clusterKeywords = splitTerms(row.recommended_cluster_terms_to_use_naturally).filter((term) => term !== "—");
   const content = buildContent(h1, state, clusterKeywords, number);
   const spec = {

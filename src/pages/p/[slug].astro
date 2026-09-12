@@ -55,7 +55,7 @@ const priceText =
 
 // Breadcrumbs
 const categoryLanding = getCategoryLanding(getCategoryKey(product.category));
-const landingLinks = getRelevantLandingsForProduct(product, 3);
+const landingLinks = getRelevantLandingsForProduct(product, 4, all);
 const curatedTagLinks = getCuratedTagsForProduct(product, all, 4);
 const productCategoryLabel = getDisplayCategoryForProduct(product);
 const breadcrumbs = [
@@ -67,7 +67,7 @@ const breadcrumbs = [
 const sameBrandProducts = all
   .filter((p) => p.slug !== product.slug)
   .filter((p) => product.brand_slug && p.brand_slug === product.brand_slug)
-  .slice(0, 6);
+  .slice(0, 4);
 
 // Related products: score by shared tags + same category + same brand
 const productTaxonomy = getTaxonomyForProduct(product);
@@ -92,7 +92,7 @@ const related = all
   })
   .filter((x) => x.score > 0)
   .sort((a, b) => b.score - a.score)
-  .slice(0, 8)
+  .slice(0, 4)
   .map((x) => x.p);
 
 const relatedPrice = (p) =>
@@ -102,16 +102,30 @@ const relatedPrice = (p) =>
       ? `${p.price_min_eur}+ ${p.currency}`
       : "";
 
+const metaDescriptionOverrides = {
+  cheresha: "Натурален черешов ликьор „Череша“ от 2 Лета, 25% алк. и 500 мл, приготвен чрез мацерация на пресни череши в черешов дестилат.",
+  "roklya-dot": "Дамска рокля Dot от DVETE с десен на точки, предлагана в размери S, M и L. Виж модела, снимките и актуалните условия при бранда.",
+  samodiva: "Дамска рокля „Самодива“ от КИТНА, изработена от лиосел с бродерия, вдъхновена от българските традиции и предлагана в бяло и черно.",
+  "set-lora": "Дамски сет Лора от OMAYA в бяло: дълъг панталон с висока талия и ефирен елек със стилни копчета. Виж снимки и подробности за модела.",
+  "svatba-e": "Поздравителна картичка „Сватба е!“ от Mazno във формат А6, с празна вътрешна страна за лично пожелание, прецизен печат и включен плик.",
+  kaisiya: "Натурален кайсиев ликьор „Кайсия“ от 2 Лета, 25% алк. и 500 мл, приготвен чрез мацерация на пресни кайсии в кайсиев дестилат.",
+  "az-i-ti": "„Аз и Ти“ от Moments е комплект от 30 карти с идеи за изненади, места и занимания, създадени за повече споделени моменти между двойки.",
+};
+const productMetaDescription = metaDescriptionOverrides[product.slug];
+
 ---
-<BaseLayout seo={{ type: "product", data: {
+<BaseLayout seo={{ type: "product", description: productMetaDescription, data: {
   productName: product.name_bg,
   brandName: product.brand_name,
   description: product.short_desc_bg || product.long_desc_bg,
   image: product.image_urls?.[0],
   category: productCategoryLabel,
   productUrl: product.product_url,
+  brandUrl: product.website_url || product.brand_url,
   currency: product.currency,
-  price: product.price_min_eur ?? product.price_max_eur,
+  exactPrice: product.price_min_eur !== null && product.price_min_eur === product.price_max_eur
+    ? product.price_min_eur
+    : null,
   breadcrumbs: breadcrumbs.map((entry) => ({ name: entry.label, item: entry.href }))
 } }} i18n={{
   en: {
@@ -124,8 +138,8 @@ const relatedPrice = (p) =>
     "product.cta": "Visit brand website →",
     "product.moreIdeas": "More ideas",
     "product.relatedTitle": "Explore more in similar selections",
-    "product.sameBrandKicker": "More from this brand",
-    "product.sameBrandTitle": "More from this brand",
+    "product.sameBrandKicker": "Explore more",
+    "product.sameBrandTitle": `More from ${product.brand_name}`,
     "product.curatedKicker": "Curated suggestions",
     "product.mightLike": "More products you may like",
     "product.suitableFor": "Suitable for",
@@ -198,7 +212,8 @@ const relatedPrice = (p) =>
               src={product.image_urls[0]}
               alt={product.name_bg}
               class="hero-img"
-              loading="lazy"
+              loading="eager"
+              fetchpriority="high"
               decoding="async"
               width="1200"
               height="1500"
@@ -282,11 +297,19 @@ const relatedPrice = (p) =>
       </div>
     </section>
 
+    {brandExcerpt && product.brand_slug ? (
+      <section class="product-brand-block page-panel">
+        <p class="page-kicker">За {product.brand_name}</p>
+        <p>{brandExcerpt}</p>
+        <a href={`/brand/${product.brand_slug}/`}>Виж профила на бранда →</a>
+      </section>
+    ) : null}
+
     {sameBrandProducts.length ? (
       <section class="related">
         <div class="related-head">
-          <p class="page-kicker" data-i18n="product.sameBrandKicker">Още от този бранд</p>
-          <h2 class="related-title" data-i18n="product.sameBrandTitle">Още от този бранд</h2>
+          <p class="page-kicker" data-i18n="product.sameBrandKicker">РАЗГЛЕДАЙ ОЩЕ</p>
+          <h2 class="related-title" data-i18n="product.sameBrandTitle">Още от {product.brand_name}</h2>
         </div>
 
         <ul class="related-grid" data-masonry-grid>
@@ -296,9 +319,11 @@ const relatedPrice = (p) =>
               <li
                 class="related-card"
                 data-masonry-card
+                data-product-id={r.id}
                 data-product-slug={r.slug}
                 data-product-name={r.name_bg}
                 data-brand-slug={r.brand_slug ?? ""}
+                data-brand-id={r.brand_id ?? ""}
                 data-brand-name={r.brand_name ?? ""}
                 data-product-url={r.product_url ?? ""}
               >
@@ -352,6 +377,7 @@ const relatedPrice = (p) =>
             );
           })}
         </ul>
+        {product.brand_slug ? <a class="related-brand-profile" href={`/brand/${product.brand_slug}/`}>Разгледай профила на бранда →</a> : null}
       </section>
     ) : null}
 
@@ -387,9 +413,11 @@ const relatedPrice = (p) =>
               <li
                 class="related-card"
                 data-masonry-card
+                data-product-id={r.id}
                 data-product-slug={r.slug}
                 data-product-name={r.name_bg}
                 data-brand-slug={r.brand_slug ?? ""}
+                data-brand-id={r.brand_id ?? ""}
                 data-brand-name={r.brand_name ?? ""}
                 data-product-url={r.product_url ?? ""}
               >
@@ -461,13 +489,6 @@ const relatedPrice = (p) =>
       </section>
     ) : null}
 
-    {brandExcerpt && product.brand_slug ? (
-      <section class="product-brand-block page-panel">
-        <p class="page-kicker">За {product.brand_name}</p>
-        <p>{brandExcerpt}</p>
-        <a href={`/brand/${product.brand_slug}/`}>Виж профила на бранда →</a>
-      </section>
-    ) : null}
   </main>
 
   <style>
@@ -626,9 +647,10 @@ const relatedPrice = (p) =>
       gap: 10px;
     }
 
-    .product-brand-block { max-width: 760px; margin: 40px auto 0; padding: 24px; }
+    .product-brand-block { width: 100%; margin: 30px 0 46px; padding: 24px; }
     .product-brand-block p:not(.page-kicker) { margin: 8px 0 14px; color: rgba(26,26,26,.74); line-height: 1.65; }
     .product-brand-block a { color: var(--accent-strong); font-weight: 750; text-decoration: none; }
+    .related-brand-profile { display:table; margin:18px auto 0; color:var(--accent-strong); font-weight:700; text-decoration:none; }
 
     .product-signal {
       min-height: 42px;

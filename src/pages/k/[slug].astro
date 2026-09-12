@@ -15,7 +15,7 @@ const allProducts = await loadProducts();
 export async function getStaticPaths() {
   const products = await loadProducts();
   const preservedEmptySlugs = new Set([
-    "zabavlenie", "hrana-i-napitki", "belio", "banya", "detski-knigi",
+    "zabavlenie", "hrana-i-napitki", "belio", "banya", "knigi", "detski-knigi",
     "kozmetika-za-deca", "detski-mebeli-i-tekstil", "chai-i-bilki", "sport",
     "kozmetika-tyalo", "kozmetika-za-mazhe", "igri", "aksesoari-za-domashni-lyubimci",
     "napitki", "detski-aksesoari",

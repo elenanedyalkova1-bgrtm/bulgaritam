@@ -112,7 +112,6 @@ const brandHeroPills = [
   brandHasGift ? { label: "Подарък", className: "brand-hero-pill--gift" } : null,
 ].filter(Boolean);
 
-const hasLogo = Boolean(brandRow?.brand_logo_url);
 const breadcrumbs = [
   { label: "Начало", href: "/" },
   { label: "Брандове", href: "/bulgarski-brandove/" },
@@ -122,6 +121,9 @@ const breadcrumbs = [
 <BaseLayout seo={{ type: "brand", data: {
   brandName,
   description: brandRow?.intro_bg,
+  officialUrl: brandRow?.website_url,
+  instagramUrl: brandRow?.instagram_url,
+  logo: brandRow?.brand_logo_url,
   breadcrumbs: breadcrumbs.map((entry) => ({ name: entry.label, item: entry.href }))
 } }} i18n={{
   en: {
@@ -184,23 +186,27 @@ const breadcrumbs = [
       </div>
     </div>
 
-    {brandFrequentTaxonomy.length ? (
-      <section class="brand-frequency" aria-labelledby="brand-frequency-title">
-        <h2 id="brand-frequency-title">Най-често срещан в</h2>
-        <div>{brandFrequentTaxonomy.map(({ value, href }) => href ? <a href={href}>{value}</a> : <span>{value}</span>)}</div>
+    {(brandFrequentTaxonomy.length || brandPriceRange) ? (
+      <section class="brand-summary" aria-label="Обобщение за бранда">
+        {brandFrequentTaxonomy.length ? (
+          <article class="brand-summary__card brand-frequency" aria-labelledby="brand-frequency-title">
+            <h2 id="brand-frequency-title">Най-често срещан в</h2>
+            <div>{brandFrequentTaxonomy.map(({ value, href }) => href ? <a href={href}>{value}</a> : <span>{value}</span>)}</div>
+          </article>
+        ) : null}
+        {brandPriceRange ? (
+          <article class="brand-summary__card brand-price-range">
+            <p class="brand-summary__label">Ценови диапазон</p>
+            <p class="brand-summary__price">{brandPriceRange}</p>
+          </article>
+        ) : null}
       </section>
     ) : null}
 
-    {(brandInsights.length || brandPriceRange || brandRow?.intro_bg) ? (
+    {(brandInsights.length || brandRow?.intro_bg) ? (
       <section class="brand-overview" aria-label="По-бърз поглед към бранда">
-        {(brandInsights.length || brandPriceRange) ? (
-          <div class="brand-insights" data-count={brandInsights.length + (brandPriceRange ? 1 : 0)}>
-            {brandPriceRange ? (
-              <article class="brand-insight brand-insight--price">
-                <p class="brand-insight__title">Ценови диапазон</p>
-                <p class="brand-insight__text">{brandPriceRange}</p>
-              </article>
-            ) : null}
+        {brandInsights.length ? (
+          <div class="brand-insights" data-count={brandInsights.length}>
             {brandInsights.map((insight) => (
               <article class="brand-insight">
                 <p class="brand-insight__title">{insight.title}</p>
@@ -211,16 +217,7 @@ const breadcrumbs = [
         ) : null}
 
         {brandRow?.intro_bg ? (
-          <div class="brand-head" data-has-logo={hasLogo ? "1" : "0"}>
-            {hasLogo ? (
-              <img
-                class="brand-logo"
-                src={brandRow.brand_logo_url}
-                alt={`${brandName} лого`}
-                loading="lazy"
-              />
-            ) : null}
-
+          <div class="brand-head">
             <div class="brand-copy">
               <section class="brand-intro-card">
                 <p class="brand-intro-card__eyebrow" data-i18n="brand.aboutTitle">За бранда</p>
@@ -461,6 +458,42 @@ const breadcrumbs = [
       margin: 16px 0 20px;
     }
 
+    .brand-summary{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 18px 0 20px;
+    }
+
+    .brand-summary__card{
+      min-width: 0;
+      min-height: 132px;
+      padding: 20px 22px;
+      border: 1px solid rgba(26,26,26,.08);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,245,240,.76));
+      box-shadow: 0 12px 28px rgba(0,0,0,.045);
+      font-family: var(--font-body);
+    }
+
+    .brand-summary__label,
+    .brand-frequency h2{
+      margin: 0 0 14px;
+      color: rgba(26,26,26,.52);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .brand-summary__price{
+      margin: 0;
+      color: rgba(26,26,26,.86);
+      font-family: var(--font-title);
+      font-size: clamp(24px, 2.4vw, 34px);
+      line-height: 1.15;
+    }
+
     .brand-head{
       display: grid;
       gap: 14px;
@@ -588,16 +621,6 @@ const breadcrumbs = [
       border-color: rgba(123, 64, 59, 0.12);
     }
 
-    .brand-logo{
-      width: 84px;
-      height: 84px;
-      object-fit: contain;
-      border-radius: 16px;
-      background: rgba(255,255,255,.75);
-      border: 1px solid rgba(0,0,0,.08);
-      padding: 10px;
-    }
-
     .brand-copy{
       width: 100%;
       max-width: none;
@@ -708,11 +731,10 @@ const breadcrumbs = [
       grid-auto-flow: dense;
     }
 
-    .brand-frequency { margin: 18px 0 30px; text-align: center; }
-    .brand-frequency h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: rgba(26,26,26,.52); }
-    .brand-frequency div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-    .brand-frequency span, .brand-frequency a { padding: 8px 12px; border: 1px solid rgba(26,26,26,.09); border-radius: 999px; background: rgba(255,255,255,.7); color: inherit; font-size: 13px; text-decoration: none; }
+    .brand-frequency div { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 8px; }
+    .brand-frequency span, .brand-frequency a { display: inline-flex; align-items: center; min-height: 36px; padding: 8px 12px; border: 1px solid rgba(26,26,26,.09); border-radius: 999px; background: rgba(255,255,255,.7); color: inherit; font-family: var(--font-body); font-size: 13px; line-height: 1.2; text-decoration: none; }
     .brand-frequency a:hover { border-color: rgba(26,26,26,.24); background: rgba(255,255,255,.95); }
+    .brand-frequency a:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; border-color: rgba(95,127,107,.3); }
 
     .card {
       display: block;
@@ -955,6 +977,16 @@ const breadcrumbs = [
     }
 
     @media (max-width: 768px) {
+      .brand-summary{
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .brand-summary__card{
+        min-height: 0;
+        padding: 18px;
+      }
+
       .brand-hero-bar{
         display: grid;
         gap: 12px;
@@ -970,14 +1002,6 @@ const breadcrumbs = [
 
       .brand-insights {
         grid-template-columns: 1fr;
-      }
-
-      .brand-head[data-has-logo="1"]{
-        grid-template-columns: 1fr;
-      }
-
-      .brand-logo{
-        display: none;
       }
 
       .grid {

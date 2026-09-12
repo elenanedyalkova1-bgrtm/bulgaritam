@@ -27,6 +27,11 @@
   --accent: #5f7f6b;
   --accent-strong: #4f6d5c;
   --accent-soft: rgba(95, 127, 107, 0.12);
+  --brand-green: #5C7565;
+  --brand-cream: #D9CEC7;
+  --brand-burgundy: #6C252B;
+  --brand-taupe: #7D6A60;
+  --discovery-bg: #F3E8E5;
 
   --max: 1280px;
   --max-reading: 760px;
@@ -714,8 +719,9 @@ body.page .lead {
 .footer {
   margin-top: 76px;
   padding-top: 34px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  background: #20241f;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .footer-inner {
@@ -745,12 +751,12 @@ body.page .lead {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(26, 26, 26, 0.68);
+  color: rgba(255, 255, 255, 0.62);
   margin-bottom: 2px;
 }
 
 .footer-link {
-  color: var(--text);
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
@@ -758,12 +764,13 @@ body.page .lead {
 }
 
 .footer-link:hover {
+  color: #fff;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
 .footer-note {
-  color: rgba(26, 26, 26, 0.74);
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.72;
   max-width: 36ch;
   font-size: 15px;
@@ -814,9 +821,12 @@ body.page .lead {
 
 .footer-made {
   font-size: 14px;
-  color: rgba(26, 26, 26, 0.72);
+  color: rgba(255, 255, 255, 0.68);
   line-height: 1.55;
 }
+
+.footer-newsletter-cta { margin-top:2px; padding:0; border:0; background:transparent; color:rgba(255,255,255,.92); font:700 14px/1.45 var(--font-body); text-align:left; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.footer-newsletter-cta:focus-visible { outline:2px solid currentColor; outline-offset:4px; border-radius:2px; }
 
 .footer-nav {
   display: grid;
@@ -826,7 +836,7 @@ body.page .lead {
 .footer-bottom {
   margin-top: 36px;
   padding: 18px 0 22px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
   font-size: 14px;
 }
 
@@ -838,8 +848,11 @@ body.page .lead {
 }
 
 .footer-muted {
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.58);
 }
+
+.footer a:visited,
+.footer a:active { color: rgba(255, 255, 255, 0.92); }
 
 /* ---------- Mobile menu / overlay ---------- */
 .mobile-overlay {

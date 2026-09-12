@@ -10,7 +10,9 @@ const rows = [
 ].map(parseEvent).filter(Boolean) as any[];
 
 const search = buildSearchRows(rows);
-assert.equal(search.find(row=>row.query==="обеци")?.outbound,1);
+// Legacy downstream events without search_id remain visible in product totals,
+// but are no longer presented as causally attributed to the last session search.
+assert.equal(search.find(row=>row.query==="обеци")?.outbound,0);
 assert.equal(search.find(row=>row.query==="несъществуващо")?.zero,1);
 const product = buildProductRows(rows)[0];
 assert.equal(product.views,1);assert.equal(product.saves,1);assert.equal(product.outbound,1);

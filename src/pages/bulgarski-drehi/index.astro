@@ -1,6 +1,6 @@
 ---
 import SeoProductLanding from "../../components/SeoProductLanding.astro";
-import { getCategoryLanding, getProductsForLanding, getClothingEditorialForLanding, getLandingPageHierarchy } from "../../lib/seo-landings";
+import { getCategoryLanding, getProductsForLanding, getProductsForIntentLanding, getClothingEditorialForLanding, getIntentLandingByPath, getLandingPageHierarchy } from "../../lib/seo-landings";
 import { loadProducts } from "../../lib/products";
 
 const allProducts = await loadProducts();
@@ -13,6 +13,19 @@ if (!landing) {
 const products = getProductsForLanding(allProducts, landing);
 const hierarchy = getLandingPageHierarchy(landing, allProducts);
 
+const hubLandingOptions = [
+  { path: "/bulgarski-drehi/rokli/", label: "Рокли", labelEn: "Dresses" },
+  { path: "/bulgarski-drehi/pizhami/", label: "Пижами", labelEn: "Pajamas" },
+  { path: "/bulgarski-damski-sportni-ekipi/", label: "Дамски спортни екипи", labelEn: "Women's tracksuits" },
+  { path: "/bulgarski-leneni-drehi/", label: "Ленени дрехи", labelEn: "Linen clothing" },
+  { path: "/bulgarski-palta-ot-valna/", label: "Палта от вълна", labelEn: "Wool coats" },
+];
+const hubPills = hubLandingOptions.flatMap((option) => {
+  const intentLanding = getIntentLandingByPath(option.path);
+  if (!intentLanding || getProductsForIntentLanding(allProducts, intentLanding).length === 0) return [];
+  return [{ ...option, href: option.path, isActive: false }];
+});
+
 const clothingEditorial = getClothingEditorialForLanding({ categoryKey: "clothing" });
 ---
 
@@ -23,7 +36,9 @@ const clothingEditorial = getClothingEditorialForLanding({ categoryKey: "clothin
   canonicalPath="/bulgarski-drehi/"
   breadcrumbs={hierarchy.breadcrumbs}
   primaryPills={hierarchy.primaryPills}
-  secondaryPills={hierarchy.secondaryPills}
+  secondaryPills={hubPills}
+  secondaryPillsTitle="Разгледай по вид"
+  secondaryPillsAriaLabel="Видове български дрехи"
   parentLink={hierarchy.parentLink}
   editorialHeader={clothingEditorial?.header}
   editorialSections={clothingEditorial?.sections || []}

@@ -5,6 +5,7 @@ export const ANALYTICS_TABLE = import.meta.env?.BASEROW_ANALYTICS_EVENTS_TABLE_I
 export type PeriodKey = "today" | "yesterday" | "7d" | "30d" | "90d" | "custom";
 export type AnalyticsEvent = {
   id: number;
+  eventId: string;
   event: string;
   at: Date;
   sessionId: string;
@@ -32,6 +33,11 @@ export type AnalyticsEvent = {
   pageType: string;
   giftRecipient: string;
   giftOccasion: string;
+  sequenceNumber: number;
+  acquisitionChannel: string;
+  landingPage: string;
+  discoveryStateId: string;
+  searchRevision: number;
   payload: Record<string, unknown>;
 };
 
@@ -47,7 +53,7 @@ export const parseEvent = (row: any): AnalyticsEvent | null => {
   const at = new Date(text(row.occurred_at));
   if (!row.event_name || Number.isNaN(at.getTime())) return null;
   return {
-    id: Number(row.id), event: text(row.event_name), at,
+    id: Number(row.id), eventId: pick(row,payload,"event_id"), event: text(row.event_name), at,
     sessionId: pick(row, payload, "anonymous_session_id"), journeyId: pick(row, payload, "anonymous_journey_id"),
     productId: pick(row, payload, "product_id"), productName: pick(row, payload, "product_name"), productSlug: pick(row, payload, "product_slug"),
     brandId: pick(row, payload, "brand_id"), brandName: pick(row, payload, "brand_name"), brandSlug: pick(row, payload, "brand_slug"),
@@ -57,6 +63,7 @@ export const parseEvent = (row: any): AnalyticsEvent | null => {
     referrerDomain: pick(row, payload, "referrer_domain"), utmSource: pick(row, payload, "utm_source"), utmMedium: pick(row, payload, "utm_medium"), utmCampaign: pick(row, payload, "utm_campaign"),
     searchId: pick(row, payload, "search_id"), pagePath: pick(row, payload, "page_path"), pageType: pick(row, payload, "page_type"),
     giftRecipient: pick(row, payload, "gift_recipient"), giftOccasion: pick(row, payload, "gift_occasion"),
+    sequenceNumber:number(payload.sequence_number), acquisitionChannel:pick(row,payload,"acquisition_channel"), landingPage:pick(row,payload,"landing_page"), discoveryStateId:pick(row,payload,"discovery_state_id"), searchRevision:number(payload.search_revision),
     payload,
   };
 };
@@ -94,7 +101,7 @@ export function resolvePeriod(url: URL) {
 
 export const count = (events: AnalyticsEvent[], name: string) => events.filter((event) => event.event === name).length;
 const unique = (values: string[]) => new Set(values.filter(Boolean)).size;
-const pct = (numerator: number, denominator: number) => denominator ? (numerator / denominator) * 100 : 0;
+const pct = (numerator: number, denominator: number):number|null => denominator > 0 ? (numerator / denominator) * 100 : null;
 const eventNames = ["page_view","product_impression","view_product","view_brand","save_product","add_to_collection","share_collection","outbound_product_click","outbound_brand_click","search","search_no_results"];
 
 export function metricSummary(events: AnalyticsEvent[], previous: AnalyticsEvent[]) {
@@ -113,20 +120,16 @@ const group = <T>(items: T[], key: (item:T)=>string) => {
 
 const downstreamNames = new Set(["view_product","view_brand","save_product","add_to_collection","share_product","outbound_product_click","outbound_brand_click"]);
 export function buildSearchRows(events: AnalyticsEvent[]) {
-  const sorted = [...events].sort((a,b)=>a.at.getTime()-b.at.getTime());
-  const lastSearchBySession = new Map<string,string>();
   const downstream = new Map<string,AnalyticsEvent[]>();
-  sorted.forEach(event => {
-    if (event.event === "search" && event.searchTerm) lastSearchBySession.set(event.sessionId,event.searchTerm);
-    if (!downstreamNames.has(event.event)) return;
-    const query = event.searchTerm || lastSearchBySession.get(event.sessionId) || "";
-    if (query) downstream.set(query,[...(downstream.get(query)||[]),event]);
-  });
+  events.filter(event=>downstreamNames.has(event.event)&&event.searchId).forEach(event=>downstream.set(event.searchId,[...(downstream.get(event.searchId)||[]),event]));
   return [...group(events.filter(e=>e.event==="search" && e.searchTerm),e=>e.searchTerm).entries()].map(([query,items])=>{
-    const actions=downstream.get(query)||[]; const counts=items.map(e=>e.resultCount);
+    const actions=items.flatMap(item=>item.searchId?(downstream.get(item.searchId)||[]):[]); const counts=items.map(e=>e.resultCount);
     const zero=items.filter(e=>e.resultCount===0).length;
-    return {query, searches:items.length, avgResults:counts.length?counts.reduce((a,b)=>a+b,0)/counts.length:0, zero, zeroRate:pct(zero,items.length),
+    const productsReturned=new Map<string,number>(),brandsReturned=new Map<string,number>();items.forEach(item=>{returnedProducts(item).forEach(([id])=>productsReturned.set(id,(productsReturned.get(id)||0)+1));returnedBrands(item).forEach(([id])=>brandsReturned.set(id,(brandsReturned.get(id)||0)+1));returnedProducts(item).forEach(([,id])=>{if(id)brandsReturned.set(id,(brandsReturned.get(id)||0)+1)})});
+    const top=(map:Map<string,number>)=>[...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+    return {query, searches:items.length,sessions:unique(items.map(e=>e.sessionId)), avgResults:counts.length?counts.reduce((a,b)=>a+b,0)/counts.length:0, zero, zeroRate:pct(zero,items.length)??0,
       productViews:count(actions,"view_product"), brandViews:count(actions,"view_brand"), saves:count(actions,"save_product"), productOutbound:count(actions,"outbound_product_click"), brandOutbound:count(actions,"outbound_brand_click"), outbound:count(actions,"outbound_product_click"),
+      topProductsReturned:top(productsReturned),topProductsViewed:top(new Map(actions.filter(e=>e.event==="view_product"&&e.productId).map(e=>[e.productName||e.productId,actions.filter(x=>x.event==="view_product"&&(x.productId===e.productId)).length]))),topBrandsReturned:top(brandsReturned),topBrandsViewed:top(new Map(actions.filter(e=>e.event==="view_brand"&&e.brandId).map(e=>[e.brandName||e.brandId,actions.filter(x=>x.event==="view_brand"&&x.brandId===e.brandId).length]))),
       unmetScore:items.filter(e=>e.resultCount===0).length*3 + Math.max(0,items.length-(actions.length||0))};
   }).sort((a,b)=>b.searches-a.searches);
 }
@@ -146,7 +149,7 @@ export function buildProductRows(events: AnalyticsEvent[]) {
     const impressions=count(items,"product_impression"), views=count(items,"view_product"), outbound=count(items,"outbound_product_click");
     const returns=returned.get(id);
     return {id,name:items.find(e=>e.productName)?.productName||id,slug:items.find(e=>e.productSlug)?.productSlug||"",brand:items.find(e=>e.brandName)?.brandName||"—",brandId:items.find(e=>e.brandId)?.brandId||"",category:items.find(e=>e.category)?.category||"",
-      returned:returns??null,returnedAvailable,impressions,views,saves:count(items,"save_product"),adds:count(items,"add_to_collection"),shares:count(items,"share_product"),outbound,returnedImpressionRate:returns==null?null:pct(impressions,returns),impressionViewRate:pct(views,impressions),viewOutboundRate:pct(outbound,views)};
+      returned:returns??null,returnedAvailable,impressions,views,saves:count(items,"save_product"),adds:count(items,"add_to_collection"),shares:count(items,"share_product"),outbound,returnedImpressionRate:returns==null?null:pct(impressions,returns),returnedViewRate:returns==null?null:pct(views,returns),returnedOutboundRate:returns==null?null:pct(outbound,returns),impressionViewRate:pct(views,impressions),viewOutboundRate:pct(outbound,views)};
   }).sort((a,b)=>b.views+b.outbound-a.views-a.outbound);
 }
 
@@ -159,7 +162,8 @@ export function buildBrandRows(events: AnalyticsEvent[]) {
 }
 
 export function buildDimensionRows(events: AnalyticsEvent[], selector:(event:AnalyticsEvent)=>string) {
-  return [...group(events,selector).entries()].map(([name,items])=>({name,events:items.length,sessions:unique(items.map(e=>e.sessionId)),impressions:count(items,"product_impression"),views:count(items,"view_product"),saves:count(items,"save_product"),outbound:count(items,"outbound_product_click")+count(items,"outbound_brand_click")})).sort((a,b)=>b.events-a.events);
+  const exploded=events.flatMap(event=>split(selector(event)).map(name=>({name,event})));
+  return [...group(exploded,x=>x.name).entries()].map(([name,entries])=>{const items=entries.map(x=>x.event);return{name,events:items.length,sessions:unique(items.map(e=>e.sessionId)),impressions:count(items,"product_impression"),views:count(items,"view_product"),saves:count(items,"save_product"),outbound:count(items,"outbound_product_click")+count(items,"outbound_brand_click")}}).sort((a,b)=>b.events-a.events);
 }
 
 export function buildCollectionSummary(events: AnalyticsEvent[]) {
@@ -170,11 +174,11 @@ export function buildCollectionSummary(events: AnalyticsEvent[]) {
 export function buildJourneyRows(events: AnalyticsEvent[]) {
   return [...group(events.filter(e=>e.sessionId),e=>e.sessionId).entries()].map(([sessionId,items])=>{
     const sorted=[...items].sort((a,b)=>a.at.getTime()-b.at.getTime());
-    return {sessionId:`…${sessionId.slice(-8)}`,started:sorted[0]?.at,steps:sorted.map(e=>({event:e.event,label:e.searchTerm||e.productName||e.brandName||e.category||""})),meaningful:sorted.some(e=>["save_product","outbound_product_click"].includes(e.event))};
-  }).filter(row=>row.steps.length>1).sort((a,b)=>(b.started?.getTime()||0)-(a.started?.getTime()||0)).slice(0,40);
+    const start=sorted[0]?.at,end=sorted.at(-1)?.at;return {sessionId:`…${sessionId.slice(-8)}`,started:start,durationMs:start&&end?end.getTime()-start.getTime():0,landing:sorted.find(e=>e.landingPage)?.landingPage||sorted.find(e=>e.event==="page_view")?.pagePath||"—",source:sorted.find(e=>e.acquisitionChannel)?.acquisitionChannel||"Legacy / unknown",searches:count(items,"search"),productViews:count(items,"view_product"),brandViews:count(items,"view_brand"),saves:count(items,"save_product"),outbound:count(items,"outbound_product_click")+count(items,"outbound_brand_click"),legacy:!sorted.some(e=>e.eventId),steps:sorted.map(e=>({at:e.at,event:e.event,label:e.searchTerm||e.productName||e.brandName||e.pagePath||e.category||"",attributed:Boolean(e.searchId)}))};
+  }).filter(row=>row.steps.length>1).sort((a,b)=>(b.started?.getTime()||0)-(a.started?.getTime()||0)).slice(0,100);
 }
 
-const split=(value:unknown)=>text(value).split(",").map(v=>v.trim()).filter(Boolean);
+const split=(value:unknown)=>{const raw=text(value);try{const parsed=JSON.parse(raw);if(Array.isArray(parsed))return parsed.map(text).filter(Boolean)}catch{}return raw.split(",").map(v=>v.trim()).filter(Boolean)};
 const payloadText=(e:AnalyticsEvent,key:string)=>text(e.payload[key]);
 const actionNames=new Set(["view_product","view_brand","save_product","outbound_product_click","outbound_brand_click"]);
 export function buildUnmetRows(events:AnalyticsEvent[]){
@@ -206,9 +210,8 @@ export function buildFilterRows(events:AnalyticsEvent[]){
       values.filter(Boolean).forEach(value=>selections.push({event:e,value}));
     });
     for(const [value,items] of group(selections,x=>x.value)){
-      const sessionIds=new Set(items.map(x=>x.event.sessionId));const first=Math.min(...items.map(x=>x.event.at.getTime()));
-      const actions=events.filter(e=>sessionIds.has(e.sessionId)&&e.at.getTime()>=first&&actionNames.has(e.event));
-      rows.push({key,label,value,selections:items.length,views:count(actions,"view_product"),outbound:count(actions,"outbound_product_click")});
+      const states=new Set(items.map(x=>x.event.discoveryStateId).filter(Boolean));const actions=events.filter(e=>states.has(e.discoveryStateId)&&actionNames.has(e.event));const before=items.filter(x=>Object.hasOwn(x.event.payload,"results_before")).map(x=>number(x.event.payload.results_before)),after=items.filter(x=>Object.hasOwn(x.event.payload,"results_after")).map(x=>number(x.event.payload.results_after));
+      rows.push({key,label,value,selections:items.length,resultsBefore:before.length?before.reduce((a,b)=>a+b,0)/before.length:null,resultsAfter:after.length?after.reduce((a,b)=>a+b,0)/after.length:null,views:count(actions,"view_product"),outbound:count(actions,"outbound_product_click")});
     }
   }
   return rows.sort((a,b)=>b.selections-a.selections);
@@ -216,8 +219,8 @@ export function buildFilterRows(events:AnalyticsEvent[]){
 
 export function buildPageRows(events:AnalyticsEvent[]){return [...group(events,e=>e.pagePath||e.sourceContext||e.listContext).entries()].map(([path,items])=>({path,pageType:items.find(e=>e.pageType)?.pageType||"—",sessions:unique(items.map(e=>e.sessionId)),pageViews:count(items,"page_view"),productViews:count(items,"view_product"),brandViews:count(items,"view_brand"),saves:count(items,"save_product"),outbound:count(items,"outbound_product_click")+count(items,"outbound_brand_click")})).sort((a,b)=>b.pageViews+b.productViews+b.outbound-a.pageViews-a.productViews-a.outbound)}
 
-export function buildAcquisitionRows(events:AnalyticsEvent[]){return [...group(events,e=>[e.utmSource,e.utmMedium,e.utmCampaign,e.referrerDomain].join("|")).entries()].map(([key,items])=>{const [source,medium,campaign,referrer]=key.split("|");return{source:source||"Директен / неизвестен",medium:medium||"—",campaign:campaign||"—",referrer:referrer||"—",sessions:unique(items.map(e=>e.sessionId)),searches:count(items,"search"),views:count(items,"view_product"),saves:count(items,"save_product"),outbound:count(items,"outbound_product_click")+count(items,"outbound_brand_click")}}).sort((a,b)=>b.sessions-a.sessions)}
+export function buildAcquisitionRows(events:AnalyticsEvent[]){return [...group(events,e=>[e.acquisitionChannel,e.utmSource,e.utmMedium,e.utmCampaign,e.referrerDomain].join("|")).entries()].map(([key,items])=>{const [channel,source,medium,campaign,referrer]=key.split("|");return{channel:channel||"Legacy / unknown",source:source||"—",medium:medium||"—",campaign:campaign||"—",referrer:referrer||"—",sessions:unique(items.map(e=>e.sessionId)),searches:count(items,"search"),views:count(items,"view_product"),saves:count(items,"save_product"),outbound:count(items,"outbound_product_click")+count(items,"outbound_brand_click")}}).sort((a,b)=>b.sessions-a.sessions)}
 
-export function buildFunnel(events:AnalyticsEvent[]){const searches=events.filter(e=>e.event==="search"),tracked=searches.filter(e=>hasReturnedData(e)&&e.searchId),ids=new Set(tracked.map(e=>e.searchId)),related=events.filter(e=>ids.has(e.searchId)),returns=tracked.reduce((n,e)=>n+returnedProducts(e).length+returnedBrands(e).length,0),impressions=count(related,"product_impression")+count(related,"brand_impression"),views=count(related,"view_product")+count(related,"view_brand"),saves=count(related,"save_product"),outbound=count(related,"outbound_product_click")+count(related,"outbound_brand_click");return{available:tracked.length>0,searches:searches.length,searchesWithResults:searches.filter(e=>e.resultCount>0).length,returns,impressions,views,saves,outbound,returnImpression:pct(impressions,returns),impressionView:pct(views,impressions),viewSave:pct(saves,views),viewOutbound:pct(outbound,views),searchOutbound:pct(outbound,tracked.length)}}
+export function buildFunnel(events:AnalyticsEvent[]){const searches=events.filter(e=>e.event==="search"),tracked=searches.filter(e=>hasReturnedData(e)&&e.searchId),ids=new Set(tracked.map(e=>e.searchId)),related=events.filter(e=>ids.has(e.searchId)),returns=tracked.reduce((n,e)=>n+returnedProducts(e).length+returnedBrands(e).length,0),impressions=count(related,"product_impression")+count(related,"brand_impression"),views=count(related,"view_product")+count(related,"view_brand"),saves=count(related,"save_product"),outbound=count(related,"outbound_product_click")+count(related,"outbound_brand_click");return{available:tracked.length>0,searches:searches.length,searchesWithResults:searches.filter(e=>e.resultCount>0).length,returns,impressions,views,saves,outbound,returnImpression:pct(impressions,returns),impressionView:pct(views,impressions),viewSave:pct(saves,views),viewOutbound:pct(outbound,views),searchOutbound:tracked.length?pct(outbound,tracked.length):null}}
 
 export function buildBrandSearchRows(events:AnalyticsEvent[],brandId:string){const searches=events.filter(e=>e.event==="search"&&e.searchId);const rows=new Map<string,{query:string,returned:number,impressions:number,views:number,outbound:number}>();for(const s of searches){const productMatches=returnedProducts(s).filter(([,b])=>b===brandId).length;const brandMatches=returnedBrands(s).filter(([b])=>b===brandId).length;if(!productMatches&&!brandMatches)continue;const row=rows.get(s.searchTerm)||{query:s.searchTerm,returned:0,impressions:0,views:0,outbound:0};row.returned+=productMatches+brandMatches;const related=events.filter(e=>e.searchId===s.searchId&&e.brandId===brandId);row.impressions+=count(related,"product_impression")+count(related,"brand_impression");row.views+=count(related,"view_product")+count(related,"view_brand");row.outbound+=count(related,"outbound_product_click")+count(related,"outbound_brand_click");rows.set(s.searchTerm,row)}return[...rows.values()].sort((a,b)=>b.returned-a.returned)}

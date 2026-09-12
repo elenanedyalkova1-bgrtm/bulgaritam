@@ -90,7 +90,7 @@ jobs:
     if: ${{ inputs.mode == 'deploy' }}
     needs: build-and-verify
     runs-on: ubuntu-latest
-    timeout-minutes: 75
+    timeout-minutes: 90
     environment: public-production
     steps:
       - name: Download verified artifact
@@ -135,8 +135,11 @@ jobs:
         run: |
           lftp -u "$FTPS_USERNAME","$FTPS_PASSWORD" -p "$FTPS_PORT" "ftp://$FTPS_TLS_HOST" <<LFTP
           set cmd:fail-exit true
-          set net:max-retries 2
-          set net:timeout 20
+          set net:max-retries 8
+          set net:timeout 30
+          set net:reconnect-interval-base 5
+          set net:reconnect-interval-max 30
+          set net:reconnect-interval-multiplier 2
           set ftp:ssl-force true
           set ftp:ssl-protect-data true
           set ftp:passive-mode true

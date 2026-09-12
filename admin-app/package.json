@@ -12,7 +12,10 @@
     "check": "astro check",
     "test:import": "tsx tests/csv-import.test.ts",
     "test:brand-sync": "tsx tests/brand-sync.test.ts",
-    "test:analytics": "tsx tests/analytics.test.ts && tsx tests/supabase-analytics.test.ts && tsx tests/analytics-ingestion.test.ts",
+    "test:analytics": "tsx tests/analytics.test.ts && tsx tests/supabase-analytics.test.ts && tsx tests/analytics-ingestion.test.ts && tsx tests/analytics-migration.test.ts",
+    "analytics:migrate": "tsx scripts/migrate-baserow-analytics-to-supabase.ts",
+    "analytics:audit": "tsx scripts/audit-analytics-migration.ts",
+    "analytics:verify": "tsx scripts/verify-baserow-supabase-analytics-parity.ts",
     "test:brand-applications": "tsx tests/brand-applications.test.ts",
     "sync:product-brands": "tsx scripts/sync-product-brands.ts",
     "preview": "astro preview"

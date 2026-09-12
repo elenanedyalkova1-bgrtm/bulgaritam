@@ -68,6 +68,7 @@ export const parseEvent = (row: any): AnalyticsEvent | null => {
   };
 };
 
+// Rollback/parity loader only. The production Analytics V1 page reads Supabase.
 export async function loadAnalyticsEvents() {
   if (!ANALYTICS_TABLE) throw new Error("BASEROW_ANALYTICS_EVENTS_TABLE_ID is not configured.");
   return (await listRows(ANALYTICS_TABLE)).map(parseEvent).filter((event): event is AnalyticsEvent => Boolean(event));

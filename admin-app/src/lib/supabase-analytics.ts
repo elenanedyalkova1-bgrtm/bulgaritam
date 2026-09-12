@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { parseEvent, type AnalyticsEvent } from "./analytics";
 
 const TABLE = "analytics_events";
+const READ_PAGE_SIZE = 1_000;
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -138,9 +139,14 @@ export function mapBaserowAnalyticsRowToInsert(row: Record<string, unknown>): An
 }
 
 export function mapSupabaseRowToAnalyticsEvent(row: SupabaseAnalyticsRow): AnalyticsEvent {
+  const metadata = asMetadata(row.metadata);
   const parsed = parseEvent({
     ...row,
-    payload_json: JSON.stringify(row.metadata || {}),
+    payload_json: JSON.stringify({
+      ...metadata,
+      ...(row.sequence_number == null ? {} : { sequence_number: row.sequence_number }),
+      ...(row.search_revision == null ? {} : { search_revision: row.search_revision }),
+    }),
   });
   if (!parsed) throw new Error(`Invalid analytics row ${row.id}.`);
   return parsed;
@@ -202,15 +208,41 @@ export class SupabaseAnalyticsRepository {
 
   async listRange(start: Date, end: Date): Promise<AnalyticsEvent[]> {
     if (start >= end) throw new Error("Analytics range start must be before end.");
-    const { data, error } = await this.client
-      .from(TABLE)
-      .select("*")
-      .gte("occurred_at", start.toISOString())
-      .lt("occurred_at", end.toISOString())
-      .order("occurred_at", { ascending: true });
-    if (error) throw new AnalyticsRepositoryError("read", error);
-    return (data || []).map((row) => mapSupabaseRowToAnalyticsEvent(row as SupabaseAnalyticsRow));
+    const events: AnalyticsEvent[] = [];
+    for (let from = 0; ; from += READ_PAGE_SIZE) {
+      const { data, error } = await this.client
+        .from(TABLE)
+        .select("*")
+        .gte("occurred_at", start.toISOString())
+        .lt("occurred_at", end.toISOString())
+        .order("occurred_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, from + READ_PAGE_SIZE - 1);
+      if (error) throw new AnalyticsRepositoryError("read", error);
+      const rows = data || [];
+      events.push(...rows.map((row) => mapSupabaseRowToAnalyticsEvent(row as SupabaseAnalyticsRow)));
+      if (rows.length < READ_PAGE_SIZE) return events;
+    }
   }
+}
+
+export type AnalyticsPeriodWindows = {
+  start: Date;
+  end: Date;
+  previousStart: Date;
+  previousEnd: Date;
+};
+
+export async function loadAnalyticsPeriodWindows(
+  repository: Pick<SupabaseAnalyticsRepository, "listRange">,
+  period: AnalyticsPeriodWindows,
+) {
+  const all = await repository.listRange(period.previousStart, period.end);
+  const inRange = (event: AnalyticsEvent, start: Date, end: Date) => event.at >= start && event.at < end;
+  return {
+    selected: all.filter((event) => inRange(event, period.start, period.end)),
+    previous: all.filter((event) => inRange(event, period.previousStart, period.previousEnd)),
+  };
 }
 
 const runtimeEnv = (name: "SUPABASE_URL" | "SUPABASE_SERVICE_ROLE_KEY") =>

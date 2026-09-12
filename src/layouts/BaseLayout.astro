@@ -6,6 +6,7 @@ const SITE_URL = (
   "https://bulgaritam.bg"
 ).replace(/\/+$/, "");
 const ANALYTICS_ENDPOINT = String(import.meta.env.PUBLIC_ANALYTICS_ENDPOINT || "https://admin.bulgaritam.bg/api/events/").trim();
+const DISCOVERY_ENDPOINT = String(import.meta.env.PUBLIC_ANALYTICS_DISCOVERY_ENDPOINT || ANALYTICS_ENDPOINT.replace(/\/events\/?$/, "/discovery-states/")).trim();
 
 const HOME_SEO = {
   title: "Българитъм | Подбрани български марки и продукти",
@@ -432,11 +433,12 @@ if (seoType === "category" && seoData.category) {
     {!gtmContainerId && gaMeasurementId ? (
       <script async src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaMeasurementId)}`}></script>
     ) : null}
-    <script is:inline define:vars={{ gaMeasurementId, gtmContainerId, analyticsEndpoint: ANALYTICS_ENDPOINT }}>
+    <script is:inline define:vars={{ gaMeasurementId, gtmContainerId, analyticsEndpoint: ANALYTICS_ENDPOINT, discoveryEndpoint: DISCOVERY_ENDPOINT }}>
       (() => {
         const measurementId = String(gaMeasurementId || "").trim();
         const containerId = String(gtmContainerId || "").trim();
         const firstPartyEndpoint = String(analyticsEndpoint || "").trim();
+        const firstPartyDiscoveryEndpoint = String(discoveryEndpoint || "").trim();
         const queue = [];
 
         // The shared event transport must exist before consent state or any
@@ -620,36 +622,92 @@ if (seoType === "category" && seoData.category) {
           ...readAnalyticsSession().acquisition,
         });
 
-        const readPersistedDiscoveryContext = () => {
-          try { return JSON.parse(window.sessionStorage?.getItem("bulgaritam_discovery_context_v1") || "{}"); }
+        const readLastDiscoveryContext = () => {
+          try { return JSON.parse(window.sessionStorage?.getItem("bulgaritam_last_discovery_v2") || "{}"); }
           catch { return {}; }
         };
 
-        const persistDiscoveryContext = (payload) => {
-          const searchTerm = payload.search_term || payload.query;
-          if (!searchTerm && !payload.category && !payload.subcategory && !payload.active_filters && !payload.discovery_state_id && !payload.filter_name) return;
+        const persistLastDiscoveryContext = (state) => {
           const context = sanitizeParams({
-            search_id: payload.search_id,
-            search_term: searchTerm,
-            normalized_query: payload.normalized_query,
-            structured_intent: payload.structured_intent,
-            category: payload.category,
-            subcategory: payload.subcategory,
-            product_type: payload.product_type,
-            gift_recipient: payload.gift_recipient,
-            gift_occasion: payload.gift_occasion,
-            audience: payload.audience,
-            materials: payload.materials,
-            max_price_eur: payload.max_price_eur,
-            active_filters: payload.active_filters,
-            source_context: payload.source_context || payload.list_context,
-            discovery_state_id: payload.discovery_state_id,
-            search_revision: payload.search_revision,
-            last_result_count: payload.search_results_count ?? payload.result_count ?? payload.results_after,
-            filter_name: payload.filter_name,
-            filter_value: payload.filter_value,
+            last_discovery_state_id: state.discovery_state_id,
+            last_search_id: state.search_id,
+            last_discovery_surface: state.surface_type,
+            last_discovery_at: state.occurred_at,
           });
-          try { window.sessionStorage?.setItem("bulgaritam_discovery_context_v1", JSON.stringify(context)); } catch {}
+          try { window.sessionStorage?.setItem("bulgaritam_last_discovery_v2", JSON.stringify(context)); } catch {}
+        };
+
+        const sendDiscoverySnapshot = (state, results) => {
+          if (!firstPartyDiscoveryEndpoint) return;
+          try {
+            const body = JSON.stringify({ state, results });
+            fetch(firstPartyDiscoveryEndpoint, {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body, keepalive: body.length <= 60_000, credentials: "omit",
+            }).catch(() => {});
+          } catch {}
+        };
+
+        window.bulgaritamCommitDiscoveryState = (snapshot = {}, rawMembers = []) => {
+          if (!hasAnalyticsConsent() || isAnalyticsExcluded() || !firstPartyDiscoveryEndpoint || !snapshot.surface_type || !Array.isArray(rawMembers)) return null;
+          const session = touchAnalyticsSession();
+          const discoveryStateId = randomId();
+          const occurredAt = new Date().toISOString();
+          const members = rawMembers.map((member, index) => ({
+            entity_type: member.entity_type === "brand" ? "brand" : "product",
+            product_id: member.entity_type === "brand" ? null : String(member.product_id || ""),
+            brand_id: String(member.brand_id || "") || null,
+            position: index + 1,
+          }));
+          const state = {
+            discovery_state_id: discoveryStateId,
+            occurred_at: occurredAt,
+            anonymous_session_id: session.id,
+            anonymous_journey_id: getJourneyId(),
+            surface_type: String(snapshot.surface_type),
+            page_path: window.location.pathname,
+            search_id: snapshot.search_id || null,
+            query: snapshot.query || null,
+            category: snapshot.category || null,
+            subcategory: snapshot.subcategory || null,
+            product_type: snapshot.product_type || null,
+            sort_value: snapshot.sort_value || null,
+            price_min_eur: snapshot.price_min_eur ?? null,
+            price_max_eur: snapshot.price_max_eur ?? null,
+            gift_recipient: snapshot.gift_recipient || null,
+            gift_occasion: snapshot.gift_occasion || null,
+            active_filters: snapshot.active_filters || null,
+            result_count: members.length,
+            tracking_version: 2,
+            metadata: snapshot.metadata || {},
+          };
+          const directContext = sanitizeParams({
+            discovery_state_id: discoveryStateId,
+            search_id: state.search_id,
+            query: state.query,
+            category: state.category,
+            subcategory: state.subcategory,
+            product_type: state.product_type,
+            sort_value: state.sort_value,
+            gift_recipient: state.gift_recipient,
+            gift_occasion: state.gift_occasion,
+            list_context: state.surface_type,
+            tracking_version: "2",
+          });
+          window.__bulgaritamDiscoveryContext = directContext;
+          window.__bulgaritamCurrentDiscoveryState = state;
+          rawMembers.forEach((member) => {
+            if (!(member.node instanceof Element)) return;
+            member.node.dataset.discoveryStateId = discoveryStateId;
+            member.node.dataset.sourceSearchId = state.search_id || "";
+            member.node.dataset.sourceSurface = state.surface_type;
+          });
+          persistLastDiscoveryContext(state);
+          sendDiscoverySnapshot(state, members);
+          window.dispatchEvent(new CustomEvent("bulgaritam:discovery-state-committed", {
+            detail: { nodes: rawMembers.map((member) => member.node).filter((node) => node instanceof Element) },
+          }));
+          return state;
         };
 
         const sendFirstParty = (eventName, payload, identity) => {
@@ -672,30 +730,14 @@ if (seoType === "category" && seoData.category) {
         window.bulgaritamTrack = (eventName, params = {}) => {
           if ((!measurementId && !containerId && !firstPartyEndpoint) || !hasAnalyticsConsent() || isAnalyticsExcluded() || !eventName) return false;
 
-          const previousContext = readPersistedDiscoveryContext();
-          const isDiscoveryMutation = ["select_category", "select_subcategory", "select_product_type", "select_gift_recipient", "select_gift_occasion", "apply_filter", "remove_filter", "clear_filters", "change_sort"].includes(eventName);
-          const nextRevision = isDiscoveryMutation ? Number(previousContext.search_revision || 0) + 1 : Number(previousContext.search_revision || 0);
           const payload = {
             ...buildCommonParams(),
-            ...previousContext,
+            ...readLastDiscoveryContext(),
             ...sanitizeParams(params),
           };
-
-          if (isDiscoveryMutation) {
-            payload.search_revision = String(nextRevision);
-            payload.discovery_state_id = randomId();
+          if (["select_category", "select_subcategory", "select_product_type", "select_gift_recipient", "select_gift_occasion", "apply_filter", "remove_filter", "clear_filters", "change_sort"].includes(eventName)) {
             payload.filter_action = payload.filter_action || (eventName === "remove_filter" ? "remove" : eventName === "clear_filters" ? "clear" : "add");
-            if (payload.results_before === undefined && previousContext.last_result_count !== undefined) payload.results_before = previousContext.last_result_count;
-            if (payload.results_after === undefined && payload.result_count !== undefined) payload.results_after = payload.result_count;
-            persistDiscoveryContext(payload);
           }
-
-          if (eventName === "search") {
-            payload.discovery_state_id = randomId();
-            payload.search_revision = "0";
-          }
-
-          if (eventName === "search" || eventName === "search_results_view" || eventName === "search_no_results") persistDiscoveryContext(payload);
 
           const session = touchAnalyticsSession();
           const identity = { event_id: randomId(), occurred_at_client: new Date().toISOString(), session_id: session.id, sequence_number: session.sequence_number };
@@ -723,6 +765,16 @@ if (seoType === "category" && seoData.category) {
 
         const getDiscoveryContext = () => window.__bulgaritamDiscoveryContext || {};
 
+        const getDirectSourceContext = (scope) => sanitizeParams({
+          discovery_state_id: scope?.dataset?.discoveryStateId,
+          search_id: scope?.dataset?.sourceSearchId,
+          source_surface: scope?.dataset?.sourceSurface || scope?.dataset?.listContext,
+          source_discovery_state_id: scope?.dataset?.discoveryStateId,
+          source_position: scope?.dataset?.position,
+          source_search_id: scope?.dataset?.sourceSearchId,
+          tracking_version: scope?.dataset?.discoveryStateId ? "2" : undefined,
+        });
+
         const getProductContext = (node) => {
           const scope = node?.closest?.("[data-product-slug]");
           if (!scope) return {};
@@ -740,7 +792,7 @@ if (seoType === "category" && seoData.category) {
             list_context: scope.dataset.listContext,
             list_name: scope.dataset.listName,
             position: scope.dataset.position,
-            ...getDiscoveryContext(),
+            ...getDirectSourceContext(scope),
           });
         };
 
@@ -757,7 +809,7 @@ if (seoType === "category" && seoData.category) {
             delivers_abroad: scope.dataset.deliversAbroad,
             list_context: scope.dataset.listContext,
             position: scope.dataset.position,
-            ...getDiscoveryContext(),
+            ...getDirectSourceContext(scope),
           });
         };
 
@@ -849,8 +901,7 @@ if (seoType === "category" && seoData.category) {
             entries.forEach((entry) => {
               if (!entry.isIntersecting || entry.intersectionRatio < 0.5) return;
               const node = entry.target;
-              const context = { ...readPersistedDiscoveryContext(), ...getDiscoveryContext() };
-              const signature = JSON.stringify([context.search_id || "", context.query || context.search_term || "", context.category || "", context.subcategory || "", context.product_type || "", node.dataset.listContext || ""]);
+              const signature = node.dataset.discoveryStateId || `legacy:${node.dataset.listContext || ""}`;
               const seen = impressionSeen.get(node) || new Set();
               if (seen.has(signature)) return;
               let accepted = false;
@@ -868,6 +919,13 @@ if (seoType === "category" && seoData.category) {
           window.addEventListener("bulgaritam:products-appended", (event) => {
             Array.from(event.detail?.nodes || []).forEach((node) => {
               if (node instanceof Element && node.matches("[data-analytics-kind]")) observer.observe(node);
+            });
+          });
+          window.addEventListener("bulgaritam:discovery-state-committed", (event) => {
+            Array.from(event.detail?.nodes || []).forEach((node) => {
+              if (!(node instanceof Element) || !node.matches("[data-analytics-kind]")) return;
+              observer.unobserve(node);
+              observer.observe(node);
             });
           });
         };

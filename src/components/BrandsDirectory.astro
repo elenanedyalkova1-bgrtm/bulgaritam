@@ -1180,6 +1180,7 @@ const editorialSections = [
     let activeSort = "featured";
     let activeOccasionKeys = [];
     let activeDeliveryOutside = false;
+    let activeBrandSearchId = "";
     let brandSearchTrackTimer = 0;
     let lastBrandSearchSignature = "";
     document.querySelectorAll("[data-brand-logo-frame] img").forEach((image) => {
@@ -1481,24 +1482,15 @@ const editorialSections = [
         return;
       }
 
-      const searchId = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-      window.__bulgaritamDiscoveryContext = {
-        ...(window.__bulgaritamDiscoveryContext || {}),
-        search_id: searchId,
-        query: String(value || "").trim(),
-        search_term: String(value || "").trim(),
-        normalized_query: normalized,
-        category: activeFilter,
-        subcategory: activeSubcategory,
-        product_type: activeProductType,
-        gift_occasion: activeOccasionKeys.join(","),
-        list_context: "brand_directory",
-      };
       brandSearchTrackTimer = window.setTimeout(() => {
-        const visibleCount = cards.filter((card) => card.style.display !== "none").length;
+        const searchId = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+        activeBrandSearchId = searchId;
+        const orderedVisibleCards = Array.from(brandGrid?.querySelectorAll("[data-brand]") || []).filter((card) => card.style.display !== "none");
+        const visibleCount = orderedVisibleCards.length;
         const signature = [normalized, activeFilter, activeSort, visibleCount].join("|");
         lastBrandSearchSignature = signature;
 
+        const state = commitBrandDiscoveryState(orderedVisibleCards, searchId);
         const searchPayload = {
           search_id: searchId,
           query: String(value || "").trim(),
@@ -1509,6 +1501,8 @@ const editorialSections = [
           result_count: visibleCount,
           search_results_count: visibleCount,
           source_context: "brand_directory",
+          discovery_state_id: state?.discovery_state_id || "",
+          tracking_version: "2",
         };
         const returnedBrands = Array.from(brandGrid?.querySelectorAll("[data-brand]") || [])
           .filter((card) => card.style.display !== "none")
@@ -1593,7 +1587,19 @@ const editorialSections = [
         return Number(a.dataset.originalIndex || 0) - Number(b.dataset.originalIndex || 0);
       });
 
-    const applyDiscovery = () => {
+    const commitBrandDiscoveryState = (orderedCards, searchId = activeBrandSearchId) => window.bulgaritamCommitDiscoveryState?.({
+      surface_type: activeQuery.trim() ? "brand_directory_search" : "brand_directory",
+      search_id: activeQuery.trim() ? searchId || null : null,
+      query: activeQuery.trim() || null,
+      category: activeFilter === "all" ? null : activeFilter,
+      subcategory: activeSubcategory || null,
+      product_type: activeProductType || null,
+      sort_value: activeSort,
+      gift_occasion: activeOccasionKeys.join(",") || null,
+      active_filters: { delivery_abroad: activeDeliveryOutside, occasions: activeOccasionKeys },
+    }, orderedCards.map((card) => ({ node: card, entity_type: "brand", brand_id: card.dataset.brandId || "" })));
+
+    const applyDiscovery = ({ commit = !activeQuery.trim() } = {}) => {
       let visibleCount = 0;
       const matchingCards = [];
 
@@ -1610,10 +1616,14 @@ const editorialSections = [
         const matchesDelivery = !activeDeliveryOutside || card.dataset.deliversAbroad === "1";
         if (matchesFilter && matchesSubcategory && matchesProductType && matchesQuery && matchesOccasion && matchesDelivery) matchingCards.push(card);
       });
-
       const orderedCards = activeQuery.trim()
         ? sortCardsForSearch(matchingCards, activeQuery)
         : sortCards(matchingCards, activeSort);
+
+      if (commit) {
+        activeBrandSearchId = "";
+        commitBrandDiscoveryState(orderedCards, "");
+      }
 
       orderedCards.forEach((card, position) => {
         card.dataset.position = String(position + 1);
@@ -1656,12 +1666,17 @@ const editorialSections = [
 
     const handleBrandSearchInput = (value) => {
       activeQuery = value || "";
+      window.clearTimeout(brandSearchTrackTimer);
+      cards.forEach((card) => {
+        delete card.dataset.discoveryStateId;
+        delete card.dataset.sourceSearchId;
+      });
       if (activeQuery.trim()) {
         activeFilter = "all";
         const allButton = filters.querySelector('[data-filter="all"]');
         if (allButton) setActive(allButton);
       }
-      applyDiscovery();
+      applyDiscovery({ commit: !activeQuery.trim() });
       scheduleBrandSearchTracking(activeQuery);
       pulseResults();
     };

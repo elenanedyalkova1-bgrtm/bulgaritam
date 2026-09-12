@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { parseEvent, type AnalyticsEvent } from "./analytics";
+import type { DiscoveryResultMember, DiscoveryStateInsert } from "./analytics-discovery";
 
 const TABLE = "analytics_events";
 const READ_PAGE_SIZE = 1_000;
@@ -47,6 +48,12 @@ export type AnalyticsEventInsert = {
   acquisition_channel: string | null;
   gift_recipient: string | null;
   gift_occasion: string | null;
+  tracking_version: number | null;
+  source_surface: string | null;
+  source_discovery_state_id: string | null;
+  source_position: number | null;
+  source_search_id: string | null;
+  last_discovery_state_id: string | null;
   metadata: Record<string, Json>;
   legacy_baserow_row_id: number | null;
 };
@@ -120,6 +127,12 @@ export function mapAnalyticsPayloadToInsert(
     acquisition_channel: optionalText(input.acquisition_channel),
     gift_recipient: optionalText(input.gift_recipient),
     gift_occasion: optionalText(input.gift_occasion),
+    tracking_version: optionalInteger(input.tracking_version),
+    source_surface: optionalText(input.source_surface),
+    source_discovery_state_id: optionalText(input.source_discovery_state_id),
+    source_position: optionalInteger(input.source_position),
+    source_search_id: optionalText(input.source_search_id),
+    last_discovery_state_id: optionalText(input.last_discovery_state_id),
     metadata,
     legacy_baserow_row_id: options.legacyBaserowRowId ?? null,
   };
@@ -204,6 +217,14 @@ export class SupabaseAnalyticsRepository {
       .maybeSingle();
     if (error) throw new AnalyticsRepositoryError("insert", error);
     return { duplicateIgnored: !data };
+  }
+
+  async insertSnapshot(state: DiscoveryStateInsert, results: DiscoveryResultMember[]): Promise<void> {
+    const { error } = await this.client.rpc("insert_analytics_discovery_state", {
+      p_state: state,
+      p_results: results,
+    });
+    if (error) throw new AnalyticsRepositoryError("discovery snapshot insert", error);
   }
 
   async listRange(start: Date, end: Date): Promise<AnalyticsEvent[]> {

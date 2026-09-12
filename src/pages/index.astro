@@ -1571,7 +1571,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       return Array.from(tokens).join(" ");
     };
 
-    const scheduleSearchTracking = (value) => {
+    const scheduleSearchTracking = (value, searchId) => {
       const normalized = normalizeSearchText(value);
       if (normalized.length < 2) {
         lastTrackedSearchSignature = "";
@@ -1579,11 +1579,6 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         return;
       }
 
-      const searchId = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-      window.__bulgaritamDiscoveryContext = {
-        ...(window.__bulgaritamDiscoveryContext || {}),
-        search_id: searchId,
-      };
       executedSearchContext = { search_id: searchId, search_term: String(value || "").trim() };
       const signature = [
         normalized,
@@ -1613,6 +1608,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
           audience: intent?.audienceKey || "",
           materials: intent?.materials?.join(",") || "",
           max_price_eur: intent?.maxPriceEur ?? "",
+          discovery_state_id: window.__bulgaritamCurrentDiscoveryState?.discovery_state_id || "",
+          tracking_version: "2",
       };
       const returnedProducts = matchedCards.map((card, position) => [
         card.dataset.productId || "",
@@ -2088,6 +2085,25 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         card.dataset.listContext = derivedListContext;
         card.dataset.position = String(position + 1);
       });
+      window.bulgaritamCommitDiscoveryState?.({
+        surface_type: derivedListContext,
+        search_id: executedSearchContext?.search_term === v.trim() ? executedSearchContext.search_id : null,
+        query: v.trim(),
+        category: currentSearchIntent?.categoryKey || activeCategoryKey || null,
+        subcategory: currentSearchIntent?.subcategoryKey || activeSubcategoryKey || null,
+        product_type: currentSearchIntent?.productType || activeProductType || null,
+        sort_value: selectedSort || "featured",
+        price_min_eur: selectedPriceRange.includes("-") ? Number(selectedPriceRange.split("-")[0]) : selectedPriceRange === "100+" ? 100 : null,
+        price_max_eur: selectedPriceRange.includes("-") ? Number(selectedPriceRange.split("-")[1]) : null,
+        gift_recipient: currentSearchIntent?.recipients?.join(",") || selectedGiftFilters.filter((entry) => entry.startsWith("recipient:")).map((entry) => entry.slice(10)).join(",") || null,
+        gift_occasion: currentSearchIntent?.occasions?.join(",") || selectedGiftFilters.filter((entry) => entry.startsWith("occasion:")).map((entry) => entry.slice(9)).join(",") || null,
+        active_filters: {
+          attributes: selectedAttributes, materials: selectedMaterials, colors: selectedColors,
+          price_range: selectedPriceRange, delivery_abroad: selectedDeliveryOutside,
+          gift: selectedGiftFilters,
+        },
+        metadata: { list_name: "Начална discovery мрежа", used_fallback: searchFallbackRequired },
+      }, matchedCards.map((card) => ({ node: card, entity_type: "product", product_id: card.dataset.productId || "", brand_id: card.dataset.brandId || "" })));
       count.textContent = matchedCards.length;
       const contextParts = [];
       if (activeCategoryKey) contextParts.push(categoryLabel(activeCategoryKey));
@@ -2445,6 +2461,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     const executeHomeSearch = () => {
       const value = q.value || "";
       if (value.trim()) {
+        const searchId = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+        executedSearchContext = { search_id: searchId, search_term: String(value).trim() };
         activeCategoryKey = "";
         activeSubcategoryKey = "";
         activeProductType = "";
@@ -2457,7 +2475,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         executedSearchContext = null;
       }
       applyDiscovery(value);
-      scheduleSearchTracking(value);
+      scheduleSearchTracking(value, executedSearchContext?.search_id || "");
       updateUsefulResultSignals();
       if (value.trim()) {
         pulseResults();
@@ -2528,7 +2546,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     if (initialQuery) {
       q.value = initialQuery;
       executeHomeSearch();
-    }
+    } else applyDiscovery("");
     sortSelect?.addEventListener("change", (e) => {
       selectedSort = e.target.value || "featured";
       applyDiscovery(q.value);

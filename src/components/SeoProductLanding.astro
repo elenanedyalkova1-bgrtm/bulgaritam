@@ -1418,6 +1418,7 @@ function priceLabel(p) {
       });
 
       filteredCards.forEach((card, index) => {
+        card.dataset.position = String(index + 1);
         card.style.display = index < visibleCount ? "" : "none";
       });
 
@@ -1437,6 +1438,22 @@ function priceLabel(p) {
       updateFacetAvailability();
       lastTrackedResultCount = filteredCards.length;
       window.bulgaritamScheduleMasonry?.(grid);
+      return filteredCards;
+    };
+
+    const commitSeoDiscoveryState = (filteredCards) => {
+      const structured = currentStructuredState();
+      const first = (key) => Array.isArray(structured[key]) ? structured[key][0] || null : null;
+      return window.bulgaritamCommitDiscoveryState?.({
+        surface_type: "seo_landing_page",
+        category: first("category"),
+        subcategory: first("subcategory"),
+        product_type: first("product_type"),
+        gift_recipient: first("recipient_age") || first("recipient_gender"),
+        gift_occasion: first("gift_occasion"),
+        active_filters: structured,
+        metadata: { canonical_path: feedSection?.dataset.canonicalPath || window.location.pathname },
+      }, filteredCards.map((card) => ({ node: card, entity_type: "product", product_id: card.dataset.productId || "", brand_id: card.dataset.brandId || "" })));
     };
 
     const loadMore = () => {
@@ -1445,14 +1462,15 @@ function priceLabel(p) {
       updateFeedVisibility();
     };
 
-    updateFeedVisibility();
+    commitSeoDiscoveryState(updateFeedVisibility());
 
     refinementInputs.forEach((input) => {
       input.addEventListener("change", () => {
         const resultsBefore = lastTrackedResultCount;
         visibleCount = getBatchSize();
-        updateFeedVisibility();
+        const filteredCards = updateFeedVisibility();
         window.bulgaritamTrack?.("apply_filter", { filter_name: input.dataset.filterGroup || "facet", filter_value: input.value, selected_value: input.value, filter_action: input.checked ? "add" : "remove", results_before: resultsBefore, results_after: lastTrackedResultCount, result_count: lastTrackedResultCount, source_context: "seo_landing_page" });
+        commitSeoDiscoveryState(filteredCards);
         startCanonicalNavigation();
       });
     });

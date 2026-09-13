@@ -1,272 +1,54 @@
 import type { AnalyticsEvent } from "./analytics";
 
-const text = (value: unknown) => String(value ?? "").trim();
-const value = (event: AnalyticsEvent, key: string) => event.payload[key];
-const field = (event: AnalyticsEvent, key: string) => text(value(event, key));
-const unique = <T>(items: T[]) => new Set(items).size;
-const ratio = (numerator: number, denominator: number) => denominator > 0 ? numerator / denominator : null;
+const text=(v:unknown)=>String(v??"").trim(), ptext=(e:AnalyticsEvent,k:string)=>text(e.payload[k]);
+const ratio=(n:number,d:number)=>d>0?n/d:null, uniq=<T>(xs:T[])=>new Set(xs).size;
+export type ProductIdentity={key:string;productId:string;brandId:string;productSlug:string;brandSlug:string;identityQuality:"complete"|"legacy_fallback"|"ambiguous"};
+export type BrandIdentity={key:string;brandId:string;brandSlug:string;identityQuality:"complete"|"legacy_fallback"};
+export type DiscoveryStateRow={discovery_state_id:string;occurred_at:string|Date;anonymous_session_id:string;anonymous_journey_id:string;surface_type:string;page_path:string;search_id?:string|null;query?:string|null;category?:string|null;subcategory?:string|null;product_type?:string|null;sort_value?:string|null;result_count:number};
+export type DiscoveryResultRow={discovery_state_id:string;entity_type:"product"|"brand";product_id?:string|null;brand_id?:string|null;product_slug?:string|null;brand_slug?:string|null;position:number};
+export type DiscoveryDiagnostic={stateId:string;code:"count_mismatch"|"duplicate_position"|"orphan_member";expected?:number;actual?:number};
+export type AnalyticsDerivedSource={loadEvents(start:Date,end:Date):Promise<AnalyticsEvent[]>;loadLookbackEvents(start:Date,end:Date):Promise<AnalyticsEvent[]>;loadDiscoveryStates(start:Date,end:Date):Promise<DiscoveryStateRow[]>;loadDiscoveryResults(stateIds:string[]):Promise<DiscoveryResultRow[]>};
+export type OpportunityLink={stateId:string;position:number;searchId:string;method:"explicit"|"session_sequence"};
+export type ProductStageFact={event:AnalyticsEvent;timestamp:Date;visitorId:string|null;sessionId:string|null;journeyId:string|null;product:ProductIdentity;brand:BrandIdentity|null;sourceSurface:string;searchId:string;influencedStateId:string;influencedSearchId:string;opportunity:OpportunityLink|null};
+export type EligibleProductOpportunity={stateId:string;position:number;visitorId:string|null;sessionId:string|null;journeyId:string|null;product:ProductIdentity;brand:BrandIdentity|null;sourceSurface:string;searchId:string;timestamp:Date};
+export type StageCounts={eventCount:number;uniqueVisitors:number;uniqueProductOpportunities:number};
+export type ProductFunnelRow={product:ProductIdentity;brand:BrandIdentity|null;category:string;subcategory:string;productType:string;primarySurface:string;positionBand:string;eligible:StageCounts;exposed:StageCounts;selected:StageCounts;pageViewed:StageCounts;considered:StageCounts;outbound:StageCounts;selectionPerExposure:number|null;pageLoadPerSelection:number|null;considerationPerPageLoad:number|null;considerationPerExposure:number|null;outboundPerPageLoad:number|null;outboundPerExposure:number|null};
+export type SearchEpisode={key:string;searchId:string;sessionId:string;visitorId:string;query:string;states:DiscoveryStateRow[];resultCount:number;exposed:number;selected:number;considered:number;outbound:number;successLevel:0|1|2|3|4;legacyInferred:boolean;reformulationCandidate:boolean};
+export type RepeatInterestFact={visitorId:string;currentSessionId:string;priorSessionId:string;product?:ProductIdentity;brand?:BrandIdentity;currentAt:Date;priorAt:Date;crossSession:true};
+export type BrandJourneyFact={visitorId:string;brand:BrandIdentity;sessionIds:string[];productKeys:string[];impressions:number;selections:number;pageViews:number;outbound:number};
+export type DerivedAnalyticsDomain={visitors:Array<{id:string;sessionIds:string[];returning:boolean}>;sessions:Array<{id:string;visitorId:string|null;startedAt:Date;endedAt:Date;discoveryActive:boolean;identityConflict:boolean}>;journeys:Array<{id:string;sessionIds:string[];eventCount:number}>;discoveryOpportunities:DiscoveryStateRow[];discoveryMembers:DiscoveryResultRow[];incompleteDiscoveryStates:DiscoveryStateRow[];discoveryDiagnostics:DiscoveryDiagnostic[];eligibleProductOpportunities:EligibleProductOpportunity[];productExposures:ProductStageFact[];productSelections:ProductStageFact[];productPageViews:ProductStageFact[];productConsiderations:ProductStageFact[];productOutboundIntents:ProductStageFact[];brandQualifiedImpressions:ProductStageFact[];brandSelections:ProductStageFact[];brandPageViews:ProductStageFact[];brandOutboundIntents:ProductStageFact[];legacyUndifferentiatedProductViews:ProductStageFact[];productRepeatInterest:RepeatInterestFact[];brandRepeatInterest:RepeatInterestFact[];brandJourneyFacts:BrandJourneyFact[];brandMultiProductExploration:Array<{visitorId:string;brand:BrandIdentity;sessionId:string;productKeys:string[]}>;productFunnel:ProductFunnelRow[];searchEpisodes:SearchEpisode[];surfaces:Array<{surface:string;eligible:number;exposed:number;selected:number;pageViewed:number;considered:number;outbound:number;uniqueVisitors:number}>;summary:{uniqueVisitors:number;sessions:number;returningAnonymousVisitors:number;discoveryActiveSessions:number;completeDiscoveryOpportunities:number;incompleteDiscoveryOpportunities:number;eligibleProductOpportunities:number;qualifiedProductExposures:number;productSelections:number;productPageViews:number;productConsiderations:number;productOutboundIntents:number;brandQualifiedImpressions:number;brandSelections:number;brandPageViews:number;brandOutboundIntents:number;repeatProductInterest:number;repeatBrandInterest:number}};
 
-export type ProductIdentity = { key: string; productId: string; brandId: string; productSlug: string; brandSlug: string };
-export type BrandIdentity = { key: string; brandId: string; brandSlug: string };
+export function productIdentity(i:{productId?:unknown;brandId?:unknown;productSlug?:unknown;brandSlug?:unknown}):ProductIdentity|null{const productId=text(i.productId),brandId=text(i.brandId),productSlug=text(i.productSlug),brandSlug=text(i.brandSlug),pp=productId||(productSlug?`slug:${productSlug}:`:"");if(!pp)return null;const bp=brandId||(brandSlug?`slug:${brandSlug}`:"unknown-brand");return{key:`${pp}::${bp}`,productId,brandId,productSlug,brandSlug,identityQuality:productId&&brandId?"complete":bp==="unknown-brand"?"ambiguous":"legacy_fallback"}}
+export function brandIdentity(i:{brandId?:unknown;brandSlug?:unknown}):BrandIdentity|null{const brandId=text(i.brandId),brandSlug=text(i.brandSlug),key=brandId||(brandSlug?`slug:${brandSlug}`:"");return key?{key,brandId,brandSlug,identityQuality:brandId?"complete":"legacy_fallback"}:null}
+const eventProduct=(e:AnalyticsEvent)=>productIdentity({productId:e.productId,brandId:e.brandId,productSlug:e.productSlug,brandSlug:e.brandSlug}),eventBrand=(e:AnalyticsEvent)=>brandIdentity({brandId:e.brandId,brandSlug:e.brandSlug});
+const ekey=(e:AnalyticsEvent)=>e.eventId||`legacy:${e.id}:${e.at.toISOString()}:${e.sequenceNumber}`, visitor=(e:AnalyticsEvent)=>text(e.journeyId)||null, session=(e:AnalyticsEvent)=>text(e.sessionId)||null;
+const dedup=(es:AnalyticsEvent[])=>[...new Map(es.map(e=>[ekey(e),e])).values()], pos=(v:unknown)=>{const n=Number(v);return Number.isInteger(n)&&n>=1?n:null};
 
-export type DiscoveryStateRow = {
-  discovery_state_id: string;
-  occurred_at: string | Date;
-  anonymous_session_id: string;
-  anonymous_journey_id: string;
-  surface_type: string;
-  page_path: string;
-  search_id?: string | null;
-  query?: string | null;
-  category?: string | null;
-  subcategory?: string | null;
-  product_type?: string | null;
-  sort_value?: string | null;
-  result_count: number;
-};
+export function validateDiscoveryData(states:DiscoveryStateRow[],results:DiscoveryResultRow[]){const sm=new Map(states.map(s=>[s.discovery_state_id,s])),by=new Map<string,DiscoveryResultRow[]>(),diagnostics:DiscoveryDiagnostic[]=[];for(const r of results){if(!sm.has(r.discovery_state_id)){diagnostics.push({stateId:r.discovery_state_id,code:"orphan_member"});continue}by.set(r.discovery_state_id,[...(by.get(r.discovery_state_id)||[]),r])}const incompleteStates=states.filter(s=>{const rs=by.get(s.discovery_state_id)||[],dup=rs.length!==new Set(rs.map(r=>r.position)).size;if(dup)diagnostics.push({stateId:s.discovery_state_id,code:"duplicate_position"});if(rs.length!==s.result_count)diagnostics.push({stateId:s.discovery_state_id,code:"count_mismatch",expected:s.result_count,actual:rs.length});return dup||rs.length!==s.result_count}),bad=new Set(incompleteStates.map(s=>s.discovery_state_id));return{completeStates:states.filter(s=>!bad.has(s.discovery_state_id)),completeResults:results.filter(r=>sm.has(r.discovery_state_id)&&!bad.has(r.discovery_state_id)),incompleteStates,diagnostics}}
+const explicit=(e:AnalyticsEvent,sm:Map<string,DiscoveryStateRow>):OpportunityLink|null=>{const stateId=ptext(e,"source_discovery_state_id"),position=pos(e.payload.source_position);if(!stateId||!position||!sm.has(stateId))return null;return{stateId,position,searchId:ptext(e,"source_search_id")||text(sm.get(stateId)?.search_id),method:"explicit"}};
+const fact=(e:AnalyticsEvent,sm:Map<string,DiscoveryStateRow>,allowBrandOnly=false):ProductStageFact|null=>{let product=eventProduct(e),brand=eventBrand(e);if(!product&&allowBrandOnly&&brand)product={key:`brand-event:${ekey(e)}::${brand.key}`,productId:"",brandId:brand.brandId,productSlug:"",brandSlug:brand.brandSlug,identityQuality:"ambiguous"};if(!product)return null;const last=ptext(e,"last_discovery_state_id");return{event:e,timestamp:e.at,visitorId:visitor(e),sessionId:session(e),journeyId:visitor(e),product,brand,sourceSurface:ptext(e,"source_surface")||e.listContext||e.sourceContext,searchId:ptext(e,"source_search_id"),influencedStateId:last,influencedSearchId:text(sm.get(last)?.search_id),opportunity:explicit(e,sm)}};
+const link=(f:ProductStageFact,prior:ProductStageFact[]):ProductStageFact=>{if(f.opportunity)return f;const x=[...prior].reverse().find(p=>f.sessionId&&p.sessionId===f.sessionId&&p.product.key===f.product.key&&p.timestamp<=f.timestamp&&p.opportunity);return x?{...f,opportunity:{...x.opportunity!,method:"session_sequence" as const}}:f};
+const counts=(fs:ProductStageFact[]):StageCounts=>({eventCount:fs.length,uniqueVisitors:uniq(fs.map(f=>f.visitorId).filter(Boolean)),uniqueProductOpportunities:uniq(fs.filter(f=>f.visitorId&&f.opportunity).map(f=>`${f.visitorId}:${f.product.key}:${f.opportunity!.stateId}:${f.opportunity!.position}`))});
+const ecounts=(fs:EligibleProductOpportunity[]):StageCounts=>({eventCount:fs.length,uniqueVisitors:uniq(fs.map(f=>f.visitorId).filter(Boolean)),uniqueProductOpportunities:uniq(fs.filter(f=>f.visitorId).map(f=>`${f.visitorId}:${f.product.key}:${f.stateId}:${f.position}`))});
+const pband=(n:number|null)=>n==null?"unknown":n<=4?"1-4":n<=12?"5-12":n<=24?"13-24":"25+";
 
-export type DiscoveryResultRow = {
-  discovery_state_id: string;
-  entity_type: "product" | "brand";
-  product_id?: string | null;
-  brand_id?: string | null;
-  product_slug?: string | null;
-  brand_slug?: string | null;
-  position: number;
-};
-
-export type AnalyticsDerivedSource = {
-  loadEvents(start: Date, end: Date): Promise<AnalyticsEvent[]>;
-  loadDiscoveryStates(start: Date, end: Date): Promise<DiscoveryStateRow[]>;
-  loadDiscoveryResults(stateIds: string[]): Promise<DiscoveryResultRow[]>;
-};
-
-export type StageFact = {
-  event: AnalyticsEvent;
-  visitorId: string;
-  sessionId: string;
-  product: ProductIdentity | null;
-  brand: BrandIdentity | null;
-  directSurface: string;
-  directStateId: string;
-  directSearchId: string;
-  directPosition: number | null;
-  influencedStateId: string;
-};
-
-export type ProductFunnelRow = {
-  product: ProductIdentity;
-  eligible: number;
-  exposed: number;
-  selected: number;
-  pageViewed: number;
-  considered: number;
-  outbound: number;
-  uniqueVisitors: number;
-  qualifiedExposureRate: number | null;
-  selectionRate: number | null;
-  pageViewRate: number | null;
-  considerationRate: number | null;
-  outboundRate: number | null;
-};
-
-export type SearchEpisode = {
-  key: string;
-  searchId: string;
-  sessionId: string;
-  visitorId: string;
-  query: string;
-  stateIds: string[];
-  resultCount: number;
-  exposed: number;
-  selected: number;
-  considered: number;
-  outbound: number;
-  successLevel: 0 | 1 | 2 | 3 | 4;
-  legacyInferred: boolean;
-  reformulationCandidate: boolean;
-};
-
-export type SurfaceAggregate = {
-  surface: string;
-  eligible: number;
-  exposed: number;
-  selected: number;
-  pageViewed: number;
-  considered: number;
-  outbound: number;
-};
-
-export type DerivedAnalyticsDomain = {
-  visitors: Array<{ id: string; sessionIds: string[]; returning: boolean }>;
-  sessions: Array<{ id: string; visitorId: string; startedAt: Date; endedAt: Date; discoveryActive: boolean }>;
-  journeys: Array<{ id: string; sessionIds: string[]; eventCount: number }>;
-  discoveryOpportunities: DiscoveryStateRow[];
-  discoveryMembers: DiscoveryResultRow[];
-  productExposures: StageFact[];
-  productSelections: StageFact[];
-  productPageViews: StageFact[];
-  considerationActions: StageFact[];
-  productOutboundIntents: StageFact[];
-  brandOutboundIntents: StageFact[];
-  legacyUndifferentiatedProductViews: StageFact[];
-  productJourneyFacts: Array<{ visitorId: string; product: ProductIdentity; stages: string[]; sessionIds: string[] }>;
-  brandJourneyFacts: Array<{ visitorId: string; brand: BrandIdentity; stages: string[]; productKeys: string[] }>;
-  productFunnel: ProductFunnelRow[];
-  searchEpisodes: SearchEpisode[];
-  surfaces: SurfaceAggregate[];
-  summary: {
-    uniqueVisitors: number;
-    sessions: number;
-    returningAnonymousVisitors: number;
-    discoveryActiveSessions: number;
-    canonicalDiscoveryOpportunities: number;
-    eligibleProductOpportunities: number;
-    qualifiedProductExposures: number;
-    productSelections: number;
-    productPageViews: number;
-    considerationActions: number;
-    productOutboundIntents: number;
-    brandOutboundIntents: number;
-  };
-};
-
-export function productIdentity(input: { productId?: unknown; brandId?: unknown; productSlug?: unknown; brandSlug?: unknown }): ProductIdentity | null {
-  const productId = text(input.productId), brandId = text(input.brandId);
-  const productSlug = text(input.productSlug), brandSlug = text(input.brandSlug);
-  const productPart = productId || `slug:${productSlug}`;
-  const brandPart = brandId || `slug:${brandSlug}`;
-  if (!productPart || productPart === "slug:") return null;
-  return { key: `${productPart}::${brandPart}`, productId, brandId, productSlug, brandSlug };
+export function deriveAnalyticsDomain(events:AnalyticsEvent[],states:DiscoveryStateRow[]=[],results:DiscoveryResultRow[]=[],o:{periodStart?:Date;lookbackEvents?:AnalyticsEvent[]}={}):DerivedAnalyticsDomain{
+ const sorted=dedup(events).sort((a,b)=>a.at.getTime()-b.at.getTime()||a.sequenceNumber-b.sequenceNumber||a.id-b.id),lookback=dedup(o.lookbackEvents||[]).sort((a,b)=>a.at.getTime()-b.at.getTime()||a.id-b.id),vd=validateDiscoveryData(states,results),sm=new Map(vd.completeStates.map(s=>[s.discovery_state_id,s]));
+ const eligibleProductOpportunities:EligibleProductOpportunity[]=vd.completeResults.filter(r=>r.entity_type==="product").flatMap(r=>{const s=sm.get(r.discovery_state_id),product=productIdentity({productId:r.product_id,brandId:r.brand_id,productSlug:r.product_slug,brandSlug:r.brand_slug});return s&&product?[{stateId:r.discovery_state_id,position:r.position,visitorId:text(s.anonymous_journey_id)||null,sessionId:text(s.anonymous_session_id)||null,journeyId:text(s.anonymous_journey_id)||null,product,brand:brandIdentity({brandId:r.brand_id,brandSlug:r.brand_slug}),sourceSurface:s.surface_type,searchId:text(s.search_id),timestamp:new Date(s.occurred_at)}]:[]});
+ const facts=(name:string,brandOnly=false)=>sorted.filter(e=>e.event===name).map(e=>fact(e,sm,brandOnly)).filter((x):x is ProductStageFact=>Boolean(x));
+ const productExposures=facts("product_impression"),views=facts("view_product"),productSelections=views.filter(f=>ptext(f.event,"view_stage")==="selection_click"),productPageViews=views.filter(f=>ptext(f.event,"view_stage")==="page_load").map(f=>link(f,productSelections)),legacyUndifferentiatedProductViews=views.filter(f=>!ptext(f.event,"view_stage"));
+ const productConsiderations=sorted.filter(e=>["save_product","add_to_collection","share_product"].includes(e.event)).map(e=>fact(e,sm)).filter((x):x is ProductStageFact=>Boolean(x)).map(f=>link(f,[...productSelections,...productPageViews])),productOutboundIntents=facts("outbound_product_click").map(f=>link(f,[...productSelections,...productPageViews]));
+ const brandQualifiedImpressions=facts("brand_impression",true),brandViews=facts("view_brand",true),brandSelections=brandViews.filter(f=>ptext(f.event,"view_stage")==="selection_click"),brandPageViews=brandViews.filter(f=>ptext(f.event,"view_stage")==="page_load"),brandOutboundIntents=facts("outbound_brand_click",true);
+ const bySession=new Map<string,AnalyticsEvent[]>();for(const e of sorted)if(session(e))bySession.set(e.sessionId,[...(bySession.get(e.sessionId)||[]),e]);const sessions=[...bySession].map(([id,es])=>{const vs=[...new Set(es.map(visitor).filter(Boolean))] as string[];return{id,visitorId:vs.length===1?vs[0]:null,startedAt:es[0].at,endedAt:es.at(-1)!.at,discoveryActive:vd.completeStates.some(s=>s.anonymous_session_id===id)||es.some(e=>Boolean(ptext(e,"source_discovery_state_id"))),identityConflict:vs.length>1}});for(const s of vd.completeStates)if(!sessions.some(x=>x.id===s.anonymous_session_id))sessions.push({id:s.anonymous_session_id,visitorId:text(s.anonymous_journey_id)||null,startedAt:new Date(s.occurred_at),endedAt:new Date(s.occurred_at),discoveryActive:true,identityConflict:false});
+ const visitorIds=[...new Set([...sorted.map(visitor),...vd.completeStates.map(s=>text(s.anonymous_journey_id)||null)].filter(Boolean))] as string[],priorVisitors=new Set(lookback.filter(e=>!o.periodStart||e.at<o.periodStart).map(visitor).filter(Boolean)),visitors=visitorIds.map(id=>({id,sessionIds:[...new Set(sessions.filter(s=>s.visitorId===id).map(s=>s.id))],returning:priorVisitors.has(id)}));
+ const productAttention=(es:AnalyticsEvent[])=>es.filter(e=>e.event==="product_impression"||(e.event==="view_product"&&["selection_click","page_load"].includes(ptext(e,"view_stage")))||["save_product","add_to_collection","share_product","outbound_product_click"].includes(e.event));
+ const repeatProduct:RepeatInterestFact[]=[];for(const e of productAttention(sorted)){const pr=eventProduct(e),v=visitor(e),s=session(e);if(!pr||!v||!s)continue;const earlier=[...productAttention(lookback),...productAttention(sorted).filter(x=>x.at<e.at)].reverse().find(x=>visitor(x)===v&&session(x)&&session(x)!==s&&eventProduct(x)?.key===pr.key);if(earlier)repeatProduct.push({visitorId:v,currentSessionId:s,priorSessionId:session(earlier)!,product:pr,currentAt:e.at,priorAt:earlier.at,crossSession:true})}const productRepeatInterest=[...new Map(repeatProduct.map(x=>[`${x.visitorId}:${x.product!.key}:${x.currentSessionId}`,x])).values()];
+ const allBrand=[...brandQualifiedImpressions,...brandSelections,...brandPageViews,...brandOutboundIntents,...productExposures,...productSelections,...productPageViews,...productConsiderations,...productOutboundIntents],lookbackBrand=lookback.map(e=>fact(e,sm,true)).filter((x):x is ProductStageFact=>Boolean(x?.brand)),repeatBrand:RepeatInterestFact[]=[];for(const f of allBrand)if(f.visitorId&&f.sessionId&&f.brand){const earlier=[...lookbackBrand,...allBrand.filter(x=>x.timestamp<f.timestamp)].reverse().find(x=>x.visitorId===f.visitorId&&x.sessionId&&x.sessionId!==f.sessionId&&x.brand?.key===f.brand!.key);if(earlier)repeatBrand.push({visitorId:f.visitorId,currentSessionId:f.sessionId,priorSessionId:earlier.sessionId!,brand:f.brand,currentAt:f.timestamp,priorAt:earlier.timestamp,crossSession:true})}const brandRepeatInterest=[...new Map(repeatBrand.map(x=>[`${x.visitorId}:${x.brand!.key}:${x.currentSessionId}`,x])).values()];
+ const keys=new Set([...eligibleProductOpportunities.map(x=>x.product.key),...[...productExposures,...productSelections,...productPageViews,...productConsiderations,...productOutboundIntents].map(x=>x.product.key)]),productFunnel=[...keys].map(key=>{const ef=eligibleProductOpportunities.filter(x=>x.product.key===key),xf=productExposures.filter(x=>x.product.key===key),sf=productSelections.filter(x=>x.product.key===key),pf=productPageViews.filter(x=>x.product.key===key),cf=productConsiderations.filter(x=>x.product.key===key),of=productOutboundIntents.filter(x=>x.product.key===key),sample=ef[0]?.product||xf[0]?.product||sf[0]?.product||pf[0]?.product||cf[0]?.product||of[0]!.product,ctx=xf[0]||sf[0]||pf[0],ev=ctx?.event||cf[0]?.event||of[0]?.event,ec=ecounts(ef),xc=counts(xf),sc=counts(sf),pc=counts(pf),cc=counts(cf),oc=counts(of),lp=counts(pf.filter(x=>x.opportunity)),lc=counts(cf.filter(x=>x.opportunity)),lo=counts(of.filter(x=>x.opportunity));return{product:sample,brand:ef[0]?.brand||ctx?.brand||null,category:ev?.category||"",subcategory:ev?.subcategory||"",productType:ev?.productType||"",primarySurface:ctx?.sourceSurface||ef[0]?.sourceSurface||"",positionBand:pband(ctx?.opportunity?.position??ef[0]?.position??null),eligible:ec,exposed:xc,selected:sc,pageViewed:pc,considered:cc,outbound:oc,selectionPerExposure:ratio(sc.uniqueProductOpportunities,xc.uniqueProductOpportunities),pageLoadPerSelection:ratio(lp.uniqueProductOpportunities,sc.uniqueProductOpportunities),considerationPerPageLoad:ratio(cc.uniqueVisitors,pc.uniqueVisitors),considerationPerExposure:ratio(lc.uniqueProductOpportunities,xc.uniqueProductOpportunities),outboundPerPageLoad:ratio(oc.uniqueVisitors,pc.uniqueVisitors),outboundPerExposure:ratio(lo.uniqueProductOpportunities,xc.uniqueProductOpportunities)} satisfies ProductFunnelRow});
+ const searchStates=vd.completeStates.filter(s=>Boolean(s.search_id||s.query)&&/search/.test(s.surface_type)),groups=new Map<string,DiscoveryStateRow[]>();for(const s of searchStates){const k=s.search_id?`${s.anonymous_session_id}:${s.search_id}`:`${s.anonymous_session_id}:legacy:${s.discovery_state_id}`;groups.set(k,[...(groups.get(k)||[]),s])}const perSession=new Map<string,Array<{key:string;states:DiscoveryStateRow[]}>>();for(const [key,ss]of groups){ss.sort((a,b)=>new Date(a.occurred_at).getTime()-new Date(b.occurred_at).getTime()||a.discovery_state_id.localeCompare(b.discovery_state_id));const sid=ss[0].anonymous_session_id;perSession.set(sid,[...(perSession.get(sid)||[]),{key,states:ss}])}const searchEpisodes:SearchEpisode[]=[];for(const eps of perSession.values()){eps.sort((a,b)=>new Date(a.states[0].occurred_at).getTime()-new Date(b.states[0].occurred_at).getTime()||a.key.localeCompare(b.key));for(let i=0;i<eps.length;i++){const{key,states:ss}=eps[i],first=ss[0],ids=new Set(ss.map(s=>s.discovery_state_id)),searchId=text(first.search_id),match=(f:ProductStageFact)=>Boolean((f.searchId&&searchId&&f.searchId===searchId&&f.sessionId===first.anonymous_session_id)||(f.opportunity&&ids.has(f.opportunity.stateId))),ex=productExposures.filter(match).length,se=productSelections.filter(match).length,co=productConsiderations.filter(match).length,ou=productOutboundIntents.filter(match).length,next=eps[i+1]?.states[0];searchEpisodes.push({key,searchId,sessionId:first.anonymous_session_id,visitorId:first.anonymous_journey_id,query:text(first.query),states:ss,resultCount:ss.at(-1)!.result_count,exposed:ex,selected:se,considered:co,outbound:ou,successLevel:ou?4:co?3:se?2:ex?1:0,legacyInferred:!searchId,reformulationCandidate:Boolean(next&&text(next.query).toLocaleLowerCase("bg")!==text(first.query).toLocaleLowerCase("bg"))})}}
+ const bm=new Map<string,ProductStageFact[]>();for(const f of allBrand)if(f.visitorId&&f.brand)bm.set(`${f.visitorId}:${f.brand.key}`,[...(bm.get(`${f.visitorId}:${f.brand.key}`)||[]),f]);const brandJourneyFacts=[...bm.values()].map(xs=>({visitorId:xs[0].visitorId!,brand:xs[0].brand!,sessionIds:[...new Set(xs.map(x=>x.sessionId).filter(Boolean))] as string[],productKeys:[...new Set(xs.filter(x=>x.event.productId||x.event.productSlug).map(x=>x.product.key))],impressions:xs.filter(x=>x.event.event==="brand_impression").length,selections:xs.filter(x=>x.event.event==="view_brand"&&ptext(x.event,"view_stage")==="selection_click").length,pageViews:xs.filter(x=>x.event.event==="view_brand"&&ptext(x.event,"view_stage")==="page_load").length,outbound:xs.filter(x=>x.event.event==="outbound_brand_click").length})),brandMultiProductExploration=brandJourneyFacts.flatMap(b=>b.sessionIds.flatMap(sessionId=>{const ps=[...new Set(allBrand.filter(f=>f.visitorId===b.visitorId&&f.brand?.key===b.brand.key&&f.sessionId===sessionId&&(f.event.productId||f.event.productSlug)).map(f=>f.product.key))];return ps.length>=2?[{visitorId:b.visitorId,brand:b.brand,sessionId,productKeys:ps}]:[]}));
+ const surfaces=[...new Set([...eligibleProductOpportunities.map(x=>x.sourceSurface),...[...productExposures,...productSelections,...productPageViews,...productConsiderations,...productOutboundIntents].map(x=>x.sourceSurface)].filter(Boolean))].map(surface=>{const e=eligibleProductOpportunities.filter(x=>x.sourceSurface===surface),x=productExposures.filter(f=>f.sourceSurface===surface),s=productSelections.filter(f=>f.sourceSurface===surface),p=productPageViews.filter(f=>f.sourceSurface===surface),c=productConsiderations.filter(f=>f.sourceSurface===surface),out=productOutboundIntents.filter(f=>f.sourceSurface===surface);return{surface,eligible:e.length,exposed:x.length,selected:s.length,pageViewed:p.length,considered:c.length,outbound:out.length,uniqueVisitors:uniq([...x,...s,...p,...c,...out].map(f=>f.visitorId).filter(Boolean))}});
+ return{visitors,sessions,journeys:visitors.map(v=>({id:v.id,sessionIds:v.sessionIds,eventCount:sorted.filter(e=>visitor(e)===v.id).length})),discoveryOpportunities:vd.completeStates,discoveryMembers:vd.completeResults,incompleteDiscoveryStates:vd.incompleteStates,discoveryDiagnostics:vd.diagnostics,eligibleProductOpportunities,productExposures,productSelections,productPageViews,productConsiderations,productOutboundIntents,brandQualifiedImpressions,brandSelections,brandPageViews,brandOutboundIntents,legacyUndifferentiatedProductViews,productRepeatInterest,brandRepeatInterest,brandJourneyFacts,brandMultiProductExploration,productFunnel,searchEpisodes,surfaces,summary:{uniqueVisitors:visitors.length,sessions:sessions.length,returningAnonymousVisitors:visitors.filter(v=>v.returning).length,discoveryActiveSessions:sessions.filter(s=>s.discoveryActive).length,completeDiscoveryOpportunities:vd.completeStates.length,incompleteDiscoveryOpportunities:vd.incompleteStates.length,eligibleProductOpportunities:eligibleProductOpportunities.length,qualifiedProductExposures:productExposures.length,productSelections:productSelections.length,productPageViews:productPageViews.length,productConsiderations:productConsiderations.length,productOutboundIntents:productOutboundIntents.length,brandQualifiedImpressions:brandQualifiedImpressions.length,brandSelections:brandSelections.length,brandPageViews:brandPageViews.length,brandOutboundIntents:brandOutboundIntents.length,repeatProductInterest:productRepeatInterest.length,repeatBrandInterest:brandRepeatInterest.length}};
 }
-
-export function brandIdentity(input: { brandId?: unknown; brandSlug?: unknown }): BrandIdentity | null {
-  const brandId = text(input.brandId), brandSlug = text(input.brandSlug);
-  const key = brandId || (brandSlug ? `slug:${brandSlug}` : "");
-  return key ? { key, brandId, brandSlug } : null;
-}
-
-const stageFact = (event: AnalyticsEvent): StageFact => ({
-  event,
-  visitorId: event.journeyId,
-  sessionId: event.sessionId,
-  product: productIdentity({ productId: event.productId, brandId: event.brandId, productSlug: event.productSlug, brandSlug: event.brandSlug }),
-  brand: brandIdentity({ brandId: event.brandId, brandSlug: event.brandSlug }),
-  directSurface: field(event, "source_surface") || event.listContext || event.sourceContext,
-  directStateId: field(event, "source_discovery_state_id"),
-  directSearchId: field(event, "source_search_id") || event.searchId,
-  directPosition: Number.isInteger(Number(value(event, "source_position"))) ? Number(value(event, "source_position")) : (event.payload.position ? Number(event.payload.position) : null),
-  influencedStateId: field(event, "last_discovery_state_id"),
-});
-
-const viewStage = (event: AnalyticsEvent) => field(event, "view_stage");
-const eventKey = (fact: StageFact) => fact.event.eventId || `${fact.event.id}:${fact.event.at.toISOString()}:${fact.event.sequenceNumber}`;
-const uniqueFacts = (facts: StageFact[]) => [...new Map(facts.map(fact => [eventKey(fact), fact])).values()];
-const productFacts = (events: AnalyticsEvent[], names: Set<string>) => uniqueFacts(events.filter(e => names.has(e.event)).map(stageFact).filter(f => f.product));
-
-export function deriveAnalyticsDomain(
-  events: AnalyticsEvent[],
-  discoveryStates: DiscoveryStateRow[] = [],
-  discoveryResults: DiscoveryResultRow[] = [],
-): DerivedAnalyticsDomain {
-  const sorted = [...events].sort((a, b) => a.at.getTime() - b.at.getTime() || a.sequenceNumber - b.sequenceNumber || a.id - b.id);
-  const stateMap = new Map(discoveryStates.map(state => [state.discovery_state_id, state]));
-  const sessionsById = new Map<string, AnalyticsEvent[]>();
-  sorted.filter(e => e.sessionId).forEach(e => sessionsById.set(e.sessionId, [...(sessionsById.get(e.sessionId) || []), e]));
-  const stateSessions = new Set(discoveryStates.map(s => s.anonymous_session_id));
-  const sessions = [...sessionsById.entries()].map(([id, rows]) => ({
-    id, visitorId: rows.find(e => e.journeyId)?.journeyId || "", startedAt: rows[0].at, endedAt: rows.at(-1)!.at,
-    discoveryActive: stateSessions.has(id) || rows.some(e => Boolean(e.searchId || field(e, "source_discovery_state_id"))),
-  }));
-  for (const state of discoveryStates) if (!sessionsById.has(state.anonymous_session_id)) sessions.push({
-    id: state.anonymous_session_id, visitorId: state.anonymous_journey_id,
-    startedAt: new Date(state.occurred_at), endedAt: new Date(state.occurred_at), discoveryActive: true,
-  });
-  const sessionIdsByVisitor = new Map<string, string[]>();
-  sessions.filter(s => s.visitorId).forEach(s => sessionIdsByVisitor.set(s.visitorId, [...new Set([...(sessionIdsByVisitor.get(s.visitorId) || []), s.id])]));
-  const visitors = [...sessionIdsByVisitor.entries()].map(([id, sessionIds]) => ({ id, sessionIds, returning: sessionIds.length > 1 }));
-
-  const exposures = productFacts(sorted.filter(e => e.event === "product_impression"), new Set(["product_impression"]));
-  const productViews = sorted.filter(e => e.event === "view_product").map(stageFact).filter(f => f.product);
-  const selections = uniqueFacts(productViews.filter(f => viewStage(f.event) === "selection_click"));
-  const pageViews = uniqueFacts(productViews.filter(f => viewStage(f.event) === "page_load"));
-  const legacyViews = uniqueFacts(productViews.filter(f => !viewStage(f.event)));
-  const considerations = productFacts(sorted, new Set(["save_product", "add_to_collection", "share_product"]));
-  const productOutbound = productFacts(sorted, new Set(["outbound_product_click"]));
-  const brandOutbound = uniqueFacts(sorted.filter(e => e.event === "outbound_brand_click").map(stageFact).filter(f => f.brand));
-
-  const eligible = discoveryResults.filter(r => r.entity_type === "product").map(row => ({
-    row,
-    state: stateMap.get(row.discovery_state_id),
-    product: productIdentity({ productId: row.product_id, brandId: row.brand_id, productSlug: row.product_slug, brandSlug: row.brand_slug }),
-  })).filter(x => x.product && x.state);
-  const allProductKeys = new Set([...eligible.map(x => x.product!.key), ...[...exposures, ...selections, ...pageViews, ...considerations, ...productOutbound].map(f => f.product!.key)]);
-  const factsFor = (facts: StageFact[], key: string) => facts.filter(f => f.product?.key === key);
-  const productFunnel = [...allProductKeys].map(key => {
-    const sample = [...eligible.map(x => x.product!), ...exposures.map(f => f.product!)].find(p => p.key === key)!;
-    const e = eligible.filter(x => x.product!.key === key), x = factsFor(exposures, key), s = factsFor(selections, key);
-    const p = factsFor(pageViews, key), c = factsFor(considerations, key), o = factsFor(productOutbound, key);
-    const dedup = (facts: StageFact[]) => unique(facts.map(f => `${f.visitorId}:${f.directStateId}:${f.directPosition ?? ""}:${key}`));
-    const eligibleKeys = unique(e.map(item => `${item.state!.anonymous_journey_id}:${item.row.discovery_state_id}:${item.row.position}:${key}`));
-    const visitorsForProduct = unique([...x, ...s, ...p, ...c, ...o].map(f => f.visitorId).filter(Boolean));
-    return { product: sample, eligible: eligibleKeys, exposed: dedup(x), selected: dedup(s), pageViewed: dedup(p), considered: dedup(c), outbound: dedup(o), uniqueVisitors: visitorsForProduct,
-      qualifiedExposureRate: ratio(dedup(x), eligibleKeys), selectionRate: ratio(dedup(s), dedup(x)), pageViewRate: ratio(dedup(p), dedup(s)), considerationRate: ratio(dedup(c), dedup(p)), outboundRate: ratio(dedup(o), dedup(p)) };
-  });
-
-  const surfaceNames = new Set([...discoveryStates.map(s => s.surface_type), ...[...exposures, ...selections, ...pageViews, ...considerations, ...productOutbound].map(f => f.directSurface).filter(Boolean)]);
-  const surfaces = [...surfaceNames].map(surface => ({
-    surface,
-    eligible: eligible.filter(x => x.state!.surface_type === surface).length,
-    exposed: exposures.filter(f => f.directSurface === surface).length,
-    selected: selections.filter(f => f.directSurface === surface).length,
-    pageViewed: pageViews.filter(f => f.directSurface === surface).length,
-    considered: considerations.filter(f => f.directSurface === surface).length,
-    outbound: productOutbound.filter(f => f.directSurface === surface).length,
-  }));
-
-  const searchStates = discoveryStates.filter(s => Boolean(s.search_id || s.query) && /search/.test(s.surface_type));
-  const searchGroups = new Map<string, DiscoveryStateRow[]>();
-  searchStates.forEach(s => { const k = s.search_id || `legacy:${s.anonymous_session_id}:${text(s.query).toLocaleLowerCase("bg")}`; searchGroups.set(k, [...(searchGroups.get(k) || []), s]); });
-  const orderedSearches = [...searchGroups.entries()].map(([key, states]) => ({ key, states: [...states].sort((a,b)=>new Date(a.occurred_at).getTime()-new Date(b.occurred_at).getTime()) })).sort((a,b)=>new Date(a.states[0].occurred_at).getTime()-new Date(b.states[0].occurred_at).getTime());
-  const searchEpisodes = orderedSearches.map(({ key, states }, index): SearchEpisode => {
-    const ids = states.map(s => s.discovery_state_id), searchId = states.find(s => s.search_id)?.search_id || "";
-    const matches = (fact: StageFact) => (searchId && fact.directSearchId === searchId) || ids.includes(fact.directStateId);
-    const ex = exposures.filter(matches).length, se = selections.filter(matches).length, co = considerations.filter(matches).length, ou = productOutbound.filter(matches).length;
-    const current = states[0], next = orderedSearches[index + 1]?.states[0];
-    const reformulation = Boolean(next && next.anonymous_session_id === current.anonymous_session_id && text(next.query).toLocaleLowerCase("bg") !== text(current.query).toLocaleLowerCase("bg") && new Date(next.occurred_at).getTime() - new Date(current.occurred_at).getTime() <= 30 * 60_000);
-    return { key, searchId, sessionId: current.anonymous_session_id, visitorId: current.anonymous_journey_id, query: text(current.query), stateIds: ids,
-      resultCount: states.at(-1)!.result_count, exposed: ex, selected: se, considered: co, outbound: ou,
-      successLevel: (ou ? 4 : co ? 3 : se ? 2 : ex ? 1 : 0), legacyInferred: !searchId, reformulationCandidate: reformulation };
-  });
-
-  const productJourneyMap = new Map<string, { visitorId: string; product: ProductIdentity; stages: Set<string>; sessionIds: Set<string> }>();
-  for (const [stage, facts] of [["exposed", exposures], ["selected", selections], ["page_viewed", pageViews], ["considered", considerations], ["outbound", productOutbound]] as const) for (const fact of facts) {
-    const k = `${fact.visitorId}:${fact.product!.key}`, row = productJourneyMap.get(k) || { visitorId: fact.visitorId, product: fact.product!, stages: new Set<string>(), sessionIds: new Set<string>() };
-    row.stages.add(stage); row.sessionIds.add(fact.sessionId); productJourneyMap.set(k, row);
-  }
-  const productJourneyFacts = [...productJourneyMap.values()].map(r => ({ ...r, stages: [...r.stages], sessionIds: [...r.sessionIds] }));
-  const brandJourneyMap = new Map<string, { visitorId: string; brand: BrandIdentity; stages: Set<string>; productKeys: Set<string> }>();
-  for (const fact of [...exposures, ...selections, ...pageViews, ...considerations, ...productOutbound, ...brandOutbound]) if (fact.brand) {
-    const k = `${fact.visitorId}:${fact.brand.key}`, row = brandJourneyMap.get(k) || { visitorId: fact.visitorId, brand: fact.brand, stages: new Set<string>(), productKeys: new Set<string>() };
-    row.stages.add(fact.event.event); if (fact.product) row.productKeys.add(fact.product.key); brandJourneyMap.set(k, row);
-  }
-  const brandJourneyFacts = [...brandJourneyMap.values()].map(r => ({ ...r, stages: [...r.stages], productKeys: [...r.productKeys] }));
-
-  return {
-    visitors, sessions, journeys: visitors.map(v => ({ id: v.id, sessionIds: v.sessionIds, eventCount: sorted.filter(e => e.journeyId === v.id).length })),
-    discoveryOpportunities: discoveryStates, discoveryMembers: discoveryResults, productExposures: exposures, productSelections: selections,
-    productPageViews: pageViews, considerationActions: considerations, productOutboundIntents: productOutbound, brandOutboundIntents: brandOutbound,
-    legacyUndifferentiatedProductViews: legacyViews, productJourneyFacts, brandJourneyFacts, productFunnel, searchEpisodes, surfaces,
-    summary: { uniqueVisitors: visitors.length, sessions: sessions.length, returningAnonymousVisitors: visitors.filter(v => v.returning).length,
-      discoveryActiveSessions: sessions.filter(s => s.discoveryActive).length, canonicalDiscoveryOpportunities: discoveryStates.length,
-      eligibleProductOpportunities: eligible.length, qualifiedProductExposures: exposures.length, productSelections: selections.length,
-      productPageViews: pageViews.length, considerationActions: considerations.length, productOutboundIntents: productOutbound.length,
-      brandOutboundIntents: brandOutbound.length },
-  };
-}
-
-export async function loadDerivedAnalytics(source: AnalyticsDerivedSource, start: Date, end: Date) {
-  const [events, states] = await Promise.all([source.loadEvents(start, end), source.loadDiscoveryStates(start, end)]);
-  const results = await source.loadDiscoveryResults(states.map(state => state.discovery_state_id));
-  return deriveAnalyticsDomain(events, states, results);
-}
+export async function loadDerivedAnalytics(source:AnalyticsDerivedSource,start:Date,end:Date,lookbackStart:Date){const[events,lookbackEvents,states]=await Promise.all([source.loadEvents(start,end),source.loadLookbackEvents(lookbackStart,start),source.loadDiscoveryStates(start,end)]),results=await source.loadDiscoveryResults(states.map(s=>s.discovery_state_id));return deriveAnalyticsDomain(events,states,results,{periodStart:start,lookbackEvents})}
+export async function loadAllPages<T>(fetchPage:(from:number,to:number)=>Promise<T[]>,pageSize=1000){const rows:T[]=[];for(let from=0;;from+=pageSize){const page=await fetchPage(from,from+pageSize-1);rows.push(...page);if(page.length<pageSize)return rows}}

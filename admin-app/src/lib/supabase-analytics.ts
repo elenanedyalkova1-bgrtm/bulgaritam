@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { parseEvent, type AnalyticsEvent } from "./analytics";
 import type { DiscoveryResultMember, DiscoveryStateInsert } from "./analytics-discovery";
+import { loadAllPages, type DiscoveryResultRow, type DiscoveryStateRow } from "./analytics-derived";
 
 const TABLE = "analytics_events";
 const READ_PAGE_SIZE = 1_000;
@@ -244,6 +245,37 @@ export class SupabaseAnalyticsRepository {
       events.push(...rows.map((row) => mapSupabaseRowToAnalyticsEvent(row as SupabaseAnalyticsRow)));
       if (rows.length < READ_PAGE_SIZE) return events;
     }
+  }
+
+  loadEvents(start: Date, end: Date) { return this.listRange(start, end); }
+  loadLookbackEvents(start: Date, end: Date) { return this.listRange(start, end); }
+
+  async loadDiscoveryStates(start: Date, end: Date): Promise<DiscoveryStateRow[]> {
+    if (start >= end) throw new Error("Analytics range start must be before end.");
+    return loadAllPages(async (from, to) => {
+      const { data, error } = await this.client.from("analytics_discovery_states")
+        .select("discovery_state_id,occurred_at,anonymous_session_id,anonymous_journey_id,surface_type,page_path,search_id,query,category,subcategory,product_type,sort_value,result_count")
+        .gte("occurred_at", start.toISOString()).lt("occurred_at", end.toISOString())
+        .order("occurred_at", { ascending: true }).order("discovery_state_id", { ascending: true }).range(from, to);
+      if (error) throw new AnalyticsRepositoryError("discovery state read", error);
+      return (data || []) as DiscoveryStateRow[];
+    }, READ_PAGE_SIZE);
+  }
+
+  async loadDiscoveryResults(stateIds: string[]): Promise<DiscoveryResultRow[]> {
+    const rows: DiscoveryResultRow[] = [];
+    for (let chunkStart = 0; chunkStart < stateIds.length; chunkStart += 50) {
+      const ids = stateIds.slice(chunkStart, chunkStart + 50);
+      rows.push(...await loadAllPages(async (from, to) => {
+        const { data, error } = await this.client.from("analytics_discovery_results")
+          .select("discovery_state_id,entity_type,product_id,brand_id,position")
+          .in("discovery_state_id", ids).order("discovery_state_id", { ascending: true })
+          .order("position", { ascending: true }).range(from, to);
+        if (error) throw new AnalyticsRepositoryError("discovery result read", error);
+        return (data || []) as DiscoveryResultRow[];
+      }, READ_PAGE_SIZE));
+    }
+    return rows;
   }
 }
 

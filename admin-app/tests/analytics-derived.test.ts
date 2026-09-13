@@ -1,90 +1,33 @@
 import assert from "node:assert/strict";
-import { deriveAnalyticsDomain, loadDerivedAnalytics, productIdentity, type DiscoveryResultRow, type DiscoveryStateRow } from "../src/lib/analytics-derived";
-import type { AnalyticsEvent } from "../src/lib/analytics";
+import {deriveAnalyticsDomain,loadAllPages,loadDerivedAnalytics,productIdentity,validateDiscoveryData,type DiscoveryResultRow,type DiscoveryStateRow} from "../src/lib/analytics-derived";
+import type {AnalyticsEvent} from "../src/lib/analytics";
+let id=0;const event=(name:string,x:Partial<AnalyticsEvent>&{payload?:Record<string,unknown>}={}):AnalyticsEvent=>({id:++id,eventId:`e${id}`,event:name,at:new Date(`2026-09-02T10:00:${String(id).padStart(2,"0")}Z`),sessionId:"s1",journeyId:"v1",productId:"p1",productName:"One",productSlug:"one",brandId:"b1",brandName:"B1",brandSlug:"b1",category:"cat",subcategory:"sub",productType:"type",searchTerm:"soap",resultCount:2,collectionId:"",sourceContext:"",listContext:"",referrerDomain:"",utmSource:"",utmMedium:"",utmCampaign:"",searchId:"legacy-stale",pagePath:"/",pageType:"home",giftRecipient:"",giftOccasion:"",sequenceNumber:id,acquisitionChannel:"direct",landingPage:"/",discoveryStateId:"",searchRevision:1,payload:{},...x});
+const state=(x:Partial<DiscoveryStateRow>={}):DiscoveryStateRow=>({discovery_state_id:"d1",occurred_at:"2026-09-02T10:00:00Z",anonymous_session_id:"s1",anonymous_journey_id:"v1",surface_type:"search_results",page_path:"/",search_id:"q1",query:"soap",result_count:2,...x});
+const members:DiscoveryResultRow[]=[{discovery_state_id:"d1",entity_type:"product",product_id:"p1",brand_id:"b1",position:1},{discovery_state_id:"d1",entity_type:"product",product_id:"p2",brand_id:"b2",position:2}];
+const ctx={source_surface:"search_results",source_discovery_state_id:"d1",source_search_id:"q1",source_position:1};
+const domain=deriveAnalyticsDomain([
+ event("product_impression",{payload:ctx}),event("product_impression",{eventId:"e1",payload:ctx}),
+ event("view_product",{payload:{...ctx,view_stage:"selection_click",last_discovery_state_id:"old"}}),event("view_product",{payload:{...ctx,view_stage:"selection_click"}}),
+ event("view_product",{payload:{view_stage:"page_load",source_surface:"product_page"}}),event("view_product",{payload:{view_stage:"page_load",source_surface:"product_page"}}),
+ event("save_product",{payload:{source_surface:"product_page"}}),event("outbound_product_click",{payload:{source_surface:"product_page"}}),event("outbound_product_click",{payload:{source_surface:"product_page"}}),
+], [state()],members);
+assert.equal(domain.productExposures.length,1,"same event id is deduplicated");assert.equal(domain.productSelections.length,2);assert.equal(domain.productPageViews.length,2);assert.equal(domain.productOutboundIntents.length,2);
+const f=domain.productFunnel.find(x=>x.product.productId==="p1")!;assert.equal(f.exposed.uniqueProductOpportunities,1);assert.equal(f.selected.uniqueProductOpportunities,1);assert.equal(f.pageViewed.eventCount,2);assert.equal(f.pageLoadPerSelection,1);assert.equal(f.considerationPerPageLoad,1);assert.equal(f.outboundPerExposure,1);assert.ok(!("conversionRate" in f));
+assert.equal(domain.productSelections[0].searchId,"q1");assert.equal(domain.productSelections[0].influencedStateId,"old");
+const stale=deriveAnalyticsDomain([event("view_product",{payload:{view_stage:"selection_click",source_surface:"related_products"}})],[state()],members);assert.equal(stale.productSelections[0].searchId,"","legacy event.searchId is not direct");assert.equal(stale.productSelections[0].sourceSurface,"related_products");
 
-let id = 0;
-const event = (name: string, overrides: Partial<AnalyticsEvent> & { payload?: Record<string, unknown> } = {}): AnalyticsEvent => ({
-  id: ++id, eventId: `e-${id}`, event: name, at: new Date(`2026-09-01T10:00:${String(id).padStart(2,"0")}Z`),
-  sessionId: "s1", journeyId: "v1", productId: "p1", productName: "One", productSlug: "one",
-  brandId: "b1", brandName: "Brand One", brandSlug: "brand-one", category: "cat", subcategory: "", productType: "",
-  searchTerm: "soap", resultCount: 2, collectionId: "", sourceContext: "", listContext: "", referrerDomain: "",
-  utmSource: "", utmMedium: "", utmCampaign: "", searchId: "q1", pagePath: "/", pageType: "home",
-  giftRecipient: "", giftOccasion: "", sequenceNumber: id, acquisitionChannel: "direct", landingPage: "/",
-  discoveryStateId: "d1", searchRevision: 1, payload: {}, ...overrides,
-});
-const state = (overrides: Partial<DiscoveryStateRow> = {}): DiscoveryStateRow => ({ discovery_state_id:"d1",occurred_at:"2026-09-01T10:00:00Z",anonymous_session_id:"s1",anonymous_journey_id:"v1",surface_type:"search_results",page_path:"/",search_id:"q1",query:"soap",result_count:2,...overrides });
-const members: DiscoveryResultRow[] = [
-  { discovery_state_id:"d1",entity_type:"product",product_id:"p1",brand_id:"b1",position:1 },
-  { discovery_state_id:"d1",entity_type:"product",product_id:"p2",brand_id:"b2",position:2 },
-];
+assert.notEqual(productIdentity({productId:"same",brandId:"a"})!.key,productIdentity({productId:"same",brandId:"b"})!.key);
+const missing=deriveAnalyticsDomain([event("product_impression",{journeyId:"",sessionId:"",eventId:"m1"}),event("product_impression",{journeyId:"",sessionId:"",eventId:"m2"})]);assert.equal(missing.summary.qualifiedProductExposures,2);assert.equal(missing.productFunnel[0].exposed.uniqueVisitors,0);assert.equal(missing.productFunnel[0].exposed.uniqueProductOpportunities,0,"missing identities never collapse into one visitor opportunity");
+const corrupt=deriveAnalyticsDomain([event("page_view",{sessionId:"shared",journeyId:"v1"}),event("page_view",{sessionId:"shared",journeyId:"v2"})]);assert.equal(corrupt.sessions[0].identityConflict,true);assert.equal(corrupt.sessions[0].visitorId,null);
 
-const normal = deriveAnalyticsDomain([
-  event("product_impression",{payload:{source_surface:"search_results",source_discovery_state_id:"d1",source_search_id:"q1",source_position:1}}),
-  event("product_impression",{eventId:"e-repeat",payload:{source_surface:"search_results",source_discovery_state_id:"d1",source_search_id:"q1",source_position:1}}),
-  event("view_product",{payload:{view_stage:"selection_click",source_surface:"search_results",source_discovery_state_id:"d1",source_search_id:"q1",source_position:1,last_discovery_state_id:"old"}}),
-  event("view_product",{payload:{view_stage:"page_load",source_surface:"product_page"}}),
-  event("save_product",{payload:{source_surface:"product_page"}}),
-  event("outbound_product_click",{payload:{source_surface:"product_page"}}),
-  event("outbound_brand_click",{productId:"",productSlug:"",payload:{source_surface:"brand_page"}}),
-], [state()], members);
+const lookback=[event("view_product",{sessionId:"old",journeyId:"v1",at:new Date("2026-09-01T00:00:00Z"),payload:{view_stage:"page_load"}})];const returns=deriveAnalyticsDomain([event("view_product",{sessionId:"new",journeyId:"v1",at:new Date("2026-09-02T00:00:00Z"),payload:{view_stage:"page_load"}})],[],[],{periodStart:new Date("2026-09-02"),lookbackEvents:lookback});assert.equal(returns.summary.returningAnonymousVisitors,1);assert.equal(returns.summary.repeatProductInterest,1);assert.equal(returns.summary.repeatBrandInterest,1);
+const sameSession=deriveAnalyticsDomain([event("view_product",{sessionId:"one",payload:{view_stage:"page_load"}}),event("view_product",{sessionId:"one",payload:{view_stage:"page_load"}})]);assert.equal(sameSession.summary.repeatProductInterest,0,"same-session reload is not cross-session return");
 
-assert.equal(normal.summary.uniqueVisitors,1);
-assert.equal(normal.summary.sessions,1);
-assert.equal(normal.summary.canonicalDiscoveryOpportunities,1);
-assert.equal(normal.summary.eligibleProductOpportunities,2);
-assert.equal(normal.summary.qualifiedProductExposures,2,"raw distinct impression events remain countable");
-assert.equal(normal.summary.productSelections,1);
-assert.equal(normal.summary.productPageViews,1);
-assert.equal(normal.summary.considerationActions,1);
-assert.equal(normal.summary.productOutboundIntents,1);
-assert.equal(normal.summary.brandOutboundIntents,1);
-const p1=normal.productFunnel.find(row=>row.product.productId==="p1")!;
-assert.equal(p1.eligible,1); assert.equal(p1.exposed,1,"opportunity-normalized repeated impressions deduplicate");
-assert.equal(p1.selectionRate,1); assert.equal(p1.pageViewRate,1); assert.equal(p1.considerationRate,1); assert.equal(p1.outboundRate,1);
-assert.equal(normal.productFunnel.find(row=>row.product.productId==="p2")!.exposed,0,"eligible but unexposed remains represented");
-assert.equal(normal.searchEpisodes[0].successLevel,4);
-assert.equal(normal.productSelections[0].directSurface,"search_results");
-assert.equal(normal.productSelections[0].influencedStateId,"old","stale last state is preserved separately");
+const searches=deriveAnalyticsDomain([], [state({discovery_state_id:"a1",anonymous_session_id:"a",search_id:"qa",query:"zero",result_count:0,occurred_at:"2026-09-02T10:00:00Z"}),state({discovery_state_id:"b1",anonymous_session_id:"b",search_id:"qb",query:"other",result_count:0,occurred_at:"2026-09-02T10:00:01Z"}),state({discovery_state_id:"a2",anonymous_session_id:"a",search_id:"qa2",query:"refined",result_count:0,occurred_at:"2026-09-02T10:00:02Z"}),state({discovery_state_id:"a3",anonymous_session_id:"a",search_id:"qa2",query:"refined",category:"cat",result_count:0,occurred_at:"2026-09-02T10:00:03Z"})],[]);const zero=searches.searchEpisodes.find(x=>x.query==="zero")!;assert.equal(zero.reformulationCandidate,true,"reformulation adjacency is session-local");assert.equal(searches.searchEpisodes.find(x=>x.searchId==="qa2")!.states.length,2,"filter states remain in one episode");
 
-const sameIdDifferentBrands = deriveAnalyticsDomain([
-  event("product_impression",{productId:"shared",brandId:"a",brandSlug:"a"}),
-  event("product_impression",{productId:"shared",brandId:"b",brandSlug:"b"}),
-]);
-assert.equal(sameIdDifferentBrands.productFunnel.length,2,"composite product identity separates brands");
-assert.notEqual(productIdentity({productId:"shared",brandId:"a"})!.key,productIdentity({productId:"shared",brandId:"b"})!.key);
+const brand=deriveAnalyticsDomain([event("brand_impression",{productId:"",productSlug:"",payload:{source_surface:"brand_directory",source_position:1}}),event("view_brand",{productId:"",productSlug:"",payload:{view_stage:"selection_click",source_surface:"brand_directory"}}),event("view_brand",{productId:"",productSlug:"",payload:{view_stage:"page_load",source_surface:"brand_page"}}),event("outbound_brand_click",{productId:"",productSlug:"",payload:{source_surface:"brand_page"}})]);assert.equal(brand.summary.brandQualifiedImpressions,1);assert.equal(brand.summary.brandSelections,1);assert.equal(brand.summary.brandPageViews,1);assert.equal(brand.summary.brandOutboundIntents,1);
 
-const returning = deriveAnalyticsDomain([
-  event("page_view"),
-  event("view_product",{sessionId:"s2",at:new Date("2026-09-02T10:00:00Z"),payload:{view_stage:"page_load"}}),
-  event("view_product",{sessionId:"s2",at:new Date("2026-09-02T10:00:01Z"),payload:{view_stage:"page_load"}}),
-  event("view_product",{sessionId:"s2",at:new Date("2026-09-02T10:00:02Z"),payload:{}}),
-]);
-assert.equal(returning.summary.returningAnonymousVisitors,1);
-assert.equal(returning.productPageViews.length,2,"repeated page loads remain raw facts");
-assert.equal(returning.legacyUndifferentiatedProductViews.length,1,"legacy views are retained conservatively");
-
-const reformulation = deriveAnalyticsDomain([], [
-  state({discovery_state_id:"q-a",query:"soap",search_id:"qa",result_count:0}),
-  state({discovery_state_id:"q-b",occurred_at:"2026-09-01T10:01:00Z",query:"natural soap",search_id:"qb",result_count:3}),
-], []);
-assert.equal(reformulation.searchEpisodes[0].resultCount,0);
-assert.equal(reformulation.searchEpisodes[0].reformulationCandidate,true);
-
-const related = deriveAnalyticsDomain([
-  event("view_product",{payload:{view_stage:"selection_click",source_surface:"related_products",origin_product_id:"origin",last_discovery_state_id:"stale-search"}}),
-  event("product_impression",{collectionId:"safe",payload:{source_surface:"named_collection",source_position:3}}),
-]);
-assert.equal(related.productSelections[0].directSurface,"related_products");
-assert.equal(related.productSelections[0].influencedStateId,"stale-search");
-assert.equal(related.surfaces.find(s=>s.surface==="named_collection")!.exposed,1);
-
-let calls:string[]=[];
-const loaded=await loadDerivedAnalytics({
-  async loadEvents(){calls.push("events");return [event("page_view")]},
-  async loadDiscoveryStates(){calls.push("states");return [state()]},
-  async loadDiscoveryResults(ids){calls.push(`results:${ids.join(",")}`);return members},
-},new Date("2026-09-01"),new Date("2026-09-02"));
-assert.equal(loaded.summary.eligibleProductOpportunities,2);
-assert.deepEqual(calls,["events","states","results:d1"],"repository data is loaded once before metrics derive");
-
+const mismatch=validateDiscoveryData([state({result_count:2})],[members[0]]);assert.equal(mismatch.completeStates.length,0);assert.equal(mismatch.incompleteStates.length,1);const duplicate=validateDiscoveryData([state({result_count:2})],[members[0],{...members[1],position:1}]);assert.equal(duplicate.completeStates.length,0);
+const big=Array.from({length:2001},(_,i)=>i);let pages=0;const loaded=await loadAllPages(async(from,to)=>{pages++;return big.slice(from,to+1)});assert.equal(loaded.length,2001);assert.equal(pages,3);let exactPages=0;assert.equal((await loadAllPages(async(f,t)=>{exactPages++;return big.slice(0,2000).slice(f,t+1)})).length,2000);assert.equal(exactPages,3,"exact 1000 boundary requests empty terminator page");
+let calls:string[]=[];await loadDerivedAnalytics({loadEvents:async()=>{calls.push("events");return[]},loadLookbackEvents:async()=>{calls.push("lookback");return[]},loadDiscoveryStates:async()=>{calls.push("states");return[state()]},loadDiscoveryResults:async()=>{calls.push("results");return members}},new Date("2026-09-02"),new Date("2026-09-03"),new Date("2026-08-01"));assert.deepEqual(calls.sort(),["events","lookback","results","states"]);
 console.log("Analytics V2 derived domain tests passed");

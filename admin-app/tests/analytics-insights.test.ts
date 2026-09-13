@@ -1,37 +1,14 @@
-import assert from "node:assert/strict";
-import { DEFAULT_INSIGHT_CONFIG, confidenceFor, generateAnalyticsInsights, median, percentile, quartiles, safeRate, type InsightPeriodSnapshot, type ProductInsightMetric } from "../src/lib/analytics-insights";
-import { productIdentity } from "../src/lib/analytics-derived";
-
-const cfg={...DEFAULT_INSIGHT_CONFIG,minimumSample:10,minimumOpportunities:10,minimumCohortSize:3,mediumSample:30,highSample:100,materialPercentChange:20,rateLift:.2};
-const product=(id:string,brand:string,exposed:number,selected:number,outbound=0):ProductInsightMetric=>({product:productIdentity({productId:id,brandId:brand})!,eligible:Math.max(exposed,20),exposed,selected,outbound,visitors:exposed,cohort:"c"});
-const snapshot=(overrides:Partial<InsightPeriodSnapshot>={}):InsightPeriodSnapshot=>({label:"current",products:[],searches:[],surfaces:[],acquisition:[],repeatInterest:{visitors:20,eligibleVisitors:100},...overrides});
-
-assert.equal(safeRate(1,0),null);assert.equal(median([]),null);assert.equal(median([3,1,2]),2);assert.deepEqual(quartiles([1,2,3,4]),{q1:1.75,median:2.5,q3:3.25});assert.equal(percentile(2,[1,2,3,4]),.5);
-assert.equal(confidenceFor(1,100,10,cfg),null,"insufficient sample suppresses");
-
-const products=[product("same","a",50,2),product("same","b",20,15,10),product("p3","c",50,30,20),product("p4","d",50,25,10),product("p5","e",50,20,5)];
-const current=snapshot({products,searches:[{query:"soap",searches:30,zeroResults:30,medianSupply:0,exposed:0,selected:0,considered:0,outbound:0,visitors:20}],surfaces:[{surface:"related_products",exposures:60,selections:10,visitors:40}],acquisition:[
-  {source:"organic",visitors:50,exposures:40,selections:20,considerations:10,outbound:25,returningVisitors:10},
-  {source:"direct",visitors:50,exposures:40,selections:10,considerations:5,outbound:5,returningVisitors:5},
-  {source:"referral",visitors:50,exposures:40,selections:10,considerations:5,outbound:5,returningVisitors:5},
-]});
-const previous=snapshot({label:"previous",searches:[{query:"soap",searches:15,zeroResults:15,medianSupply:0,exposed:0,selected:0,considered:0,outbound:0,visitors:10}],surfaces:[{surface:"related_products",exposures:30,selections:8,visitors:25}],repeatInterest:{visitors:10,eligibleVisitors:100}});
-const insights=generateAnalyticsInsights(current,previous,cfg);
-assert.ok(insights.some(i=>i.type==="trend"&&i.subject.type==="search"),"search movement appears with evidence");
-assert.ok(insights.some(i=>i.type==="opportunity"&&i.subject.id==="soap"),"zero-result opportunity appears");
-assert.ok(insights.some(i=>i.type==="underperformer"&&i.subject.id===productIdentity({productId:"same",brandId:"a"})!.key),"high exposure/low selection identified");
-assert.ok(insights.some(i=>i.type==="hidden_winner"&&i.subject.id===productIdentity({productId:"same",brandId:"b"})!.key),"lower exposure/strong selection identified");
-assert.ok(insights.some(i=>i.type==="behavior_change"&&i.subject.type==="surface"));
-assert.ok(insights.some(i=>i.type==="acquisition_quality"));
-assert.ok(insights.some(i=>i.subject.id==="repeat-interest"));
-assert.ok(insights.every(i=>i.confidence&&i.sample&&i.comparisonValue!==undefined));
-assert.ok(insights.every(i=>!/(purchase|conversion|Bulgarian consumers|because of)/i.test(i.statement)),"claims avoid purchase, population-wide, and causal language");
-assert.equal(new Set(products.slice(0,2).map(p=>p.product.key)).size,2,"same product ID across brands stays independent");
-
-const sparse=generateAnalyticsInsights(snapshot({searches:[{query:"rare",searches:1,zeroResults:1,medianSupply:0,exposed:0,selected:0,considered:0,outbound:0,visitors:1}]}),snapshot(),cfg);
-assert.equal(sparse.length,0,"sparse evidence suppresses insights");
-
-const sparseCohort=generateAnalyticsInsights(snapshot({products:[product("x","a",20,20),product("y","b",20,1)]}),snapshot(),cfg);
-assert.equal(sparseCohort.length,0,"sparse product cohorts suppress safely");
-
+import assert from "node:assert/strict";import{DEFAULT_INSIGHT_CONFIG,confidenceFor,constructProductCohort,generateAnalyticsInsights,median,percentile,quartiles,safeRate,type InsightPeriodSnapshot,type ProductInsightMetric}from"../src/lib/analytics-insights";import{productIdentity}from"../src/lib/analytics-derived";
+const cfg={...DEFAULT_INSIGHT_CONFIG,minimumSample:10,minimumOpportunities:10,minimumVisitors:5,minimumCohortSize:3,mediumSample:30,highSample:100,materialPercentChange:20,rateLift:.2};
+const product=(id:string,brand:string,exposed:number,selected:number,x:Partial<ProductInsightMetric>={}):ProductInsightMetric=>({product:productIdentity({productId:id,brandId:brand})!,eligible:Math.max(20,exposed),exposed,selected,outbound:0,visitors:Math.max(5,Math.min(exposed,20)),productType:"type",category:"cat",subcategory:"sub",surface:"search_results",positionBand:"1-4",...x});
+const snap=(x:Partial<InsightPeriodSnapshot>={}):InsightPeriodSnapshot=>({label:"now",products:[],searches:[],surfaces:[],acquisition:[],repeatInterest:{productVisitors:0,brandVisitors:0,eligibleVisitors:0},...x});
+assert.equal(safeRate(1,0),null);assert.equal(median([1,2,3,4]),2.5);assert.deepEqual(quartiles([1,2,3,4]),{q1:1.75,median:2.5,q3:3.25});assert.equal(percentile(2,[1,2,3,4]),.5);
+assert.equal(confidenceFor({subjectSample:100,opportunities:100,uniqueVisitors:100,cohortSize:0},cfg,{cohort:true}),null,"no fake cohort can pass");assert.equal(confidenceFor({subjectSample:100,opportunities:100,uniqueVisitors:100,comparisonSample:0},cfg,{comparison:true}),null,"empty comparison suppresses");
+const peers=[product("subject","b",50,2),product("p2","b2",50,25),product("p3","b3",50,30),product("p4","b4",50,20)];const cohort=constructProductCohort(peers[0],peers,3)!;assert.equal(cohort.definition,"same product type + surface + position band");assert.equal(cohort.peers.length,3);assert.ok(!cohort.peers.some(x=>x.product.key===peers[0].product.key),"subject excluded");
+const fallback=[product("s","a",20,15,{positionBand:"25+"}),product("a","b",20,5,{positionBand:"1-4"}),product("b","c",20,5,{positionBand:"5-12"}),product("c","d",20,5,{positionBand:"13-24"})];assert.equal(constructProductCohort(fallback[0],fallback,3)!.fallbackLevel,1);assert.equal(constructProductCohort(product("x","z",20,10,{productType:"unique",category:"unique",subcategory:"unique"}),fallback,3),null);
+const current=snap({products:peers,searches:[{query:"soap",searches:30,zeroResults:30,medianSupply:0,exposed:0,selected:0,considered:0,outbound:0,visitors:20}],surfaces:[{surface:"search_results",eligible:80,exposures:60,selections:10,visitors:30}],repeatInterest:{productVisitors:20,brandVisitors:15,eligibleVisitors:100}}),previous=snap({label:"before",searches:[{query:"soap",searches:15,zeroResults:15,medianSupply:0,exposed:0,selected:0,considered:0,outbound:0,visitors:10}],surfaces:[{surface:"search_results",eligible:50,exposures:30,selections:5,visitors:20}],repeatInterest:{productVisitors:10,brandVisitors:8,eligibleVisitors:100}});const insights=generateAnalyticsInsights(current,previous,cfg);assert.ok(insights.some(x=>x.type==="trend"&&x.subject.type==="search"));assert.ok(insights.some(x=>x.type==="opportunity"));assert.ok(insights.some(x=>x.type==="underperformer"));assert.ok(insights.some(x=>x.subject.type==="surface"));assert.ok(insights.some(x=>x.subject.type==="product_repeat"));assert.ok(insights.every(x=>x.confidence&&x.sample.visitors>=0));assert.ok(insights.every(x=>!/purchase|conversion|Bulgarian consumers|because of/i.test(x.statement)));
+const mixedZero=snap({searches:[{query:"mixed",searches:20,zeroResults:1,medianSupply:10,exposed:10,selected:1,considered:0,outbound:0,visitors:10}]});assert.equal(generateAnalyticsInsights(mixedZero,snap(),cfg).length,0,"one zero does not create absolute gap");
+assert.equal(generateAnalyticsInsights(snap({searches:[{query:"rare",searches:1,zeroResults:1,medianSupply:0,exposed:0,selected:0,considered:0,outbound:0,visitors:1}]}),snap(),cfg).length,0);assert.equal(generateAnalyticsInsights(current,snap(),cfg).filter(x=>x.type==="trend"&&x.subject.type==="search").length,0,"no comparison data suppresses trend");
+assert.equal(generateAnalyticsInsights(snap({repeatInterest:{productVisitors:2,brandVisitors:2,eligibleVisitors:100}}),snap({repeatInterest:{productVisitors:1,brandVisitors:1,eligibleVisitors:100}}),cfg).length,0,"large denominators cannot hide tiny repeat-interest numerators");
+assert.notEqual(product("same","one",20,10).product.key,product("same","two",20,10).product.key);
 console.log("Analytics V2 insight engine tests passed");

@@ -1,0 +1,27 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import type { AnalyticsEvent } from "../src/lib/analytics";
+import { deriveAnalyticsDomain, type DiscoveryResultRow, type DiscoveryStateRow } from "../src/lib/analytics-derived";
+import type { AnalyticsInsight } from "../src/lib/analytics-insights";
+import { buildAnalyticsV2ViewModel, renderInsight } from "../src/lib/analytics-v2";
+import type { AnalyticsV2Load } from "../src/lib/analytics-v2-loader";
+
+let id=0;const at=new Date("2026-04-10T10:00:00Z");
+const event=(name:string,x:Partial<AnalyticsEvent>={}):AnalyticsEvent=>({id:++id,eventId:`e${id}`,event:name,at:new Date(at.getTime()+id*1000),sessionId:"s1",journeyId:"v1",productId:"p",productName:"Продукт",productSlug:"product",brandId:"b1",brandName:"Бранд 1",brandSlug:"brand-1",category:"cat",subcategory:"sub",productType:"type",searchTerm:"сапун",resultCount:2,collectionId:"",sourceContext:"",listContext:"",referrerDomain:"",utmSource:"newsletter",utmMedium:"email",utmCampaign:"spring",searchId:"",pagePath:"/",pageType:"home",giftRecipient:"",giftOccasion:"",sequenceNumber:id,acquisitionChannel:"email",landingPage:"/",discoveryStateId:"",searchRevision:0,payload:{},...x});
+const states:DiscoveryStateRow[]=[{discovery_state_id:"d1",occurred_at:at,anonymous_session_id:"s1",anonymous_journey_id:"v1",surface_type:"homepage_default",page_path:"/",result_count:2},{discovery_state_id:"bad",occurred_at:at,anonymous_session_id:"s2",anonymous_journey_id:"v2",surface_type:"search_results",page_path:"/search",query:"липсва",result_count:2}];
+const members:DiscoveryResultRow[]=[{discovery_state_id:"d1",entity_type:"product",product_id:"p",brand_id:"b1",position:1},{discovery_state_id:"d1",entity_type:"product",product_id:"p",brand_id:"b2",position:2},{discovery_state_id:"bad",entity_type:"product",product_id:"x",brand_id:"bx",position:1}];
+const ctx=(brand:string,pos:number)=>({source_surface:"homepage_default",source_discovery_state_id:"d1",source_position:pos});
+const currentEvents=[event("product_impression",{payload:ctx("b1",1)}),event("product_impression",{brandId:"b2",brandName:"Бранд 2",brandSlug:"brand-2",payload:ctx("b2",2)}),event("view_product",{payload:{...ctx("b1",1),view_stage:"selection_click"}}),event("view_product",{payload:{source_surface:"product_page",view_stage:"page_load"}}),event("outbound_product_click",{payload:{source_surface:"product_page"}}),event("product_impression",{journeyId:"",sessionId:"missing",productId:"legacy",brandId:"",payload:{source_surface:"related_products"}}),event("view_product",{journeyId:"",sessionId:"missing",productId:"legacy",brandId:"",payload:{source_surface:"product_page"}})];
+const current=deriveAnalyticsDomain(currentEvents,states,members,{periodStart:new Date("2026-04-08"),lookbackEvents:[]}),previous=deriveAnalyticsDomain([]);
+const load:AnalyticsV2Load={current,previous,currentEvents,previousEvents:[],lookbackEvents:[],insights:[],meta:{start:new Date("2026-04-08"),end:new Date("2026-04-15"),previousStart:new Date("2026-04-01"),previousEnd:new Date("2026-04-08"),lookbackStart:new Date("2026-01-01"),comparisonAvailable:false,lookbackAvailable:true,eventsLoaded:currentEvents.length,statesLoaded:states.length,membersLoaded:members.length}};
+const model=buildAnalyticsV2ViewModel(load);
+assert.equal(model.insights.length,0,"sparse insight state stays empty");assert.equal(model.period.comparisonAvailable,false);
+assert.equal(model.funnel.find(x=>x.label==="Отваряне от списък")?.rate,.5,"selection uses exposure opportunities");assert.equal(model.funnel.find(x=>x.label==="Сигнал за интерес")?.rate,0,"zero numerator remains zero");
+assert.equal(model.products.filter(x=>x.key.startsWith("p::")).length,2,"same product id under different brands remains separate");assert.ok(model.products.every(x=>!("cohortMedian" in x)),"weak cohort fields are suppressed");
+assert.equal(model.surfaces.find(x=>x.surface==="related_products")?.eligible,null,"non-canonical surface has no fake eligibility");
+assert.equal(model.quality.incompleteStates,1);assert.equal(model.quality.legacyViews,1);assert.equal(model.quality.missingIdentity,2);
+
+const insight:AnalyticsInsight={type:"trend",subject:{type:"search",id:"сапун",label:"сапун"},statement:"unsafe source language",currentValue:30,comparisonValue:20,magnitude:{absolute:10,percent:50},sample:{events:30,visitors:12,opportunities:30,comparisonSample:20},confidence:"MEDIUM",evidence:[{metric:"searches",value:30}],caveats:["source caveat"],suggestedAction:"Проверете заявката.",drilldown:{query:"сапун"}};
+const rendered=renderInsight(insight);assert.match(rendered.statement,/Търсенията за „сапун“/);assert.equal(rendered.confidenceLabel,"Средна увереност");assert.match(rendered.evidenceText,/търсения/);assert.match(rendered.comparison,/база/);assert.ok(rendered.caveat);assert.doesNotMatch(JSON.stringify(rendered),/покуп|продажб|конверси/i);
+const component=await readFile(new URL("../src/components/AnalyticsV2.astro",import.meta.url),"utf8");assert.match(component,/разпознат анонимен браузър/);assert.doesNotMatch(component,/покупка\/конверсия|продажби/i);
+console.log("Analytics V2 view-model and presentation tests passed");

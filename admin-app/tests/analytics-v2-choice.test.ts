@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import type {AnalyticsEvent} from "../src/lib/analytics";
 import type {DiscoveryResultRow,DiscoveryStateRow} from "../src/lib/analytics-derived";
-import {buildChoicePresentation,choiceValueLabel,choicesWord,deriveChoiceDomain,normalizeChoiceState,visitorsWord} from "../src/lib/analytics-v2-choice";
+import {buildChoicePresentation,choiceOrientation,choiceValueLabel,choicesWord,deriveChoiceDomain,normalizeChoiceState,visitorsWord} from "../src/lib/analytics-v2-choice";
 
 let id=0;
 const event=(name:string,payload:Record<string,unknown>={},extra:Partial<AnalyticsEvent>={}):AnalyticsEvent=>({id:++id,eventId:`choice-${id}`,event:name,at:new Date(`2026-09-14T10:00:${String(id).padStart(2,"0")}Z`),sessionId:"session-1",journeyId:"visitor-1",productId:"",productName:"",productSlug:"",brandId:"",brandName:"",brandSlug:"",category:"",subcategory:"",productType:"",searchTerm:"",resultCount:0,collectionId:"",sourceContext:"homepage_discovery",listContext:"",referrerDomain:"",utmSource:"",utmMedium:"",utmCampaign:"",searchId:"",pagePath:"/",pageType:"discovery",giftRecipient:"",giftOccasion:"",sequenceNumber:id,acquisitionChannel:"direct",landingPage:"/",discoveryStateId:"",searchRevision:0,payload,...extra});
@@ -59,6 +59,15 @@ assert.equal(choiceValueLabel("giftable","true"),"Подходящо за под
 assert.equal(choiceValueLabel("price","0-25"),"До 25 €");
 assert.equal(choiceValueLabel("sort","price-asc"),"Цена: от ниска към висока");
 assert.equal(choicesWord(1),"избор");assert.equal(choicesWord(2),"избора");assert.equal(visitorsWord(1),"посетител");assert.equal(visitorsWord(2),"посетители");
+assert.match(choiceOrientation(presentation.summary,presentation.taxonomy),/2 посетители са направили 13 избора/);
+assert.match(choiceOrientation(presentation.summary,presentation.taxonomy),/„Облекло“ е избрана 2 пъти от 2 посетители/);
+const tiedOrientation=choiceOrientation({visitors:2,actions:4},[{...presentation.taxonomy[0],actions:2},{...presentation.taxonomy[1],actions:2}]);
+assert.doesNotMatch(tiedOrientation,/Сред категориите/);assert.match(tiedOrientation,/обща тенденция/);
+
+const unrestricted=deriveChoiceDomain([event("apply_filter",{filter_name:"gift_budget",filter_value:"all",price_range:"all"},{sourceContext:"gift_discovery"})],[state("unrestricted","2026-09-14T10:02:00Z",24,{surface_type:"gift_discovery",gift_recipient:"За бебе",price_min_eur:null,price_max_eur:null})],[]);
+assert.ok(unrestricted.actions.some(x=>x.dimension==="price"&&x.value==="all"),"the raw no-restriction action remains in the derived layer");
+assert.ok(!buildChoicePresentation(unrestricted).gift.some(x=>x.dimension==="price"&&x.value==="all"),"default no-price restriction is suppressed from the primary budget list");
+assert.equal(buildChoicePresentation(unrestricted).summary.giftActions,0,"default no-price restriction is not counted as a presented gift choice");
 
 id=100;
 const strictAction=event("apply_filter",{filter_name:"material",filter_value:"Памук",filter_action:"add",results_before:10,results_after:5},{at:new Date("2026-09-14T11:00:01Z")});
@@ -84,5 +93,12 @@ assert.deepEqual(new Set(direct.outcomes.map(x=>x.kind)),new Set(["product_open"
 assert.equal(buildChoicePresentation(direct).outcomeCounts.brandOutbound,1);
 
 const component=await readFile(new URL("../src/components/analytics-v2/InterestChoiceIntelligence.astro",import.meta.url),"utf8");
-assert.match(component,/Към какво се насочват посетителите\?/);assert.match(component,/Как стесняват избора си\?/);assert.match(component,/Когато търсят подарък/);assert.match(component,/Какво заслужава внимание/);assert.match(component,/Показванията на продукти не се броят като избор/);assert.match(component,/Други начини за стесняване на избора/);assert.match(component,/@media\(max-width:600px\)/);assert.match(component,/max-width:100%/);assert.doesNotMatch(component,/най-популяр|предпочитат|конверси|покупка|продажба|willingness-to-pay/i);assert.doesNotMatch(component,/>\s*(event|payload|canonical state|facet|attribution|qualified impression)\s*</i);
+assert.match(component,/Различни категории и типове/);assert.match(component,/Избори за подарък/);assert.doesNotMatch(component,/Действия при търсене на подарък/);
+assert.match(component,/row\.availability\?<details class="choice-row"/);assert.match(component,/:<div class="choice-row choice-line"/);
+assert.match(component,/Избрано/);assert.match(component,/Премахнато/);assert.match(component,/Изчистено/);assert.doesNotMatch(component,/Добавен ·|Действието е записано/);
+assert.match(component,/За кого търсят/);assert.match(component,/По какъв повод/);assert.match(component,/Какъв бюджет задават/);assert.match(component,/Какво още задават/);assert.match(component,/\.filter\(group=>group\.rows\.length\)/,"empty gift groups are omitted");
+assert.match(component,/Виж комбинациите от критерии/);assert.match(component,/При този набор от критерии е бил наличен 1 продукт/);
+assert.match(component,/Какво броим като избор\?/);assert.match(component,/Самото виждане на продукт не се брои като избор/);
+assert.doesNotMatch(component,/Какво е наблюдавано директно от показаните избори/,"isolated direct-outcome totals are demoted from primary Explore");
+assert.match(component,/Към какво се насочват посетителите\?/);assert.match(component,/Как стесняват избора си\?/);assert.match(component,/Когато търсят подарък/);assert.match(component,/Какво заслужава внимание/);assert.match(component,/Други начини за стесняване на избора/);assert.match(component,/@media\(max-width:600px\)/);assert.match(component,/max-width:100%/);assert.doesNotMatch(component,/най-популяр|предпочитат|конверси|покупка|продажба|willingness-to-pay/i);assert.doesNotMatch(component,/>\s*(event|payload|canonical state|facet|attribution|qualified impression)\s*</i);
 console.log("Analytics V2 Interest & Choice tests passed");

@@ -1,0 +1,8 @@
+---
+import {ANALYTICS_V2_COPY} from "../../lib/analytics-v2-language";
+type View="overview"|"explore"|"diagnostics";const{view}=Astro.props as{view:View};
+const href=(next:View)=>{const p=new URLSearchParams(Astro.url.searchParams);p.set("view",next);if(next!=="explore")p.delete("area");return`/analytics/?${p}`};
+const items=(["overview","explore","diagnostics"] as View[]).map(key=>({key,label:ANALYTICS_V2_COPY.nav[key],help:ANALYTICS_V2_COPY.navHelp[key]}));
+---
+<nav class="analytics-nav" aria-label="Основна навигация на Analytics V2">{items.map(item=><a href={href(item.key)} aria-current={view===item.key?"page":undefined} class:list={{active:view===item.key}}><strong>{item.label}</strong><small>{item.help}</small></a>)}</nav>
+<style>.analytics-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:18px 0}.analytics-nav a{display:grid;gap:2px;padding:11px 14px;border:1px solid var(--line);border-radius:9px;background:#fff;color:inherit;text-decoration:none}.analytics-nav a.active{border-color:var(--green);background:#edf5f0;box-shadow:inset 0 0 0 1px var(--green)}.analytics-nav small{color:#6d746f}@media(max-width:700px){.analytics-nav{grid-template-columns:1fr}.analytics-nav a{display:flex;justify-content:space-between;align-items:center;gap:12px}.analytics-nav small{text-align:right}}</style>

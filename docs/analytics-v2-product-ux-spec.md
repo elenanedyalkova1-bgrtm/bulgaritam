@@ -1008,3 +1008,287 @@ The current V2 foundation already supports a strong Search experience, product a
 The genuine gaps are exact Google queries, reliable direct brand saves, non-canonical choice sets, purchases/revenue, person-level cross-device identity and any claim requiring representative market data. Several desirable views need derived policy rather than tracking: filter sequences and abandonment, catalogue-aware taxonomy/attribute analysis, saved-to-later-action paths, time-to-return, brand cohorts and opportunity classifications.
 
 The seven-area Explore architecture is compatible with future per-brand intelligence: brand identity, composite product identity, paths and repeat facts have explicit homes. It is also compatible with later market intelligence because external demand is isolated as an aggregate Search Console layer instead of being confused with first-party session behavior.
+
+## 23. Interest & Choice Derivation Contract
+
+Status: approved design boundary for a future EXPLORE-3B implementation. This contract does not add UI, schema, tracking, scores, or production behavior.
+
+### Product question and semantic boundary
+
+The area answers:
+
+> **Към какво се насочват посетителите и как стесняват избора си?**
+
+An explicit click, filter application/removal, clearing action, gift choice, or sort change is a **choice action**. A canonical snapshot is an **available-choice state**. A qualified impression, opening, save, or outbound action is a separate downstream behavior. These units must never be collapsed into one generic measure of “interest”. Catalogue membership and passive exposure do not prove that a visitor chose a taxonomy or facet.
+
+The recognized visitor is a consenting anonymous browser identified by `anonymous_journey_id`, not a known person. A session is `anonymous_session_id`. The default taxonomy/filter ranking unit is **choice actions**; every row also shows distinct anonymous visitors when available. Sessions are diagnostic/context units. Result states and result members are never added to action or visitor counts.
+
+### Audited capture contract
+
+| Producer / event | What is actually emitted | Important limitation |
+|---|---|---|
+| Homepage `select_category` | controlled category key, Bulgarian selected label, `filter_name=category`, source context | ordinary category chips emit before the resulting state is committed; shortcut paths commit before emitting |
+| Homepage / brand directory `select_subcategory` | category, controlled subcategory key/label, filter name/value | producer order differs: homepage emits before commit; brand directory commits first |
+| Homepage / brand directory `select_product_type` | selected/filter value and surrounding category/subcategory where present | toggling a type off still uses the selection event; the chosen value is reliable, but action direction needs the event/state context |
+| Homepage / brand directory / SEO `apply_filter` | primitive filter name/value, action, surface; homepage may include comma-joined constraints and price band; SEO includes `results_before/after` | event sanitization intentionally drops array-valued metadata, so homepage `materials`, `colors`, and `attributes` arrays are not a dependable event source; SEO removal is represented as `apply_filter` with `filter_action=remove` |
+| Homepage `remove_filter` | removed chip identity in filter name/value, `filter_action=remove` | emitted before the resulting state; not observed in the audited production sample |
+| Homepage / brand directory `clear_filters` | clear action and scope in `filter_name` where supplied | emitted before or around the state update depending producer; not observed in the audited sample |
+| Homepage / brand directory `change_sort` | selected sort value and context | canonical sort exists, but the action does not explicitly carry a resulting-state ID |
+| Homepage / brand directory gift events | recipient/occasion in selected/filter value; homepage gift budget is an `apply_filter`; tool opening is `open_gift_discovery` | promoted `gift_recipient/gift_occasion` columns are not populated consistently by choice events; canonical gift states are the structured source |
+| Homepage `surprise_me` | selected product/brand identity and shortcut context | it is a random-navigation action, not a filter, taxonomy choice, or preference; no event appeared in the audited sample |
+| Canonical state producers | taxonomy, sort, price bounds, recipient, occasion, structured `active_filters`, exact result count, ordered product/brand members | state timestamps have no event sequence number or explicit `caused_by_event_id`; a state can also be committed by initial render, search, or non-choice re-render |
+
+Ingestion acceptance is not evidence of browser population. Production producers and tests show that primitive values survive event sanitization; arrays on ordinary events do not. Canonical `active_filters` retains arrays/objects and is the authoritative structured state source.
+
+### Complete data path and capability matrix
+
+Status meanings: 🟢 usable from the current loaded V2 domain; 🟡 captured and available through a bounded projection/normalization extension; 🟠 needs reviewed methodology, a catalogue join, or explicit eligibility; 🔴 needs a new source or future instrumentation.
+
+| Dimension / question | Captured and stored | Current V2 load / normalization | Status and implementation rule |
+|---|---|---|---|
+| Category selection | dedicated event; category key plus selected/filter value | event is loaded; no choice aggregation | 🟡 count explicit actions and distinct visitors only |
+| Subcategory selection | dedicated event with category and subcategory | event is loaded; no choice aggregation | 🟡 same unit and rule |
+| Product-type selection | dedicated event; selected/filter value is most reliable | event is loaded; no choice aggregation | 🟡 normalize from selected/filter value; do not rely only on promoted `product_type` |
+| Filter name/type and primitive value | filter events and metadata | event metadata is loaded | 🟡 normalize producer aliases and action direction with coverage diagnostics |
+| Materials, colors, attributes | structured in canonical homepage/SEO states; sometimes comma-joined in event `filter_value` | `active_filters` is omitted from repository projection | 🟡 for explicit canonical facets after projection; event arrays alone are not eligible |
+| Audience and other structured facets | some SEO canonical states retain controlled facets; search intent may emit a primitive audience | omitted from V2 state projection; historical surfaces vary | 🟠 require a facet registry, source coverage, and explicit-choice rule; inferred search intent is not a filter click |
+| Filter removal | `remove_filter`, or SEO `apply_filter` with `filter_action=remove` | events load | 🟡 normalize by action, not event name alone |
+| Filter clearing | `clear_filters` with a scope where present | events load | 🟡 count actions/visitors; reconstructing every removed value is not supported |
+| Sort | `change_sort` and canonical `sort_value` | both event value and canonical sort are loaded | 🟡 action/visitor summary; no performance-effect claim |
+| Gift tool opening / surprise | dedicated events | events load | 🟡 descriptive action and visitor counts only |
+| Gift recipient / occasion | dedicated choice values and canonical columns | event fields load; canonical columns are omitted | 🟡 normalize dedicated values and project canonical fields |
+| Gift price | homepage gift-budget event, `price_range`, canonical exact EUR bounds | event metadata loads; state price columns are omitted | 🟡 selected bands/bounds only; never willingness to pay |
+| Other gift attributes | `attribute:*` entries in canonical `active_filters`; SEO may contain structured facets | omitted | 🟡 when explicitly selected and recognized by the facet registry; otherwise 🟠 |
+| General price filtering | event band plus canonical EUR bounds | event metadata loads; state bounds omitted | 🟡 selected band counts and complete-state availability after projection |
+| Result count after a state | canonical `result_count` plus ordered members | result count/members are loaded and integrity checked | 🟢 as a state fact; 🟠 as the result *of a specific action* without an eligible link |
+| Result count before/after one action | SEO emits both; other producers generally do not | metadata loads but no transition model | 🟠 surface-qualified only; never universal |
+| Action → resulting canonical state | proximity and sometimes contextual state IDs exist | no explicit resulting-state linker | 🟠 producer order is inconsistent; do not infer universally from nearest timestamp |
+| State → qualified exposure/opening/outbound | downstream events may carry `source_discovery_state_id`, position, surface and search | existing product/brand facts validate explicit source state | 🟢 for directly attributed state outcomes; 🟠 when assigning the state to the preceding choice action |
+| Catalogue product prices/attributes and shown-product distributions | catalogue and canonical members exist separately | no time-aware catalogue join in V2 | 🟠 later enriched layer; not EXPLORE-3B |
+| Purchase, revenue, demographic identity | not captured | unavailable | 🔴 out of scope |
+
+### Units and minimum composable model
+
+#### `ChoiceActionFact`
+
+- **Identity:** `event_id`; legacy fallback `legacy:{storage id}:{occurred_at}`. Deduplicate exactly once.
+- **Unit:** one accepted explicit action, never a visitor or result state.
+- **Sources:** the audited taxonomy/filter/sort/gift events. `open_gift_discovery` and `surprise_me` remain distinct action kinds.
+- **Required fields:** event kind, normalized action (`add`, `remove`, `clear`, `sort`, `open`, `random_open`), normalized dimension, normalized value when applicable, timestamp, session, visitor, surface/source context.
+- **Ordering:** within a session by `occurred_at`, then `sequence_number`, then storage ID. Ordering proves chronology only.
+- **Deduplication:** by identity; aggregations separately count actions, distinct visitors, and optionally sessions.
+- **Missing data:** retain the action under `unknown_value` only in Diagnostics; exclude it from value rankings while reporting coverage.
+- **Historical compatibility:** dedicated events remain eligible; producer/version is retained so aliases can be normalized without rewriting raw data.
+- **Privacy:** no raw visitor/session IDs in presentation.
+
+#### `ChoiceStateFact`
+
+- **Identity/unit:** one complete `discovery_state_id` and its exact ordered membership.
+- **Sources:** `analytics_discovery_states` plus `analytics_discovery_results` after existing integrity validation.
+- **Required fields:** visitor/session, timestamp, surface/path family, taxonomy, sort, price bounds, gift dimensions, normalized active facets, result count, complete/incomplete flag.
+- **Ordering:** state timestamp, then stable state ID. There is no state sequence number.
+- **Deduplication:** one state ID; one member per composite state/entity/product/brand identity and position.
+- **Missing data:** null means “not recorded/active”, not “visitor rejected this value”. Incomplete states never supply availability or member denominators.
+- **Historical compatibility:** states exist only after canonical tracking rollout; pre-rollout events may supply action facts but never fabricated state facts.
+- **Privacy:** aggregate only; members are product/brand catalogue identities, not visitor profiles.
+
+#### `ChoiceTransitionFact` (strictly eligible subset)
+
+- **Identity/unit:** `from_state_id → to_state_id` within one session and one compatible surface/page family, with exactly one qualifying explicit action between them.
+- **Eligibility:** both states complete; chronological order unambiguous; no intervening search, navigation, unrelated choice, session boundary, or conflicting re-render; the changed dimension/value must match the action. A configurable short adjacency window is a safety cap, never sufficient evidence by itself.
+- **Values:** before/after result counts, signed/absolute change, neutral direction `narrowed`, `broadened`, or `unchanged`.
+- **Missing/ambiguous behavior:** suppress the transition and report it as unlinked. Never choose the nearest state merely to improve coverage.
+- **Historical compatibility:** current coverage is partial and producer-dependent; first EXPLORE-3B may implement diagnostics/tests but must not headline transition conclusions until eligibility is demonstrated.
+
+#### `ChoiceOutcomeFact`
+
+- **Identity/unit:** one downstream event with an explicit, existing `source_discovery_state_id`; product identity remains `product + brand`.
+- **Attribution:** Level 6 direct state attribution only. `last_discovery_state_id`, older search context, or later same-session chronology is not a direct source.
+- **Presentation rule:** may say an opening/outbound followed **from that state**. It may not say the preceding filter caused the action unless the state is also linked to that action by an eligible `ChoiceTransitionFact`.
+- **Deduplication/missing behavior/privacy:** event identity deduplication; missing source link means excluded from direct outcomes; aggregate only.
+
+Specialized taxonomy, filter, gift, and sort rows should be deterministic aggregations over these four facts, not separate incompatible domains or opaque scores.
+
+### Taxonomy, filter, gift, price, and availability rules
+
+**Taxonomy.** Present explicit action count and distinct visitors. Example: `„Облекло“ е избрана 4 пъти от 3 посетители.` Only add `След избора са били налични…` for eligible linked state facts. Canonical taxonomy on an SEO landing or passive result state is not itself an explicit selection.
+
+**Filters.** Preserve selected values, removals, and clear actions separately. `clear_filters` counts one clear action; it does not manufacture one removal per previously active facet. Structured canonical values take precedence over lossy comma-joined event values. A smaller result set means `изборът е стеснен`, not `възникнало е затруднение`; a larger set means `изборът е разширен`, not success.
+
+**Gift discovery.** Say `В {N} избора за подарък е посочено „За жена“`, never `Жените предпочитат…`. Recipient, occasion, price, and explicit attribute combinations qualify only when every component is present in the same complete state or explicitly selected in the same eligible episode. Opening the gift tool is use of the tool, not a recipient/occasion choice.
+
+**Price.** Keep four concepts separate: exact selected bounds; deterministic selected bands; catalogue prices; prices of shown/opened/saved/outbound products. EXPLORE-3B may use only the first two. `0–25`, `25–50`, `50–100`, and `100+` normalize to canonical EUR bounds; `all` means no selected band and is not a price preference. No willingness-to-pay, sensitivity, ideal-price, or purchase-intent language is allowed.
+
+**Attributes.** Only an explicitly selected canonical facet belongs in the behavioral layer. Catalogue product material/color/audience is passive metadata and requires a later time-aware join. Unknown or free-form historical aliases stay diagnostic until mapped by a reviewed facet registry.
+
+**Availability.** Use complete canonical states only. Show count, median and range only with an explicit base, e.g. `При 4 измерени избора за подарък са останали между 1 и 13 резултата.` Zero and limited choice are factual availability observations. “Limited” needs an explicitly disclosed product rule; it is not automatically friction.
+
+### Episode and sequence rules
+
+A future `FilterEpisode` is a view over eligible `ChoiceActionFact` and `ChoiceTransitionFact` rows, not a new source of truth. It starts with an explicit choice action in a session/surface family and ends on navigation to an incompatible page/surface, a new search identity, session end, or an ambiguity/intervening unrelated action. A timeout may cap an episode but cannot join otherwise unrelated actions.
+
+Sequences such as `Категория → Материал → Цена` or `За жена → Рожден ден → 0–25 евро` are currently 🟠. Event ordering exists, but canonical state commits occur before the event on some producers and after it on others; initial render/search/re-render can also create states; states have no sequence number or `caused_by_event_id`. The production dry run found both before- and after-event state proximity and substantial unlinked coverage. EXPLORE-3B must suppress sequences unless the strict transition eligibility rule passes. A future instrumentation improvement—an explicit `resulting_discovery_state_id` or one uniform atomic commit/action contract—is genuinely required for comprehensive sequence and before/after coverage, but is not part of EXPLORE-3B unless separately approved.
+
+### Downstream attribution rules
+
+1. **Direct:** a qualified impression/opening/save/outbound event explicitly references an existing source state. This may be aggregated by that state's taxonomy/facets.
+2. **Direct choice relationship:** additionally requires an eligible action → resulting-state transition. Only then may wording say `след този избор`.
+3. **Later in the same session:** chronological association only; keep separate and do not include in direct totals.
+4. **Influenced/last context:** `last_discovery_state_id` is explanatory context only and never replaces immediate `source_discovery_state_id`.
+
+Do not claim `filter caused opening`. At most state the observed chain: `Филтърът е приложен; след него е записано състояние с 5 резултата; от това състояние е отворен продукт`, and only when every link is eligible.
+
+### Eventual user questions
+
+The first area should answer no more than these seven questions:
+
+1. Кои категории, подкатегории и типове продукти избират посетителите?
+2. Кои филтри използват и какви стойности посочват?
+3. Кои филтри премахват или изчистват?
+4. За кого, по какъв повод и в какъв ценови диапазон търсят подаръци?
+5. Кои комбинации от изрични избори се срещат в достатъчно пълни данни?
+6. След кои надеждно свързани избори остават малко или никакви резултати?
+7. Какви директно свързани действия следват от измерените състояния, когато връзката е доказуема?
+
+Questions 5–7 disappear when eligibility or sample is insufficient; they are not filled with inferred answers.
+
+### Low-data behavior and Bulgarian vocabulary
+
+Factual orientation is allowed from the first valid observation: `През периода 6 посетители са използвали филтри.`; `„За жена“ е избрано 2 пъти.`; `Има 4 пълни състояния за избор на подарък.` Show both actions and visitors and disclose missing coverage.
+
+Automated interpretation requires a separately reviewed rule, comparison population, minimum sample, and stability check. Until those exist, do not say `Материалът е най-важният критерий`, `интересът расте`, or `това е проблем`. Small samples display descriptive rows without ranking superlatives, trend arrows, or recommendations.
+
+Preferred vocabulary:
+
+| Meaning | Use | Avoid |
+|---|---|---|
+| explicit action | `избрано`, `посочено`, `използван филтър` | `предпочитано`, `търсено от пазара` |
+| anonymous identity | `посетител` plus nearby browser-scope explanation | `човек`, `клиент`, demographic group |
+| result reduction | `изборът е стеснен`, `остават {N} резултата` | `фрикция`, `неуспех` |
+| result increase | `изборът е разширен` | `подобрение`, `успех` |
+| downstream action | `по-късно в същото посещение` or `директно от това състояние` | `заради филтъра`, `доведе до покупка` |
+| price | `избран ценови диапазон` | `готовност за плащане`, `ценова чувствителност` |
+
+### Forbidden claims
+
+The first implementation must not claim preference, popularity, market demand or demand growth; causal effect of a filter/sort/gift choice; conversion, purchase, revenue, sale, or willingness to pay; demographic preference; friction or abandonment without a reviewed definition; market-wide or representative Bulgarian-consumer behavior; passive catalogue exposure as choice; product attribute demand from catalogue metadata; or that a later same-session action was directly caused by an earlier choice.
+
+### Read-only production dry run — 14 September 2026
+
+The audit used the configured Supabase source read-only. Event history spans `2026-08-15 14:26 UTC` to `2026-09-14 16:49 UTC`; canonical state history begins only at `2026-09-12 16:16 UTC`. Therefore the 30-day and historical choice-event totals are nearly identical, while canonical coverage cannot be projected backward over migrated pre-canonical history.
+
+| Window | All events | Relevant choice events | Distinct visitors | Sessions | Event breakdown |
+|---|---:|---:|---:|---:|---|
+| last 7 days | 2,447 | 33 | 9 | 10 | category 12; subcategory 2; product type 1; filters 8; gift recipient 4; gift occasion 2; gift open 2; sort 2 |
+| last 30 days | 4,435 | 40 | 11 | 13 | category 16; subcategory 4; product type 2; filters 8; gift recipient 4; gift occasion 2; gift open 2; sort 2 |
+| full event history | 4,436 | 40 | 11 | 13 | same as 30 days; one older unrelated event |
+
+No `remove_filter`, `clear_filters`, or `surprise_me` event appeared in this sample; their producers and ingestion contracts exist, but real-data presentation must show no measured activity rather than assume completeness.
+
+Historical field completeness for the relevant families:
+
+- all 16 category actions have category, filter name/value, selected value and action; 9 reference a contextual discovery state;
+- all 4 subcategory actions have category/subcategory and selected/filter values; 3 reference a contextual state;
+- both product-type actions have selected/filter values, while the promoted `product_type` field is absent—normalization must use the explicit selected value;
+- all 8 filter actions have primitive filter name/value/action; 4 have a price band; none has reliable array-valued material/color/attribute metadata or universal before/after counts;
+- all 4 recipient and 2 occasion actions have selected/filter values, but their promoted gift columns are absent in this sample;
+- both sort actions have selected value and contextual state; neither proves a causal effect.
+
+There are 43 canonical states and 7,501 members; all 43 pass result-count integrity. All 43 store structured `active_filters`; 38 store sort, 16 category, 2 subcategory, 1 product type, 3 exact price bounds, 4 recipient, and 2 occasion. Measured state examples include a `0–25 EUR / За жена / Рожден ден / Ръчна изработка` gift state with 1 result and a `25–50 EUR / За двойка` state with 13 results. No canonical state in this short sample has zero results.
+
+Observed explicit choices include `Облекло` 4 times, `Дом и интериор` 4, `Аксесоари` 2, `Козметика` 2; `Домашен текстил` 2; product types `Пижами и домашни комплекти` and `Спално бельо` once each; recipient `За жена` 2, `За бебе` 1, `За двойка` 1; occasion `Рожден ден` 2; budgets `0–25` twice and `25–50` once; `Ръчна изработка` once; and sort `price-asc` twice. These are descriptive smoke-sized observations, not ranked insights.
+
+Action/state proximity demonstrates the linkage limitation: among 40 relevant actions, 8 had a state within five seconds before, 23 within five seconds after, and 14 had no state within five seconds; categories overlap, so proximity counts are not a partition. Only 3 action context IDs matched a nearby prior state and none matched a nearby following state. There are 169 downstream events with an explicit existing source state (163 qualified product impressions, 3 product openings, 2 brand openings, 1 product outbound), proving direct state attribution is feasible; it does not prove which preceding choice produced each state.
+
+### Exact EXPLORE-3B scope
+
+EXPLORE-3B may implement only:
+
+1. project `price_min_eur`, `price_max_eur`, `gift_recipient`, `gift_occasion`, and `active_filters` through `DiscoveryStateRow` and the existing bounded repository;
+2. normalize audited taxonomy/filter/gift/sort actions into `ChoiceActionFact`, including SEO remove aliases and explicit coverage diagnostics;
+3. normalize complete canonical states into `ChoiceStateFact` with a controlled facet registry, exact result integrity, and historical-coverage flags;
+4. aggregate action counts and distinct visitors for taxonomy, primitive/structured filters, sort, gift tool use, recipient, occasion, and selected price bands;
+5. show neutral complete-state result availability only where the displayed base is explicit; implement strict transition eligibility as diagnostic/tested infrastructure, and suppress ambiguous before/after statements;
+6. aggregate directly sourced downstream events by canonical state while keeping choice linkage, direct attribution, later-same-session association, and influenced context separate;
+7. add deterministic tests for deduplication, aliases, multi-value normalization, missing fields, complete/incomplete states, action/state ambiguity, direct attribution, low-data language, and product composite identity;
+8. build the bounded `Интерес и избор` presentation for the seven approved user questions, hiding unsupported groups.
+
+EXPLORE-3B must not add tracking/schema, catalogue joins, affinity, demographic inference, opaque scores, causal claims, general sequence claims, automated “most important” insights, or visitor-level timelines. Comprehensive action → result transitions remain a future instrumentation decision requiring separate approval.
+
+## 24. Visitor Affinity & Behavioral Relationships
+
+Status: future feasibility contract only. It deliberately does not expand EXPLORE-3B, whose scope remains explicit taxonomy, filter, gift, sort, and available-choice behavior.
+
+### Evidence hierarchy
+
+1. **Same visitor:** A and B occurred for the same consenting anonymous browser in the selected period.
+2. **Same session:** A and B occurred in the same visit.
+3. **Ordered same session:** A occurred before B by timestamp, sequence, then stable ID. Chronology is not causality.
+4. **Same discovery opportunity:** A and B were eligible members of one complete canonical state.
+5. **Qualified co-exposure:** A and B both had qualified impressions explicitly sourced to that state for the visitor/session.
+6. **Direct attribution:** the later action explicitly carries the source discovery/search/state and position that link it to the opportunity.
+
+Every relationship records and presents its strongest evidence level. A lower level must never inherit wording from a higher level.
+
+Definitions for future work:
+
+- `разгледал продукт` = `view_product` with `view_stage=selection_click` or `page_load`, reported separately where the distinction matters; an impression alone does not qualify;
+- `проявил интерес към бранд` must name its evidence: brand-page/list opening, product opening for that brand, or outbound; these are not silently pooled;
+- `разгледал категория` = explicit category selection when discussing choice; product opening within a category is a separately labelled relationship;
+- `търсил` = a valid internal `search` episode, not Google/referrer inference;
+- `върнал се` = the same anonymous journey ID has qualifying activity in distinct session IDs; this is browser-scoped.
+
+### Feasibility matrix
+
+| Relationship family | Status | Strongest current evidence | Rule |
+|---|---:|---:|---|
+| Brand A visitor also opened Brand B | 🟡 | Level 1 | bounded visitor/entity aggregation; directional denominator retained |
+| Brand A and Brand B in same session | 🟡 | Level 2 | one visitor/session/pair counts once, repeated actions do not inflate it |
+| Brand A → later Brand B | 🟡 | Level 3 | ordered chronology only; same timestamp uses sequence then ID |
+| Product A ↔ Product B, including same-brand portfolio exploration | 🟡 | Levels 1–3 | composite product identity; opening stages remain explicit |
+| Brand ↔ explicit taxonomy choice | 🟡 | Levels 1–3 | explicit selection is distinct from product metadata/exposure |
+| Search ↔ Brand association | 🟡 | Levels 1–3 | same visitor/session/ordered facts remain separate |
+| Search/state directly leading to Brand/Product | 🟡 | Level 6 primitives exist | new aggregate required; only explicit source IDs qualify |
+| Product/brand eligible together | 🟡 | Level 4 | complete canonical states only; non-canonical surfaces excluded |
+| Products/brands qualified-seen together | 🟡 | Level 5 | both qualified impressions must reference the same state; dedupe visitor/state/pair |
+| One eligible item opened instead of another | 🟠 | Levels 4–6 inputs | needs comparable visibility, no-selection/tie, position and eligibility policy |
+| Directional Brand affinity rate | 🟠 | Level 1 available | denominator/sample/privacy/baseline calibration required before insight use |
+| Over-index versus platform baseline | 🟠 | Levels 1–6 possible | defensible comparison population, opportunity and acquisition controls required |
+| “Behavioural competitors” | 🟠 | no single sufficient level | requires repeated comparable co-exposure/co-consideration and sample stability; overlap alone is insufficient |
+| Cross-device/person relationship | 🔴 | unavailable | anonymous journey ID does not identify a person across browsers/devices |
+
+### Future relationship rules and models
+
+Brand affinity is directional. For qualifying definition `Q`, `A → B = unique visitors satisfying Q for A and B / unique visitors satisfying Q for A`. `B → A` has its own denominator. The UI must name `Q` (for example, product openings), period, numerator, denominator, evidence level, and anonymous-browser limitation. Repeated actions by one visitor count once per directional pair and period.
+
+Same-period, same-session, ordered, co-eligible, co-exposed, and directly attributed relationships are distinct columns/facts. `ELIGIBLE TOGETHER ≠ ACTUALLY SEEN TOGETHER ≠ BOTH OPENED ≠ ONE CHOSEN OVER ANOTHER`.
+
+The minimum later structures are:
+
+- `VisitorEntityFact`: visitor, entity type/composite key, qualifying action/stage, session, first/last timestamp, event count; period dedupe is visitor/entity/stage;
+- `BehaviorSequenceFact`: visitor/session, from/to entity or action, ordered timestamps/sequences, chronology evidence, optional direct source; directional and one pair per eligible session;
+- `CoExposureFact`: visitor/session/state, unordered entity pair, eligible-together flags, qualified-seen flags, positions and surface; complete states only;
+- `AffinityFact`: period, directional subject/related entity, qualifying definition, numerator, denominator, rate, evidence level, eligibility/sample/privacy status;
+- `VisitorTaxonomyFact`: visitor/session, explicit taxonomy action versus product-taxonomy context, kept as separate evidence types.
+
+Do not create a generic affinity score. Over-index later compares a brand-specific directional rate with an eligible comparison population that excludes the subject cohort where appropriate and controls at least opportunity/context and material acquisition differences. Thresholds must be calibrated from distributions, not chosen arbitrarily in this audit.
+
+### Privacy and external Brand Intelligence
+
+Elena's internal view may use richer aggregate relationship diagnostics. An external brand report must never expose anonymous IDs/timelines, individual behavior, small samples, private collection information, or exact private competitor performance. Named Brand A ↔ Brand B relationships require a separately approved business/privacy policy, sufficient stable unique visitors, repeated observations, and careful competitive disclosure review; anonymized peer groups are the safer default. Anonymous data is not automatically appropriate for external disclosure.
+
+### Real-data feasibility dry run
+
+Across the currently available historical events, privacy-safe aggregation found:
+
+- 1 anonymous visitor and 1 session with openings across multiple brands;
+- 2 visitors and 2 sessions with openings across multiple products;
+- an ordered same-session `Home of Wool → КИТНА` observation and the reverse direction, one each—feasible chronology, far below insight eligibility;
+- 3 visitors/sessions containing both explicit taxonomy choices and brand/product openings;
+- 1 visitor/session containing both internal search and brand/product openings; no opened-product event in this sample carried direct `source_search_id`, so these examples remain Level 1–3 associations;
+- complete canonical co-eligibility, including `Nutera + Сапунена работилница` in 24 states and `Nutera + Alteya Organics` in 22;
+- qualified same-state co-exposure, including `AuraBaby + Crafts of Space` in 2 states and `CYXO + NADNAP` in 2.
+
+These examples prove reconstructability, not publishable affinity, competition, preference, or causality. The sample is too small for external rates or thresholds. Anonymous journey IDs can reset, be blocked, or split one person across devices/browsers, and shared browsers can combine people.
+
+Brand ↔ Brand overlap, Brand ↔ explicit taxonomy, Search ↔ Brand, canonical co-eligibility, qualified co-exposure, and ordered same-session behavior are technically feasible with bounded derived work. Direct Search → Brand evidence is feasible in the contract but absent in this sample. Behavioural competitor and over-index claims require later methodology. No affinity feature, table, tracking, schema, recommendation logic, or UI was implemented.

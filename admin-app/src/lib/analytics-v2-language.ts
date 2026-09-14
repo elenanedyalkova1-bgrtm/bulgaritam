@@ -31,6 +31,9 @@ export const percentChange=(current:number,previous:number)=>previous===0?null:(
 export const comparisonText=(current:number,previous:number|null)=>previous==null?ANALYTICS_V2_COPY.insufficient.comparison:`${formatNumber(current)} спрямо ${formatNumber(previous)} през предходния период`;
 export const percentChangeText=(current:number,previous:number|null)=>{if(previous==null)return ANALYTICS_V2_COPY.insufficient.comparison;const value=percentChange(current,previous);return value==null?ANALYTICS_V2_COPY.insufficient.comparison:`${value>=0?"+":""}${formatNumber(value,1)}% спрямо предходния период`};
 export const formatNumber=(value:number,digits=0)=>new Intl.NumberFormat("bg-BG",{maximumFractionDigits:digits}).format(value);
+const DAY=86_400_000;
+const rangeDate=(value:Date,includeYear:boolean)=>new Intl.DateTimeFormat("bg-BG",{day:"numeric",month:"long",...(includeYear?{year:"numeric" as const}:{}) ,timeZone:"Europe/Sofia"}).format(value);
+export function formatComparisonPeriod(currentStart:Date,currentEnd:Date,previousStart:Date,previousEnd:Date){const currentLast=new Date(currentEnd.getTime()-DAY),previousLast=new Date(previousEnd.getTime()-DAY),includeYear=currentStart.getFullYear()!==previousStart.getFullYear()||currentStart.getFullYear()!==new Date().getFullYear();const range=(a:Date,b:Date)=>`${rangeDate(a,false)} – ${rangeDate(b,includeYear)}`;return`Сравняваме ${range(currentStart,currentLast)} с ${range(previousStart,previousLast)}.`}
 
 const FAMILY_PRIORITY=(insight:AnalyticsInsight)=>insight.type==="anomaly"||insight.type==="friction"?0:insight.subject.type==="search"&&insight.type==="opportunity"?1:["product","acquisition"].includes(insight.subject.type)&&["opportunity","hidden_winner","underperformer","acquisition_quality"].includes(insight.type)?2:3;
 const CONFIDENCE_PRIORITY:Record<InsightConfidence,number>={HIGH:0,MEDIUM:1,LOW:2};

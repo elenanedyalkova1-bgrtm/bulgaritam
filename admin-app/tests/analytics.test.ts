@@ -23,6 +23,11 @@ const yesterday = resolvePeriod(new URL("https://admin.test/analytics/?period=ye
 assert.equal(yesterday.end.getTime() - yesterday.start.getTime(), 86_400_000);
 const custom = resolvePeriod(new URL("https://admin.test/analytics/?period=custom&from=2026-08-01&to=2026-08-03"));
 assert.equal(custom.from,"2026-08-01");assert.equal(custom.to,"2026-08-03");
+const lastMonth=resolvePeriod(new URL("https://admin.test/analytics/?period=last_month"),new Date("2026-09-14T09:00:00Z"));assert.equal(lastMonth.from,"2026-08-01");assert.equal(lastMonth.to,"2026-08-31");assert.equal(lastMonth.previousStart.toISOString(),"2026-06-30T21:00:00.000Z");assert.equal(lastMonth.previousEnd.toISOString(),"2026-07-31T21:00:00.000Z");
+const january=resolvePeriod(new URL("https://admin.test/analytics/?period=last_month"),new Date("2026-01-15T09:00:00Z"));assert.equal(january.from,"2025-12-01");assert.equal(january.to,"2025-12-31");
+const leapFebruary=resolvePeriod(new URL("https://admin.test/analytics/?period=last_month"),new Date("2024-03-15T09:00:00Z"));assert.equal(leapFebruary.from,"2024-02-01");assert.equal(leapFebruary.to,"2024-02-29");
+const lastQuarter=resolvePeriod(new URL("https://admin.test/analytics/?period=last_quarter"),new Date("2026-09-14T09:00:00Z"));assert.equal(lastQuarter.from,"2026-04-01");assert.equal(lastQuarter.to,"2026-06-30");assert.equal(lastQuarter.previousStart.toISOString(),"2025-12-31T22:00:00.000Z");assert.equal(lastQuarter.previousEnd.toISOString(),"2026-03-31T21:00:00.000Z");
+const q1Boundary=resolvePeriod(new URL("https://admin.test/analytics/?period=last_quarter"),new Date("2026-02-14T09:00:00Z"));assert.equal(q1Boundary.from,"2025-10-01");assert.equal(q1Boundary.to,"2025-12-31");
 const intelligence = [
   {id:10,event_name:"search",occurred_at:"2026-08-15T12:00:00Z",anonymous_session_id:"s3",search_term:"подарък",search_results_count:2,payload_json:JSON.stringify({search_id:"q1",category:"gifts",gift_recipient:"майка",gift_occasion:"рожден ден",price_range:"25-50",returned_products_json:'[["p1","b1",1]]',returned_brands_json:'[["b1",1]]',page_path:"/",page_type:"discovery"})},
   {id:11,event_name:"product_impression",occurred_at:"2026-08-15T12:01:00Z",anonymous_session_id:"s3",product_id:"p1",brand_id:"b1",payload_json:'{"search_id":"q1","page_path":"/"}'},

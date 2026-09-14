@@ -2,7 +2,7 @@ import { listRows } from "./baserow";
 
 export const ANALYTICS_TABLE = import.meta.env?.BASEROW_ANALYTICS_EVENTS_TABLE_ID || "";
 
-export type PeriodKey = "today" | "yesterday" | "7d" | "30d" | "90d" | "custom";
+export type PeriodKey = "today" | "yesterday" | "7d" | "30d" | "90d" | "last_month" | "last_quarter" | "custom";
 export type AnalyticsEvent = {
   id: number;
   eventId: string;
@@ -85,19 +85,25 @@ const sofiaStart = (value:string) => {
 };
 const validDate = (value: string, fallback: Date) => /^\d{4}-\d{2}-\d{2}$/.test(value) ? sofiaStart(value) : fallback;
 
-export function resolvePeriod(url: URL) {
-  const now = new Date();
-  const key = (["today", "yesterday", "7d", "30d", "90d", "custom"].includes(url.searchParams.get("period") || "") ? url.searchParams.get("period") : "7d") as PeriodKey;
+export function resolvePeriod(url: URL, now = new Date()) {
+  const key = (["today", "yesterday", "7d", "30d", "90d", "last_month", "last_quarter", "custom"].includes(url.searchParams.get("period") || "") ? url.searchParams.get("period") : "7d") as PeriodKey;
   const today = sofiaStart(dateInSofia(now));
   let start = key === "today" ? today : key === "yesterday" ? addDays(today, -1) : addDays(today, -(key === "30d" ? 29 : key === "90d" ? 89 : 6));
   let end = key === "yesterday" ? today : addDays(today, 1);
+  let previousStart:Date|undefined,previousEnd:Date|undefined;
+  if(key==="last_month"||key==="last_quarter"){
+    const [year,month]=dateInSofia(now).split("-").map(Number),quarterMonth=Math.floor((month-1)/3)*3+1;
+    const calendarStart=(y:number,m:number)=>sofiaStart(`${y}-${String(m).padStart(2,"0")}-01`),shiftMonth=(y:number,m:number,delta:number)=>{const d=new Date(Date.UTC(y,m-1+delta,1));return[ d.getUTCFullYear(),d.getUTCMonth()+1 ] as const};
+    const [endYear,endMonth]=key==="last_month"?[year,month] as const:[year,quarterMonth] as const,[startYear,startMonth]=shiftMonth(endYear,endMonth,key==="last_month"?-1:-3),[previousYear,previousMonth]=shiftMonth(startYear,startMonth,key==="last_month"?-1:-3);
+    start=calendarStart(startYear,startMonth);end=calendarStart(endYear,endMonth);previousStart=calendarStart(previousYear,previousMonth);previousEnd=start;
+  }
   if (key === "custom") {
     start = validDate(url.searchParams.get("from") || "", addDays(today, -6));
     end = addDays(validDate(url.searchParams.get("to") || "", today), 1);
     if (start >= end) start = addDays(end, -1);
   }
   const duration = end.getTime() - start.getTime();
-  return { key, start, end, previousStart: new Date(start.getTime() - duration), previousEnd: start, from: dateInSofia(start), to: dateInSofia(new Date(end.getTime() - 1)) };
+  return { key, start, end, previousStart:previousStart||new Date(start.getTime() - duration), previousEnd:previousEnd||start, from: dateInSofia(start), to: dateInSofia(new Date(end.getTime() - 1)) };
 }
 
 export const count = (events: AnalyticsEvent[], name: string) => events.filter((event) => event.event === name).length;

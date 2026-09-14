@@ -254,7 +254,7 @@ export class SupabaseAnalyticsRepository {
     if (start >= end) throw new Error("Analytics range start must be before end.");
     return loadAllPages(async (from, to) => {
       const { data, error } = await this.client.from("analytics_discovery_states")
-        .select("discovery_state_id,occurred_at,anonymous_session_id,anonymous_journey_id,surface_type,page_path,search_id,query,category,subcategory,product_type,sort_value,result_count")
+        .select("discovery_state_id,occurred_at,anonymous_session_id,anonymous_journey_id,surface_type,page_path,search_id,query,category,subcategory,product_type,sort_value,price_min_eur,price_max_eur,gift_recipient,gift_occasion,active_filters,result_count")
         .gte("occurred_at", start.toISOString()).lt("occurred_at", end.toISOString())
         .order("occurred_at", { ascending: true }).order("discovery_state_id", { ascending: true }).range(from, to);
       if (error) throw new AnalyticsRepositoryError("discovery state read", error);

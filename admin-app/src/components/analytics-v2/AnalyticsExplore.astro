@@ -5,6 +5,7 @@ import type {AnalyticsExploreArea} from "../../lib/analytics-v2-language";
 import ExploreNavigation from "./ExploreNavigation.astro";
 import ExploreShell from "./ExploreShell.astro";
 import SearchIntelligence from "./SearchIntelligence.astro";
+import InterestChoiceIntelligence from "./InterestChoiceIntelligence.astro";
 const {model,area}=Astro.props as{model:AnalyticsV2ViewModel;area:AnalyticsExploreArea};
 const n=(value:number|null,digits=0)=>value==null?"Няма достатъчно данни":new Intl.NumberFormat("bg-BG",{maximumFractionDigits:digits}).format(value);
 const pct=(value:number|null)=>value==null?"Няма достатъчно данни":`${n(value*100,1)}%`;
@@ -12,9 +13,7 @@ const pct=(value:number|null)=>value==null?"Няма достатъчно дан
 <div class="explore">
  <ExploreNavigation area={area}/>
  {area==="search"&&<ExploreShell area={area}><SearchIntelligence search={model.search}/></ExploreShell>}
- {area==="interest"&&<ExploreShell area={area}>
-  <div class="placeholder"><strong>Подготвяме надежден общ поглед върху избора на посетителите.</strong><p>Тази област ще обедини категории и типове продукти, използвани филтри, избор за подарък, ценови диапазони и характеристики. Все още няма достатъчно подготвени данни за надежден анализ.</p></div>
- </ExploreShell>}
+ {area==="interest"&&<ExploreShell area={area}><InterestChoiceIntelligence interest={model.interest}/></ExploreShell>}
  {area==="products"&&<ExploreShell area={area}>
   {model.products.length?<AnalyticsTable id="v2-products" paginate heads={["Продукт","Бранд","Реални показвания","Отваряния","Към бранд"]} rows={model.products.map(item=>[item.name,item.brand,item.exposed,item.selected,item.outbound])}/>:<div class="empty">Няма наблюдавана продуктова активност за избрания период.</div>}
  </ExploreShell>}

@@ -191,6 +191,14 @@ const pagedEvents = await new SupabaseAnalyticsRepository(pagedMock.client).list
 assert.equal(pagedEvents.length, 1_001);
 assert.deepEqual(pagedMock.calls.filter((call) => call.operation === "range").map((call) => call.args), [[0, 999], [1_000, 1_999]]);
 
+const discoveryProjectionMock = mockClient([{ data: [{
+  discovery_state_id:"state-1",occurred_at:"2026-09-12T10:00:00Z",anonymous_session_id:"session-1",anonymous_journey_id:"journey-1",surface_type:"gift_discovery",page_path:"/",category:"gifts",subcategory:null,product_type:null,sort_value:"price-asc",price_min_eur:0,price_max_eur:25,gift_recipient:"За жена",gift_occasion:"Рожден ден",active_filters:{gift:["attribute:Ръчна изработка"]},result_count:1,
+}], error: null }]);
+const discoveryStates = await new SupabaseAnalyticsRepository(discoveryProjectionMock.client).loadDiscoveryStates(new Date("2026-09-12"),new Date("2026-09-13"));
+assert.equal(discoveryStates[0].price_max_eur,25);assert.equal(discoveryStates[0].gift_recipient,"За жена");assert.deepEqual(discoveryStates[0].active_filters,{gift:["attribute:Ръчна изработка"]});
+const discoverySelect=String(discoveryProjectionMock.calls.find(call=>call.operation==="select")?.args[0]);
+for(const field of ["active_filters","price_min_eur","price_max_eur","gift_recipient","gift_occasion","category","subcategory","product_type","sort_value","result_count"])assert.match(discoverySelect,new RegExp(`(?:^|,)${field}(?:,|$)`));
+
 const periodRows = [
   mapSupabaseRowToAnalyticsEvent({ id: 101, ...insert, occurred_at: "2026-09-10T12:00:00.000Z", event_name: "page_view", event_id: "previous" }),
   mapSupabaseRowToAnalyticsEvent({ id: 202, ...insert, occurred_at: "2026-09-11T12:00:00.000Z", event_name: "page_view", event_id: "selected-1" }),

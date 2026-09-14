@@ -4,17 +4,16 @@ import type {AnalyticsV2ViewModel} from "../../lib/analytics-v2";
 import type {AnalyticsExploreArea} from "../../lib/analytics-v2-language";
 import ExploreNavigation from "./ExploreNavigation.astro";
 import ExploreShell from "./ExploreShell.astro";
+import SearchIntelligence from "./SearchIntelligence.astro";
 const {model,area}=Astro.props as{model:AnalyticsV2ViewModel;area:AnalyticsExploreArea};
 const n=(value:number|null,digits=0)=>value==null?"Няма достатъчно данни":new Intl.NumberFormat("bg-BG",{maximumFractionDigits:digits}).format(value);
 const pct=(value:number|null)=>value==null?"Няма достатъчно данни":`${n(value*100,1)}%`;
 ---
 <div class="explore">
  <ExploreNavigation area={area}/>
- {area==="search"&&<ExploreShell area={area}>
-  {model.search.totals.searches?<><div class="facts"><article><span>Търсения</span><b>{n(model.search.totals.searches)}</b></article><article><span>Посетители с търсене</span><b>{n(model.search.totals.visitors)}</b></article><article><span>Без резултат</span><b>{pct(model.search.totals.zeroRate)}</b></article><article><span>Търсене → отваряне</span><b>{pct(model.search.totals.selectionRate)}</b></article></div><AnalyticsTable paginate heads={["Заявка","Търсения","Наличен избор","Отваряния","Към бранд"]} rows={model.search.searches.map(item=>[item.query,item.searches,item.medianSupply==null?"Няма данни":item.medianSupply===0?"Без резултат":`${n(item.medianSupply)} продукта`,item.selected,item.outbound])}/></>:<div class="empty">Няма наблюдавана активност в търсенето за избрания период.</div>}
- </ExploreShell>}
+ {area==="search"&&<ExploreShell area={area}><SearchIntelligence search={model.search}/></ExploreShell>}
  {area==="interest"&&<ExploreShell area={area}>
-  <div class="placeholder"><strong>Подготвяме надежден общ поглед върху избора на посетителите.</strong><p>Тази област ще обедини категории и типове продукти, използвани филтри, избор за подарък, ценови диапазони и характеристики. Данните се събират, но още не са подготвени като надеждни V2 изводи.</p></div>
+  <div class="placeholder"><strong>Подготвяме надежден общ поглед върху избора на посетителите.</strong><p>Тази област ще обедини категории и типове продукти, използвани филтри, избор за подарък, ценови диапазони и характеристики. Все още няма достатъчно подготвени данни за надежден анализ.</p></div>
  </ExploreShell>}
  {area==="products"&&<ExploreShell area={area}>
   {model.products.length?<AnalyticsTable id="v2-products" paginate heads={["Продукт","Бранд","Реални показвания","Отваряния","Към бранд"]} rows={model.products.map(item=>[item.name,item.brand,item.exposed,item.selected,item.outbound])}/>:<div class="empty">Няма наблюдавана продуктова активност за избрания период.</div>}
@@ -26,8 +25,8 @@ const pct=(value:number|null)=>value==null?"Няма достатъчно дан
   {model.surfaces.length?<AnalyticsTable heads={["Място","Посетители","Реални показвания","Отваряния","Към бранд"]} rows={model.surfaces.map(item=>[item.label,item.uniqueVisitors,item.exposed,item.selected,item.outbound])}/>:<div class="empty">Няма наблюдавана активност в тази област за избрания период.</div>}
  </ExploreShell>}
  {area==="saved"&&<ExploreShell area={area}>
-  <section class="subsection"><h4>Връщане към продукти и брандове</h4><div class="facts"><article><span>Посетители</span><b>{n(model.returning.visitors)}</b></article><article><span>Посетители с повторен интерес</span><b>{n(model.returning.returning)}</b><small>{pct(model.returning.rate)}</small></article><article><span>Повторен продуктов интерес</span><b>{n(model.returning.repeatProducts)}</b></article><article><span>Повторен интерес към бранд</span><b>{n(model.returning.repeatBrands)}</b></article></div><p class="method">Повторният интерес се измерва между отделни посещения на разпознат анонимен браузър.</p></section>
-  <section class="subsection future"><h4>Запазване за по-късно</h4><p>Анализът на запазени продукти и колекции се подготвя от вече уловените данни и още не е наличен като надежден V2 извод.</p></section>
+  <section class="subsection"><h4>Връщане към продукти и брандове</h4><div class="facts"><article><span>Посетители през периода</span><b>{n(model.returning.visitors)}</b></article><article><span>Познати отпреди периода</span><b>{n(model.returning.returning)}</b><small>{pct(model.returning.rate)}</small></article><article><span>Посетители с повторен продуктов интерес</span><b>{n(model.returning.repeatProducts)}</b></article><article><span>Посетители с повторен интерес към бранд</span><b>{n(model.returning.repeatBrands)}</b></article></div><p class="method">„Познати отпреди периода“ използва активност преди началната дата. Повторният продуктов или бранд интерес може да възникне и между две отделни посещения вътре в избрания период, затова тези числа не е задължително да съвпадат.</p></section>
+  <section class="subsection future"><h4>Запазване за по-късно</h4><p>Анализът на запазени продукти и колекции се подготвя от вече уловените данни. Все още няма достатъчно подготвени данни за надежден анализ.</p></section>
  </ExploreShell>}
  {area==="acquisition"&&<ExploreShell area={area}>
   {model.acquisitionUnknown.visits>0&&<aside class="notice"><strong>Не успяхме да определим източника за {n(model.acquisitionUnknown.visits)} посещения.</strong><small>Техническите стойности са достъпни в „Диагностика“.</small></aside>}

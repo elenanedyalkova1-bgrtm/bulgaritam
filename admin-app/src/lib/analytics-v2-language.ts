@@ -28,7 +28,8 @@ export function acquisitionLabel(input:{source?:unknown;medium?:unknown;campaign
 
 export const confidenceLabel=(value:InsightConfidence)=>ANALYTICS_V2_COPY.confidence[value];
 export const percentChange=(current:number,previous:number)=>previous===0?null:(current-previous)/previous*100;
-export const comparisonText=(current:number,previous:number|null)=>previous==null?ANALYTICS_V2_COPY.insufficient.comparison:`${formatNumber(current)} спрямо ${formatNumber(previous)} през предходния период`;
+const metricNumber=(value:number)=>formatNumber(value,Number.isInteger(value)?0:1);
+export const comparisonText=(current:number,previous:number|null)=>previous==null?ANALYTICS_V2_COPY.insufficient.comparison:`${metricNumber(current)} спрямо ${metricNumber(previous)} през предходния период`;
 export const percentChangeText=(current:number,previous:number|null)=>{if(previous==null)return ANALYTICS_V2_COPY.insufficient.comparison;const value=percentChange(current,previous);return value==null?ANALYTICS_V2_COPY.insufficient.comparison:`${value>=0?"+":""}${formatNumber(value,1)}% спрямо предходния период`};
 export const formatNumber=(value:number,digits=0)=>new Intl.NumberFormat("bg-BG",{maximumFractionDigits:digits}).format(value);
 const DAY=86_400_000;

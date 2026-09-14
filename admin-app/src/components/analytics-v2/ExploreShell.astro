@@ -1,0 +1,14 @@
+---
+import {ANALYTICS_V2_COPY,type AnalyticsExploreArea} from "../../lib/analytics-v2-language";
+const {area}=Astro.props as{area:AnalyticsExploreArea};
+const copy=ANALYTICS_V2_COPY.explore[area];
+const diagnosticsParams=new URLSearchParams(Astro.url.searchParams);diagnosticsParams.set("view","diagnostics");diagnosticsParams.delete("area");
+---
+<section class="explore-shell" data-explore-area={area} aria-labelledby={`explore-${area}`}>
+ <header><h3 id={`explore-${area}`}>{copy.label}</h3><p>{copy.question}</p></header>
+ <div class="explore-content"><slot/></div>
+ <footer><a href={`/analytics/?${diagnosticsParams}`}>Провери определенията и данните в „Диагностика“</a></footer>
+</section>
+<style>
+ .explore-shell{width:100%;max-width:100%;min-width:0;overflow:hidden;margin-top:20px;padding-top:20px;border-top:1px solid #d9e7dd}.explore-shell header{max-width:780px}.explore-shell h3{margin:0 0 7px;font-size:1.35rem}.explore-shell header p{margin:0;color:#4f5952;font-size:1.02rem;line-height:1.5}.explore-content{min-width:0;margin-top:18px}.explore-shell footer{margin-top:20px;padding-top:12px;border-top:1px solid #e2e9e4}.explore-shell footer a{color:#5d675f;font-size:.85rem}
+</style>

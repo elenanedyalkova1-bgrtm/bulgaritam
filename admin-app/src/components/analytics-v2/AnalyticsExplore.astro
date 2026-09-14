@@ -1,0 +1,41 @@
+---
+import AnalyticsTable from "../AnalyticsTable.astro";
+import type {AnalyticsV2ViewModel} from "../../lib/analytics-v2";
+import type {AnalyticsExploreArea} from "../../lib/analytics-v2-language";
+import ExploreNavigation from "./ExploreNavigation.astro";
+import ExploreShell from "./ExploreShell.astro";
+const {model,area}=Astro.props as{model:AnalyticsV2ViewModel;area:AnalyticsExploreArea};
+const n=(value:number|null,digits=0)=>value==null?"Няма достатъчно данни":new Intl.NumberFormat("bg-BG",{maximumFractionDigits:digits}).format(value);
+const pct=(value:number|null)=>value==null?"Няма достатъчно данни":`${n(value*100,1)}%`;
+---
+<div class="explore">
+ <ExploreNavigation area={area}/>
+ {area==="search"&&<ExploreShell area={area}>
+  {model.search.totals.searches?<><div class="facts"><article><span>Търсения</span><b>{n(model.search.totals.searches)}</b></article><article><span>Посетители с търсене</span><b>{n(model.search.totals.visitors)}</b></article><article><span>Без резултат</span><b>{pct(model.search.totals.zeroRate)}</b></article><article><span>Търсене → отваряне</span><b>{pct(model.search.totals.selectionRate)}</b></article></div><AnalyticsTable paginate heads={["Заявка","Търсения","Наличен избор","Отваряния","Към бранд"]} rows={model.search.searches.map(item=>[item.query,item.searches,item.medianSupply==null?"Няма данни":item.medianSupply===0?"Без резултат":`${n(item.medianSupply)} продукта`,item.selected,item.outbound])}/></>:<div class="empty">Няма наблюдавана активност в търсенето за избрания период.</div>}
+ </ExploreShell>}
+ {area==="interest"&&<ExploreShell area={area}>
+  <div class="placeholder"><strong>Подготвяме надежден общ поглед върху избора на посетителите.</strong><p>Тази област ще обедини категории и типове продукти, използвани филтри, избор за подарък, ценови диапазони и характеристики. Данните се събират, но още не са подготвени като надеждни V2 изводи.</p></div>
+ </ExploreShell>}
+ {area==="products"&&<ExploreShell area={area}>
+  {model.products.length?<AnalyticsTable id="v2-products" paginate heads={["Продукт","Бранд","Реални показвания","Отваряния","Към бранд"]} rows={model.products.map(item=>[item.name,item.brand,item.exposed,item.selected,item.outbound])}/>:<div class="empty">Няма наблюдавана продуктова активност за избрания период.</div>}
+ </ExploreShell>}
+ {area==="brands"&&<ExploreShell area={area}>
+  {model.brands.length?<AnalyticsTable paginate heads={["Бранд","Показвания на продукти","Отваряния на продукти","Страница на бранд","Към сайта на бранда"]} rows={model.brands.map(item=>[item.name,item.productExposures,item.productSelections,item.pageViews,item.outbound])}/>:<div class="empty">Няма наблюдавана активност за брандове през избрания период.</div>}
+ </ExploreShell>}
+ {area==="discovery"&&<ExploreShell area={area}>
+  {model.surfaces.length?<AnalyticsTable heads={["Място","Посетители","Реални показвания","Отваряния","Към бранд"]} rows={model.surfaces.map(item=>[item.label,item.uniqueVisitors,item.exposed,item.selected,item.outbound])}/>:<div class="empty">Няма наблюдавана активност в тази област за избрания период.</div>}
+ </ExploreShell>}
+ {area==="saved"&&<ExploreShell area={area}>
+  <section class="subsection"><h4>Връщане към продукти и брандове</h4><div class="facts"><article><span>Посетители</span><b>{n(model.returning.visitors)}</b></article><article><span>Посетители с повторен интерес</span><b>{n(model.returning.returning)}</b><small>{pct(model.returning.rate)}</small></article><article><span>Повторен продуктов интерес</span><b>{n(model.returning.repeatProducts)}</b></article><article><span>Повторен интерес към бранд</span><b>{n(model.returning.repeatBrands)}</b></article></div><p class="method">Повторният интерес се измерва между отделни посещения на разпознат анонимен браузър.</p></section>
+  <section class="subsection future"><h4>Запазване за по-късно</h4><p>Анализът на запазени продукти и колекции се подготвя от вече уловените данни и още не е наличен като надежден V2 извод.</p></section>
+ </ExploreShell>}
+ {area==="acquisition"&&<ExploreShell area={area}>
+  {model.acquisitionUnknown.visits>0&&<aside class="notice"><strong>Не успяхме да определим източника за {n(model.acquisitionUnknown.visits)} посещения.</strong><small>Техническите стойности са достъпни в „Диагностика“.</small></aside>}
+  {model.acquisition.length?<AnalyticsTable heads={["Канал","Посетители","Активни посещения","Отваряния","Към бранд"]} rows={model.acquisition.map(item=>[item.channelLabel,item.visitors,item.discoveryActiveSessions,item.selected,item.outbound])}/>:<div class="empty">Няма достатъчно данни за източниците на посещения. Групите с по-малко от 2 посетители са скрити.</div>}
+ </ExploreShell>}
+</div>
+<style>
+ .explore{width:100%;max-width:100%;min-width:0;overflow:hidden}.explore :global(.analytics-table){min-width:0}.explore :global(.table-wrap){box-sizing:border-box;width:100%;max-width:100%;overflow-x:auto}.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:16px}.facts article{min-width:0;padding:12px;background:#fff;border:1px solid var(--line);border-radius:8px}.facts span,.facts b,.facts small{display:block}.facts b{margin:.25rem 0;font-size:1.3rem}.facts small,.method,.notice small{color:#68716b}.empty,.placeholder,.notice,.future{padding:18px;border:1px dashed #bccbc0;border-radius:8px;background:#fff;color:#5d675f}.placeholder{max-width:760px}.placeholder strong{color:#2f3932}.notice{display:grid;gap:5px;margin-bottom:12px}.subsection+.subsection{margin-top:18px}.subsection h4{margin:0 0 12px}.method{font-size:.88rem}.future{max-width:760px}.future p{margin-bottom:0}
+ @media(max-width:900px){.facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+ @media(max-width:600px){.facts{grid-template-columns:1fr}.explore :global(table){font-size:.9rem}}
+</style>

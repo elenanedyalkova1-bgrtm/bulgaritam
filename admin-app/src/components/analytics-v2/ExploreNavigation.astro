@@ -1,0 +1,19 @@
+---
+import {ANALYTICS_EXPLORE_AREAS,analyticsExploreHref,type AnalyticsExploreArea} from "../../lib/analytics-v2-language";
+const {area}=Astro.props as{area:AnalyticsExploreArea};
+const href=(next:AnalyticsExploreArea)=>analyticsExploreHref(Astro.url.searchParams,next);
+const preserved=[...Astro.url.searchParams.entries()].filter(([key])=>key!=="view"&&key!=="area");
+---
+<nav class="area-tabs" aria-label="Области за разглеждане">
+ {ANALYTICS_EXPLORE_AREAS.map(item=><a href={href(item.key)} aria-current={area===item.key?"page":undefined} class:list={{active:area===item.key}}>{item.label}</a>)}
+</nav>
+<form class="area-menu" method="get" aria-label="Избор на област за разглеждане">
+ {preserved.map(([name,value])=><input type="hidden" name={name} value={value}/>)}
+ <input type="hidden" name="view" value="explore"/>
+ <label for="explore-area">Област</label>
+ <div><select id="explore-area" name="area">{ANALYTICS_EXPLORE_AREAS.map(item=><option value={item.key} selected={item.key===area}>{item.label}</option>)}</select><button type="submit">Отвори</button></div>
+</form>
+<style>
+ .area-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.area-tabs a{padding:8px 11px;border:1px solid var(--line);border-radius:20px;background:#fff;color:inherit;text-decoration:none}.area-tabs a.active{border-color:var(--green);background:var(--green);color:#fff}.area-menu{display:none;margin:18px 0}.area-menu label{display:block;margin-bottom:6px;font-weight:600}.area-menu div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.area-menu select{min-width:0;width:100%}
+ @media(max-width:700px){.area-tabs{display:none}.area-menu{display:block}}
+</style>

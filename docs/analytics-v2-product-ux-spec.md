@@ -778,3 +778,233 @@ The admin exclusion control uses the `bulgaritam_analytics_excluded=1` cookie al
 Future Explore work must answer business questions including: **Кои категории привличат интерес?**, **Как хората стесняват избора си?**, **Какво търсят за подарък?**, and **Какво запазват за по-късно?** This covers categories, subcategories/product types, filters, recipient, occasion, price, supported materials/attributes, saves, collections and gift discovery. Each future implementation must label whether its answer is a captured event, derived intelligence, or catalogue-enriched analysis.
 
 Current acquisition data may identify Google organic traffic when the existing fields support that classification. Exact Google search-query intelligence requires Google Search Console. Its query data is aggregate and must not be attributed one-to-one to an anonymous visitor or session. A future integration may connect query/page/date-level demand with landing-page and downstream Bulgaritam behavior only where that relationship is methodologically defensible.
+
+## Explore Intelligence Map
+
+This map is the product and data contract for the eventual `Разглеждане` experience. It does not authorize implementation. Capability status always describes the complete path from capture to presentation, not merely the existence of a database field:
+
+- 🟢 **available now** — loaded, normalized, derived and already presentation-ready in the V2 pipeline;
+- 🟡 **captured / straightforward derivation** — existing storage is sufficient, but projection, normalization or a bounded aggregation is still missing;
+- 🟠 **meaningful derived work or catalogue join required** — tracking is broadly sufficient, but methodology, eligibility, attribution or enrichment must be designed and tested;
+- 🔴 **new instrumentation or data source required** — current data cannot support the claim reliably.
+
+### 1. Final recommended Explore navigation
+
+Use seven primary areas. Gift behavior is a drill-down within `Интерес и избор`, not a tenth top-level destination; products and brands remain distinct because their identities, decisions and future report paths differ.
+
+| Primary area | Question answered | Summary content | Main drill-downs | Replaces current V2 section | Can later absorb |
+|---|---|---|---|---|---|
+| **Търсене** | Какво търсят хората в Българитъм и намират ли достатъчен избор? | Search volume, visitors, zero result, limited choice, measured reaction | Query, result availability, reformulation sequence, directly linked products/brands | `Търсене` | Aggregate Search Console demand, clearly separated |
+| **Интерес и избор** | Кои категории привличат интерес и как хората стесняват избора си? | Explicit taxonomy choices, filter use, sort use, gift-discovery activity | Category/type, filter/facet, gift recipient/occasion, combinations | No adequate V2 section; selected V1 filter/context tables | Catalogue-enriched attribute, price and supply analysis |
+| **Продукти** | Кои продукти се виждат, привличат внимание и водят към сайтовете на брандовете? | Visibility, openings, page visits, interest signals, outbound intent | Composite product identity, contexts, search paths, repeat interest, eligible peer evidence | `Продукти` | Strong-reaction/limited-visibility classifications and catalogue enrichment |
+| **Брандове** | Кои брандове привличат внимание и как хората стигат до тях? | Brand and product visibility, openings, page visits, outbound intent, multi-product exploration | Brand, products, searches, contexts, repeat interest | `Брандове` | Per-brand intelligence and defensible peer comparisons |
+| **Места на откриване** | Къде хората срещат и отварят продуктите? | Visitors, qualified displays, openings and outbound intent by human context group | Surface group, raw context and opportunity linkage in Diagnostics | `Откриване на продукти` surface table | New instrumented surfaces and influenced-versus-direct paths |
+| **Запазване и връщане** | Какво се запазва за по-късно и към какво хората се връщат? | Saves, collection activity and anonymous repeat interest | Product, brand-through-product, privacy-safe collection activity, return interval | `Връщащ се интерес`; no current V2 saves section | Saved-item return and later-action analysis after methodology review |
+| **Източници** | Откъде идват посетителите и какво правят след това? | Human acquisition channels, visits, discovery activity and downstream observed actions | Channel, campaign/referrer diagnostics, landing page, returning activity | `Откъде идват посетителите` | Aggregate Search Console query/page/date layer |
+
+Do not add a separate top-level `Подаръци`, `Филтри`, `Категории`, `Повторен интерес` or `Google търсения` tab. These are coherent drill-downs or future layers within the seven-area model.
+
+### 2. Data capability matrix
+
+| Desired capability | Status | Capture | Load / normalize | Derived / presentation readiness | Constraint |
+|---|---:|---|---|---|---|
+| Internal search terms and frequency | 🟢 | `search`, canonical query/search ID | Loaded and normalized into search episodes | Current V2 search rows and totals | Consenting anonymous browsers only |
+| Search result availability, zero and limited choice | 🟢 | Canonical `result_count` and result members | Loaded and integrity-checked | Episode result count, median supply and eligible search insights | “Limited” threshold is provisional |
+| Search reformulation | 🟢 | Ordered search states per session | Normalized into episodes | `reformulationCandidate` exists | Candidate, not dissatisfaction |
+| Search downstream product interest/outbound | 🟢 | Explicit search/state context on actions | Opportunity/search linkage exists | Episode exposure, opening, consideration and outbound totals | Direct linkage only; do not promote older context to direct source |
+| Exact Google organic queries | 🔴 | Not available in referrer/UTM data | No Search Console source | Not derivable | Requires aggregate Search Console import |
+| Explicit category/subcategory/product-type selections | 🟡 | Dedicated selection events and fields | Events are loaded; no V2 taxonomy aggregation | Straightforward visitor/count summaries still needed | Must remain distinct from passive exposure |
+| Canonical taxonomy result availability | 🟢 | Category/subcategory/type on canonical state plus members | These taxonomy fields and members are loaded | Complete state/member counts are available | No catalogue-wide supply denominator yet |
+| Qualified exposure/opening by category or type | 🟠 | Event/state/product identity generally sufficient | Taxonomy completeness varies by event and needs state or catalogue resolution | Requires a governed join and unknown coverage diagnostics | Do not use partial event labels as complete taxonomy |
+| Demand versus total catalogue supply | 🟠 | Demand and catalogue data exist separately | Catalogue is not part of V2 analytics loading | Requires time-aware catalogue join and denominator policy | Current catalogue is not necessarily historical catalogue state |
+| Filter selection frequency | 🟡 | Filter/taxonomy events and canonical `active_filters` | Events load; canonical `active_filters` is stored but omitted from V2 repository projection | Bounded normalization and aggregation required | Arrays on ordinary events are not uniformly preserved; canonical state is preferred |
+| Unique visitors using a filter | 🟡 | Journey/session identity exists | Available with event projection | Straightforward distinct aggregation | Anonymous browser, not person |
+| Filter combinations | 🟠 | Canonical `active_filters` captures structured state | Not selected or normalized by V2 | Requires combination normalization, revision/state rules and minimum samples | Comma-joined event fallbacks are not a reliable universal structure |
+| Result count before/after filtering | 🟠 | Some surfaces emit before/after; canonical states preserve after-state result count | Coverage is inconsistent | Requires surface coverage audit and state sequencing | Cannot claim universal effect with partial `results_before` capture |
+| Opening/outbound after filtering | 🟠 | State IDs and downstream actions often exist | Linkage primitives exist | Requires direct state-sequence attribution rules | Association, not causal filter impact |
+| Abandonment after filtering | 🟠 | Session sequences exist | Loaded | Requires inactivity window, eligible endpoint and censoring policy | Absence of another event is not automatically abandonment |
+| Repeated refinement | 🟠 | Ordered filter/state events exist | Partly loaded | Requires deterministic revision grouping and definition | Must distinguish remove/clear/change from a new journey |
+| Sort use and selected sort | 🟡 | `change_sort`, canonical `sort_value` | Event values load; canonical sort is loaded | Summary aggregation is missing | Downstream “effect” requires stronger sequencing |
+| Gift-discovery opening | 🟡 | `open_gift_discovery` exists | Event loads | Counts/visitors not in current V2 model | Opening is interest in the tool, not gift demand for an attribute |
+| Gift recipient and occasion demand | 🟡 | Dedicated events and canonical gift fields | Event fields load; canonical gift fields are stored but omitted from repository selection | Normalized counts/visitors required | Multi-value strings need deterministic parsing |
+| Recipient × occasion combinations | 🟠 | Canonical state can preserve both | Not currently projected/normalized | Combination eligibility and sample rules required | Never infer missing half of a combination |
+| Gift price preference | 🟡 | Gift budget event and canonical price bounds | Event metadata loads; canonical price fields are not projected | Normalized price-band aggregation required | Selection is expressed preference, not willingness to pay |
+| Gift materials/attributes/audience | 🟠 | Some structured filters are captured in canonical `active_filters`; catalogue has richer facets | Not projected or joined | Requires normalized facets and catalogue coverage rules | Event arrays are not uniformly retained by primitive-only event sanitization |
+| Gift result availability and zero/limited choice | 🟡 | Gift canonical state plus `result_count` | Fields need projection | Straightforward state aggregation after normalization | Only complete canonical states qualify |
+| Gift downstream product/brand interest | 🟠 | State/source linkage exists | Core linkage exists, gift dimensions do not | Requires gift-state projection and direct attribution aggregation | No population-level preference claim |
+| Product saves | 🟡 | `save_product` with product+brand identity is captured | Loaded and currently folded into consideration facts | Separate save-specific product aggregation is missing | Current “consideration” also includes add/share |
+| Saved-product brand interest | 🟡 | Saved product carries brand identity | Loaded | Grouping saves by brand is straightforward | This is interest through saved products, not `save_brand` |
+| Direct brand saves | 🔴 | `save_brand` is allowlisted but no active producer was found | No dependable event population | Not supportable | Requires verified instrumentation before productization |
+| Saves after exposure/page visit | 🟢 | Save events and product context | Existing derived linker associates consideration with prior selection/page view when defensible | Linkable consideration facts exist | Separate saves from add/share before calling the result “saves” |
+| Collection creation/view/share/add/remove counts | 🟡 | Events and privacy-safe `collection_id` are captured | Loaded as events; no V2 collection domain | Straightforward event/visitor aggregation | Never load or display collection names |
+| Products within collection activity | 🟡 | Add/save events usually carry product identity; removal may have slug-only legacy identity | Loaded | Requires identity-quality reporting | Removal cannot always be joined to composite product+brand safely |
+| Saved item later viewed or sent outbound | 🟠 | Journey, session, product and collection IDs broadly exist | Events load | Requires ordering, lookback, direct/influenced attribution and censoring policy | Do not imply the save caused the later action |
+| Anonymous returning visitors | 🟢 | Journey ID and lookback events | Derived with cross-session rules | Current V2 summary exists | Browser-scoped, not a known person |
+| Repeat product and brand interest | 🟢 | Product/brand identity across sessions | Derived and deduplicated | Aggregate and underlying facts exist | Product identity remains product + brand |
+| Repeat interest by product/brand | 🟡 | Underlying repeat facts identify entity | Loaded and derived | Presentation aggregation/drill-down is missing | Apply sample/privacy thresholds |
+| Time to return | 🟠 | Prior/current timestamps exist in repeat facts | Available | Requires distribution, censoring and reporting policy | Avoid naive averages and incomplete-window bias |
+| Acquisition channel and downstream behavior | 🟢 | Acquisition, UTM, referrer and landing fields | Loaded and grouped | Human channel labels plus exposure/opening/consideration/outbound/returning summaries exist | Observational; small groups suppressed |
+| Landing-page behavior by acquisition source | 🟡 | Landing page and acquisition fields are loaded | Present on events | Bounded source × landing aggregation is missing | Define session-level landing once, avoid event multiplication |
+| Unknown acquisition reasons | 🟢 | Raw source/medium/referrer fields | Loaded | Missing versus unrecognized explanation exists where fields permit | Some legacy data remains inherently indeterminate |
+| Discovery context visitors/displays/openings/outbound | 🟢 | Source surface and canonical state context | Loaded and derived | Current surface rows exist | Eligibility only for complete canonical states |
+| Eligible opportunity/member counts | 🟢 | Canonical states/results | Integrity-checked and derived | Available | Diagnostic/drill-down detail, not primary headline |
+| Non-canonical eligible denominator | 🔴 | Full choice set is not captured | Not available | Must remain “not applicable” | Do not manufacture denominator from impressions |
+| Product visibility/opening/page/interest/outbound facts | 🟢 | Product events plus explicit source context | Loaded, linked and derived | Current product rows exist | Direct page visits need not follow list openings |
+| Product reaction versus eligible peers | 🟢 | Product opportunity/exposure facts and taxonomy context | Derived cohort fallbacks exist | Eligible hidden-winner/underperformer insights exist | Only when cohort/sample gates pass |
+| Product change over time | 🟠 | Current/previous facts exist | Both windows loaded | No governed product trend family exists | Do not compare sparse raw ranks |
+| Brand visibility, openings, pages and outbound | 🟢 | Brand and product events carry brand identity | Loaded and derived | Current brand rows exist | Brand impression and product exposure are different facts |
+| Multi-product exploration within a brand | 🟢 | Same-session product attention with brand identity | Derived | Brand-level count exists | It is exploration, not purchase consideration certainty |
+| Searches and paths leading to a brand | 🟡 | Search/state and brand/product identity exist | V1 has explicit search aggregation; V2 facts retain context | V2 brand drill-down aggregation is missing | Preserve direct versus influenced context |
+| Brand peer comparison and demand opportunities | 🟠 | Core brand/product facts exist | No brand cohort/insight engine | Requires eligibility and comparable-brand policy | Must not rank incomparable catalogue mixes |
+
+### 3. Internal search intelligence
+
+`Търсене` is the first Explore area because it has the most complete decision path today. Its landing view should show search volume and visitors, zero-result and limited-choice counts, then compact groups for frequent queries, no results, limited choice and measured reaction. Query detail may show the observed result-count distribution, reformulation sequence, qualified displays, openings, consideration and outbound actions linked by the same search/state context.
+
+Keep these distinctions explicit:
+
+- a search term is Bulgaritam internal demand, not Bulgarian market demand;
+- a reformulation is a sequence candidate, not proof of dissatisfaction;
+- a returned result is not a qualified display;
+- an older search context may be influential but is not the immediate source of a later click;
+- current search insight thresholds remain unchanged.
+
+### 4. Category and product-type intelligence
+
+Primary UX should distinguish two questions:
+
+1. **Какво избират изрично?** — selection events for category, subcategory and product type (🟡).
+2. **Какво реално виждат и отварят?** — qualified exposure and actions for products belonging to that taxonomy (🟠 until taxonomy is resolved consistently from canonical state or a governed catalogue join).
+
+Canonical state category/type and result membership can describe available results for complete states. It must not be mixed with total catalogue supply or treated as passive category exposure without verifying the surface and state. A future demand-versus-supply view needs a defined, time-aware catalogue denominator and explicit unknown taxonomy coverage.
+
+### 5. Filter intelligence
+
+The current instrumentation captures dedicated taxonomy selections, `apply_filter`, `remove_filter`, `clear_filters`, `change_sort`, primitive filter names/values and structured canonical `active_filters`. The key pipeline gap is that V2 repository state loading omits `active_filters`, price bounds and gift fields. Ordinary event sanitization also retains primitive values only, so array-valued materials/colors/attributes are not uniformly dependable outside canonical snapshots.
+
+The first filter release may safely show normalized selection counts and unique anonymous visitors. Combination paths, result change, downstream actions, repeated refinement and abandonment require a separately reviewed state-sequence model. For every “after filtering” statement, show the observation window and direct linkage; never say the filter caused the behavior.
+
+### 6. Gift intelligence
+
+Gift intelligence belongs under `Интерес и избор`, with an obvious question-led entry: **Какво търсят за подарък?** Recipient, occasion, gift budget, canonical result availability and tool opening are captured. Before presentation, repository projection must include the stored gift/price/filter state and normalization must handle multi-value fields.
+
+Safe first facts are explicit recipient/occasion selections, gift-discovery use and complete-state result availability. Recipient × occasion, attribute combinations and downstream interest need eligibility and sequence work. Price selection means a selected range, never willingness to pay. Nothing here represents all Bulgarian consumers.
+
+### 7. Saves and collections intelligence
+
+`save_product`, `add_to_collection`, removal, collection creation/view/share and privacy-safe collection IDs are captured. Current V2 folds save/add/share into the broader consideration stage; it does not expose save-specific or collection aggregates. A first release can separate event types and count actions/visitors without collection names.
+
+Safe questions include:
+
+- кои продукти са запазвани;
+- кои брандове получават интерес чрез запазени продукти;
+- колко има създадени, разгледани и споделени колекции;
+- кои продукти са добавяни, subject to identity-quality diagnostics.
+
+Later views may describe a later view or outbound action after a save, but only as an observed sequence with direct/influenced attribution and lookback rules. `save_brand` must not be shown: it is accepted by ingestion, but no dependable live producer was found. Collection names and individual collection profiles remain prohibited.
+
+### 8. Discovery-context intelligence
+
+Group raw surfaces into business-readable contexts: Начална страница; Търсене; Категории и продуктови групи; Подаръци; Тематични страници; Брандове; Продуктови препоръки; Запазени продукти и колекции; Друг контекст. Unknown raw values stay in Diagnostics until classified.
+
+Primary context comparison may show visitors, qualified product displays, product openings, outbound intent and at most one clearly based rate. Canonical eligible opportunities are useful in drill-down when state integrity is complete. Raw state/member counts, IDs, linkage method and integrity failures belong in Diagnostics. Non-canonical contexts may show observed activity but never a fabricated eligible denominator.
+
+### 9. Acquisition intelligence
+
+`Източници` starts with human channels: Direct, Google organic, other search, social, email, campaigns, external referrals and unknown. It may show visitors, discovery-active sessions, qualified displays, openings, consideration, outbound intent and returning visitors using the current observational grouping.
+
+Campaign, raw source/medium/referrer and legacy values are drill-down or Diagnostics detail. Unknown traffic must retain the current missing-versus-unrecognized explanation. Landing-page analysis is a straightforward next aggregation, but it must choose one session landing and avoid multiplying visits by event count. Source differences are behavioral observations, not proof that a channel caused the outcome.
+
+### 10. Search Console future layer
+
+Google referrer or `utm_*` data can support a Google-organic channel classification; it cannot reveal exact organic queries. Exact query intelligence requires a new Search Console data source at aggregate grain:
+
+`query × landing page × date × device`, where available.
+
+The future UI must keep Search Console demand separate from internal search. It may align aggregate query/page/date impressions, clicks, click-through rate and position with first-party landing-page downstream summaries for comparable date/page groups. This is ecological/aggregate comparison, not deterministic query-to-browser or query-to-session attribution. Thresholding and suppression may be required for privacy and unstable low-volume rows.
+
+### 11. Product intelligence structure
+
+**Summary → compact product list → product drill-down → diagnostic detail**
+
+- Summary: products with qualified visibility, openings, page visits, consideration, outbound and repeat-interest coverage.
+- Compact list: product, brand, qualified displays, observed reaction and one later-intent signal; no giant default table.
+- Drill-down: composite `product + brand` identity, contexts, position, searches, exposure/opening/page/consideration/outbound sequence, repeat interest and eligible peer insight.
+- Diagnostics: raw identity quality, state/opportunity links, denominators, cohort definition/fallback/sample and legacy events.
+
+Current product stage facts and eligible peer classifications are 🟢. Product-specific repeat aggregation is 🟡. Period trends, catalogue price/attribute analysis, gateway/cross-sell roles and broader portfolio classifications are 🟠. Purchases and revenue remain unavailable.
+
+### 12. Brand intelligence structure
+
+**Summary → compact brand list → brand drill-down → diagnostic detail**
+
+- Summary: brands with observed visibility, product attention, brand-page activity, repeat interest and outbound intent.
+- Compact list: brand, product visibility, product/brand openings and outbound actions.
+- Drill-down: strongest observed products, direct searches and contexts leading to the brand, multi-product exploration, repeat interest and brand-site transitions.
+- Diagnostics: identity quality, raw paths/source fields, direct versus influenced attribution and sample coverage.
+
+Current brand facts and multi-product exploration are 🟢; query/context drill-down aggregation is 🟡; defensible similar-brand comparison, brand insights and demand opportunities are 🟠. The architecture deliberately preserves brand identity and nested product identity so it can become the internal foundation for future per-brand reports without exposing those reports now.
+
+### 13. Repeat-interest structure
+
+The primary question is **Към какво хората се връщат?** Show returning visitors, products revisited and brands revisited across separate sessions. Product/brand lists are secondary drill-downs. Saved-item return and time-to-return need additional derived policy before display.
+
+Primary copy should use `посетители` and `посетители с повторен интерес`. A nearby methodological disclosure must state that visitors are recognized anonymously by browser and that one person using multiple devices or browsers may be counted more than once. Never use “cross-session” in primary copy.
+
+### 14. What remains Diagnostics-only
+
+- raw event names, event IDs and payloads;
+- discovery state/result IDs, member counts and integrity diagnostics;
+- direct versus session-sequence link method and missing-link counts;
+- raw source, medium, campaign, referrer and legacy values;
+- exact cohort definition, fallback level, sample gates and position bands;
+- identity quality and ambiguous/legacy product or brand keys;
+- incomplete canonical states and non-canonical denominator limitations;
+- session timelines and wide export-like tables;
+- V1 reports during the transition.
+
+### 15. What must not be shown yet
+
+- exact Google organic queries or one-to-one Google-query attribution;
+- direct brand-save intelligence;
+- complete filter before/after impact across all surfaces;
+- causal filter, campaign, save or collection effects;
+- abandonment without a reviewed inactivity/censoring definition;
+- total-market demand, market share or population preference;
+- purchase, revenue, conversion or willingness-to-pay claims;
+- non-canonical opportunity rates;
+- brand rankings across incomparable catalogue mixes;
+- behavioural competitors, gateway/cross-sell roles or brand opportunity labels without eligible derived logic;
+- collection names, personal profiles or cross-device person identity.
+
+### 16. Recommended implementation phases
+
+Each phase is independently testable, locally visually reviewable and requires explicit approval before the next.
+
+1. **Explore foundation** — replace the current secondary navigation with the seven-area map, shared question/summary/list/drill-down shell, URL persistence, responsive containment and Diagnostics links. No new derivation.
+2. **Search and demand** — productize current search episodes and insights into compact groups and query drill-downs; keep Google demand absent but visibly distinguished as future external data.
+3. **Interest, taxonomy, filters and gifts — data foundation** — add the missing canonical state projection for price, gift fields and `active_filters`; normalize selections and publish coverage diagnostics before UI conclusions.
+4. **Interest, taxonomy, filters and gifts — experience** — build explicit-selection summaries and conservative gift/filter drill-downs; defer sequence-based claims that fail eligibility.
+5. **Products** — compact list and product drill-down using current composite identity and stage facts; preserve cohort evidence in Diagnostics.
+6. **Brands** — compact list and brand drill-down using current facts, products, direct paths and repeat evidence; no new brand insight family without separate derived review.
+7. **Saves and repeat interest** — separate save/collection events from consideration, add privacy-safe aggregates, entity repeat drill-downs and only then design saved-to-later-action sequences.
+8. **Acquisition and landing pages** — compact human channels, landing-page summaries and unknown-source treatment; raw dimensions remain diagnostic.
+9. **Search Console layer** — separately approved external aggregate ingestion, reconciliation, privacy policy and query/page/date/device UI. It must never be silently joined to anonymous sessions.
+
+### 17. Recorded Overview polish for a later implementation
+
+Do not implement these changes as part of this audit:
+
+- replace primary `разпознати анонимни браузъри` with `посетители`;
+- replace `браузъри с повторен интерес` with `посетители с повторен интерес`;
+- add a secondary explanation that visitor identity is anonymous-browser scoped and one person on multiple browsers/devices may be counted more than once;
+- remove the redundant `Има данни за двата периода` badge from Overview;
+- make the large insight percentage slightly more compact.
+
+### 18. Final audit conclusion
+
+The current V2 foundation already supports a strong Search experience, product and brand behavior stages, canonical versus non-canonical discovery context, acquisition summaries, qualified peer-based product insights and anonymous repeat interest. The most valuable captured-but-unused intelligence is structured canonical filter/gift/price state, explicit taxonomy selections, save/collection events and entity-level repeat facts.
+
+The genuine gaps are exact Google queries, reliable direct brand saves, non-canonical choice sets, purchases/revenue, person-level cross-device identity and any claim requiring representative market data. Several desirable views need derived policy rather than tracking: filter sequences and abandonment, catalogue-aware taxonomy/attribute analysis, saved-to-later-action paths, time-to-return, brand cohorts and opportunity classifications.
+
+The seven-area Explore architecture is compatible with future per-brand intelligence: brand identity, composite product identity, paths and repeat facts have explicit homes. It is also compatible with later market intelligence because external demand is isolated as an aggregate Search Console layer instead of being confused with first-party session behavior.

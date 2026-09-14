@@ -3,12 +3,25 @@ import type { AnalyticsInsight, InsightConfidence } from "./analytics-insights";
 export const ANALYTICS_V2_COPY={
  nav:{overview:"Преглед",explore:"Разглеждане",diagnostics:"Диагностика"},
  navHelp:{overview:"Какво трябва да знам?",explore:"Искам да разбера повече",diagnostics:"Искам да проверя данните"},
- explore:{search:"Търсене",discovery:"Откриване на продукти",products:"Продукти",brands:"Брандове",returning:"Връщащ се интерес",acquisition:"Откъде идват посетителите"},
+ explore:{
+  search:{label:"Търсене",question:"Какво търсят хората в Българитъм и намират ли достатъчен избор?"},
+  interest:{label:"Интерес и избор",question:"Към какво се насочват посетителите и как стесняват избора си?"},
+  products:{label:"Продукти",question:"Кои продукти се виждат, привличат внимание и водят към сайтовете на брандовете?"},
+  brands:{label:"Брандове",question:"Кои брандове привличат внимание и как хората стигат до тях?"},
+  discovery:{label:"Места на откриване",question:"Къде посетителите срещат и отварят продуктите?"},
+  saved:{label:"Запазване и връщане",question:"Какво се запазва за по-късно и към какво посетителите се връщат?"},
+  acquisition:{label:"Източници",question:"Откъде идват посетителите и какво правят след това?"},
+ },
  metrics:{eligible:"Възможности продуктът да бъде открит",exposure:"Реално показване",selection:"Отваряне на продукт",pageView:"Преглед на продуктова страница",consideration:"Сигнал за интерес",outbound:"Преминаване към сайта на бранда",repeat:"Повторен интерес",returning:"Връщащ се посетител",similarProducts:"Сходни продукти",similarBrands:"Сходни брандове",thinSupply:"Малък избор"},
  confidence:{LOW:"Ниска увереност",MEDIUM:"Средна увереност",HIGH:"Висока увереност"} satisfies Record<InsightConfidence,string>,
  insufficient:{sample:"Все още няма достатъчно данни за надеждно сравнение.",insights:"Все още няма достатъчно данни за надеждни автоматични изводи за този период.",comparison:"Няма достатъчно данни от предходния период.",noActivity:"Няма наблюдавана активност за избрания период.",area:"Няма наблюдавана активност в тази област за избрания период."},
  otherContext:"Друг контекст",
 } as const;
+
+export type AnalyticsExploreArea=keyof typeof ANALYTICS_V2_COPY.explore;
+export const ANALYTICS_EXPLORE_AREAS=Object.entries(ANALYTICS_V2_COPY.explore).map(([key,value])=>({key:key as AnalyticsExploreArea,...value}));
+export function resolveAnalyticsExploreArea(value:string|null):AnalyticsExploreArea{return ANALYTICS_EXPLORE_AREAS.some(area=>area.key===value)?value as AnalyticsExploreArea:"search"}
+export function analyticsExploreHref(searchParams:URLSearchParams,area:AnalyticsExploreArea){const params=new URLSearchParams(searchParams);params.set("view","explore");params.set("area",area);return`/analytics/?${params}`}
 
 const SURFACE_LABELS:Record<string,string>={
  homepage_default:"Начална страница",search_results:"Търсене",category:"Категории",category_results:"Категории",taxonomy_results:"Категории",subcategory:"Подкатегории",product_type:"Типове продукти",gift_discovery:"Откриване на подаръци",seo_landing_page:"Тематични страници",seo_landing:"Тематични страници",brand_directory:"Каталог с брандове",brand_directory_search:"Търсене на бранд",brand_page_products:"Продукти в профил на бранд",related_products:"Свързани продукти",more_from_brand:"Още от този бранд",blog_recommendations:"Препоръки в статии",saved_products:"Запазени продукти",named_collection:"Колекции",shared_collection:"Споделени колекции",product_page:"Продуктови страници",brand_page:"Страници на брандове",save_modal:"Запазване на продукт",

@@ -1111,7 +1111,7 @@ Specialized taxonomy, filter, gift, and sort rows should be deterministic aggreg
 
 ### Taxonomy, filter, gift, price, and availability rules
 
-**Taxonomy.** Present explicit action count and distinct visitors. Example: `„Облекло“ е избрана 4 пъти от 3 посетители.` Only add `След избора са били налични…` for eligible linked state facts. Canonical taxonomy on an SEO landing or passive result state is not itself an explicit selection.
+**Taxonomy.** Present explicit action count and distinct visitors. Example: `„Облекло“ е избрано 4 пъти от 3 посетители.` Only add `След избора са били налични…` for eligible linked state facts. Canonical taxonomy on an SEO landing or passive result state is not itself an explicit selection.
 
 **Filters.** Preserve selected values, removals, and clear actions separately. `clear_filters` counts one clear action; it does not manufacture one removal per previously active facet. Structured canonical values take precedence over lossy comma-joined event values. A smaller result set means `изборът е стеснен`, not `възникнало е затруднение`; a larger set means `изборът е разширен`, not success.
 
@@ -1292,3 +1292,163 @@ Across the currently available historical events, privacy-safe aggregation found
 These examples prove reconstructability, not publishable affinity, competition, preference, or causality. The sample is too small for external rates or thresholds. Anonymous journey IDs can reset, be blocked, or split one person across devices/browsers, and shared browsers can combine people.
 
 Brand ↔ Brand overlap, Brand ↔ explicit taxonomy, Search ↔ Brand, canonical co-eligibility, qualified co-exposure, and ordered same-session behavior are technically feasible with bounded derived work. Direct Search → Brand evidence is feasible in the contract but absent in this sample. Behavioural competitor and over-index claims require later methodology. No affinity feature, table, tracking, schema, recommendation logic, or UI was implemented.
+
+## 25. Product Intelligence Derivation & Product Design Contract
+
+Status: approved design boundary for EXPLORE-4B. This is an audit of the production contract, not a Product Intelligence UI, tracking/schema change, catalogue join, or affinity model.
+
+### Capabilities and identity
+
+Product identity is always `product_id + brand_id`; `product_id` is not globally unique. `productIdentity()` keys complete identities as `${product_id}::${brand_id}`. Slug fallbacks remain marked `legacy_fallback`; a missing brand becomes `ambiguous`; a missing product identity is excluded. Ambiguous/fallback identities never silently enter peer comparison. No audited Product Intelligence path aggregates by `product_id` alone. Canonical member uniqueness uses state + entity type + product ID + brand ID too.
+
+| Capability | Actual source | Derived readiness | Presentation boundary |
+|---|---|---|---|
+| Eligible opportunity | product member of a complete canonical state | 🟢 `EligibleProductOpportunity` | `възможност за показване`, never impression |
+| Qualified visibility | `product_impression`, existing ≥50% observer | 🟢 `productExposures` | qualified visibility, not attention |
+| Discovery opening | `view_product`, `view_stage=selection_click` | 🟢 `productSelections` | direct source must be explicit |
+| Product-page load | `view_product`, `view_stage=page_load` | 🟢 `productPageViews` | discovery-linked and landing views separate |
+| Legacy view | `view_product` without stage | 🟢 diagnostic | never guess click versus load |
+| Save | `save_product` | 🟢 consideration fact | explicit save, not purchase intent |
+| Unsave | actual event `remove_saved_product` | 🟡 stored/loaded; not yet projected | separate reversal action |
+| Collection | `add_to_collection`, `remove_from_collection` | 🟡 add is consideration; remove needs projection | separate actions; privacy-safe ID only |
+| Share | `share_product` | 🟢 consideration fact | separately countable |
+| Product outbound | `outbound_product_click` | 🟢 `productOutboundIntents` | `преминаване към сайта`, never sale |
+| Brand outbound with product context | `outbound_brand_click` | 🟠 brand-level unless contract explicitly identifies product destination | no silent product credit |
+| Repeat product observation | qualifying product event in another session | 🟡 current 90-day lookback | browser-scoped; conservative wording |
+| Search/gift/filter context | source state/search plus canonical fields | 🟡 bounded deterministic slicing needed | eligible, seen and opened remain separate |
+
+Human-readable names, brand names, slugs, category, subcategory and product type are 🟢 when present on events. A product URL is 🟡 constructible from a stable slug. Current price, image and availability/status need a read-only catalogue join 🟡; historically accurate versions need time-aware catalogue snapshots 🟠. Analytics contains no reliable image/status history. Labels may fall back to safe slug/ID but never define identity.
+
+### Exact units
+
+| Stage | One fact | Primary deduplication | Context and period |
+|---|---|---|---|
+| Eligible | one composite product at one position in one complete state | product-opportunity = visitor + product + state + position | state in period; exact surface/position/context |
+| Qualified visible | one deduplicated `product_impression` | events, visitors, sessions, explicitly linked opportunities | ≥50% rule unchanged; explicit source when available |
+| Opened | one `selection_click` | events, visitors, sessions, opportunities | direct discovery statement needs valid state+position |
+| Page viewed | one `page_load` | events, visitors, sessions | explicit/session-sequence discovery link or separate landing |
+| Saved | one `save_product` | events, savers, sessions | repeated events retained; visitor rates dedupe |
+| Collection | one add or remove | action type, visitors, sessions | no collection name/PII in presentation |
+| Outbound | one `outbound_product_click` | events, visitors, sessions | valid product identity; attribution method retained |
+| Repeat | one visitor/product/current session with a qualifying prior session | visitor + product + current session | current event in period; prior may be in 90-day lookback |
+
+Raw events deduplicate by `event_id` (with the existing legacy fallback). Visitor means consenting `anonymous_journey_id`; session means `anonymous_session_id`. Events, products, states, opportunities, sessions and visitors must always be labelled and never mixed.
+
+Repeat qualification currently includes `product_impression`, staged `view_product`, `save_product`, `add_to_collection`, `share_product`, and `outbound_product_click`. It requires the same composite product and anonymous journey in different sessions, and deduplicates visitor/product/current-session. Repeated events within one session do not qualify. Because a qualified impression itself qualifies, the first UI must say `повторно измерена видимост или действие`, not imply a deliberate reopening. Anonymous browser identity is neither a person nor cross-device loyalty.
+
+### Opportunity, visibility and contexts
+
+Eligibility exists only for complete canonical states. It proves membership and absolute 1-based position, not viewport entry. Pre-canonical history and non-canonical surfaces cannot receive fabricated denominators. Qualified visibility preserves the producer's `intersectionRatio >= 0.5`; DOM rendering alone does not count. No impression means no recorded qualified visibility, not rejection.
+
+Current position bands are `1–4`, `5–12`, `13–24`, `25+`. Observed surfaces include brand page, brand-page products, category, gift discovery, homepage default, more from brand, named/shared/saved collections, product type, related products, search results, SEO landing and subcategory. Eligibility is available only where a complete state exists; event-only surfaces remain numerator-only.
+
+Search evidence is: eligible for query via state membership; qualified-visible via explicitly sourced impression; opened from query via explicitly sourced selection; later same-session query is contextual only. Gift, taxonomy, price and filter dimensions use the same three layers. `Показван при избор „За жена“` describes a discovery request, never demographic preference or demand.
+
+### Opening, page, saves and outbound
+
+`selection_click` is a card opening; `page_load` is an actual destination load. The current linker can inherit a prior opportunity for the same product/session and records `method=session_sequence`; UI must distinguish that from event-explicit source. Direct/external/organic page loads without a link are landing interest, not Bulgaritam discovery selection.
+
+Product-page visitors may use existing deterministic acquisition groups (`organic`, `direct/unknown`, `social`, `referral`, other existing groups). Acquisition is not discovery source. Exact Google queries remain unavailable without Search Console. Only `outbound_product_click` with valid composite identity is product outbound. A brand-level outbound stays brand-level. Use `преминаване към сайта`, never purchase/conversion.
+
+Save, add-to-collection and share may sit under `Запазване и други сигнали за обмисляне`, but their facts/counts remain distinct. One save-to-board interaction can emit both `save_product` and `add_to_collection`, so they cannot be naively summed. Removes are separate reversals. Ordering could later describe chronology, but cannot prove save caused a later action; EXPLORE-4B excludes save-to-later attribution.
+
+### Reject a classic product funnel; approve bounded rates
+
+`eligible → visible → opened → page → saved → outbound` is not a coherent conversion funnel. Eligible/visibility/selection can share a product-opportunity, while page/save/outbound can be explicit or same-session linked; saves and outbound are parallel rather than mandatory stages. `ProductFunnelRow` is an internal stage summary, not permission to draw a narrowing funnel.
+
+Approved rates are:
+
+| Rate | Numerator / denominator | Rule |
+|---|---|---|
+| Qualified visibility | explicitly linked impressed opportunities / eligible opportunities | complete states and same context slice |
+| Selection among visibility | directly linked selected opportunities with prior qualified visibility / linked impressed opportunities | otherwise show separate counts |
+| Visitor selection | distinct selecting visitors with prior visibility / distinct qualified-visible visitors | same product/context; not conversion |
+| Outbound among page visitors | distinct linked product-outbound visitors / distinct product-page visitors | suppress incompatible populations |
+| Save among page visitors | distinct linked savers / distinct product-page visitors | save and collection remain distinct |
+| Repeat observation | returning product browsers / browsers with qualifying product event | 90-day lookback required; impression caveat |
+
+Factual rates require only non-zero compatible denominators. Interpretive comparisons additionally require the gates below. Existing aggregate rates whose numerator is not provably a denominator subset must not be presented.
+
+### Raw versus adjusted performance and peer audit
+
+Raw performance is a labelled set of stage counts, never one score. Adjusted performance compares unique product-opportunity selections per unique product-opportunity exposure. Current cohort fallback remains:
+
+1. same product type + surface + position band;
+2. same product type + surface;
+3. same subcategory + surface;
+4. same category + surface;
+5. same product type;
+6. suppress.
+
+The focal composite product is excluded. The first level with at least five peer products wins. Baseline is the median peer rate; percentile is the share of peer rates `<=` focal. Quartile helpers exist, but current product insights do not emit IQR. There is no statistical significance test.
+
+Current provisional confidence requires ≥20 focal exposures, ≥20 eligible opportunities, ≥10 exposed visitors and ≥5 peers. `MEDIUM` requires ≥50 exposures/opportunities; `HIGH` requires ≥200 exposures/opportunities and ≥50 visitors. Below-median by more than 25% creates an existing lower-than-peer candidate; above-median by more than 25% with below-peer-median exposure creates an early/hidden candidate. Outbound comparison also requires 20 outbound events. These labels are rule-based, not statistical confidence.
+
+One material gap blocks adjusted UI as-is: `ProductFunnelRow` chooses one `primarySurface`, `positionBand` and taxonomy context from the first available fact. Multi-surface products can therefore inherit incidental context. EXPLORE-4B may show raw totals, but adjusted claims must first derive product × surface × position-band slices and then apply the unchanged fallback, or stay suppressed.
+
+Low-exposure products remain factual: `Все още няма достатъчно сравними показвания за надеждна оценка.` They are never bottom-ranked. High-opportunity/low-action wording is allowed only after compatible exposure and peer gates. Small early action is `Има ранни измерени действия, но показванията не са достатъчни за сравнение.`
+
+### Product Explore product design
+
+The first area answers:
+
+1. Кои продукти хората действително виждат?
+2. Кои от видените продукти отварят?
+3. Кои продукти стигат до продуктова страница?
+4. Кои водят до запазване или преминаване към сайта?
+5. Кои получават малко възможности за показване?
+6. Към кои има повторно измерена видимост или действие в друго посещение?
+7. От кои места и контексти се откриват продуктите?
+8. Кои се различават от типичното при достатъчно сравними показвания?
+
+| Section | Facts | Low-data behavior / drill-down |
+|---|---|---|
+| Какво се случи | products/visitors at separately labelled stages | always factual; disclose canonical coverage |
+| Какво заслужава внимание | eligible peer cases, low-exposure cases, early signals | omit interpretations when gates fail |
+| Продукти, които се виждат и отварят | visible visitors and direct openings | factual counts and denominators |
+| Продукти с малко видимост | eligible versus qualified-visible | state performance is unknown |
+| Сравнение при сходни показвания | cohort, median, focal rate, sample | hidden until sliced cohort/gates pass |
+| Всички продукти | compact sortable factual table | secondary exploration, not 20-column primary UI |
+| Детайл за продукт | facts, contexts, caveats, peer evidence | composite-key panel/route |
+
+Product detail shows aggregated opportunity, visibility, opening, page, save, collection, outbound and repeat facts; surfaces/positions; direct search/gift/filter context; landing acquisition; cohort/baseline/sample; limitations. It never exposes visitor/session IDs or timelines. Suppressed comparison retains facts plus the exact suppression reason.
+
+Factual lists use names such as `Най-често отваряни`, never `най-добри`. Sort by declared count, then distinct visitors, normalized product name, brand name and composite key. Adjusted lists sort by declared peer difference, sample, then stable identity. Insufficient-exposure products live in a separate group.
+
+### Future Product ↔ Brand/Product boundary
+
+Current facts can reconstruct product-to-brand chronology, multiple same-brand products in a session and later cross-session same-brand product activity. They do not justify gateway product, cross-sell driver or portfolio role. Future `разглеждат и…` work must keep same visitor, same session, ordered session, same complete choice set, qualified co-exposure and direct attribution as distinct evidence levels. Affinity, behavioral competitors and recommendation-quality claims remain future-only.
+
+### Read-only production dry run — 15 September 2026
+
+The Supabase source was read without writes. Event coverage starts `2026-08-15 14:26 UTC`; canonical coverage starts `2026-09-12 16:16 UTC`. Loaded: 4,469 events, 44 states, 7,513 members. Thirty-day and historical event results are nearly identical, but eligible denominators cover only post-rollout history.
+
+| Window | Products eligible / visible / opened / page-viewed | consideration / collection / outbound / repeat | Visitors eligible / visible / opened / page / consideration / outbound / repeat |
+|---|---|---|---|
+| 7d | 549 / 518 / 9 / 11 | 1 / 1 / 18 / 218 | 10 / 50 / 6 / 7 / 1 / 14 / 2 |
+| 30d | 549 / 544 / 9 / 11 | 1 / 1 / 29 / 245 | 10 / 94 / 6 / 7 / 1 / 28 / 2 |
+| reliable history | 549 / 544 / 9 / 11 | 1 / 1 / 29 / 245 | 10 / 94 / 6 / 7 / 1 / 28 / 2 |
+
+`Eligible` is distinct composite products, not opportunities. The 7,208 canonical product-opportunities split: 139 at 1–4; 265 at 5–12; 292 at 13–24; 6,512 at 25+. More visible than eligible visitors reflects event-only surfaces and incompatible denominators—not a funnel. Repeat products are high because impressions qualify across smoke-test sessions; only two browsers create these facts.
+
+Privacy-safe examples: `Картина – японски вълни` / Raelumin (16 eligible, 2 linked visible, 0 opened); `Ръчно рисувани чаши за вино Слънчогледи` / Art Tochka (16, 2, 0); `Сребърна лъжичка „Ветрило“` / Studio Nikolas (16, 2, 0). These are facts, not judgments.
+
+Peer logic formed cohorts for 446 rows in 7d and 492 in 30d/history, but zero products passed confidence; 551 rows (7d) and 554 (30d/history) were suppressed. Examples:
+
+- `Картина – японски вълни`: 16 eligible, 2 exposed, 0 selected; level 1, 8 peers, 110 peer opportunities, median 0, percentile 1; suppressed.
+- `Сребърна лъжичка „Ветрило“`: 16/2/0; level 3, 22 peers, 299 peer opportunities, median 0; suppressed.
+- `Изкуство за стена Michaelangelo’s David`: 16/2/0; exact level 0, 5 peers, 66 peer opportunities, median 0; suppressed.
+
+Percentile 1 when all rates equal zero is a `<=` artifact, not superiority; suppress it. Peer opportunity total is diagnostic but not a current confidence gate.
+
+### Data quality, minimum model and EXPLORE-4B boundary
+
+Reliable history had 3,141 product-relevant events: zero missing product IDs, missing brand IDs, unsafe/missing composite identities, product outbounds without identity, or duplicate event IDs. All states passed count/position integrity. Eight canonical-sourced impressions lacked matching eligible membership (suspicious; exclude from rates). No directly linked selection lacked prior visibility in the strict check. Fourteen page facts lacked discovery attribution (expected direct/external landing candidates). No catalogue resolution/history join was attempted.
+
+Existing structures suffice: `EligibleProductOpportunity`, `ProductStageFact`, `RepeatInterestFact`, and `ProductFunnelRow` as a raw summary only. EXPLORE-4B needs one `ProductPeerComparisonFact` keyed by composite product × explicit surface × position band, carrying fallback, focal/peer samples, median, optional percentile, provisional confidence and suppression reason. An optional read-only `ProductCatalogueLabel` may supply current labels, explicitly non-historical. Removal events need a separate bounded action projection if displayed. Missing identity/state/context fails closed.
+
+EXPLORE-4B may implement only the hierarchy above; composite identity; separate stage facts; opportunity versus visibility; selection versus landing; save/add/share distinctions; product outbound; conservative repeat; audited context levels; deterministic factual lists; low-data/quality explanations; sliced peer comparison with unchanged fallback/gates; optional current catalogue labels; and focused identity/stage/attribution/cohort/tie/suppression tests.
+
+Future-only: affinity/co-view, behavioral competitors, gateway/portfolio roles, saved-to-later causal narratives, multi-factor/statistical adjustment, Search Console queries, purchase/revenue, historical catalogue enrichment, and tracking/schema changes.
+
+Forbidden claims: purchase, sale, conversion, revenue, quality, attractiveness, preference, causal effect, market share, representative Bulgarian behavior, demographic preference, competitor relationship, recommendation quality, exact SEO query attribution without direct evidence, and best/worst without approved adjusted methodology. Eligibility is not visibility; visibility is not attention; save is not purchase intent; outbound is not sale; no visibility is not rejection.

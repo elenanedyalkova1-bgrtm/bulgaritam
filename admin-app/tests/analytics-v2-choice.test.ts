@@ -60,7 +60,7 @@ assert.equal(choiceValueLabel("price","0-25"),"До 25 €");
 assert.equal(choiceValueLabel("sort","price-asc"),"Цена: от ниска към висока");
 assert.equal(choicesWord(1),"избор");assert.equal(choicesWord(2),"избора");assert.equal(visitorsWord(1),"посетител");assert.equal(visitorsWord(2),"посетители");
 assert.match(choiceOrientation(presentation.summary,presentation.taxonomy),/2 посетители са направили 13 избора/);
-assert.match(choiceOrientation(presentation.summary,presentation.taxonomy),/„Облекло“ е избрана 2 пъти от 2 посетители/);
+assert.match(choiceOrientation(presentation.summary,presentation.taxonomy),/„Облекло“ е избрано 2 пъти от 2 посетители/);
 const tiedOrientation=choiceOrientation({visitors:2,actions:4},[{...presentation.taxonomy[0],actions:2},{...presentation.taxonomy[1],actions:2}]);
 assert.doesNotMatch(tiedOrientation,/Сред категориите/);assert.match(tiedOrientation,/обща тенденция/);
 

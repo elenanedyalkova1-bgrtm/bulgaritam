@@ -1451,4 +1451,9 @@ EXPLORE-4B may implement only the hierarchy above; composite identity; separate 
 
 Future-only: affinity/co-view, behavioral competitors, gateway/portfolio roles, saved-to-later causal narratives, multi-factor/statistical adjustment, Search Console queries, purchase/revenue, historical catalogue enrichment, and tracking/schema changes.
 
+Future presentation requirements recorded after EXPLORE-4B:
+
+- Brand Intelligence should follow the same explorer interaction principle: a searchable complete brand list, sortable factual columns, one progressive brand detail, safely attributable visibility/product/save/outbound facts, and no composite performance score.
+- Analytics V2 should expose a platform-level total for valid outbound actions to brand websites, with separate product-attributed and brand-attributed breakdowns wherever the stored attribution supports them. This belongs to a future Overview/Brand Intelligence phase, not Product Intelligence presentation polish.
+
 Forbidden claims: purchase, sale, conversion, revenue, quality, attractiveness, preference, causal effect, market share, representative Bulgarian behavior, demographic preference, competitor relationship, recommendation quality, exact SEO query attribution without direct evidence, and best/worst without approved adjusted methodology. Eligibility is not visibility; visibility is not attention; save is not purchase intent; outbound is not sale; no visibility is not rejection.

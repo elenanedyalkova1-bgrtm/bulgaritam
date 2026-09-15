@@ -6,6 +6,7 @@ import ExploreNavigation from "./ExploreNavigation.astro";
 import ExploreShell from "./ExploreShell.astro";
 import SearchIntelligence from "./SearchIntelligence.astro";
 import InterestChoiceIntelligence from "./InterestChoiceIntelligence.astro";
+import ProductIntelligence from "./ProductIntelligence.astro";
 const {model,area}=Astro.props as{model:AnalyticsV2ViewModel;area:AnalyticsExploreArea};
 const n=(value:number|null,digits=0)=>value==null?"Няма достатъчно данни":new Intl.NumberFormat("bg-BG",{maximumFractionDigits:digits}).format(value);
 const pct=(value:number|null)=>value==null?"Няма достатъчно данни":`${n(value*100,1)}%`;
@@ -14,9 +15,7 @@ const pct=(value:number|null)=>value==null?"Няма достатъчно дан
  <ExploreNavigation area={area}/>
  {area==="search"&&<ExploreShell area={area}><SearchIntelligence search={model.search}/></ExploreShell>}
  {area==="interest"&&<ExploreShell area={area}><InterestChoiceIntelligence interest={model.interest}/></ExploreShell>}
- {area==="products"&&<ExploreShell area={area}>
-  {model.products.length?<AnalyticsTable id="v2-products" paginate heads={["Продукт","Бранд","Реални показвания","Отваряния","Към бранд"]} rows={model.products.map(item=>[item.name,item.brand,item.exposed,item.selected,item.outbound])}/>:<div class="empty">Няма наблюдавана продуктова активност за избрания период.</div>}
- </ExploreShell>}
+ {area==="products"&&<ExploreShell area={area}><ProductIntelligence product={model.product}/></ExploreShell>}
  {area==="brands"&&<ExploreShell area={area}>
   {model.brands.length?<AnalyticsTable paginate heads={["Бранд","Показвания на продукти","Отваряния на продукти","Страница на бранд","Към сайта на бранда"]} rows={model.brands.map(item=>[item.name,item.productExposures,item.productSelections,item.pageViews,item.outbound])}/>:<div class="empty">Няма наблюдавана активност за брандове през избрания период.</div>}
  </ExploreShell>}

@@ -315,8 +315,8 @@ if (seoType === "category" && seoData.category) {
     <meta property="og:site_name" content="Българитъм" />
     <meta property="og:locale" content="bg_BG" />
     <meta property="og:image" content={socialImage} />
-    <meta property="og:image:width" content="1227" />
-    <meta property="og:image:height" content="812" />
+    {!normalizeUrl(seoData.image) && <meta property="og:image:width" content="1920" />}
+    {!normalizeUrl(seoData.image) && <meta property="og:image:height" content="1200" />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={resolvedTitle} />
     <meta name="twitter:description" content={resolvedDescription} />
@@ -1069,49 +1069,7 @@ if (seoType === "category" && seoData.category) {
         </form>
       </div>
 
-      <script is:inline>
-        const btn = document.querySelector(".nav-toggle");
-        const overlay = document.getElementById("mobile-overlay");
-        const closeEls = overlay ? overlay.querySelectorAll("[data-close]") : [];
-        const links = overlay ? overlay.querySelectorAll("a") : [];
-
-        const setOpen = (open) => {
-          if (!btn || !overlay) return;
-          if (open) {
-            overlay.removeAttribute("hidden");
-            overlay.setAttribute("aria-hidden", "false");
-            btn.setAttribute("aria-expanded", "true");
-            document.documentElement.classList.add("no-scroll");
-          } else {
-            overlay.setAttribute("hidden", "");
-            overlay.setAttribute("aria-hidden", "true");
-            btn.setAttribute("aria-expanded", "false");
-            document.documentElement.classList.remove("no-scroll");
-          }
-        };
-
-        if (btn && overlay) {
-          btn.addEventListener("click", () => setOpen(true));
-          closeEls.forEach((el) => el.addEventListener("click", () => setOpen(false)));
-          links.forEach((a) => a.addEventListener("click", () => setOpen(false)));
-
-          document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && !overlay.hasAttribute("hidden")) setOpen(false);
-          });
-        }
-
-        const searchToggle = document.querySelector(".header-search-toggle");
-        const searchPanel = document.getElementById("header-search-panel");
-        const searchInput = document.getElementById("header-product-search");
-        const setSearchOpen = (open) => {
-          if (!searchToggle || !searchPanel) return;
-          searchPanel.toggleAttribute("hidden", !open);
-          searchToggle.setAttribute("aria-expanded", String(open));
-          if (open) window.setTimeout(() => searchInput?.focus(), 0);
-        };
-        searchToggle?.addEventListener("click", () => setSearchOpen(searchPanel?.hasAttribute("hidden")));
-        document.addEventListener("keydown", (event) => { if (event.key === "Escape") setSearchOpen(false); });
-      </script>
+      <script is:inline src="/header-ui.js" defer></script>
     </header>
 
     <!-- PAGE CONTENT -->

@@ -8,9 +8,12 @@ import { loadProducts } from "../lib/products";
 import { getAvailablePublicBrowse, PUBLIC_GIFT_OCCASIONS } from "../lib/public-browse-taxonomy";
 import { loadHomepageSettings } from "../lib/site-settings";
 import defaultHomeHero from "../assets/home-hero-fashion-collage.webp";
+import { getHumanReviewedLandingContent } from "../lib/landing-content";
 
 const [products, homepageSettings] = await Promise.all([loadProducts(), loadHomepageSettings()]);
-const displayProducts = products.filter((product) => product.image_urls?.[0]);
+const displayProducts = [...new Map(products.filter((product) => product.image_urls?.[0]).map((product) => [product.slug, product])).values()];
+const productPageSize = 48;
+const productPageCount = Math.ceil(displayProducts.length / productPageSize);
 const homeCategories = getAvailablePublicBrowse(displayProducts, true);
 const structuredAttributes = new Set(displayProducts.flatMap((product) => product.attributes));
 const attributeOptions = ["Веган", "Еко", "Натурален", "Органичен памук", "Ръчна изработка", "Персонализируем"].filter((value) => structuredAttributes.has(value));
@@ -22,6 +25,7 @@ const giftOccasionOptions = ["Рожден ден", "Сватба", "Новор�
   PUBLIC_GIFT_OCCASIONS.includes(value)
 );
 const giftAttributeOptions = attributeOptions.filter((value) => ["Персонализируем", "Ръчна изработка"].includes(value));
+const reviewedHomeContent = getHumanReviewedLandingContent("/");
 
 ---
 
@@ -72,7 +76,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
           decoding="async"
         />}
       </div>
-      <h1 class="home-fresh-note" data-i18n="home.freshNote">Открий какво създават българските брандове и запази любимите си продукти</h1>
+      <h1 class="home-fresh-note" data-i18n="home.freshNote">{reviewedHomeContent?.h1 || "Открий какво създават българските брандове и запази любимите си продукти"}</h1>
     </section>
 
     <section class="home-search" id="product-search" aria-label="Търсене и категории">
@@ -165,10 +169,10 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
           <span class="sort-label" data-i18n="home.sortLabel">Подредба</span>
           <select id="sortSelect" class="sort-select">
             <option value="featured" data-i18n="home.sort.featured">Подбрани</option>
-            <option value="newest" data-i18n="home.sort.newest">Най-нови</option>
             <option value="price-asc" data-i18n="home.sort.priceAsc">Цена: ниска към висока</option>
             <option value="price-desc" data-i18n="home.sort.priceDesc">Цена: висока към ниска</option>
-            <option value="alpha" data-i18n="home.sort.alpha">A–Я</option>
+            <option value="alpha-asc">Име: А–Я</option>
+            <option value="alpha-desc">Име: Я–А</option>
           </select>
         </label>
       </div>
@@ -331,7 +335,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       </div>
     </div>
 
-    <section class="section section--feed" id="products">
+    <section class="section section--feed" id="products" data-total-items={displayProducts.length} data-total-pages={productPageCount} data-current-page="1" data-collection-path="/">
       <div id="activeSelections" class="active-selections" aria-live="polite" hidden></div>
       <div class="section-head section-head--centered" id="productResultsStart">
         <h2 class="h2">Продукти (<span id="count">{displayProducts.length}</span>)</h2>
@@ -341,7 +345,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
 
       <ul class="grid" id="grid" data-masonry-grid></ul>
       <template id="productCardCatalogue">
-        {displayProducts.map((product, index) => <HomepageProductCard product={product} index={index} />)}
+        {displayProducts.slice(0, productPageSize).map((product, index) => <HomepageProductCard product={product} index={index} />)}
       </template>
 
       <div class="feed-meta">
@@ -349,6 +353,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         <div class="feed-sentinel" id="feedSentinel" aria-hidden="true"></div>
         <button class="feed-load-more" id="feedLoadMore" type="button" hidden>Покажи още</button>
       </div>
+      {productPageCount > 1 ? <nav class="collection-pagination" data-pagination-first-page aria-label="Страници с продукти"><span>Страница 1 от {productPageCount}</span><a rel="next" href="/page/2/">Следваща</a></nav> : null}
     </section>
   </main>
 
@@ -505,13 +510,23 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       min-height: 60px;
     }
 
-    .chips--home .chip,
-    .chips--home .chip-sub {
-      min-height: 48px;
-      padding: 12px 18px;
-      font-size: 16px;
+    :global(#mainChips .chip) {
+      flex: 1 1 160px;
+      max-width: 210px;
+      min-height: 52px;
+      padding: 13px 20px;
+      font-size: 17px;
       font-weight: 800;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+    }
+
+    :global(#subChips .chip-sub) {
+      flex: 0 1 auto;
+      min-height: 42px;
+      padding: 10px 15px;
+      font-size: 14px;
+      font-weight: 750;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.035);
     }
 
     .chips-section-label {
@@ -1022,6 +1037,10 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     }
 
     .feed-load-more[hidden] { display: none; }
+    .collection-pagination { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 18px; font-size: 13px; }
+    .collection-pagination a { color: var(--accent-strong); font-weight: 700; text-decoration: none; }
+    .collection-pagination[hidden] { display: none; }
+    :global(.js) [data-pagination-first-page] { display: none; }
 
     .grid.is-updated {
       animation: homeResultsPulse 0.55s ease;
@@ -1248,6 +1267,18 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         min-width: auto;
       }
 
+      :global(#mainChips .chip) {
+        flex-basis: 142px;
+        min-height: 48px;
+        padding: 11px 14px;
+        font-size: 15px;
+      }
+
+      :global(#subChips .chip-sub),
+      .chips-types .chip-type {
+        font-size: 13px;
+      }
+
       .discovery-shortcut { font-size: 13px; }
 
       .filters-modal__panel {
@@ -1282,9 +1313,11 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
   <script>
     import { parseBulgarianShoppingIntent } from "../lib/search-intent";
 
+    async function initializeHomepage() {
     const q = document.getElementById("q") as HTMLInputElement;
     const searchForm = document.getElementById("searchForm");
     const grid = document.getElementById("grid");
+    const productFeed = document.getElementById("products");
     const count = document.getElementById("count");
     const hint = document.getElementById("hint");
     const intentStatus = document.getElementById("intentStatus");
@@ -1313,25 +1346,77 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     const filtersBadge = document.getElementById("filtersBadge");
     const filtersApply = document.getElementById("filtersApply");
     const filtersReset = document.getElementById("filtersReset");
-    const allCards = Array.from(productCardCatalogue?.content.querySelectorAll("li.card") || []);
-    const catalogueMaterials = [...new Set(allCards.flatMap((card) => String(card.dataset.materials || "").split("|").filter(Boolean)))];
-
-    const createShuffledOrder = (items) => {
+    // Randomize the static page order once per visit, then each disjoint page
+    // once before display. Discovery fetches only the next 48-card page.
+    const firstPageCards = Array.from(productCardCatalogue?.content.querySelectorAll("li.card") || []);
+    let allCards = [];
+    let loadedThroughPage = 0; // Number consumed from pageOrder, not a page number.
+    const totalStaticPages = Number(productFeed?.dataset.totalPages || 1);
+    const totalCatalogueItems = Number(productFeed?.dataset.totalItems || firstPageCards.length);
+    const discoverySeed = Math.floor(Math.random() * 0x100000000);
+    const createShuffledOrder = (items, seed = discoverySeed) => {
+      let state = seed >>> 0;
+      const random = () => {
+        state += 0x6D2B79F5;
+        let value = Math.imul(state ^ (state >>> 15), 1 | state);
+        value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
+        return ((value ^ (value >>> 14)) >>> 0) / 0x100000000;
+      };
       const shuffled = [...items];
       for (let i = shuffled.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random() * (i + 1));
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
       return shuffled;
     };
-
-    allCards.forEach((card, index) => {
-      card.dataset.originalIndex = String(index);
-    });
-
-    createShuffledOrder(allCards).forEach((card, index) => {
-      card.dataset.featuredIndex = String(index);
-    });
+    const pageOrder = createShuffledOrder(Array.from({ length: totalStaticPages }, (_, i) => i + 1));
+    const loadedPages = new Set();
+    let pageLoadPromise = null;
+    const loadStaticPage = async (page) => {
+      if (loadedPages.has(page) || !page) return false;
+      if (pageLoadPromise) await pageLoadPromise;
+      if (loadedPages.has(page)) return false;
+      pageLoadPromise = (async () => {
+        let cards = firstPageCards;
+        if (page !== 1) {
+          const response = await fetch(`/page/${page}/`, { credentials: "same-origin" });
+          if (!response.ok) throw new Error(`Pagination ${response.status}`);
+          const pageDocument = new DOMParser().parseFromString(await response.text(), "text/html");
+          cards = Array.from(pageDocument.querySelectorAll("#grid li.card"));
+          if (!cards.length) throw new Error("Empty product page");
+        }
+        const known = new Set(allCards.map((card) => card.dataset.productSlug));
+        const added = createShuffledOrder(cards, discoverySeed ^ page).filter((card) => {
+          const slug = card.dataset.productSlug;
+          if (!slug || known.has(slug)) return false;
+          known.add(slug);
+          return true;
+        });
+        added.forEach((card) => {
+          const node = page === 1 ? card : document.importNode(card, true);
+          node.dataset.originalIndex = String((page - 1) * 48 + cards.indexOf(card));
+          node.dataset.featuredIndex = String(allCards.length);
+          node.dataset.position = String(allCards.length + 1);
+          allCards.push(node);
+        });
+        loadedPages.add(page);
+        loadedThroughPage = loadedPages.size;
+        return added.length > 0;
+      })().finally(() => { pageLoadPromise = null; });
+      return pageLoadPromise;
+    };
+    const ensureAllStaticPages = async () => {
+      for (const page of pageOrder) await loadStaticPage(page);
+    };
+    try {
+      await loadStaticPage(pageOrder[0]);
+    } catch {
+      // First-page HTML is already available even if the network is offline.
+      pageOrder.splice(pageOrder.indexOf(1), 1);
+      pageOrder.unshift(1);
+      await loadStaticPage(1);
+    }
+    const catalogueMaterials = Array.from(document.querySelectorAll('input[name="materialFilter"]')).map((input) => input.value);
 
     const getBatchSize = () => {
       if (window.innerWidth <= 640) return 8;
@@ -1349,7 +1434,10 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     let activeProductType = "";
     let selectedPriceRange = "all";
     let selectedDeliveryOutside = false;
-    let selectedSort = "featured";
+    const supportedSorts = new Set(["featured", "price-asc", "price-desc", "alpha-asc", "alpha-desc"]);
+    const requestedSort = new URLSearchParams(window.location.search).get("sort") || "";
+    let selectedSort = supportedSorts.has(requestedSort) ? requestedSort : "featured";
+    if (sortSelect) sortSelect.value = selectedSort;
     let selectedGiftFilters = [];
     let selectedAttributes = [];
     let selectedMaterials = [];
@@ -1366,14 +1454,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       : [];
     const getCurrentLang = () => localStorage.getItem("bulgaritam_lang_v1") === "en" ? "en" : "bg";
 
-    const focusResults = () => {
-      window.requestAnimationFrame(() => {
-        document.getElementById("productResultsStart")?.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-          block: "start",
-        });
-      });
-    };
+    const focusResults = () => window.requestAnimationFrame(() => window.bulgaritamScrollToResults?.());
 
     const removeStructuredTermsFromSearch = () => {
       const intent = parseBulgarianShoppingIntent(q.value || "");
@@ -1399,6 +1480,16 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       if (!Number.isNaN(max) && max > 0) return max;
       return Number.POSITIVE_INFINITY;
     };
+    const comparePrice = (a, b, direction) => {
+      const aPrice = parseComparablePrice(a);
+      const bPrice = parseComparablePrice(b);
+      const aMissing = !Number.isFinite(aPrice);
+      const bMissing = !Number.isFinite(bPrice);
+      if (aMissing !== bMissing) return aMissing ? 1 : -1;
+      if (aMissing && bMissing) return Number(a.dataset.originalIndex) - Number(b.dataset.originalIndex);
+      const difference = direction === "desc" ? bPrice - aPrice : aPrice - bPrice;
+      return difference || Number(a.dataset.originalIndex) - Number(b.dataset.originalIndex);
+    };
 
     const parseCreatedAt = (card) => {
       const raw = card.dataset.createdAt || "";
@@ -1409,25 +1500,27 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     const matchesPriceRange = (card, range) => {
       if (!range || range === "all") return true;
 
-      const min = Number(card.dataset.priceMin);
-      const max = Number(card.dataset.priceMax);
-      const low = Number.isNaN(min) ? null : min;
-      const high = Number.isNaN(max) ? null : max;
+      const parsePrice = (value) => value === "" || value == null ? null : Number(value);
+      const parsedMin = parsePrice(card.dataset.priceMin);
+      const parsedMax = parsePrice(card.dataset.priceMax);
+      const low = Number.isFinite(parsedMin) ? parsedMin : Number.isFinite(parsedMax) ? parsedMax : null;
+      const high = Number.isFinite(parsedMax) ? parsedMax : Number.isFinite(parsedMin) ? parsedMin : null;
+      if (low === null || high === null) return false;
 
       if (range === "0-25") {
-        return (low !== null && low <= 25) || (high !== null && high <= 25);
+        return low <= 25;
       }
 
       if (range === "25-50") {
-        return (low !== null && low <= 50 && low >= 25) || (high !== null && high >= 25 && high <= 50) || (low !== null && high !== null && low <= 50 && high >= 25);
+        return low <= 50 && high >= 25;
       }
 
       if (range === "50-100") {
-        return (low !== null && low <= 100 && low >= 50) || (high !== null && high >= 50 && high <= 100) || (low !== null && high !== null && low <= 100 && high >= 50);
+        return low <= 100 && high >= 50;
       }
 
       if (range === "100+") {
-        return (low !== null && low >= 100) || (high !== null && high >= 100);
+        return high >= 100;
       }
 
       return true;
@@ -1754,21 +1847,23 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       const sorted = [...cards];
 
       switch (sortValue) {
-        case "newest":
-          sorted.sort((a, b) => parseCreatedAt(b) - parseCreatedAt(a));
-          break;
         case "price-asc":
-          sorted.sort((a, b) => parseComparablePrice(a) - parseComparablePrice(b));
+          sorted.sort((a, b) => comparePrice(a, b, "asc"));
           break;
         case "price-desc":
-          sorted.sort((a, b) => parseComparablePrice(b) - parseComparablePrice(a));
+          sorted.sort((a, b) => comparePrice(a, b, "desc"));
           break;
-        case "alpha":
+        case "alpha-asc":
           sorted.sort((a, b) =>
             String(a.dataset.productName || "").localeCompare(
               String(b.dataset.productName || ""),
               "bg"
             )
+          );
+          break;
+        case "alpha-desc":
+          sorted.sort((a, b) =>
+            String(b.dataset.productName || "").localeCompare(String(a.dataset.productName || ""), "bg")
           );
           break;
         case "featured":
@@ -1786,16 +1881,19 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       const currentCards = Array.from(grid.children);
       const unchanged = desiredCards.length === currentCards.length && desiredCards.every((card, index) => card === currentCards[index]);
       if (unchanged) return;
-      grid.classList.remove("is-masonry-ready");
+      const appendOnly = currentCards.every((card, index) => card === desiredCards[index]);
+      if (!appendOnly) grid.classList.remove("is-masonry-ready");
       const fragment = document.createDocumentFragment();
-      desiredCards.forEach((card) => {
+      const changedCards = appendOnly ? desiredCards.slice(currentCards.length) : desiredCards;
+      changedCards.forEach((card) => {
         card.style.removeProperty("display");
         card.style.removeProperty("--masonry-span");
         fragment.appendChild(card);
       });
-      grid.replaceChildren(fragment);
+      if (appendOnly) grid.appendChild(fragment);
+      else grid.replaceChildren(fragment);
       window.bulgaritamScheduleMasonry?.(grid);
-      window.dispatchEvent(new CustomEvent("bulgaritam:products-appended", { detail: { nodes: desiredCards } }));
+      window.dispatchEvent(new CustomEvent("bulgaritam:products-appended", { detail: { nodes: changedCards } }));
     };
 
     const updateGridLayoutState = () => {
@@ -1807,32 +1905,51 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       updateGridLayoutState();
       renderVisibleCards();
 
+      const hasActiveDiscovery = Boolean((q.value || "").trim() || activeCategoryKey || activeSubcategoryKey || activeProductType || selectedPriceRange !== "all" || selectedDeliveryOutside || selectedGiftFilters.length || selectedAttributes.length || selectedMaterials.length || selectedColors.length);
+      const collectionPagination = productFeed?.querySelector(".collection-pagination");
+      if (collectionPagination) collectionPagination.hidden = hasActiveDiscovery;
+
       if (feedStatus) {
+        const resolvedTotal = !hasActiveDiscovery && loadedThroughPage < totalStaticPages ? totalCatalogueItems : matchedCards.length;
         const shown = Math.min(visibleCount, matchedCards.length);
         feedStatus.textContent =
-          matchedCards.length > shown ? `Показани ${shown} от ${matchedCards.length}` : "";
+          resolvedTotal > shown ? `Показани ${shown} от ${resolvedTotal}` : "";
       }
 
       if (feedSentinel) {
-        feedSentinel.hidden = matchedCards.length <= visibleCount;
+        feedSentinel.hidden = matchedCards.length <= visibleCount && loadedThroughPage >= totalStaticPages;
       }
-      if (matchedCards.length <= visibleCount) feedObserver?.disconnect();
+      if (matchedCards.length <= visibleCount && loadedThroughPage >= totalStaticPages) feedObserver?.disconnect();
       else if (feedObserver && feedSentinel) feedObserver.observe(feedSentinel);
       if (feedLoadMore) {
-        feedLoadMore.hidden = "IntersectionObserver" in window || matchedCards.length <= visibleCount;
+        feedLoadMore.hidden = matchedCards.length <= visibleCount && loadedThroughPage >= totalStaticPages;
       }
 
       if (typeof window.syncSaveButtons === "function") window.syncSaveButtons();
     }
 
-    function loadMore() {
-      if (appendInProgress || visibleCount >= matchedCards.length) return;
+    async function loadMore() {
+      if (appendInProgress) return;
       appendInProgress = true;
+      let failed = false;
       try {
+        if (visibleCount >= matchedCards.length && loadedThroughPage < totalStaticPages) {
+          await loadStaticPage(pageOrder[loadedThroughPage]);
+          matchedCards = sortCards([...allCards], selectedSort);
+        }
+        if (visibleCount >= matchedCards.length) return;
         visibleCount = Math.min(matchedCards.length, visibleCount + getBatchSize());
         updateFeedVisibility();
+      } catch {
+        failed = true;
+        if (feedStatus) feedStatus.textContent = "Зареждането не успя. Опитай отново с „Покажи още“.";
+        if (feedLoadMore) feedLoadMore.hidden = false;
       } finally {
         appendInProgress = false;
+        if (!failed && feedSentinel && !feedSentinel.hidden) {
+          const rect = feedSentinel.getBoundingClientRect();
+          if (rect.top <= window.innerHeight + 900 && rect.bottom >= -900) requestAnimationFrame(loadMore);
+        }
       }
     }
 
@@ -2054,7 +2171,9 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         searchFallbackRequired = filteredCards.length > 0;
       }
 
-      matchedCards = v.trim() ? sortCardsForSearch(filteredCards, searchQuery) : sortCards(filteredCards, selectedSort);
+      matchedCards = v.trim() && selectedSort === "featured"
+        ? sortCardsForSearch(filteredCards, searchQuery)
+        : sortCards(filteredCards, selectedSort);
       const derivedListContext = currentSearchIntent?.giftable || currentSearchIntent?.recipients?.length || currentSearchIntent?.occasions?.length || selectedGiftFilters.length
         ? "gift_discovery"
         : v.trim()
@@ -2108,7 +2227,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         },
         metadata: { list_name: "Начална discovery мрежа", used_fallback: searchFallbackRequired },
       }, matchedCards.map((card) => ({ node: card, entity_type: "product", product_id: card.dataset.productId || "", brand_id: card.dataset.brandId || "" })));
-      count.textContent = matchedCards.length;
+      const isUnfilteredCatalogue = !v.trim() && !activeCategoryKey && !activeSubcategoryKey && !activeProductType && selectedPriceRange === "all" && !selectedDeliveryOutside && !selectedGiftFilters.length && !selectedAttributes.length && !selectedMaterials.length && !selectedColors.length;
+      count.textContent = String(isUnfilteredCatalogue && loadedThroughPage < totalStaticPages ? totalCatalogueItems : matchedCards.length);
       const contextParts = [];
       if (activeCategoryKey) contextParts.push(categoryLabel(activeCategoryKey));
       if (activeSubcategoryKey) contextParts.push(subcategoryLabel(activeCategoryKey, activeSubcategoryKey));
@@ -2407,8 +2527,9 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       if (deliveryInput) deliveryInput.checked = selectedDeliveryOutside;
     }
 
-    function openOccasions() {
+    async function openOccasions() {
       if (!occasionModal) return;
+      await ensureAllStaticPages();
       syncOccasionInputs();
       updateDynamicFilterOptions();
       occasionModal.removeAttribute("hidden");
@@ -2423,7 +2544,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       syncDiscoveryModalState();
     }
 
-    function selectCategory(category, sourceContext = "homepage_discovery") {
+    async function selectCategory(category, sourceContext = "homepage_discovery") {
+      await ensureAllStaticPages();
       removeStructuredTermsFromSearch();
       activeCategoryKey = category.key;
       activeSubcategoryKey = "";
@@ -2447,7 +2569,6 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
 
     // Initial setup
     renderMainChips();
-    updateFeedVisibility();
     updateFiltersBadge();
     updateOccasionBadge();
     taxonomyResultsCue?.addEventListener("click", () => focusResults());
@@ -2462,7 +2583,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     });
 
     // Existing listeners
-    const executeHomeSearch = () => {
+    const executeHomeSearch = async ({ scrollToResults = false } = {}) => {
+      if ((q.value || "").trim()) await ensureAllStaticPages();
       const value = q.value || "";
       if (value.trim()) {
         const searchId = globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
@@ -2483,6 +2605,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       updateUsefulResultSignals();
       if (value.trim()) {
         pulseResults();
+        if (scrollToResults) focusResults();
       }
     };
 
@@ -2496,11 +2619,11 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     q.addEventListener("keydown", (event) => {
       if (event.key !== "Enter") return;
       event.preventDefault();
-      executeHomeSearch();
+      executeHomeSearch({ scrollToResults: true });
     });
     searchForm?.addEventListener("submit", (event) => {
       event.preventDefault();
-      executeHomeSearch();
+      executeHomeSearch({ scrollToResults: true });
     });
     document.querySelectorAll("[data-discovery-category]").forEach((shortcut) => {
       shortcut.addEventListener("click", () => {
@@ -2528,8 +2651,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         selectCategory(category, "self_discovery");
       });
     });
-    document.querySelector("[data-discovery-gift]")?.addEventListener("click", () => {
-      openOccasions();
+    document.querySelector("[data-discovery-gift]")?.addEventListener("click", async () => {
+      await openOccasions();
       window.bulgaritamTrack?.("open_gift_discovery", { source_context: "discovery_shortcut" });
     });
     document.querySelector("[data-discovery-surprise]")?.addEventListener("click", () => {
@@ -2547,11 +2670,13 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       window.location.assign(link.href);
     });
     const initialQuery = new URLSearchParams(window.location.search).get("q")?.trim() || "";
+    if (requestedSort) await ensureAllStaticPages();
     if (initialQuery) {
       q.value = initialQuery;
-      executeHomeSearch();
+      await executeHomeSearch({ scrollToResults: window.bulgaritamConsumeExplicitSearchScroll?.() === true });
     } else applyDiscovery("");
-    sortSelect?.addEventListener("change", (e) => {
+    sortSelect?.addEventListener("change", async (e) => {
+      await ensureAllStaticPages();
       selectedSort = e.target.value || "featured";
       applyDiscovery(q.value);
       window.bulgaritamTrack?.("change_sort", {
@@ -2561,7 +2686,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       pulseResults();
     });
 
-    occasionToggle?.addEventListener("click", openOccasions);
+    occasionToggle?.addEventListener("click", () => { void openOccasions(); });
     filtersModal?.addEventListener("change", (event) => {
       if (event.target.matches("input")) updateDynamicFilterOptions();
     });
@@ -2572,7 +2697,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       if (e.target.closest("[data-occasion-close]")) closeOccasions();
     });
 
-    occasionApply?.addEventListener("click", () => {
+    occasionApply?.addEventListener("click", async () => {
+      await ensureAllStaticPages();
       selectedGiftFilters = Array.from(
         occasionModal?.querySelectorAll('input[name="giftFilter"]:checked') || []
       ).map((input) => input.value);
@@ -2599,6 +2725,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       closeOccasions();
       applyDiscovery(q.value);
       pulseResults();
+      focusResults({ smooth: true });
     });
 
     occasionReset?.addEventListener("click", () => {
@@ -2620,7 +2747,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       if (e.target.closest("[data-filters-close]")) closeFilters();
     });
 
-    filtersApply?.addEventListener("click", () => {
+    filtersApply?.addEventListener("click", async () => {
+      await ensureAllStaticPages();
       const checked = filtersModal?.querySelector('input[name="priceFilter"]:checked');
       selectedPriceRange = checked?.value || "all";
       selectedDeliveryOutside = Boolean(document.getElementById("deliveryOutsideHome")?.checked);
@@ -2678,9 +2806,14 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         entries.forEach((entry) => {
           if (entry.isIntersecting) loadMore();
         });
-      }, { rootMargin: "900px 0px" });
+      }, {
+        // The site shell scrolls body (height: 100%; overflow-x: hidden).
+        // Use that scrollport so its clipping does not cancel rootMargin.
+        root: /auto|scroll/.test(getComputedStyle(document.body).overflowY) && document.body.scrollHeight > document.body.clientHeight ? document.body : null,
+        rootMargin: "900px 0px",
+      });
 
-      if (matchedCards.length > visibleCount) feedObserver.observe(feedSentinel);
+      if (matchedCards.length > visibleCount || loadedThroughPage < totalStaticPages) feedObserver.observe(feedSentinel);
     } else if (feedLoadMore && matchedCards.length > visibleCount) {
       feedLoadMore.hidden = false;
     }
@@ -2690,5 +2823,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       visibleCount = minimumVisible;
       updateFeedVisibility();
     });
+    }
+    initializeHomepage();
   </script>
 </BaseLayout>

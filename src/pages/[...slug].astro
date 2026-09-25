@@ -2,6 +2,9 @@
 import SeoProductLanding from "../components/SeoProductLanding.astro";
 import {
   SEO_INTENT_LANDINGS,
+  SEO_LANDINGS,
+  getCanonicalPathForLanding,
+  getProductsForLanding,
   getLandingPageHierarchy,
   getProductsForIntentLanding,
 } from "../lib/seo-landings";
@@ -19,19 +22,36 @@ export async function getStaticPaths() {
     "/bulgarski-mazhki-obuvki/",
   ]);
 
-  return SEO_INTENT_LANDINGS
-    .filter((landing) =>
-      !landing.path.startsWith("/bulgarski-podaratsi/") &&
-      !landing.path.startsWith("/bulgarski-drehi/") &&
-      !dedicatedPaths.has(landing.path)
-    )
-    .map((landing) => ({
-      params: { slug: landing.path.replace(/^\/+|\/+$/g, "") },
-      props: { landing, products: getProductsForIntentLanding(products, landing) },
-    }));
+  const intentPaths = SEO_INTENT_LANDINGS
+    .filter((landing) => !landing.path.startsWith("/bulgarski-podaratsi/") && !landing.path.startsWith("/bulgarski-drehi/"))
+    .flatMap((landing) => {
+      const matches = getProductsForIntentLanding(products, landing);
+      const pages = Math.max(1, Math.ceil(matches.length / 48));
+      const base = landing.path.replace(/^\/+|\/+$/g, "");
+      return Array.from({ length: pages }, (_, index) => index + 1).flatMap((pageNumber) => {
+        if (pageNumber === 1 && dedicatedPaths.has(landing.path)) return [];
+        return [{
+          params: { slug: pageNumber === 1 ? base : `${base}/page/${pageNumber}` },
+          props: { landing, products: matches, pageNumber },
+        }];
+      });
+    });
+  // A migrated taxonomy collection keeps the same renderer and crawlable pages.
+  const taxonomyPaths = SEO_LANDINGS.filter((landing) => landing.subcategoryKey === "kids_clothing" && !landing.canonicalSlug)
+    .flatMap((landing) => {
+      const matches = getProductsForLanding(products, landing);
+      const collectionPath = getCanonicalPathForLanding(landing);
+      const base = collectionPath.replace(/^\/+|\/+$/g, "");
+      return Array.from({ length: Math.max(1, Math.ceil(matches.length / 48)) }, (_, index) => ({
+        params: { slug: index === 0 ? base : `${base}/page/${index + 1}` },
+        props: { landing, products: matches, pageNumber: index + 1, collectionPath },
+      }));
+    });
+  return [...intentPaths, ...taxonomyPaths];
 }
 
-const { landing, products } = Astro.props;
+const { landing, products, pageNumber = 1 } = Astro.props;
+const collectionPath = Astro.props.collectionPath || landing.path;
 const allProducts = await loadProducts();
 const hierarchy = getLandingPageHierarchy(landing, allProducts);
 ---
@@ -40,12 +60,14 @@ const hierarchy = getLandingPageHierarchy(landing, allProducts);
   landing={hierarchy.seoLanding}
   products={products}
   browseProducts={allProducts}
-  canonicalPath={landing.path}
+  canonicalPath={pageNumber === 1 ? collectionPath : `${collectionPath.replace(/\/$/, "")}/page/${pageNumber}/`}
+  collectionPath={collectionPath}
+  pageNumber={pageNumber}
   breadcrumbs={hierarchy.breadcrumbs}
   primaryPills={hierarchy.primaryPills}
   secondaryPills={hierarchy.secondaryPills}
   parentLink={hierarchy.parentLink}
-  secondaryPillsTitle="Най-търсени"
+  secondaryPillsTitle={landing.categoryKey === "gifts" ? "Разгледай още идеи" : landing.categoryKey === "clothing" ? "Още български дрехи" : landing.categoryKey === "cosmetics" ? "Още българска козметика" : "Свързани категории"}
   editorialHeader={landing.editorialHeader}
   editorialSections={landing.editorialSections || []}
 />

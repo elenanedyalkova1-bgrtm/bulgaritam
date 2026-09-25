@@ -11,6 +11,14 @@ RewriteEngine On
 </IfModule>
 
 # Canonical SEO landing redirects. Keep every migration to one hop.
+RewriteRule ^podarak-za-zhena-za-rozhden-den/?$ /podarak-za-rozhden-den-na-zhena/ [R=301,L,NE]
+RewriteRule ^podarak-za-zhena-za-rozhden-den/page/([1-9][0-9]*)/?$ /podarak-za-rozhden-den-na-zhena/page/$1/ [R=301,L,NE]
+RewriteRule ^k/detsko-obleklo/?$ /bulgarski-detski-drehi/ [R=301,L,NE]
+RewriteRule ^k/detsko-obleklo/page/([1-9][0-9]*)/?$ /bulgarski-detski-drehi/page/$1/ [R=301,L,NE]
+# This former second page disappears after applying the women's audience filter.
+# If catalogue growth generates it again, serve that page normally.
+RewriteCond %{DOCUMENT_ROOT}/bulgarski-drehi/damski-chanti/page/2/index.html !-f
+RewriteRule ^bulgarski-drehi/damski-chanti/page/2/?$ /bulgarski-drehi/damski-chanti/ [R=301,L,NE]
 RewriteRule ^category/podaratsi/?$ /bulgarski-podaratsi/ [R=301,L,NE]
 RewriteRule ^category/idei-za-podarak/?$ /bulgarski-podaratsi/ [R=301,L,NE]
 RewriteRule ^k/(podaraci|idei-za-podarak|bulgarski-podaratsi)/?$ /bulgarski-podaratsi/ [R=301,L,NE]
@@ -23,6 +31,7 @@ RewriteRule ^k/(bulgarski-drehi|obleklo)/?$ /bulgarski-drehi/ [R=301,L,NE]
 RewriteRule ^k/dom-i-interior/?$ /k/za-doma/ [R=301,L,NE]
 RewriteRule ^k/dekor/?$ /k/dekoraciq-za-doma/ [R=301,L,NE]
 RewriteRule ^k/detski-aksesoari/?$ /k/detski-mebeli-i-tekstil/ [R=301,L,NE]
+RewriteRule ^k/detski-knigi/?$ /bulgarski-detski-knigi/ [R=301,L,NE]
 RewriteRule ^k/grizha-za-deca/?$ /k/kozmetika-za-deca/ [R=301,L,NE]
 RewriteRule ^k/(imunitet|vitamini)/?$ /k/dobavki-i-ekstrakti/ [R=301,L,NE]
 RewriteRule ^k/srebarni-bijuta/?$ /k/bijuta/ [R=301,L,NE]

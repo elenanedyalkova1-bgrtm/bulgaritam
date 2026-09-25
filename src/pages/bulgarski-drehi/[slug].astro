@@ -7,7 +7,7 @@ const allProducts = await loadProducts();
 
 export async function getStaticPaths() {
   const products = await loadProducts();
-  return SEO_INTENT_LANDINGS.filter((entry) => entry.group === "clothing" && entry.path.startsWith("/bulgarski-drehi/")).map((landing) => ({
+  return SEO_INTENT_LANDINGS.filter((entry) => entry.path.startsWith("/bulgarski-drehi/")).map((landing) => ({
     params: { slug: landing.path.split("/").filter(Boolean).pop()! },
     props: {
       landing,

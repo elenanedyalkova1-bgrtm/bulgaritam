@@ -1,8 +1,9 @@
 import type { Product } from "./products";
 import primaryClusterSpecs from "../data/primary-cluster-landings.json";
-import { getPublicBrowseForProduct } from "./public-browse-taxonomy";
+import { getPublicBrowseForProduct, PUBLIC_BROWSE_CATEGORIES } from "./public-browse-taxonomy";
 import type { GiftTarget } from "./gifts";
 import { sortGiftProducts } from "./gifts";
+import { isNaturalMaterialClothing } from "./natural-material-clothing";
 import { buildSearchDocument, matchesSearchValueAgainstDocument } from "./search";
 import { getClothingTypeMatches, ALL_CLOTHING_TYPE_OPTIONS } from "./clothing-types";
 import {
@@ -41,6 +42,7 @@ export type SeoLanding = {
   canonicalSlug?: string;
   canonicalPath?: string;
   giftFilters?: GiftLandingFilters;
+  structuredState?: Record<string, string[]>;
   editorialHeader?: {
     kicker?: string;
     title: string;
@@ -201,12 +203,12 @@ const subcategoryLandings = TAXONOMY_CATEGORIES.flatMap((category) =>
     categoryKey: category.key,
     subcategoryKey: subcategory.key,
     kind: "subcategory" as const,
-    label: subcategory.label,
-    viewAllLabel: subcategory.viewAllLabel,
-    h1: subcategory.viewAllLabel,
+    label: subcategory.key === "accessories_bags" ? "Чанти и портфейли" : subcategory.label,
+    viewAllLabel: subcategory.key === "accessories_bags" ? "Чанти и портфейли" : subcategory.viewAllLabel,
+    h1: subcategory.key === "accessories_bags" ? "Чанти и портфейли" : subcategory.viewAllLabel,
     intro: buildSubcategoryIntro(subcategory.viewAllLabel, category.label),
-    title: buildSubcategoryTitle(subcategory.viewAllLabel, category.label),
-    description: buildSubcategoryDescription(subcategory.viewAllLabel, category.label),
+    title: buildSubcategoryTitle(subcategory.key === "accessories_bags" ? "Чанти и портфейли" : subcategory.viewAllLabel, category.label),
+    description: buildSubcategoryDescription(subcategory.key === "accessories_bags" ? "Чанти и портфейли" : subcategory.viewAllLabel, category.label),
     queryAliases: subcategory.queryAliases,
     giftFilters: category.key === "gifts" ? ({
       giftable: true,
@@ -219,7 +221,7 @@ const subcategoryLandings = TAXONOMY_CATEGORIES.flatMap((category) =>
     canonicalPath:
       category.key === "gifts"
         ? `/bulgarski-podaratsi/${subcategory.slug}/`
-        : undefined,
+        : subcategory.key === "kids_clothing" ? "/bulgarski-detski-drehi/" : undefined,
   }))
 );
 
@@ -315,23 +317,34 @@ const BASE_SEO_INTENT_LANDINGS: SeoIntentLanding[] = [
   {
     key: "clothing_bags",
     path: "/bulgarski-drehi/chanti/",
-    categoryKey: "clothing",
-    audienceSubcategoryKey: "clothing_women",
+    // The historical URL is retained; product hierarchy comes from structured data.
+    categoryKey: "accessories",
+    subcategoryKey: "accessories_bags",
     kind: "keyword",
     label: "Чанти",
     labelEn: "Bags",
-    h1: "Български чанти",
-    intro: [
-      "Открий български чанти с по-ясна селекция според материал, характер и ежедневна употреба.",
-      "Тук можеш да сравняваш по-лесно различни модели и да запазваш онези, които пасват на твоя ритъм."
-    ],
+    h1: "Чанти от български брандове",
+    intro: ["Запознай се с разнообразието от текстури, материали и силуети, създадени от българските производители на чанти. Навигирай филтрите на Българитъм за материал, бюджет и стил, за да намериш правилната находка."],
     title: "Български чанти | Българитъм",
     description: "Открий български чанти от локални марки в Българитъм.",
+    primaryKeyword: "български чанти",
     queryAliases: ["български чанти", "чанти", "bags"],
-    group: "clothing",
-    matchQueries: ["чанта", "чанти", "bag", "bags"],
-    matchCategoryKeys: ["accessories", "clothing"],
-    clothingTypeKeys: ["bags"],
+    group: "discovery",
+    structuredCategory: "Аксесоари",
+    structuredSubcategory: "Чанти и портфейли",
+    productTypes: ["Чанти"],
+    structuredState: { category: ["Аксесоари"], subcategory: ["Чанти и портфейли"], product_type: ["Чанти"] },
+    editorialHeader: { title: "Българските чанти като показател за разнообразието на родния пазар" },
+    editorialSections: [{
+      title: "",
+      paragraphs: [
+        "Изучавайки българските производители, именно българските чанти са една от нишите, които за нас от Българитъм са много показателни за красотата на родното производство.",
+        "На пръв поглед, когато човек търси, да речем, кожена чанта от местен производител, вероятно си представя определен силует. Нещо, което сме свикнали да виждаме при големите компании за бърза мода, или стандартни модели, които заради сигурността на дизайна си са широко разпространени.",
+        "Това, което ние обичаме да намираме в Българитъм, е именно разновидността на този привидно стандартен продукт.",
+        "Когато разглеждаме дори толкова конкретен продуктов тип като чантите от естествена кожа, стигаме до заключението, че красотата на нишата е именно в това, че всеки производител интерпретира продукта по свой собствен начин.",
+        "Различни силуети, различна функционалност, различни материали и различни причини тези материали да бъдат използвани. Това е част от красотата на българското производство — че зад всеки един от тези продукти стои преценен избор, който следва визуалния език и посоката на конкретния бранд.",
+      ],
+    }],
   },
   {
     key: "clothing_shoes",
@@ -588,7 +601,8 @@ const BASE_SEO_INTENT_LANDINGS: SeoIntentLanding[] = [
     label: "Дамски чанти", labelEn: "Women's bags", h1: "Български дамски чанти",
     intro: ["Открий български дамски чанти от локални марки и малки дизайнерски студиа.", "Разгледай модели за ежедневието, специален повод и подарък."],
     title: "Български дамски чанти | Българитъм", description: "Открий български дамски чанти от локални марки в Българитъм.",
-    group: "clothing", productTypes: ["Чанти"],
+    group: "discovery", productTypes: ["Чанти"],
+    structuredState: { category: ["Аксесоари"], subcategory: ["Чанти и портфейли"], product_type: ["Чанти"], audience: ["Жени"] },
   },
   {
     key: "women_tracksuits", path: "/bulgarski-damski-sportni-ekipi/", categoryKey: "clothing", audienceSubcategoryKey: "clothing_women", kind: "keyword",
@@ -659,13 +673,7 @@ const BASE_SEO_INTENT_LANDINGS: SeoIntentLanding[] = [
     title: "Подарък за мъж за рожден ден | Българитъм", description: "Открий подарък за мъж за рожден ден от български марки.",
     group: "gifts", requiresGiftable: true, recipients: ["За мъж"], occasions: ["Рожден ден"],
   },
-  {
-    key: "gift_woman_birthday", path: "/podarak-za-zhena-za-rozhden-den/", categoryKey: "gifts", kind: "keyword",
-    label: "За жена за рожден ден", labelEn: "Birthday gifts for her", h1: "Подарък за жена за рожден ден",
-    intro: ["Открий подарък за жена за рожден ден от български брандове.", "Разгледай бижута, козметика, продукти за дома и ръчно изработени идеи."],
-    title: "Подарък за жена за рожден ден | Българитъм", description: "Открий подарък за жена за рожден ден от български марки.",
-    group: "gifts", requiresGiftable: true, recipients: ["За жена"], occasions: ["Рожден ден"],
-  },
+
   {
     key: "gift_man_christmas", path: "/koleden-podarak-za-mazh/", categoryKey: "gifts", kind: "keyword",
     label: "Коледен подарък за мъж", labelEn: "Christmas gifts for him", h1: "Коледен подарък за мъж",
@@ -808,11 +816,122 @@ const generatedClusterLandings: SeoIntentLanding[] = clusterSpecs
     parentKey: spec.parentKey,
     primaryKeyword: spec.primaryKeyword,
     clusterKeywords: spec.clusterKeywords,
-    showInParentNavigation: false,
+    showInParentNavigation: spec.key === "primary_cluster_103",
     editorialSections: editorialForPrimaryCluster(spec),
   }));
 
-export const SEO_INTENT_LANDINGS: SeoIntentLanding[] = [...enrichedBaseLandings, ...generatedClusterLandings];
+const finalBgIntentLanding = (
+  key: string,
+  path: string,
+  primaryKeyword: string,
+  structuredState: Record<string, string[]>,
+  parentKey: string,
+): SeoIntentLanding => {
+  const h1 = primaryKeyword[0].toLocaleUpperCase("bg") + primaryKeyword.slice(1);
+  const isJewelry = structuredState.subcategory?.includes("Бижута");
+  const isShoes = structuredState.subcategory?.includes("Обувки");
+  const isClothing = structuredState.category?.includes("Облекло") || structuredState.subcategory?.some((value) => /облекло|чорапи/i.test(value));
+  const isCosmetics = structuredState.category?.includes("Козметика");
+  const materials = structuredState.materials || [];
+  const productTypes = (structuredState.product_type || []).filter((value, index, all) => !all.some((other, otherIndex) => otherIndex !== index && other.toLocaleLowerCase("bg").includes(value.toLocaleLowerCase("bg"))));
+  const isMaterial = materials.length > 0;
+  const materialText = materials.length ? materials.map((value) => value.toLocaleLowerCase("bg")).join(" и ") : "материал";
+  const typeText = productTypes.length ? productTypes.map((value) => value.toLocaleLowerCase("bg")).join(" и ") : "модели";
+  let intro = isMaterial
+    ? `Разгледай ${primaryKeyword}, подбрани от български брандове. Сравни моделите според материала, конструкцията и предназначението им.`
+    : isJewelry
+    ? `Разгледай ${primaryKeyword} от български брандове и сравни моделите по материал, форма и размер.`
+    : isShoes
+      ? `Разгледай ${primaryKeyword} от български брандове и сравни размерите, материалите и конструкцията на отделните модели.`
+      : isClothing
+        ? `Разгледай ${primaryKeyword} от български брандове и открий ${typeText} от различни независими марки.`
+        : isCosmetics
+          ? `Разгледай ${primaryKeyword} от български брандове и сравни предназначението, състава и начина на употреба.`
+          : `Разгледай ${primaryKeyword} от български брандове и сравни предложенията по вид, материал и предназначение.`;
+  if (path === "/bulgarski-damski-pantaloni/") intro = "Разгледай дамски панталони от български брандове и открий модели отвъд имената, които вече познаваш.";
+  if (path === "/bulgarski-damski-zhiletki/") intro = "Открий дамски жилетки от български марки. В момента подборът е малък, затова продуктовите данни и размерите са най-прекият ориентир за сравнение.";
+  if (path === "/bulgarski-damski-rizi/") intro = "Разгледай дамски ризи от български брандове и сравни кройки от различни независими марки на едно място.";
+  const heading = isMaterial ? `Материалът в контекста на ${typeText}` : isJewelry ? "Материал, форма и размер" : isShoes ? "Какво да сравниш" : isClothing ? "Какво включва колекцията" : isCosmetics ? "Предназначение и употреба" : "Практични ориентири";
+  const paragraph = isMaterial
+    ? `Структурният подбор за ${primaryKeyword} обхваща ${materialText}. Провери точния състав, обработката и указанията за поддръжка при конкретния продукт.`
+    : isJewelry
+      ? `Подборът следва структурните данни за ${materialText}. Провери точния материал, размера, теглото и закопчаването в страницата на конкретния продукт.`
+    : isShoes
+      ? "Размерът, конструкцията и материалът имат значение за различни маршрути и сезони. Сравни ги с обувките, които носиш най-често, а не само с идеалния повод."
+      : isClothing
+        ? `Сред зададените продуктови типове са ${typeText}. Сравни състава, размерите, пропорцията и указанията за поддръжка.`
+        : isCosmetics
+          ? "Съставът, предназначението и начинът на употреба трябва да се четат заедно. Разпознаваема съставка или маркетингов етикет не са достатъчни сами по себе си."
+          : "Помисли къде и колко често ще се използва предметът. Размерът, материалът и поддръжката често казват повече за реалната му стойност от първото визуално впечатление.";
+  return {
+  key, path, categoryKey: categoryKeyForStructuredState(structuredState), kind: "keyword",
+  label: h1, labelEn: primaryKeyword, h1,
+  intro: [intro],
+  title: `${h1} – български марки и идеи | Българитъм`,
+  description: `${h1}: открий различни български марки и се ориентирай по важните детайли за избора.`,
+  group: "discovery", structuredState, parentKey, primaryKeyword, clusterKeywords: [primaryKeyword],
+  showInParentNavigation: true,
+  editorialSections: isMaterial ? [
+    { title: heading, paragraphs: [paragraph] },
+    { title: "Какво да сравниш преди избор", paragraphs: [
+      materials.includes("Злато")
+        ? "При златните бижута сравни пробата, вида злато, размера и начина на закопчаване. Тези данни са по-полезни от общото описание на цвета или блясъка."
+        : materials.includes("Сребро")
+          ? "При сребърните бижута провери пробата, покритието, размерите и препоръките за почистване. Различната повърхностна обработка изисква различна грижа."
+          : materials.some((value) => value.includes("Вълна"))
+            ? "При вълнените дрехи сравни процентния състав, плътността, подплатата и начина на поддръжка. Смесите и конструкцията влияят върху усещането и сезона на носене."
+            : materials.includes("Естествена кожа")
+              ? "При изделията от естествена кожа провери вида и обработката на кожата, размерите, подплатата и обкова. Следвай указанията на бранда за почистване и съхранение."
+              : `Сравни размера, конструкцията и предназначението на представените ${typeText}. Материалът е важен, но не заменя конкретните продуктови данни.`
+    ] },
+  ] : [{ title: heading, paragraphs: [paragraph] }],
+  };
+};
+
+const FINAL_BG_INTENT_LANDINGS: SeoIntentLanding[] = [
+  finalBgIntentLanding("bg_ceramics", "/bulgarska-keramika/", "българска керамика", { materials: ["Керамика"] }, "home"),
+  finalBgIntentLanding("bg_baby_clothes", "/bulgarski-bebeshki-drehi/", "български бебешки дрехи", { category: ["Деца и бебе"], subcategory: ["Бебешко облекло"] }, "kids"),
+  finalBgIntentLanding("bg_leather_boots", "/bulgarski-boti-estestvena-kozha/", "български боти естествена кожа", { category: ["Облекло"], subcategory: ["Обувки"], product_type: ["Боти"], materials: ["Естествена кожа"] }, "accessories_shoes"),
+  finalBgIntentLanding("bg_wool_clothes", "/bulgarski-valneni-drehi/", "български вълнени дрехи", { category: ["Облекло"], subcategory: ["Дамско облекло", "Мъжко облекло", "Детско облекло", "Бебешко облекло", "Унисекс облекло"], materials: ["Вълна", "Мериносова вълна"] }, "clothing"),
+  finalBgIntentLanding("bg_women_shoes", "/bulgarski-damski-obuvki/", "български дамски обувки", { category: ["Облекло"], subcategory: ["Обувки"], audience: ["Жени"] }, "accessories_shoes"),
+  finalBgIntentLanding("bg_women_leather_shoes", "/bulgarski-damski-obuvki-estestvena-kozha/", "български дамски обувки естествена кожа", { category: ["Облекло"], subcategory: ["Обувки"], audience: ["Жени"], materials: ["Естествена кожа"] }, "bg_women_shoes"),
+  finalBgIntentLanding("bg_women_trousers", "/bulgarski-damski-pantaloni/", "български дамски панталони", { category: ["Облекло"], subcategory: ["Дамско облекло"], product_type: ["Дънки и панталони", "Панталони"] }, "clothing_women"),
+  finalBgIntentLanding("bg_women_leather_backpacks", "/bulgarski-damski-ranitsi-estestvena-kozha/", "български дамски раници от естествена кожа", { category: ["Аксесоари"], subcategory: ["Чанти и портфейли"], product_type: ["Раници"], audience: ["Жени"], materials: ["Естествена кожа"] }, "accessories_bags"),
+  finalBgIntentLanding("bg_children_clothes", "/bulgarski-detski-drehi/", "български детски дрехи", { category: ["Деца и бебе"], subcategory: ["Детско облекло"] }, "kids"),
+  finalBgIntentLanding("bg_children_shoes", "/bulgarski-detski-obuvki/", "български детски обувки", { category: ["Облекло"], subcategory: ["Обувки"], audience: ["Деца"] }, "accessories_shoes"),
+  finalBgIntentLanding("bg_natural_material_clothes", "/bulgarski-drehi-estestveni-materii/", "български дрехи от естествени материи", { category: ["Облекло"], subcategory: ["Дамско облекло", "Мъжко облекло", "Детско облекло", "Бебешко облекло", "Унисекс облекло", "Бельо"], materials: ["Памук", "Органичен памук", "Лен", "Вълна", "Мериносова вълна", "Алпака", "Коприна", "Коноп"] }, "clothing"),
+  finalBgIntentLanding("bg_men_trousers", "/bulgarski-mazhki-pantaloni/", "български мъжки панталони", { category: ["Облекло"], subcategory: ["Мъжко облекло"], product_type: ["Дънки и панталони", "Панталони"] }, "clothing_men"),
+  finalBgIntentLanding("bg_socks", "/bulgarski-chorapi/", "български чорапи", { category: ["Облекло"], subcategory: ["Чорапи"] }, "clothing"),
+  finalBgIntentLanding("bg_perfumes", "/bulgarski-parfyumi/", "български парфюми", { category: ["Козметика"], subcategory: ["Парфюми"] }, "cosmetics"),
+  finalBgIntentLanding("bg_women_shirts", "/bulgarski-damski-rizi/", "български дамски ризи", { category: ["Облекло"], subcategory: ["Дамско облекло"], product_type: ["Ризи"] }, "clothing_women"),
+  finalBgIntentLanding("bg_women_tshirts", "/bulgarski-damski-teniski/", "български дамски тениски", { category: ["Облекло"], subcategory: ["Дамско облекло"], product_type: ["Тениски и потници"] }, "clothing_women"),
+  finalBgIntentLanding("bg_tshirts", "/bulgarski-teniski/", "български тениски", { category: ["Облекло"], product_type: ["Тениски и потници"] }, "clothing"),
+  finalBgIntentLanding("bg_women_cardigans", "/bulgarski-damski-zhiletki/", "български дамски жилетки", { category: ["Облекло"], subcategory: ["Дамско облекло"], product_type: ["Жилетки"] }, "clothing_women"),
+  finalBgIntentLanding("bg_women_leather_boots", "/bulgarski-damski-boti-estestvena-kozha/", "български дамски боти естествена кожа", { category: ["Облекло"], subcategory: ["Обувки"], product_type: ["Боти"], audience: ["Жени"], materials: ["Естествена кожа"] }, "bg_women_leather_shoes"),
+  finalBgIntentLanding("bg_leather_bags", "/bulgarski-chanti-estestvena-kozha/", "български чанти от естествена кожа", { category: ["Аксесоари"], subcategory: ["Чанти и портфейли"], product_type: ["Чанти"], materials: ["Естествена кожа"] }, "accessories_bags"),
+  finalBgIntentLanding("bg_silver_jewelry", "/bulgarski-srebarni-bizhuta/", "български сребърни бижута", { category: ["Аксесоари"], subcategory: ["Бижута"], materials: ["Сребро"] }, "accessories_jewelry"),
+  finalBgIntentLanding("bg_women_coats", "/bulgarski-damski-palta/", "български дамски палта", { category: ["Облекло"], subcategory: ["Дамско облекло"], product_type: ["Палта"] }, "clothing_women"),
+  finalBgIntentLanding("bg_gold_jewelry", "/bulgarski-zlatni-bizhuta/", "български златни бижута", { category: ["Аксесоари"], subcategory: ["Бижута"], materials: ["Злато"] }, "accessories_jewelry"),
+];
+
+// Keep the kids taxonomy identity and functionality at its established SEO URL.
+// Reuse its existing editorial content, with no second graph node or collection.
+const childrenClothesPresentation = FINAL_BG_INTENT_LANDINGS.find((entry) => entry.key === "bg_children_clothes")!;
+const childrenClothesTaxonomy = subcategoryLandings.find((entry) => entry.subcategoryKey === "kids_clothing")!;
+Object.assign(childrenClothesTaxonomy, {
+  label: childrenClothesPresentation.h1,
+  h1: childrenClothesPresentation.h1,
+  title: childrenClothesPresentation.title,
+  description: childrenClothesPresentation.description,
+  intro: childrenClothesPresentation.intro,
+  structuredState: childrenClothesPresentation.structuredState,
+  editorialSections: childrenClothesPresentation.editorialSections,
+});
+
+export const SEO_INTENT_LANDINGS: SeoIntentLanding[] = [
+  ...enrichedBaseLandings, ...generatedClusterLandings,
+  ...FINAL_BG_INTENT_LANDINGS.filter((entry) => entry.key !== "bg_children_clothes"),
+];
 
 // Explicit semantic parents for SEO intent pages. URLs are deliberately not used
 // to infer hierarchy: an intent may keep a root-level URL while living below a
@@ -845,7 +964,6 @@ const INTENT_PARENT_KEYS: Record<string, string | null> = {
   women_pajamas: "clothing_women",
   clothing_linen: "clothing",
   gift_man_birthday: "gifts_for_him",
-  gift_woman_birthday: "gifts_for_her",
   gift_man_christmas: "gifts_for_him",
   gift_woman_christmas: "gifts_for_her",
   gift_man_name_day: "gifts_for_him",
@@ -962,13 +1080,10 @@ const LANDING_SEO_TARGETS: Partial<Record<string, LandingSeoTarget>> = {
   },
   clothing_bags: {
     primaryKeyword: "български чанти",
-    h1: "Български чанти",
+    h1: "Чанти от български брандове",
     title: "Български чанти от локални марки | Българитъм",
     description: "Разгледай български чанти от локални марки и сравни наличните модели по материал, стил и приложение.",
-    intro: [
-      "Български чанти от локални марки са събрани тук за по-лесно сравнение на различни модели.",
-      "Разгледай предложенията по материал, стил и приложение и запази любимите си находки.",
-    ],
+    intro: BASE_SEO_INTENT_LANDINGS.find((entry) => entry.key === "clothing_bags")!.intro,
   },
   clothing_shoes: {
     primaryKeyword: "български обувки",
@@ -1122,6 +1237,17 @@ export const CLOTHING_BRANDS_LANDING: SeoBrandLanding = {
   intro: ["Открий български брандове за дрехи в Българитъм."],
 };
 
+export const HOME_BRANDS_LANDING: SeoBrandLanding = {
+  key: "home_brands",
+  path: "/bulgarski-brandove-za-doma/",
+  categoryKey: "home",
+  kind: "brand-directory",
+  h1: "Български брандове за дома",
+  title: "Български брандове за дома | Българитъм",
+  description: "Открий български брандове за дома, интериора, текстила и декорацията в Българитъм.",
+  intro: ["Български брандове за дома с продукти за интериор, текстил, декорация и ежедневна употреба."],
+};
+
 const taxonomyNodes: LandingGraphNode[] = [...CATEGORY_LANDINGS, ...SUBCATEGORY_LANDINGS].map((landing, index) => {
   const key = landing.kind === "category" ? landing.categoryKey : landing.subcategoryKey!;
   const seo = resolveSeoTarget(key, landing);
@@ -1173,6 +1299,18 @@ const brandDirectoryNodes: LandingGraphNode[] = [{
   order: 20_000,
   showInParentNavigation: false,
   landing: CLOTHING_BRANDS_LANDING,
+}, {
+  key: HOME_BRANDS_LANDING.key,
+  parentKey: "home",
+  pageType: "brand-directory",
+  canonicalUrl: HOME_BRANDS_LANDING.path,
+  navigationLabel: "Брандове за дома",
+  navigationLabelEn: "Home brands",
+  seoLabel: HOME_BRANDS_LANDING.h1,
+  seo: { primaryKeyword: "български брандове за дома", h1: HOME_BRANDS_LANDING.h1, title: HOME_BRANDS_LANDING.title, description: HOME_BRANDS_LANDING.description, intro: HOME_BRANDS_LANDING.intro },
+  order: 20_001,
+  showInParentNavigation: false,
+  landing: HOME_BRANDS_LANDING,
 }];
 
 export const PUBLIC_LANDING_GRAPH: LandingGraphNode[] = [...taxonomyNodes, ...intentNodes, ...brandDirectoryNodes];
@@ -1255,7 +1393,102 @@ const toPill = (entry: LandingGraphNode, activeKey: string): LandingPill => ({
   isActive: entry.key === activeKey,
 });
 
-const landingAvailabilityCache = new WeakMap<Product[], Map<string, number>>();
+export type SeoLandingCoverageGraph = {
+  productCountByKey: Map<string, number>;
+  contentfulKeys: Set<string>;
+  parentNavigationByKey: Map<string, LandingGraphNode[]>;
+  productLinksBySlug: Map<string, SeoIntentLanding[]>;
+  fallbackSiblingLinksByKey: Map<string, LandingGraphNode[]>;
+};
+
+const seoLandingCoverageCache = new WeakMap<Product[], SeoLandingCoverageGraph>();
+
+const exactStructuredLandingMatchesProduct = (landing: SeoIntentLanding, product: Product) =>
+  Boolean(landing.structuredState && serializeSeoLandingState(landing.structuredState))
+  && productMatchesStructuredState(product, landing.structuredState!);
+
+const structuredLandingSpecificity = (landing: SeoIntentLanding) =>
+  Object.entries(landing.structuredState || {}).reduce((score, [field, values]) =>
+    score + (values?.length ? (field === "giftable" ? 0 : 1) : 0), 0);
+
+export function getSeoLandingCoverageGraph(products: Product[]): SeoLandingCoverageGraph {
+  const cached = seoLandingCoverageCache.get(products);
+  if (cached) return cached;
+
+  const productCountByKey = new Map<string, number>();
+  for (const node of PUBLIC_LANDING_GRAPH) {
+    const count = node.pageType === "intent"
+      ? getProductsForIntentLanding(products, node.landing as SeoIntentLanding).length
+      : node.pageType === "brand-directory"
+        ? 0
+        : getProductsForLanding(products, node.landing as SeoLanding).length;
+    productCountByKey.set(node.key, count);
+  }
+  const contentfulKeys = new Set(
+    PUBLIC_LANDING_GRAPH.filter((node) => (productCountByKey.get(node.key) || 0) > 0).map((node) => node.key)
+  );
+
+  const parentNavigationByKey = new Map<string, LandingGraphNode[]>();
+  for (const parent of PUBLIC_LANDING_GRAPH) {
+    const children = PUBLIC_LANDING_GRAPH
+      .filter((node) => node.parentKey === parent.key && node.pageType === "intent" && contentfulKeys.has(node.key))
+      .sort((a, b) => Number(b.showInParentNavigation) - Number(a.showInParentNavigation)
+        || (productCountByKey.get(b.key) || 0) - (productCountByKey.get(a.key) || 0)
+        || a.order - b.order)
+      .slice(0, 8);
+    parentNavigationByKey.set(parent.key, children);
+  }
+
+  const productLinksBySlug = new Map<string, SeoIntentLanding[]>();
+  for (const product of products) {
+    const intentMatches = intentNodes
+      .filter((node) => contentfulKeys.has(node.key))
+      .filter((node) => exactStructuredLandingMatchesProduct(node.landing as SeoIntentLanding, product))
+      .sort((a, b) => structuredLandingSpecificity(b.landing as SeoIntentLanding) - structuredLandingSpecificity(a.landing as SeoIntentLanding)
+        || (productCountByKey.get(a.key) || 0) - (productCountByKey.get(b.key) || 0)
+        || a.order - b.order);
+    const unique = new Map<string, SeoIntentLanding>();
+    for (const node of intentMatches) unique.set(node.canonicalUrl, node.landing as SeoIntentLanding);
+    productLinksBySlug.set(product.slug, [...unique.values()].slice(0, 4));
+  }
+
+  const incomingKeys = new Set<string>();
+  for (const children of parentNavigationByKey.values()) {
+    for (const child of children) incomingKeys.add(child.key);
+  }
+  for (const links of productLinksBySlug.values()) {
+    for (const landing of links) {
+      const node = getLandingGraphNode(landing);
+      if (node) incomingKeys.add(node.key);
+    }
+  }
+
+  const fallbackSiblingLinksByKey = new Map<string, LandingGraphNode[]>();
+  const uncoveredIntentNodes = intentNodes.filter((node) => contentfulKeys.has(node.key) && !incomingKeys.has(node.key));
+  for (const target of uncoveredIntentNodes) {
+    const siblings = intentNodes
+      .filter((node) => node.key !== target.key && node.parentKey === target.parentKey && contentfulKeys.has(node.key))
+      .sort((a, b) => a.order - b.order);
+    const source = siblings.find((node) => (fallbackSiblingLinksByKey.get(node.key)?.length || 0) < 6);
+    if (!source) continue;
+    const links = fallbackSiblingLinksByKey.get(source.key) || [];
+    if (!links.some((node) => node.canonicalUrl === target.canonicalUrl)) links.push(target);
+    fallbackSiblingLinksByKey.set(source.key, links);
+    incomingKeys.add(target.key);
+  }
+
+  const graph = { productCountByKey, contentfulKeys, parentNavigationByKey, productLinksBySlug, fallbackSiblingLinksByKey };
+  seoLandingCoverageCache.set(products, graph);
+  return graph;
+}
+
+export function getFallbackSiblingLinks(landingOrKey: PublicLanding | string, products: Product[], limit = 6) {
+  const current = getLandingGraphNode(landingOrKey);
+  if (!current) return [];
+  return (getSeoLandingCoverageGraph(products).fallbackSiblingLinksByKey.get(current.key) || [])
+    .slice(0, limit)
+    .map((entry) => toPill(entry, current.key));
+}
 
 export function getLandingPageHierarchy(landingOrKey: PublicLanding | string, availableProducts?: Product[]) {
   const current = getLandingGraphNode(landingOrKey);
@@ -1267,31 +1500,18 @@ export function getLandingPageHierarchy(landingOrKey: PublicLanding | string, av
   const taxonomyParent = current.pageType === "intent" && parent?.pageType === "subcategory" ? parent : null;
   const taxonomyCategory = taxonomyParent?.parentKey ? LANDING_GRAPH_BY_KEY.get(taxonomyParent.parentKey) || null : null;
 
-  const availableProductCounts = availableProducts
-    ? landingAvailabilityCache.get(availableProducts) || new Map<string, number>()
-    : new Map<string, number>();
-  if (availableProducts && !landingAvailabilityCache.has(availableProducts)) {
-    landingAvailabilityCache.set(availableProducts, availableProductCounts);
-  }
+  const coverage = availableProducts ? getSeoLandingCoverageGraph(availableProducts) : null;
   const availableProductCount = (entry: LandingGraphNode) => {
-    if (!availableProducts) return 0;
-    if (availableProductCounts.has(entry.key)) return availableProductCounts.get(entry.key) || 0;
-    const count = entry.pageType === "intent"
-      ? getProductsForIntentLanding(availableProducts, entry.landing as SeoIntentLanding).length
-      : availableProducts.filter((product) => productMatchesLanding(product, entry.landing as SeoLanding)).length;
-    availableProductCounts.set(entry.key, count);
-    return count;
+    if (!availableProducts || !coverage) return 0;
+    return coverage.productCountByKey.get(entry.key) || 0;
   };
   const isAvailable = (entry: LandingGraphNode) => !availableProducts || availableProductCount(entry) > 0;
   const contextualIntentNodes = (parentKey: string | null) => {
     if (!parentKey) return [];
+    if (coverage) return coverage.parentNavigationByKey.get(parentKey) || [];
     return PUBLIC_LANDING_GRAPH
-      .filter((entry) => entry.parentKey === parentKey && entry.pageType === "intent")
-      .filter((entry) => entry.showInParentNavigation || Boolean(availableProducts && isAvailable(entry)))
-      .filter(isAvailable)
-      .sort((a, b) => Number(b.showInParentNavigation) - Number(a.showInParentNavigation)
-        || availableProductCount(b) - availableProductCount(a)
-        || a.order - b.order)
+      .filter((entry) => entry.parentKey === parentKey && entry.pageType === "intent" && entry.showInParentNavigation)
+      .sort((a, b) => a.order - b.order)
       .slice(0, 8);
   };
 
@@ -1303,7 +1523,9 @@ export function getLandingPageHierarchy(landingOrKey: PublicLanding | string, av
         ? getLandingChildren(taxonomyCategory.key).filter((entry) => entry.pageType === "subcategory")
         : parent
           ? getLandingChildren(parent.key).filter((entry) => entry.pageType === "subcategory")
-          : []).filter(isAvailable);
+          : []).filter(isAvailable)
+    .sort((a, b) => Number(b.key === taxonomyParent?.key) - Number(a.key === taxonomyParent?.key) || a.order - b.order)
+    .slice(0, 8);
 
   const secondaryNodes = (current.pageType === "category" || current.pageType === "subcategory"
     ? contextualIntentNodes(current.key)
@@ -1369,19 +1591,75 @@ export const getCategoryLanding = (categoryKey: string) =>
 export const getSubcategoryLandings = (categoryKey: string) =>
   SUBCATEGORY_LANDINGS.filter((landing) => landing.categoryKey === categoryKey);
 
+const TAXONOMY_LANDING_STRUCTURED_OVERRIDES: Partial<Record<string, Record<string, string[]>>> = {
+  fun: { category: ["Книги, игри и творчество"] },
+  fun_games: { category: ["Книги, игри и творчество"], subcategory: ["Игри", "Настолни игри"] },
+  fun_hobby: { category: ["Книги, игри и творчество"], subcategory: ["Творчески комплекти"] },
+  fun_books: { category: ["Книги, игри и творчество"], subcategory: ["Книги"] },
+  fun_art: { category: ["Книги, игри и творчество"], subcategory: ["Декорация"] },
+  food_drink: { category: ["Храна и напитки"] },
+  food_drinks: { category: ["Храна и напитки"], subcategory: ["Алкохолни напитки"] },
+  kids_cosmetics: { category: ["Деца и бебе"], subcategory: ["Бебешка грижа"] },
+  kids_furniture_textiles: {
+    category: ["Деца и бебе"],
+    subcategory: ["Бебешки текстил", "Детски мебели", "Детски текстил"],
+  },
+  health_sport: { category: ["Спорт и туризъм"] },
+};
+
+export function getStructuredStateForTaxonomyLanding(landing: SeoLanding): Record<string, string[]> {
+  const key = landing.kind === "category" ? landing.categoryKey : landing.subcategoryKey || "";
+  const override = TAXONOMY_LANDING_STRUCTURED_OVERRIDES[key];
+  if (override) return override;
+
+  const publicCategory = PUBLIC_BROWSE_CATEGORIES.find((entry) => entry.key === landing.categoryKey);
+  const publicSubcategory = landing.kind === "subcategory"
+    ? publicCategory?.subcategories.find((entry) =>
+        entry.key === landing.subcategoryKey || normalize(entry.value) === normalize(landing.label)
+      )
+    : null;
+
+  return {
+    category: [publicCategory?.value || getCategoryLabel(landing.categoryKey)],
+    ...(landing.kind === "subcategory"
+      ? { subcategory: [publicSubcategory?.value || landing.label] }
+      : {}),
+  };
+}
+
 export function productMatchesLanding(product: Product, landing: SeoLanding) {
   if (landing.categoryKey === "gifts") {
     return matchesGiftLandingFilters(product, landing.giftFilters || { giftable: true });
   }
-  const browse = getPublicBrowseForProduct(product);
-  if (browse.categoryKey !== landing.categoryKey) return false;
-  if (landing.kind === "category") return true;
-  return Boolean(landing.subcategoryKey && browse.subcategoryKey === landing.subcategoryKey);
+  return productMatchesStructuredState(product, getStructuredStateForTaxonomyLanding(landing));
 }
 
 export function getProductsForLanding(products: Product[], landing: SeoLanding) {
   const matches = products.filter((product) => productMatchesLanding(product, landing));
   return landing.categoryKey === "gifts" ? sortGiftProducts(matches) : matches;
+}
+
+export function getConsumerLandingIntro(landing: SeoLanding, products: Product[]): string[] {
+  const productTypes = [...new Set(products.map((product) => normalize(product.product_type)).filter(Boolean))];
+  const concepts = productTypes.slice(0, 3).join(", ").toLowerCase();
+  const explicit: Partial<Record<string, string>> = {
+    home_bath: "Подбрани хавлии, халати и продукти за банята от български брандове.",
+    health_tea_herbs: "Подбрани чайове, билки и натурални продукти от български брандове.",
+    kids_furniture_textiles: "Подбрани мебели и текстил за бебета и деца от български брандове.",
+    fun_games: "Подбрани настолни и занимателни игри от български брандове.",
+    fun_books: "Подбрани книги и аксесоари за четене от български брандове.",
+    kids_cosmetics: "Подбрана грижа и козметика за бебета и деца от български брандове.",
+    health_sport: "Подбрани продукти за спорт, фитнес и туризъм от български брандове.",
+    food_drinks: "Подбрани напитки от български производители и брандове.",
+    food_drink: "Подбрани храни и напитки от български производители и брандове.",
+    fun: "Подбрани книги, игри и творчески продукти от български брандове.",
+  };
+  const key = landing.kind === "category" ? landing.categoryKey : landing.subcategoryKey || "";
+  const sentence = explicit[key]
+    || (concepts
+      ? `Подбрани ${concepts} от български брандове.`
+      : `Подбрани предложения за ${landing.label.toLowerCase()} от български брандове.`);
+  return [sentence];
 }
 
 const getProductSearchDocument = (product: Product) =>
@@ -1459,6 +1737,7 @@ export const serializeSeoLandingState = (state: Record<string, string[]>) =>
   normalizedStateEntries(state).map(([field, values]) => `${field}=${values.join("|")}`).join("&");
 
 const SEO_LANDING_STATE_REGISTRY = new Map<string, { path: string; key: string }>([
+  [serializeSeoLandingState(childrenClothesPresentation.structuredState!), { path: getCanonicalPathForLanding(childrenClothesTaxonomy), key: "kids_clothing" }],
   ...SEO_INTENT_LANDINGS
     .filter((landing) => landing.structuredState && serializeSeoLandingState(landing.structuredState))
     .map((landing) => [serializeSeoLandingState(landing.structuredState!), { path: landing.path, key: landing.key }] as const),
@@ -1479,7 +1758,8 @@ export const getSeoLandingStateRegistry = () => Array.from(SEO_LANDING_STATE_REG
 export function getProductsForIntentLanding(products: Product[], landing: SeoIntentLanding) {
   const matches = products.filter((product) => {
     if (landing.structuredState && serializeSeoLandingState(landing.structuredState)) {
-      return productMatchesStructuredState(product, landing.structuredState);
+      return productMatchesStructuredState(product, landing.structuredState)
+        && (landing.key !== "bg_natural_material_clothes" || isNaturalMaterialClothing(product));
     }
     if (landing.group === "gifts") {
       return matchesGiftLandingFilters(product, {
@@ -1544,110 +1824,9 @@ export function getProductsForIntentLanding(products: Product[], landing: SeoInt
   return landing.categoryKey === "gifts" ? sortGiftProducts(matches) : matches;
 }
 
-const PRODUCT_LANDING_FIELD_WEIGHTS: Record<string, number> = {
-  product_type: 120,
-  materials: 90,
-  gemstone: 90,
-  jewelry_detail: 85,
-  colors: 75,
-  clothing_style: 75,
-  sleeve: 70,
-  season: 70,
-  attributes: 70,
-  ingredient: 70,
-  skin_type: 70,
-  skin_need: 70,
-  hair_need: 70,
-  recipient: 55,
-  recipient_age: 55,
-  recipient_gender: 50,
-  role_interest: 55,
-  gift_occasion: 55,
-  wedding_anniversary_type: 55,
-  audience: 45,
-  subcategory: 30,
-  category: 15,
-  giftable: 0,
-};
-
-const getProductLandingSpecificityScore = (landing: SeoIntentLanding) => {
-  if (landing.structuredState && serializeSeoLandingState(landing.structuredState)) {
-    const fields = Object.entries(landing.structuredState)
-      .filter(([, values]) => values?.length)
-      .map(([field]) => field);
-    const meaningfulFields = fields.filter((field) => field !== "giftable");
-    if (!meaningfulFields.length) return 0;
-    return meaningfulFields.reduce((score, field) => score + (PRODUCT_LANDING_FIELD_WEIGHTS[field] || 0), 0);
-  }
-
-  return (landing.productTypes?.length ? 120 : 0)
-    + (landing.materials?.length ? 90 : 0)
-    + (landing.clothingTypeKeys?.length ? 85 : 0)
-    + (landing.attributes?.length ? 70 : 0)
-    + (landing.occasions?.length ? 55 : 0)
-    + (landing.recipients?.length ? 55 : 0)
-    + (landing.ages?.length ? 55 : 0)
-    + (landing.genders?.length ? 50 : 0)
-    + (landing.requiresHandmade ? 85 : 0)
-    + (landing.structuredSubcategory ? 30 : 0)
-    + (landing.structuredCategory ? 15 : 0);
-};
-
-const productLandingCountCache = new WeakMap<Product[], Map<string, number>>();
-const getCachedIntentLandingProductCount = (products: Product[], landing: SeoIntentLanding) => {
-  let counts = productLandingCountCache.get(products);
-  if (!counts) {
-    counts = new Map<string, number>();
-    productLandingCountCache.set(products, counts);
-  }
-  if (!counts.has(landing.key)) counts.set(landing.key, getProductsForIntentLanding(products, landing).length);
-  return counts.get(landing.key) || 0;
-};
-
-// V1 is deliberately limited to the contentful, indexable sitemap landings
-// that had no incoming static HTML link in the 2026-09-10 baseline audit.
-const INTERNAL_LINKING_V1_TARGET_PATHS = new Set([
-  "/bizhuta-s-hematit/", "/bulgarska-bio-kozmetika/", "/damska-lenena-riza/", "/dankova-roklya/",
-  "/grivna-srebro/", "/luksozen-podarak-za-uchitelka/", "/podarak-za-20-godishen-mazh/",
-  "/podarak-za-30-godishnina-na-mazh/", "/podarak-za-zhena-za-8-mart/", "/praktichen-podarak-za-mazh/",
-  "/rozova-riza/", "/sinya-roklya/", "/zelena-roklya/", "/bezhovi-rokli/",
-  "/bulgarski-ezhednevni-rokli/", "/bulgarski-oficialni-rokli/", "/byala-damska-riza/", "/cherno-palto/",
-  "/godezhni-prasteni/", "/kafyavo-palto/", "/lenena-roklya/", "/rozovi-rokli/", "/zlatni-kolieta/",
-  "/cherna-roklya/", "/obetsi-ot-meditsinska-stomana/", "/podarak-za-zhena-sportist/",
-  "/srebarni-kolieta/", "/zlaten-prasten/", "/praktichen-podarak-za-zhena/", "/rachno-izraboteni-kartichki/",
-]);
-
 export function getRelevantLandingsForProduct(product: Product, limit = 3, allProducts: Product[] = []) {
-  const browse = getPublicBrowseForProduct(product);
-  if (!browse.categoryKey) return [];
-  const categoryLandings = [getCategoryLanding(browse.categoryKey)].filter(Boolean);
-  const matchingSubcategories = SUBCATEGORY_LANDINGS.filter((landing) =>
-    landing.categoryKey === browse.categoryKey && landing.subcategoryKey === browse.subcategoryKey
-  );
-  const legacyProductTypeLandings = SEO_INTENT_LANDINGS.filter((landing) =>
-    landing.productTypes?.some((value) => normalize(value) === normalize(product.product_type)) &&
-    (!landing.structuredCategory || normalize(landing.structuredCategory) === normalize(product.category)) &&
-    (!landing.structuredSubcategory || normalize(landing.structuredSubcategory) === normalize(product.subcategory))
-  );
-  const existingLinks = Array.from(new Map([...legacyProductTypeLandings, ...matchingSubcategories, ...categoryLandings]
-    .map((landing) => ["path" in landing ? landing.path : getCanonicalPathForLanding(landing), landing])).values()).slice(0, Math.min(limit, 3));
-  const existingPaths = new Set(existingLinks.map((landing) => "path" in landing ? landing.path : getCanonicalPathForLanding(landing)));
-
-  const matchingV1Landings = SEO_INTENT_LANDINGS
-    .filter((landing) => INTERNAL_LINKING_V1_TARGET_PATHS.has(landing.path) && !existingPaths.has(landing.path))
-    .map((landing) => ({
-      landing,
-      score: getProductLandingSpecificityScore(landing),
-      productCount: allProducts.length ? getCachedIntentLandingProductCount(allProducts, landing) : 0,
-    }))
-    .filter(({ landing, score }) => score >= 70 && getProductsForIntentLanding([product], landing).length > 0)
-    .filter(({ productCount }) => !allProducts.length || productCount > 0)
-    .sort((a, b) => b.score - a.score
-      || b.productCount - a.productCount
-      || a.landing.path.localeCompare(b.landing.path, "bg"))
-    .map(({ landing }) => landing);
-
-  return [...existingLinks, ...matchingV1Landings].slice(0, limit);
+  if (!allProducts.length) return [];
+  return (getSeoLandingCoverageGraph(allProducts).productLinksBySlug.get(product.slug) || []).slice(0, Math.min(limit, 4));
 }
 
 export function getPublicLandingPathForStructuredTaxonomy(
@@ -1842,31 +2021,7 @@ const CLOTHING_EDITORIAL_BY_KEY: Record<
       }
     ]
   },
-  clothing_bags: {
-    header: {
-      kicker: "Още контекст",
-      title: "Български чанти и по-ясен избор според стил и употреба",
-      intro: "Търсенето на български чанти обикновено е много конкретно. Хората знаят, че им трябва чанта, но искат по-добре подбрани локални марки, а не безкраен каталог."
-    },
-    sections: [
-      {
-        title: "Защо страницата за български чанти има собствена стойност",
-        paragraphs: [
-          "Когато някой търси български чанти, той често сравнява материал, силует, размер и усещане за стил. Това означава, че страницата трябва да бъде едновременно визуално чиста и достатъчно ясна като подбор. Ако всичко е смесено в един общ каталог, добрите находки лесно се губят.",
-          "Българските чанти често носят по-силен характер, защото идват от по-малки марки с по-видима естетика. Някои работят с кожа, други с мъниста, трети със собствена авторска форма. Именно тази разлика прави отделната селекция полезна за човека, който търси нещо разпознаваемо за всеки ден или за повод.",
-          "Страницата за български чанти така става не само удобна за избор, а и място, където по-лесно различаваш стилове, материали и посоки."
-        ]
-      },
-      {
-        title: "Как да използваш страницата, когато сравняваш модели",
-        paragraphs: [
-          "Чантата е продукт, който хората често сравняват по-бавно. Първо идва визуалното впечатление, после функцията, после въпросът дали моделът наистина пасва на ежедневието. Затова тази страница е полезна, когато искаш да запазиш няколко модела и да се върнеш към тях след ден или два.",
-          "Най-приятният вариант е страницата да остане продуктова, а по-широкият контекст да стои по-долу. Така тя е удобна за разглеждане, но и дава достатъчно усещане за стиловете и посоките, които можеш да откриеш тук.",
-          "Когато подобна селекция е добре подредена, по-лесно стигаш до точните модели и можеш да ги запазиш за по-късно, вместо да губиш добрите находки в по-широка категория."
-        ]
-      }
-    ]
-  },
+
   clothing_shoes: {
     header: {
       kicker: "Още контекст",
@@ -2021,6 +2176,10 @@ const CLOTHING_EDITORIAL_BY_KEY: Record<
 };
 
 export function getClothingEditorialForLanding(landing: { categoryKey: string; subcategoryKey?: string; key?: string }) {
+  if (landing.key === "clothing_bags") {
+    const bags = SEO_INTENT_LANDINGS.find((entry) => entry.key === "clothing_bags")!;
+    return { header: bags.editorialHeader, sections: bags.editorialSections || [] };
+  }
   if (landing.categoryKey !== "clothing") return null;
   if (landing.key && CLOTHING_EDITORIAL_BY_KEY[landing.key]) return CLOTHING_EDITORIAL_BY_KEY[landing.key];
   if (landing.subcategoryKey && CLOTHING_EDITORIAL_BY_KEY[landing.subcategoryKey]) return CLOTHING_EDITORIAL_BY_KEY[landing.subcategoryKey];

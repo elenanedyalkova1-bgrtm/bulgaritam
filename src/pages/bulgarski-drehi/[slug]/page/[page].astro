@@ -1,0 +1,22 @@
+---
+import SeoProductLanding from "../../../../components/SeoProductLanding.astro";
+import { SEO_INTENT_LANDINGS, getLandingPageHierarchy, getProductsForIntentLanding } from "../../../../lib/seo-landings";
+import { loadProducts } from "../../../../lib/products";
+
+export async function getStaticPaths() {
+  const products = await loadProducts();
+  return SEO_INTENT_LANDINGS.filter((entry) => entry.path.startsWith("/bulgarski-drehi/")).flatMap((landing) => {
+    const matches = getProductsForIntentLanding(products, landing);
+    return Array.from({ length: Math.max(0, Math.ceil(matches.length / 48) - 1) }, (_, index) => ({
+      params: { slug: landing.path.split("/").filter(Boolean).pop()!, page: String(index + 2) },
+      props: { landing, products: matches, pageNumber: index + 2 },
+    }));
+  });
+}
+const { landing, products, pageNumber } = Astro.props;
+const allProducts = await loadProducts();
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
+---
+<SeoProductLanding landing={hierarchy.seoLanding} products={products} browseProducts={allProducts}
+  canonicalPath={`${landing.path.replace(/\/$/, "")}/page/${pageNumber}/`} collectionPath={landing.path} pageNumber={pageNumber}
+  breadcrumbs={hierarchy.breadcrumbs} primaryPills={hierarchy.primaryPills} secondaryPills={hierarchy.secondaryPills} parentLink={hierarchy.parentLink} />

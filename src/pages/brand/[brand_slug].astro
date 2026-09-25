@@ -1,4 +1,5 @@
 ---
+import { resolvePublishableOffer, formatVerifiedOfferAmount } from "../../lib/verified-offer";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { loadBrands } from "../../lib/brands";
 import { loadProducts } from "../../lib/products";
@@ -127,7 +128,7 @@ const breadcrumbs = [
   breadcrumbs: breadcrumbs.map((entry) => ({ name: entry.label, item: entry.href }))
 } }} i18n={{
   en: {
-    "brand.aboutTitle": "About the brand",
+    "brand.aboutTitle": "About the brand, in their own words",
     "brand.defaultIntro": "All products by this brand.",
     "brand.visitWebsite": "Visit brand website →",
     "brand.instagram": "Instagram",
@@ -230,7 +231,7 @@ const breadcrumbs = [
           <div class="brand-head">
             <div class="brand-copy">
               <section class="brand-intro-card">
-                <p class="brand-intro-card__eyebrow" data-i18n="brand.aboutTitle">За бранда</p>
+                <p class="brand-intro-card__eyebrow" data-i18n="brand.aboutTitle">За бранда, разказано от бранда</p>
                 <p class="intro">{brandRow.intro_bg}</p>
               </section>
 
@@ -283,7 +284,8 @@ const breadcrumbs = [
         const { isBio, isEco, isHandmade, isGift } = getProductBadges(product);
         const taxonomy = getTaxonomyForProduct(product);
         const shouldEagerLoad = index < 4;
-        const price =
+        const offer = resolvePublishableOffer(product, new Date(), { visible: true });
+        const price = offer ? formatVerifiedOfferAmount(offer) :
           product.price_min_eur !== null && product.price_max_eur !== null
             ? `${product.price_min_eur}–${product.price_max_eur} ${product.currency || "EUR"}`
             : product.price_min_eur !== null

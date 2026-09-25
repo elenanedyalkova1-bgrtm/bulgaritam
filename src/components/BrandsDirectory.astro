@@ -6,8 +6,11 @@ import { loadProducts } from "../lib/products";
 import { buildSearchDocument } from "../lib/search";
 import { getTaxonomyForProduct } from "../lib/taxonomy";
 import { getAvailablePublicBrowse, getPublicBrowseForProduct } from "../lib/public-browse-taxonomy";
+import { getHumanReviewedLandingContent } from "../lib/landing-content";
 
 const landing = Astro.props.landing || null;
+const pageNumber = Number(Astro.props.pageNumber || 1);
+const pageSize = 36;
 const activeCategoryKey = landing?.categoryKey || "";
 
 const [products, brandsSheet] = await Promise.all([loadProducts(), loadBrands()]);
@@ -94,19 +97,30 @@ const allBrands = Array.from(brandsMap.values()).map((b) => ({
 const brands = activeCategoryKey
   ? allBrands.filter((brand) => brand.keys.includes(activeCategoryKey))
   : allBrands;
+const totalPages = !landing ? Math.max(1, Math.ceil(brands.length / pageSize)) : 1;
+const pageBrands = totalPages > 1 ? brands.slice((pageNumber - 1) * pageSize, pageNumber * pageSize) : brands;
+const pageHref = (page) => page === 1 ? "/bulgarski-brandove/" : `/bulgarski-brandove/page/${page}/`;
 
 
 // SEO
 const title = landing?.title || "Български брандове – каталог на родни марки | Българитъм";
 const description = landing?.description ||
   "Открий подбрани български брандове и родни производители по категории – дом и интериор, козметика, облекло, подаръци и още.";
-const canonicalPath = landing?.path || "/bulgarski-brandove/";
+const collectionPath = landing?.path || "/bulgarski-brandove/";
+const reviewedContent = getHumanReviewedLandingContent(collectionPath);
+const canonicalPath = pageNumber > 1 ? `${collectionPath.replace(/\/$/, "")}/page/${pageNumber}/` : collectionPath;
 const canonical = `https://bulgaritam.bg${canonicalPath}`;
-const h1 = landing?.h1 || "Български брандове";
-const intro = landing?.intro ||
-  "Открий български марки по категории, разгледай визуално подбрани селекции и стигни по-бързо до брандовете, които най-добре пасват на твоя стил, дом, ритуали за грижа или идея за подарък.";
+const h1 = reviewedContent?.h1 || landing?.h1 || "Български брандове";
+const isDedicatedBrandLanding = Boolean(landing && /^Български брандове за\s+/iu.test(h1));
+const resultsHeading = isDedicatedBrandLanding
+  ? `Открий ${h1.charAt(0).toLocaleLowerCase("bg")}${h1.slice(1)} в Българитъм`
+  : "Подбрани български брандове";
+const introParagraphs = reviewedContent
+  ? reviewedContent.intro
+  : [landing?.intro || "Открий български марки по категории, разгледай визуално подбрани селекции и стигни по-бързо до брандовете, които най-добре пасват на твоя стил, дом, ритуали за грижа или идея за подарък."];
 const seoRoutes = new Map([
   ["clothing", "/bulgarski-brandove-za-drehi/"],
+  ["home", "/bulgarski-brandove-za-doma/"],
 ]);
 
 const editorialSections = [
@@ -204,7 +218,7 @@ const editorialSections = [
     <header class="page-head">
       <p class="page-kicker" data-i18n="brands.kicker">Каталог</p>
       <h1 class="page-title" data-i18n={landing ? undefined : "brands.title"}>{h1}</h1>
-      <p class="page-intro" data-i18n={landing ? undefined : "brands.intro"}>{intro}</p>
+      {introParagraphs.map((paragraph) => <p class="page-intro" data-i18n={landing || reviewedContent ? undefined : "brands.intro"}>{paragraph}</p>)}
     </header>
 
     <!-- CATEGORIES -->
@@ -212,17 +226,20 @@ const editorialSections = [
       <h2 class="section-title" data-i18n="brands.sectionTitle">Категории български брандове</h2>
 
       <div class="brand-discovery">
-        <label class="brand-search" for="brand-search-input">
-          <span class="brand-search__label" data-i18n="brands.searchLabel">Търси бранд</span>
-          <input
-            id="brand-search-input"
-            class="brand-search__input"
-            type="search"
-            placeholder="напр. козметика, чанти, свещи, Saff"
-            data-i18n-placeholder="brands.searchPlaceholder"
-            autocomplete="off"
-          />
-        </label>
+        <form class="brand-search" id="brand-search-form" role="search">
+          <label class="brand-search__label" for="brand-search-input" data-i18n="brands.searchLabel">Търси бранд</label>
+          <span class="brand-search__row">
+            <input
+              id="brand-search-input"
+              class="brand-search__input"
+              type="search"
+              placeholder="напр. козметика, чанти, свещи, Saff"
+              data-i18n-placeholder="brands.searchPlaceholder"
+              autocomplete="off"
+            />
+            <button class="brand-search__submit" type="submit">Търси</button>
+          </span>
+        </form>
 
         <label class="brand-sort" for="brand-sort-select">
           <span class="brand-sort__label" data-i18n="brands.sortLabel">Подредба</span>
@@ -251,13 +268,13 @@ const editorialSections = [
         {categories.map((c) => {
           const seoPath = seoRoutes.get(c.key);
           if (seoPath) return (
-            <a class:list={["pill", activeCategoryKey === c.key && "is-active"]} href={seoPath} aria-current={activeCategoryKey === c.key ? "page" : undefined}>{c.emoji} {c.label}</a>
+            <a class:list={["pill", activeCategoryKey === c.key && "is-active"]} href={`${seoPath}#brands-results`} aria-current={activeCategoryKey === c.key ? "page" : undefined}>{c.emoji} {c.label}</a>
           );
           if (landing) return (
-            <a class="pill" href={`/bulgarski-brandove/?category=${c.key}`}>{c.emoji} {c.label}</a>
+            <a class="pill" href={`/bulgarski-brandove/?category=${c.key}#brands-results`}>{c.emoji} {c.label}</a>
           );
           return (
-            <button class="pill" type="button" data-filter={c.key}>{c.emoji} {c.label}</button>
+            <a class="pill" href="#brands-results" data-filter={c.key}>{c.emoji} {c.label}</a>
           );
         })}
       </div>
@@ -265,22 +282,22 @@ const editorialSections = [
       <div class="pills pills--secondary" id="brand-subcategory-filters" hidden></div>
       <p class="brand-filter-level" id="brand-type-label" hidden>Избери тип продукт</p>
       <div class="pills pills--secondary" id="brand-type-filters" hidden></div>
-      <a class="brand-results-cue is-active" id="brand-results-cue" href="#podbrani-balgarski-brandove">Виж всички брандове</a>
+      <a class="brand-results-cue is-active" id="brand-results-cue" href="#brands-results">Виж всички брандове</a>
       <script id="brand-taxonomy-data" type="application/json" set:html={JSON.stringify(categories)}></script>
     </section>
 
     <!-- BRANDS -->
-    <section class="section" id="podbrani-balgarski-brandove">
-      <h2 class="section-title" data-i18n="brands.curatedTitle">Подбрани български брандове</h2>
+    <section class="section" id="brands-results" data-total-pages={totalPages} data-current-page={pageNumber}>
+      <h2 class="section-title" data-i18n={isDedicatedBrandLanding ? undefined : "brands.curatedTitle"}>{resultsHeading}</h2>
 
       <ul class="brand-grid" id="brand-grid">
-        {brands.map((b, index) => (
+        {pageBrands.map((b, index) => (
           <li
             class="brand-card"
             data-analytics-kind="brand"
             data-list-context="brand_directory"
             data-list-name="Български брандове"
-            data-position={index + 1}
+            data-position={(pageNumber - 1) * pageSize + index + 1}
             data-brand
             data-brand-id={b.id ?? ""}
             data-brand-slug={b.slug}
@@ -293,7 +310,7 @@ const editorialSections = [
             data-brand-name={b.name}
             data-created-at={b.newestCreatedAt || 0}
             data-delivers-abroad={b.deliversAbroad ? "1" : "0"}
-            data-original-index={index}
+            data-original-index={(pageNumber - 1) * pageSize + index}
           >
             <a class="brand-link" href={`/brand/${b.slug}/`}>
               <div class="brand-card__top">
@@ -333,6 +350,10 @@ const editorialSections = [
           </li>
         ))}
       </ul>
+      <div id="brand-feed-sentinel" aria-hidden="true"></div>
+      {totalPages > 1 ? <nav class="collection-pagination" data-pagination-first-page={pageNumber === 1 ? "" : undefined} aria-label="Страници с брандове">
+        {pageNumber > 1 ? <a rel="prev" href={pageHref(pageNumber - 1)}>Предишна</a> : null}<span>Страница {pageNumber} от {totalPages}</span>{pageNumber < totalPages ? <a rel="next" href={pageHref(pageNumber + 1)}>Следваща</a> : null}
+      </nav> : null}
 
       <!-- Optional empty state -->
       <p id="brand-empty" class="empty" hidden data-i18n="brands.empty">
@@ -347,7 +368,21 @@ const editorialSections = [
       </nav>
     ) : null}
 
-    {!landing ? <section class="seo-editorial" aria-label="Контекст за българските брандове">
+    {reviewedContent?.collapsibleSummary && reviewedContent.collapsibleParagraphs.length ? (
+      <section class="seo-editorial" aria-label="Контекст за българските брандове">
+        <div class="seo-editorial__grid seo-editorial__grid--single">
+          <details class="seo-editorial__card">
+            <summary class="seo-editorial__summary">
+              <div class="seo-editorial__summary-copy"><h3>{reviewedContent.collapsibleSummary}</h3></div>
+              <span class="seo-editorial__toggle" aria-hidden="true" data-i18n="brands.readMore">Прочети още</span>
+            </summary>
+            <div class="seo-editorial__content">
+              {reviewedContent.collapsibleParagraphs.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+          </details>
+        </div>
+      </section>
+    ) : !landing ? <section class="seo-editorial" aria-label="Контекст за българските брандове">
       <div class="seo-editorial__header">
         <p class="seo-editorial__kicker">По-широк контекст</p>
         <h2 class="seo-editorial__title">Какво стои зад избора на български брандове</h2>
@@ -491,6 +526,8 @@ const editorialSections = [
       width: 100%;
       padding: 0 16px;
     }
+    .brand-search__row { display: flex; gap: 8px; min-width: 0; }
+    .brand-search__submit { min-height: 48px; padding: 0 18px; border: 0; border-radius: 18px; background: var(--accent-strong); color: #fff; font: inherit; font-weight: 750; cursor: pointer; }
 
     .brand-sort__select {
       min-width: 220px;
@@ -591,7 +628,7 @@ const editorialSections = [
       gap: 18px;
     }
 
-    #podbrani-balgarski-brandove { scroll-margin-top: 96px; }
+    #brands-results { scroll-margin-top: 96px; }
 
     .brand-grid.is-updated {
       animation: brandResultsPulse 0.55s ease;
@@ -951,6 +988,8 @@ const editorialSections = [
       gap: 18px;
     }
 
+    .seo-editorial__grid--single { grid-template-columns: minmax(0, 1fr); }
+
     .seo-editorial__card {
       min-width: 0;
       padding: 24px 24px 22px;
@@ -1148,6 +1187,11 @@ const editorialSections = [
         grid-row: auto;
       }
     }
+    #brand-feed-sentinel { min-height: 1px; }
+    .collection-pagination { display:flex; justify-content:center; align-items:center; gap:18px; margin-top:24px; font-size:13px; }
+    .collection-pagination a { color:var(--accent-strong); font-weight:700; text-decoration:none; }
+    .collection-pagination[hidden] { display:none; }
+    :global(.js) [data-pagination-first-page] { display:none; }
   </style>
 
   <script>
@@ -1162,9 +1206,35 @@ const editorialSections = [
   <script is:inline>
     const filters = document.getElementById("brand-filters");
     const brandGrid = document.getElementById("brand-grid");
-    const cards = Array.from(document.querySelectorAll("[data-brand]"));
+    let cards = Array.from(document.querySelectorAll("[data-brand]"));
+    const brandSection = document.getElementById("brands-results");
+    const brandFeedSentinel = document.getElementById("brand-feed-sentinel");
+    let loadedThroughPage = Number(brandSection?.dataset.currentPage || 1);
+    const loadedBrandPages = new Set([loadedThroughPage]);
+    const totalStaticPages = Number(brandSection?.dataset.totalPages || 1);
+    let brandPageLoadPromise = null;
+    const loadBrandPage = async (page) => {
+      if (loadedBrandPages.has(page) || page < 1 || page > totalStaticPages) return false;
+      if (brandPageLoadPromise) return brandPageLoadPromise;
+      brandPageLoadPromise = fetch(`/bulgarski-brandove/page/${page}/`, { credentials: "same-origin" })
+        .then((response) => { if (!response.ok) throw new Error(`Brand pagination ${response.status}`); return response.text(); })
+        .then((html) => {
+          const pageDocument = new DOMParser().parseFromString(html, "text/html");
+          const known = new Set(cards.map((card) => card.dataset.brandId));
+          const added = Array.from(pageDocument.querySelectorAll("#brand-grid [data-brand]")).filter((card) => !known.has(card.dataset.brandId));
+          added.forEach((card) => brandGrid.appendChild(document.importNode(card, true)));
+          cards = Array.from(brandGrid.querySelectorAll("[data-brand]"));
+          loadedBrandPages.add(page);
+          loadedThroughPage = Math.max(loadedThroughPage, page);
+          return added.length > 0;
+        })
+        .finally(() => { brandPageLoadPromise = null; });
+      return brandPageLoadPromise;
+    };
+    const ensureAllBrandPages = async () => { for (let page = 1; page <= totalStaticPages; page += 1) await loadBrandPage(page); };
     const empty = document.getElementById("brand-empty");
     const brandSearchInput = document.getElementById("brand-search-input");
+    const brandSearchForm = document.getElementById("brand-search-form");
     const brandSortSelect = document.getElementById("brand-sort-select");
     const brandOccasionToggle = document.getElementById("brand-occasion-toggle");
     const brandOccasionBadge = document.getElementById("brand-occasion-badge");
@@ -1172,6 +1242,7 @@ const editorialSections = [
     const brandOccasionApply = document.getElementById("brand-occasion-apply");
     const brandOccasionReset = document.getElementById("brand-occasion-reset");
     const brandDeliveryOutside = document.getElementById("brand-delivery-outside");
+    const brandPagination = brandSection?.querySelector(".collection-pagination");
     const requestedFilter = new URLSearchParams(window.location.search).get("category") || "all";
     let activeFilter = requestedFilter;
     let activeSubcategory = "";
@@ -1619,6 +1690,8 @@ const editorialSections = [
       const orderedCards = activeQuery.trim()
         ? sortCardsForSearch(matchingCards, activeQuery)
         : sortCards(matchingCards, activeSort);
+      const hasActiveDiscovery = Boolean(activeQuery.trim() || activeFilter !== "all" || activeSubcategory || activeProductType || activeOccasionKeys.length || activeDeliveryOutside);
+      if (brandPagination) brandPagination.hidden = hasActiveDiscovery;
 
       if (commit) {
         activeBrandSearchId = "";
@@ -1642,9 +1715,10 @@ const editorialSections = [
       }
     };
 
-    filters.addEventListener("click", (e) => {
+    filters.addEventListener("click", async (e) => {
       const btn = e.target.closest("[data-filter]");
       if (!btn) return;
+      await ensureAllBrandPages();
 
       const key = btn.getAttribute("data-filter") || "all";
       activeFilter = key;
@@ -1664,7 +1738,8 @@ const editorialSections = [
       syncBrandResultsCue();
     });
 
-    const handleBrandSearchInput = (value) => {
+    const handleBrandSearchInput = async (value) => {
+      if (String(value || "").trim()) await ensureAllBrandPages();
       activeQuery = value || "";
       window.clearTimeout(brandSearchTrackTimer);
       cards.forEach((card) => {
@@ -1689,8 +1764,14 @@ const editorialSections = [
       activeQuery = e.target.value || "";
       handleBrandSearchInput(activeQuery);
     });
+    brandSearchForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      handleBrandSearchInput(brandSearchInput?.value || "");
+      brandSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
 
-    brandSortSelect?.addEventListener("change", (e) => {
+    brandSortSelect?.addEventListener("change", async (e) => {
+      await ensureAllBrandPages();
       activeSort = e.target.value || "featured";
       applyDiscovery();
       window.bulgaritamTrack?.("change_sort", {
@@ -1701,7 +1782,8 @@ const editorialSections = [
       pulseResults();
     });
 
-    brandDeliveryOutside?.addEventListener("change", (e) => {
+    brandDeliveryOutside?.addEventListener("change", async (e) => {
+      await ensureAllBrandPages();
       activeDeliveryOutside = Boolean(e.target.checked);
       applyDiscovery();
       window.bulgaritamTrack?.("apply_filter", {
@@ -1718,7 +1800,8 @@ const editorialSections = [
       if (e.target.closest("[data-brand-occasion-close]")) closeOccasionModal();
     });
 
-    brandOccasionApply?.addEventListener("click", () => {
+    brandOccasionApply?.addEventListener("click", async () => {
+      await ensureAllBrandPages();
       activeOccasionKeys = Array.from(
         brandOccasionModal?.querySelectorAll('input[name="brandOccasionFilter"]:checked') || []
       ).map((input) => input.value);
@@ -1761,5 +1844,14 @@ const editorialSections = [
     updateOccasionBadge();
     applyDiscovery();
     syncBrandResultsCue();
+    if ("IntersectionObserver" in window && brandFeedSentinel && totalStaticPages > loadedThroughPage) {
+      const observer = new IntersectionObserver(async (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting) || loadedThroughPage >= totalStaticPages) return;
+        await loadBrandPage(loadedThroughPage + 1);
+        applyDiscovery();
+        if (loadedThroughPage >= totalStaticPages) observer.disconnect();
+      }, { rootMargin: "700px 0px" });
+      observer.observe(brandFeedSentinel);
+    }
   </script>
 </BaseLayout>

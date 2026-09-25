@@ -3,6 +3,7 @@ import SeoProductLanding from "../../components/SeoProductLanding.astro";
 import {
   getCanonicalPathForLanding,
   getClothingEditorialForLanding,
+  getConsumerLandingIntro,
   getLandingPageHierarchy,
   getProductsForLanding,
   SEO_LANDINGS,
@@ -21,7 +22,7 @@ export async function getStaticPaths() {
     "napitki", "detski-aksesoari",
   ]);
 
-  return SEO_LANDINGS.map((landing) => ({
+  return SEO_LANDINGS.filter((landing) => landing.subcategoryKey !== "kids_clothing").map((landing) => ({
     params: { slug: landing.slug },
     props: {
       landing,
@@ -37,6 +38,7 @@ if (!landing) {
 }
 
 const hierarchy = getLandingPageHierarchy(landing, allProducts);
+hierarchy.seoLanding.intro = getConsumerLandingIntro(landing, products);
 
 const refinementOptions =
   landing.subcategoryKey === "clothing_women"
@@ -58,7 +60,7 @@ const registeredEditorial = hierarchy.seoLanding.editorialSections || [];
   primaryPills={hierarchy.primaryPills}
   secondaryPills={hierarchy.secondaryPills}
   parentLink={hierarchy.parentLink}
-  secondaryPillsTitle={landing.subcategoryKey === "clothing_women" || landing.subcategoryKey === "clothing_men" ? "Най-търсени" : ""}
+  secondaryPillsTitle={landing.subcategoryKey === "clothing_women" ? "Още от дамската мода" : landing.subcategoryKey === "clothing_men" ? "Още от мъжката мода" : ""}
   refinementOptions={refinementOptions}
   refinementTitle={landing.categoryKey === "clothing" ? "Вид облекло" : "Вид продукт"}
   editorialHeader={clothingEditorial?.header}

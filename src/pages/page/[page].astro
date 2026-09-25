@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import HomepageProductCard from "../../components/HomepageProductCard.astro";
+import { loadProducts } from "../../lib/products";
+const pageSize = 48;
+export async function getStaticPaths() {
+  const pageSize = 48;
+  const products = [...new Map((await loadProducts()).filter((product) => product.image_urls?.[0]).map((product) => [product.slug, product])).values()];
+  return Array.from({ length: Math.max(0, Math.ceil(products.length / pageSize) - 1) }, (_, index) => ({
+    params: { page: String(index + 2) }, props: { products, pageNumber: index + 2 },
+  }));
+}
+const { products, pageNumber } = Astro.props;
+const totalPages = Math.ceil(products.length / pageSize);
+const batch = products.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
+const href = (page) => page === 1 ? "/" : `/page/${page}/`;
+---
+<BaseLayout seo={{ type: "category", title: `Български продукти – страница ${pageNumber} | Българитъм`, description: `Разгледай български продукти – страница ${pageNumber}.` }} canonical={`https://bulgaritam.bg/page/${pageNumber}/`}>
+  <main class="wrap"><section class="section section--feed" id="products">
+    <div class="section-head section-head--centered"><h1 class="h2">Български продукти – страница {pageNumber}</h1></div>
+    <ul class="grid" id="grid" data-masonry-grid>{batch.map((product, index) => <HomepageProductCard product={product} index={(pageNumber - 1) * pageSize + index} />)}</ul>
+    <nav class="collection-pagination" aria-label="Страници с продукти">
+      <a rel="prev" href={href(pageNumber - 1)}>Предишна</a><span>Страница {pageNumber} от {totalPages}</span>{pageNumber < totalPages ? <a rel="next" href={href(pageNumber + 1)}>Следваща</a> : null}
+    </nav>
+  </section></main>
+  <style>
+    .wrap{max-width:1240px;margin:0 auto;padding:28px 18px 60px}.section-head{text-align:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;list-style:none;margin:0;padding:0}.collection-pagination{display:flex;justify-content:center;gap:18px;margin-top:24px;font-size:13px}.collection-pagination a{color:var(--accent-strong);font-weight:700;text-decoration:none}@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.grid{grid-template-columns:1fr}}
+  </style>
+</BaseLayout>

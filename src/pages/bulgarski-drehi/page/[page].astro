@@ -1,0 +1,17 @@
+---
+import SeoProductLanding from "../../../components/SeoProductLanding.astro";
+import { getCategoryLanding, getLandingPageHierarchy, getProductsForLanding } from "../../../lib/seo-landings";
+import { loadProducts } from "../../../lib/products";
+export async function getStaticPaths() {
+  const products = await loadProducts();
+  const landing = getCategoryLanding("clothing")!;
+  const matches = getProductsForLanding(products, landing);
+  return Array.from({ length: Math.max(0, Math.ceil(matches.length / 48) - 1) }, (_, index) => ({ params: { page: String(index + 2) }, props: { landing, products: matches, pageNumber: index + 2 } }));
+}
+const { landing, products, pageNumber } = Astro.props;
+const allProducts = await loadProducts();
+const hierarchy = getLandingPageHierarchy(landing, allProducts);
+---
+<SeoProductLanding landing={hierarchy.seoLanding} products={products} browseProducts={allProducts}
+  canonicalPath={`/bulgarski-drehi/page/${pageNumber}/`} collectionPath="/bulgarski-drehi/" pageNumber={pageNumber}
+  breadcrumbs={hierarchy.breadcrumbs} primaryPills={hierarchy.primaryPills} secondaryPills={hierarchy.secondaryPills} parentLink={hierarchy.parentLink} />

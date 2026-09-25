@@ -1,0 +1,13 @@
+---
+import BrandsDirectory from "../../../components/BrandsDirectory.astro";
+import { loadBrands } from "../../../lib/brands";
+import { loadProducts } from "../../../lib/products";
+export async function getStaticPaths() {
+  const [products, brands] = await Promise.all([loadProducts(), loadBrands()]);
+  const activeSlugs = new Set(products.map((product) => product.brand_slug).filter(Boolean));
+  const count = brands.filter((brand) => activeSlugs.has(brand.brand_slug)).length;
+  return Array.from({ length: Math.max(0, Math.ceil(count / 36) - 1) }, (_, index) => ({ params: { page: String(index + 2) }, props: { pageNumber: index + 2 } }));
+}
+const { pageNumber } = Astro.props;
+---
+<BrandsDirectory pageNumber={pageNumber} />

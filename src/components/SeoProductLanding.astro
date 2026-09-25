@@ -1,11 +1,14 @@
 ---
+import { resolvePublishableOffer, formatVerifiedOfferAmount } from "../lib/verified-offer";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCategoryLabel, getCategoryLabelForLang, getSubcategoryLabelForLang, getTaxonomyForProduct } from "../lib/taxonomy";
 import { getProductBadges } from "../lib/product-badges";
 import { PUBLIC_BROWSE_CATEGORIES } from "../lib/public-browse-taxonomy";
 import { GIFT_FACETS_BY_CONTEXT, STRUCTURED_FACET_OPTIONS } from "../../admin-app/src/lib/product-taxonomy";
-import { SEO_INTENT_LANDINGS, getLandingGraphNode, getSeoLandingStateRegistry } from "../lib/seo-landings";
+import { SEO_INTENT_LANDINGS, getFallbackSiblingLinks, getLandingGraphNode, getSeoLandingStateRegistry } from "../lib/seo-landings";
 import { orderPublicFilters } from "../lib/public-filter-order";
+import { priceRangesForProduct } from "../lib/price-ranges";
+import { getHumanReviewedLandingContent } from "../lib/landing-content";
 
 const {
   landing,
@@ -21,12 +24,34 @@ const {
   refinementTitle = "",
   secondaryPillsTitle = "",
   parentLink = null,
+  browseProducts = [],
+  pageNumber = 1,
+  pageSize = 48,
+  collectionPath = canonicalPath,
 } = Astro.props;
+
+const reviewedContent = getHumanReviewedLandingContent(collectionPath);
+const contentH1 = reviewedContent?.h1 || landing.h1;
+const contentIntro = reviewedContent ? reviewedContent.intro : landing.intro;
+const contentEditorialHeader = reviewedContent
+  ? (reviewedContent.collapsibleSummary ? { title: reviewedContent.collapsibleSummary } : null)
+  : editorialHeader;
+const contentEditorialSections = reviewedContent
+  ? (reviewedContent.collapsibleSummary && reviewedContent.collapsibleParagraphs.length
+      ? [{ title: "", paragraphs: reviewedContent.collapsibleParagraphs }]
+      : [])
+  : editorialSections;
 
 const clean = (value) => String(value ?? "").trim();
 const resolvedRefinementTitle = refinementTitle ||
   (landing.group === "clothing" || landing.categoryKey === "clothing" ? "Вид облекло" : "Вид продукт");
-const resolvedSecondaryPillsTitle = secondaryPillsTitle || "Най-търсени";
+const resolvedSecondaryPillsTitle = secondaryPillsTitle || (
+  landing.categoryKey === "gifts" ? "Разгледай още идеи" :
+  landing.categoryKey === "clothing" || landing.group === "clothing" ? "Още български дрехи" :
+  landing.categoryKey === "cosmetics" ? "Още българска козметика" :
+  "Свързани категории"
+);
+const fallbackSiblingPills = browseProducts.length ? getFallbackSiblingLinks(landing, browseProducts, 6) : [];
 const getPrimaryImage = (product) =>
   Array.isArray(product?.image_urls)
     ? product.image_urls.find((url) => /^https?:\/\//i.test(clean(url))) || product.image_urls.find((url) => clean(url))
@@ -41,8 +66,12 @@ const browseSubcategoryKey = landing.audienceSubcategoryKey || landing.subcatego
     ?.subcategories.find((subcategory) => subcategory.value === registeredSubcategory)?.key || "";
 const browseCategory = PUBLIC_BROWSE_CATEGORIES.find((category) => category.key === browseCategoryKey || category.value === registeredCategory);
 const browseSubcategory = browseCategory?.subcategories.find((subcategory) => subcategory.key === browseSubcategoryKey || subcategory.value === registeredSubcategory);
-const displayProducts = products.filter((product) => getPrimaryImage(product));
+const displayProducts = [...new Map(products.filter((product) => getPrimaryImage(product)).map((product) => [product.slug, product])).values()];
 const initialDisplayCount = displayProducts.length;
+const totalPages = Math.max(1, Math.ceil(initialDisplayCount / pageSize));
+const pageStart = (pageNumber - 1) * pageSize;
+const pageProducts = displayProducts.slice(pageStart, pageStart + pageSize);
+const pageHref = (page) => page === 1 ? collectionPath : `${collectionPath.replace(/\/$/, "")}/page/${page}/`;
 const structuredTypeCounts = new Map();
 displayProducts.forEach((product) => {
   const value = clean(product.product_type);
@@ -133,17 +162,6 @@ const baseStructuredState = landing.structuredState || {
   ...((landing.giftFilters?.genders || landing.genders)?.length ? { recipient_gender: landing.giftFilters?.genders || landing.genders } : {}),
 };
 const seoStateRegistry = getSeoLandingStateRegistry();
-const priceRangesForProduct = (product) => {
-  const low = Number.isFinite(product.price_min_eur) ? product.price_min_eur : null;
-  const high = Number.isFinite(product.price_max_eur) ? product.price_max_eur : low;
-  if (low == null && high == null) return [];
-  return [
-    (low ?? high) <= 25 ? "0-25" : "",
-    (low ?? high) <= 50 && (high ?? low) >= 25 ? "25-50" : "",
-    (low ?? high) <= 100 && (high ?? low) >= 50 ? "50-100" : "",
-    (high ?? low) >= 100 ? "100+" : "",
-  ].filter(Boolean);
-};
 const priceOptions = [
   { value: "0-25", label: "До €25" }, { value: "25-50", label: "€25–50" },
   { value: "50-100", label: "€50–100" }, { value: "100+", label: "€100+" },
@@ -234,8 +252,15 @@ const buildSeoDescription = () => {
 };
 
 const seoDescription = buildSeoDescription();
+const parentLinkText = parentLink?.href === "/bulgarski-podaratsi/"
+  ? "Върни се към всички идеи за подарък"
+  : parentLink
+    ? `Към ${parentLink.label}`
+    : "Към началото";
 
 function priceLabel(p) {
+  const offer = resolvePublishableOffer(p, new Date(), { visible: true });
+  if (offer) return formatVerifiedOfferAmount(offer);
   if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
   if (p.price_min_eur != null) return `${p.price_min_eur}+ ${p.currency}`;
   return "";
@@ -248,12 +273,13 @@ function priceLabel(p) {
     title: landing.title,
     description: seoDescription,
     data: {
-      category: landing.h1,
+      category: contentH1,
       description: seoDescription,
       breadcrumbs,
     }
   }}
   canonical={`https://bulgaritam.bg${canonicalPath}`}
+  robots={initialDisplayCount === 0 || landing.canonicalSlug ? "noindex,follow,max-image-preview:large" : undefined}
   i18n={{
     en: {
       "landing.category": "Category",
@@ -267,16 +293,15 @@ function priceLabel(p) {
   <main class="page-shell landing-shell">
     {breadcrumbs.length > 1 ? <nav class="landing-breadcrumbs" aria-label="Breadcrumb"><ol>{breadcrumbs.map((entry, index) => <li>{index < breadcrumbs.length - 1 ? <a href={entry.item}>{entry.name}</a> : <span aria-current="page">{entry.name}</span>}</li>)}</ol></nav> : null}
     <header class="page-head landing-head">
-      <p class="page-kicker" data-i18n={landing.kind === "category" ? "landing.category" : "landing.subcategory"}>{landing.kind === "category" ? "Категория" : "Подкатегория"}</p>
-      <h1 class="page-title">{landing.h1}</h1>
+      <h1 class="page-title">{contentH1}</h1>
       <div class="landing-intro">
-        {landing.intro.map((paragraph) => (
+        {contentIntro.map((paragraph) => (
           <p>{paragraph}</p>
         ))}
       </div>
 
       {primaryPills.length ? (
-        <div class="landing-subcategories" aria-label={primaryPillsAriaLabel} data-mobile-gift-pills={landing.categoryKey === "gifts" ? "true" : undefined}>
+        <div class="landing-subcategories" aria-label={primaryPillsAriaLabel} data-seo-link-group="parent-primary" data-mobile-gift-pills={landing.categoryKey === "gifts" ? "true" : undefined}>
           {primaryPills.map((entry) => (
             <a
               class:list={[
@@ -300,7 +325,7 @@ function priceLabel(p) {
       {secondaryPills.length ? (
         <div class="landing-secondary-group">
           <p class="landing-secondary-title">{resolvedSecondaryPillsTitle}</p>
-          <div class="landing-subcategories landing-subcategories--secondary" aria-label={secondaryPillsAriaLabel}>
+          <div class="landing-subcategories landing-subcategories--secondary" aria-label={secondaryPillsAriaLabel} data-seo-link-group="parent-secondary">
             {secondaryPills.map((entry) => (
               <a
                 class:list={[
@@ -308,6 +333,24 @@ function priceLabel(p) {
                   "landing-subcategories__pill--secondary",
                   entry.isActive ? "is-active" : ""
                 ]}
+                href={entry.href}
+                data-i18n-bg={entry.label}
+                data-i18n-en={entry.labelEn || entry.label}
+              >
+                {entry.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {fallbackSiblingPills.length ? (
+        <div class="landing-secondary-group" data-seo-fallback-links>
+          <p class="landing-secondary-title">Свързани селекции</p>
+          <div class="landing-subcategories landing-subcategories--secondary" aria-label="Свързани селекции" data-seo-link-group="sibling-fallback">
+            {fallbackSiblingPills.map((entry) => (
+              <a
+                class="landing-subcategories__pill landing-subcategories__pill--secondary"
                 href={entry.href}
                 data-i18n-bg={entry.label}
                 data-i18n-en={entry.labelEn || entry.label}
@@ -326,12 +369,19 @@ function priceLabel(p) {
       data-seo-state-registry={JSON.stringify(seoStateRegistry)}
       data-base-structured-state={JSON.stringify(baseStructuredState)}
       data-canonical-path={canonicalPath}
+      data-collection-path={collectionPath}
+      data-current-page={pageNumber}
+      data-total-pages={totalPages}
+      data-total-items={initialDisplayCount}
     >
       {hasRefinements ? (
         <details class="landing-refinements">
           <summary class="landing-refinements__summary">
-            <span class="landing-refinements__label">{refinementOptions.length ? resolvedRefinementTitle : "Филтри"}</span>
-            <span class="landing-refinements__toggle">Филтрирай</span>
+            <span class="landing-refinements__summary-copy">
+              <span class="landing-refinements__label">Филтри</span>
+              <span class="landing-refinements__support">Избери филтри и резултатите ще се обновят автоматично.</span>
+            </span>
+            <span class="landing-refinements__toggle"><span class="when-closed">Отвори филтрите</span><span class="when-open">Затвори филтрите</span></span>
           </summary>
 
           <div class="landing-refinements__groups">
@@ -357,13 +407,15 @@ function priceLabel(p) {
               </div>
             </fieldset>)}
           </div>
+          <div class="landing-refinements__sticky-close"><button type="button" data-refinements-close>Затвори филтрите</button></div>
         </details>
       ) : null}
 
       <div class="section-head section-head--centered">
         <h2 class="h2"><span data-i18n="landing.products">Продукти</span> (<span id="count">{initialDisplayCount}</span>)</h2>
+        <label class="landing-sort" for="landing-sort-select"><span>Подредба</span><select id="landing-sort-select"><option value="featured">Подбрани</option><option value="price-asc">Цена: ниска към висока</option><option value="price-desc">Цена: висока към ниска</option><option value="alpha-asc">Име: А–Я</option><option value="alpha-desc">Име: Я–А</option></select></label>
         <a class="landing-back" href={parentLink?.href || "/"} data-i18n={parentLink ? undefined : "landing.backHome"}>
-          {parentLink ? `Към ${parentLink.label}` : "Към началото"}
+          {parentLinkText}
         </a>
       </div>
 
@@ -376,7 +428,7 @@ function priceLabel(p) {
       ) : null}
 
       <ul class="grid" id="grid" data-masonry-grid>
-        {displayProducts.map((p, index) => {
+        {pageProducts.map((p, index) => {
           const primaryImage = getPrimaryImage(p);
           const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
           const taxonomy = getTaxonomyForProduct(p);
@@ -388,8 +440,8 @@ function priceLabel(p) {
             class="card"
             data-analytics-kind="product"
             data-list-context="seo_landing_page"
-            data-list-name={landing.h1}
-            data-position={index + 1}
+            data-list-name={contentH1}
+            data-position={pageStart + index + 1}
             data-product-id={p.id}
             data-masonry-card
             data-refinement-keys={refinementKeys}
@@ -406,6 +458,8 @@ function priceLabel(p) {
             data-initial-match="1"
             data-product-slug={p.slug}
             data-product-name={p.name_bg}
+            data-price-min={p.price_min_eur ?? ""}
+            data-price-max={p.price_max_eur ?? ""}
             data-brand-slug={p.brand_slug ?? ""}
             data-brand-id={p.brand_id ?? ""}
             data-brand-name={p.brand_name ?? ""}
@@ -488,36 +542,37 @@ function priceLabel(p) {
       <div class="feed-meta">
         <p class="feed-status" id="feedStatus" aria-live="polite"></p>
         <div class="feed-sentinel" id="feedSentinel" aria-hidden="true"></div>
+        <button class="feed-load-more" id="feedLoadMore" type="button" hidden>Покажи още</button>
       </div>
+      {totalPages > 1 ? (
+        <nav class="collection-pagination" data-pagination-first-page={pageNumber === 1 ? "" : undefined} aria-label="Страници с продукти">
+          {pageNumber > 1 ? <a rel="prev" href={pageHref(pageNumber - 1)}>Предишна</a> : null}
+          <span>Страница {pageNumber} от {totalPages}</span>
+          {pageNumber < totalPages ? <a rel="next" href={pageHref(pageNumber + 1)}>Следваща</a> : null}
+        </nav>
+      ) : null}
     </section>
 
-    {editorialSections.length ? (
-      <section class="seo-editorial" aria-label={editorialHeader?.ariaLabel || "По-широк контекст"}>
-        <div class="seo-editorial__header">
-          <p class="seo-editorial__kicker">{editorialHeader?.kicker || "Още контекст"}</p>
-          <h2 class="seo-editorial__title">{editorialHeader?.title || `Повече за ${landing.h1}`}</h2>
-          {editorialHeader?.intro ? <p class="seo-editorial__intro">{editorialHeader.intro}</p> : null}
-        </div>
-
-        <div class="seo-editorial__grid">
-          {editorialSections.map((section) => (
-            <details class="seo-editorial__card">
-              <summary class="seo-editorial__summary">
-                <div class="seo-editorial__summary-copy">
-                  <h3>{section.title}</h3>
+    {contentEditorialSections.length ? (
+      <details class="seo-editorial">
+        <summary class="seo-editorial__disclosure">
+          <span>{contentEditorialHeader?.title || `Повече за: ${contentH1}`}</span>
+          <span class="seo-editorial__toggle" aria-hidden="true">Прочети</span>
+        </summary>
+        <div class="seo-editorial__body" aria-label={contentEditorialHeader?.ariaLabel || "По-широк контекст"}>
+          {contentEditorialHeader?.intro ? <p class="seo-editorial__intro">{contentEditorialHeader.intro}</p> : null}
+          <div class="seo-editorial__grid">
+            {contentEditorialSections.map((section) => (
+              <article class="seo-editorial__card">
+                {section.title ? <h3>{section.title}</h3> : null}
+                <div class="seo-editorial__content">
+                  {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
                 </div>
-                <span class="seo-editorial__toggle">Прочети още</span>
-              </summary>
-
-              <div class="seo-editorial__content">
-                {section.paragraphs.map((paragraph) => (
-                  <p>{paragraph}</p>
-                ))}
-              </div>
-            </details>
-          ))}
+              </article>
+            ))}
+          </div>
         </div>
-      </section>
+      </details>
     ) : null}
   </main>
 
@@ -641,6 +696,18 @@ function priceLabel(p) {
       font-weight: 700;
       color: rgba(26, 26, 26, 0.82);
     }
+    .landing-refinements__summary-copy { display: grid; gap: 3px; }
+    .landing-refinements__support { font-size: 12px; line-height: 1.4; color: rgba(26,26,26,.58); }
+    .landing-refinements:not([open]) .landing-refinements__support { display: none; }
+    .landing-refinements__toggle .when-open { display: none; }
+    .landing-refinements[open] .landing-refinements__toggle .when-closed { display: none; }
+    .landing-refinements[open] .landing-refinements__toggle .when-open { display: inline; }
+    .landing-refinements__sticky-close { display: none; padding: 0 14px 14px; }
+    .landing-refinements__sticky-close button { width: 100%; min-height: 44px; border: 0; border-radius: 999px; background: var(--accent-strong); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+    .landing-sort { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; font-weight: 700; }
+    .landing-sort select { min-height: 42px; padding: 0 36px 0 13px; border: 1px solid rgba(26,26,26,.12); border-radius: 999px; background: #fff; color: inherit; font: inherit; }
+    .feed-load-more { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; margin-top: 10px; padding: 0 18px; border: 1px solid rgba(26,26,26,.12); border-radius: 999px; background: #fff; color: inherit; font: inherit; font-weight: 750; cursor: pointer; }
+    .feed-load-more[hidden] { display: none; }
 
     .landing-refinements__toggle {
       display: inline-flex;
@@ -761,6 +828,10 @@ function priceLabel(p) {
       width: 100%;
       height: 2px;
     }
+    .collection-pagination { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 18px 0 0; font-size: 13px; }
+    .collection-pagination a { color: var(--accent-strong); font-weight: 700; text-decoration: none; }
+    .collection-pagination[hidden] { display: none; }
+    :global(.js) [data-pagination-first-page] { display: none; }
 
     .grid {
       list-style: none;
@@ -949,32 +1020,29 @@ function priceLabel(p) {
 
     .seo-editorial {
       margin-top: 48px;
-      display: grid;
+      border-radius: 26px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+
+    .seo-editorial__disclosure {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 20px;
-    }
-
-    .seo-editorial__header {
-      max-width: 860px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .seo-editorial__kicker {
-      margin: 0 0 10px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(26, 26, 26, 0.5);
-    }
-
-    .seo-editorial__title {
-      margin: 0;
+      padding: 22px 24px;
+      cursor: pointer;
       font-family: var(--font-title);
-      font-size: clamp(34px, 4vw, 52px);
-      line-height: 0.98;
-      letter-spacing: -0.04em;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
     }
+    .seo-editorial__disclosure::-webkit-details-marker { display: none; }
+    .seo-editorial__disclosure::marker { display: none; content: ""; }
+    .seo-editorial__body { padding: 0 24px 24px; }
 
     .seo-editorial__intro {
       max-width: 760px;
@@ -991,35 +1059,9 @@ function priceLabel(p) {
 
     .seo-editorial__card {
       min-width: 0;
-      padding: 24px 24px 22px;
-      border-radius: 26px;
-      border: 1px solid rgba(26, 26, 26, 0.08);
-      background: rgba(255, 255, 255, 0.7);
-      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.04);
-    }
-
-    .seo-editorial__summary {
-      list-style: none;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .seo-editorial__summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .seo-editorial__summary::marker {
-      display: none;
-      content: "";
-    }
-
-    .seo-editorial__summary-copy {
-      min-width: 0;
-      flex: 1 1 auto;
+      padding: 22px;
+      border-radius: 20px;
+      background: rgba(247, 244, 238, 0.82);
     }
 
     .seo-editorial__card h3 {
@@ -1058,7 +1100,7 @@ function priceLabel(p) {
       color: rgba(26, 26, 26, 0.78);
     }
 
-    .seo-editorial__card[open] .seo-editorial__toggle {
+    .seo-editorial[open] .seo-editorial__toggle {
       background: rgba(26, 26, 26, 0.08);
     }
 
@@ -1187,6 +1229,8 @@ function priceLabel(p) {
     }
 
     @media (max-width: 640px) {
+      .landing-refinements[open] { max-height: min(76vh, 680px); overflow-y: auto; }
+      .landing-refinements__sticky-close { display: block; position: sticky; bottom: 0; z-index: 2; padding-top: 10px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,.98) 28%); }
       .landing-refinements__summary {
         padding: 14px 16px;
       }
@@ -1265,14 +1309,50 @@ function priceLabel(p) {
     const count = document.getElementById("count");
     const feedStatus = document.getElementById("feedStatus");
     const feedSentinel = document.getElementById("feedSentinel");
-    const allCards = Array.from(grid.querySelectorAll("li.card"));
+    const feedLoadMore = document.getElementById("feedLoadMore");
+    let allCards = Array.from(grid.querySelectorAll("li.card"));
     const refinementInputs = Array.from(document.querySelectorAll("[data-refinement-input]"));
     const feedSection = document.getElementById("products");
     const refinements = feedSection?.querySelector(".landing-refinements");
+    const landingSortSelect = document.getElementById("landing-sort-select");
+    const collectionPagination = feedSection?.querySelector(".collection-pagination");
     const parseJson = (value, fallback) => { try { return JSON.parse(value || "") || fallback; } catch { return fallback; } };
     const seoStateRegistry = new Map(parseJson(feedSection?.dataset.seoStateRegistry, []).map((entry) => [entry.stateKey, entry.path]));
     const baseStructuredState = parseJson(feedSection?.dataset.baseStructuredState, {});
     const splitFacetValues = (value) => String(value || "").split("|").map((entry) => entry.trim()).filter(Boolean);
+    let loadedThroughPage = Number(feedSection?.dataset.currentPage || 1);
+    const loadedStaticPages = new Set([loadedThroughPage]);
+    const totalPages = Number(feedSection?.dataset.totalPages || 1);
+    const totalItems = Number(feedSection?.dataset.totalItems || allCards.length);
+    const collectionPath = feedSection?.dataset.collectionPath || feedSection?.dataset.canonicalPath || window.location.pathname;
+    let pageLoadPromise = null;
+    let appendInProgress = false;
+    const pageUrl = (page) => page === 1 ? collectionPath : `${collectionPath.replace(/\/$/, "")}/page/${page}/`;
+    const loadStaticPage = async (page) => {
+      if (loadedStaticPages.has(page) || page < 1 || page > totalPages) return false;
+      if (pageLoadPromise) return pageLoadPromise;
+      pageLoadPromise = fetch(pageUrl(page), { credentials: "same-origin" })
+        .then((response) => { if (!response.ok) throw new Error(`Pagination ${response.status}`); return response.text(); })
+        .then((html) => {
+          const documentPage = new DOMParser().parseFromString(html, "text/html");
+          const existing = new Set(allCards.map((card) => card.dataset.productSlug));
+          const added = Array.from(documentPage.querySelectorAll("#grid li.card"))
+            .filter((card) => !existing.has(card.dataset.productSlug));
+          added.forEach((card) => { card.style.display = "none"; grid.appendChild(document.importNode(card, true)); });
+          allCards = Array.from(grid.querySelectorAll("li.card"));
+          allCards.forEach((card, index) => { if (!card.dataset.originalPosition) card.dataset.originalPosition = card.dataset.position || String(index + 1); });
+          loadedStaticPages.add(page);
+          loadedThroughPage = Math.max(loadedThroughPage, page);
+          window.dispatchEvent(new CustomEvent("bulgaritam:products-appended", { detail: { nodes: allCards.slice(-added.length) } }));
+          if (typeof window.syncSaveButtons === "function") window.syncSaveButtons();
+          return added.length > 0;
+        })
+        .finally(() => { pageLoadPromise = null; });
+      return pageLoadPromise;
+    };
+    const ensureAllStaticPages = async () => {
+      for (let page = 1; page <= totalPages; page += 1) await loadStaticPage(page);
+    };
     const cardFacetKey = (group) => group === "material" ? "materials" : group;
     const stateFacetKey = (group) => ({ type: "product_type", material: "materials", color: "colors" })[group] || group;
     const cardFacetValues = (card, group) => {
@@ -1292,6 +1372,23 @@ function priceLabel(p) {
 
     let visibleCount = getBatchSize();
     let lastTrackedResultCount = 0;
+    const supportedSorts = new Set(["featured", "price-asc", "price-desc", "alpha-asc", "alpha-desc"]);
+    const requestedSort = new URLSearchParams(window.location.search).get("sort") || "";
+    let selectedSort = supportedSorts.has(requestedSort) ? requestedSort : "featured";
+    if (landingSortSelect) landingSortSelect.value = selectedSort;
+    let filtersTouched = false;
+    allCards.forEach((card, index) => { card.dataset.originalPosition = card.dataset.position || String(index + 1); });
+    const numericPrice = (card) => { const min = Number(card.dataset.priceMin); const max = Number(card.dataset.priceMax); return Number.isFinite(min) && min > 0 ? min : Number.isFinite(max) && max > 0 ? max : Number.POSITIVE_INFINITY; };
+    const originalPosition = (card) => Number(card.dataset.originalPosition || Number.MAX_SAFE_INTEGER);
+    const sortCards = (cards) => [...cards].sort((a, b) => {
+      if (selectedSort === "featured") return originalPosition(a) - originalPosition(b);
+      if (selectedSort === "alpha-asc") return String(a.dataset.productName || "").localeCompare(String(b.dataset.productName || ""), "bg") || originalPosition(a) - originalPosition(b);
+      if (selectedSort === "alpha-desc") return String(b.dataset.productName || "").localeCompare(String(a.dataset.productName || ""), "bg") || originalPosition(a) - originalPosition(b);
+      const ap = numericPrice(a), bp = numericPrice(b), am = !Number.isFinite(ap), bm = !Number.isFinite(bp);
+      if (am !== bm) return am ? 1 : -1;
+      if (am && bm) return originalPosition(a) - originalPosition(b);
+      return (selectedSort === "price-desc" ? bp - ap : ap - bp) || originalPosition(a) - originalPosition(b);
+    });
 
     const serializeState = (state) => Object.entries(state)
       .filter(([, values]) => Array.isArray(values) && values.length)
@@ -1399,16 +1496,12 @@ function priceLabel(p) {
     };
 
     const updateFeedVisibility = () => {
-      const filteredCards = getFilteredCards();
+      const filteredCards = sortCards(getFilteredCards());
       const activeFilters = refinementInputs
         .filter((input) => input.checked)
         .map((input) => input.value);
 
-      if (window.innerWidth > 768) {
-        grid?.classList.toggle("grid--ordered", activeFilters.length > 0 || filteredCards.length <= 6);
-      } else {
-        grid?.classList.remove("grid--ordered");
-      }
+      grid?.classList.remove("grid--ordered");
 
       grid?.classList.remove("is-masonry-ready");
 
@@ -1417,23 +1510,28 @@ function priceLabel(p) {
         card.style.removeProperty("--masonry-span");
       });
 
+      filteredCards.forEach((card) => grid?.appendChild(card));
+
       filteredCards.forEach((card, index) => {
         card.dataset.position = String(index + 1);
         card.style.display = index < visibleCount ? "" : "none";
       });
 
-      if (count) {
-        count.textContent = String(filteredCards.length);
-      }
+      // Preselected collection facets are the base membership, not a user refinement.
+      const hasActiveSelection = serializeState(currentStructuredState()) !== serializeState(baseStructuredState);
+      if (collectionPagination) collectionPagination.hidden = filtersTouched;
+      const resolvedResultCount = !hasActiveSelection && loadedThroughPage < totalPages ? totalItems : filteredCards.length;
+      if (count) count.textContent = String(resolvedResultCount);
 
       if (feedStatus) {
         const shown = Math.min(visibleCount, filteredCards.length);
-        feedStatus.textContent = filteredCards.length > shown ? `Показани ${shown} от ${filteredCards.length}` : "";
+        feedStatus.textContent = resolvedResultCount > shown ? `Показани ${shown} от ${resolvedResultCount}` : "";
       }
 
       if (feedSentinel) {
-        feedSentinel.hidden = filteredCards.length <= visibleCount;
+        feedSentinel.hidden = filteredCards.length <= visibleCount && loadedThroughPage >= totalPages;
       }
+      if (feedLoadMore) feedLoadMore.hidden = filteredCards.length <= visibleCount && loadedThroughPage >= totalPages;
 
       updateFacetAvailability();
       lastTrackedResultCount = filteredCards.length;
@@ -1456,16 +1554,31 @@ function priceLabel(p) {
       }, filteredCards.map((card) => ({ node: card, entity_type: "product", product_id: card.dataset.productId || "", brand_id: card.dataset.brandId || "" })));
     };
 
-    const loadMore = () => {
+    const loadMore = async () => {
+      if (appendInProgress) return;
+      appendInProgress = true;
+      try {
+      if (visibleCount >= getFilteredCards().length && loadedThroughPage < totalPages) {
+        await loadStaticPage(loadedThroughPage + 1);
+      }
       if (visibleCount >= getFilteredCards().length) return;
       visibleCount += getBatchSize();
       updateFeedVisibility();
+      } finally {
+        appendInProgress = false;
+        if (feedSentinel && !feedSentinel.hidden) {
+          const rect = feedSentinel.getBoundingClientRect();
+          if (rect.top <= window.innerHeight + 320 && rect.bottom >= -320) requestAnimationFrame(loadMore);
+        }
+      }
     };
 
     commitSeoDiscoveryState(updateFeedVisibility());
 
     refinementInputs.forEach((input) => {
-      input.addEventListener("change", () => {
+      input.addEventListener("change", async () => {
+        filtersTouched = true;
+        await ensureAllStaticPages();
         const resultsBefore = lastTrackedResultCount;
         visibleCount = getBatchSize();
         const filteredCards = updateFeedVisibility();
@@ -1474,6 +1587,17 @@ function priceLabel(p) {
         startCanonicalNavigation();
       });
     });
+    landingSortSelect?.addEventListener("change", async (event) => {
+      await ensureAllStaticPages();
+      selectedSort = event.target.value || "featured";
+      visibleCount = getBatchSize();
+      commitSeoDiscoveryState(updateFeedVisibility());
+    });
+    refinements?.querySelector("[data-refinements-close]")?.addEventListener("click", () => {
+      refinements.open = false;
+      refinements.querySelector("summary")?.focus();
+    });
+    feedLoadMore?.addEventListener("click", loadMore);
 
     if ("IntersectionObserver" in window && feedSentinel) {
       const observer = new IntersectionObserver((entries) => {

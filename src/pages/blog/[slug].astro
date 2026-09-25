@@ -1,4 +1,5 @@
 ---
+import { resolvePublishableOffer, formatVerifiedOfferAmount } from "../../lib/verified-offer";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCuratedTagPages } from "../../lib/curated-tags";
 import { getCategoryLabel } from "../../lib/taxonomy";
@@ -7,6 +8,8 @@ import { getProductBadges } from "../../lib/product-badges";
 import { getPublicBrowseForProduct } from "../../lib/public-browse-taxonomy";
 
 function priceLabel(p) {
+  const offer = resolvePublishableOffer(p, new Date(), { visible: true });
+  if (offer) return formatVerifiedOfferAmount(offer);
   if (p.price_min_eur != null && p.price_max_eur != null) return `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`;
   if (p.price_min_eur != null) return `${p.price_min_eur}+ ${p.currency}`;
   return "";

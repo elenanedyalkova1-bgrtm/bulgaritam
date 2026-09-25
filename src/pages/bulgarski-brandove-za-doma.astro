@@ -1,0 +1,18 @@
+---
+import BrandsDirectory from "../components/BrandsDirectory.astro";
+import { HOME_BRANDS_LANDING, getLandingPageHierarchy } from "../lib/seo-landings";
+
+const hierarchy = getLandingPageHierarchy(HOME_BRANDS_LANDING);
+const seoLanding = hierarchy.seoLanding;
+const landing = {
+  ...HOME_BRANDS_LANDING,
+  ...seoLanding,
+  intro: seoLanding.intro.join(" "),
+  productLinks: [
+    { href: "/k/za-doma/", label: "Дом и интериор" },
+    { href: "/k/domashen-tekstil/", label: "Домашен текстил" },
+  ],
+};
+---
+
+<BrandsDirectory {landing} />

@@ -1,0 +1,57 @@
+name: Bulgaritam Price Monitor
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Dry-run or persist monitoring metadata/history
+        required: true
+        default: dry-run
+        type: choice
+        options: [dry-run, write-monitor-results]
+      limit:
+        description: Optional manual limit; clamped to dynamic bounded capacity
+        required: false
+
+concurrency:
+  group: bulgaritam-price-monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Check due product prices
+        env:
+          BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
+          BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
+          GOOGLE_PRICE_MONITOR_SPREADSHEET_ID: ${{ vars.GOOGLE_PRICE_MONITOR_SPREADSHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          RUN_MODE: ${{ github.event_name == 'schedule' && 'write-monitor-results' || inputs.mode }}
+          RUN_LIMIT: ${{ inputs.limit }}
+        run: |
+          args=(due --concurrency=6 --domain-delay-ms=2000 --timeout-ms=15000 --output=/tmp/price-monitor-run.json)
+          if [ -n "$RUN_LIMIT" ]; then args+=("--limit=${RUN_LIMIT}"); fi
+          if [ "$RUN_MODE" = "write-monitor-results" ]; then args+=(--write-monitor-results); fi
+          npm run monitor:scheduled -- "${args[@]}"
+      - name: Upload run summary
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: price-monitor-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/price-monitor-run.json
+          if-no-files-found: error
+          retention-days: 30

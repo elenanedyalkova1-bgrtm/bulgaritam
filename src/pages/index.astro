@@ -98,8 +98,11 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         <button class="discovery-shortcut" type="button" data-discovery-gift>🎁 <span>Търся нещо за подарък</span></button>
         <button class="discovery-shortcut" type="button" data-discovery-surprise>🎲 <span>Изненадай ме</span></button>
       </div>
-      <div class="gift-hub-entry"><a href="/bulgarski-drehi/"><span>👕</span> Разгледай български дрехи <span aria-hidden="true">→</span></a></div>
-      <div class="gift-hub-entry"><a href="/bulgarski-podaratsi/"><span>🎁</span> Разгледай всички идеи за подарък <span aria-hidden="true">→</span></a></div>
+      <div class="gift-hub-entries" aria-label="Още начини за разглеждане">
+        <div class="gift-hub-entry"><a href="/bulgarski-drehi/"><span>👕</span> Разгледай български дрехи <span aria-hidden="true">→</span></a></div>
+        <div class="gift-hub-entry"><a href="/bulgarski-podaratsi/"><span>🎁</span> Разгледай всички идеи за подарък <span aria-hidden="true">→</span></a></div>
+        <div class="gift-hub-entry"><a href="/namaleniya/"><span>💸</span> Разгледай намалени продукти <span aria-hidden="true">→</span></a></div>
+      </div>
       <div class="self-category-choices" id="selfCategoryChoices" role="group" aria-label="Избери категория" hidden>
         {[["clothing","Облекло"],["accessories","Аксесоари"],["cosmetics","Козметика"],["health","Здраве и грижа"],["books","Книги, игри и творчество"]].map(([key,label]) =>
           <button class="chip chip-sub" type="button" data-self-category={key}>{label}</button>
@@ -473,7 +476,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
 
     .discovery-shortcut span { min-width: 0; }
 
-    .gift-hub-entry { display: flex; justify-content: center; margin: 4px auto 14px; }
+    .gift-hub-entries { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 4px auto 14px; }
+    .gift-hub-entry { display: flex; justify-content: center; }
     .gift-hub-entry a { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(123,64,59,.16); background: rgba(255,255,255,.58); color: rgba(83,48,44,.9); font-size: 13px; font-weight: 750; text-decoration: none; box-shadow: 0 8px 20px rgba(0,0,0,.035); }
     .gift-hub-entry a:hover, .gift-hub-entry a:focus-visible { background: rgba(255,255,255,.9); border-color: rgba(123,64,59,.28); }
 

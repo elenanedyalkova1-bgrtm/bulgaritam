@@ -404,6 +404,7 @@ function extractPlatformAdapter(html, platform) {
 
   if (platform === "woocommerce") {
     const candidates = [];
+    const variationCandidates = [];
     for (const match of html.matchAll(/<form\b[^>]*class=["'][^"']*variations_form[^"']*["'][^>]*>/gi)) {
       const attrs = attributes(match[0]);
       if (!attrs["data-product_variations"]) continue;
@@ -413,8 +414,9 @@ function extractPlatformAdapter(html, platform) {
           if (item?.variation_is_active === false || item?.is_purchasable === false) continue;
           const price = parsePrice(item.display_price ?? item.display_regular_price);
           if (price != null) {
-            const currency = normalizeCurrency(item.currency || item.price_currency);
-            const candidate = { price, currency, path: "woocommerce.variations_form.display_price" };
+            const priceHtmlCurrency = normalizeCurrency(decodeHtml(item.price_html || "").match(/EUR|BGN|USD|GBP|€|лв\.?|£|\$/i)?.[0]);
+            const currency = normalizeCurrency(item.currency || item.price_currency) || priceHtmlCurrency;
+            const candidate = { price, currency, path: "woocommerce.variations_form.display_price", variation_id: item.variation_id ?? null };
             Object.assign(candidate, regularPair(
               candidate,
               { price: item.display_regular_price, currency },
@@ -422,10 +424,12 @@ function extractPlatformAdapter(html, platform) {
               { path: "woocommerce.variations_form.display_regular_price", variation_id: item.variation_id ?? null },
             ));
             candidates.push(candidate);
+            variationCandidates.push(candidate);
           }
         }
       } catch { /* malformed variation data is never guessed */ }
     }
+    const distinctVariationPrices = [...new Set(variationCandidates.map((item) => item.price))].sort((a, b) => a - b);
     for (const match of html.matchAll(/<(?:form|div)\b[^>]*data-product_price=["']([^"']+)["'][^>]*>/gi)) {
       const price = parsePrice(match[1]);
       if (price != null) candidates.push({ price, currency: null, path: "woocommerce.data-product_price" });
@@ -469,6 +473,25 @@ function extractPlatformAdapter(html, platform) {
       const activeBlock = priceBlock.match(/<ins\b[^>]*>([\s\S]*?)<\/ins>/i)?.[1] || priceBlock.replace(/<del\b[^>]*>[\s\S]*?<\/del>/gi, " ");
       const amount = textPrice(activeBlock, "woocommerce.purchase_button.price");
       if (amount) candidates.push(amount);
+    }
+    if (distinctVariationPrices.length > 1) {
+      const variationCurrencies = [...new Set(variationCandidates.map((item) => item.currency).filter(Boolean))];
+      const minPriceCurrencies = [...new Set(candidates
+        .filter((item) => pricesEqual(item.price, distinctVariationPrices[0]))
+        .map((item) => item.currency).filter(Boolean))];
+      const currency = variationCurrencies.length === 1
+        ? variationCurrencies[0]
+        : minPriceCurrencies.length === 1 ? minPriceCurrencies[0] : null;
+      return {
+        status: "ambiguous", outcome: "variation_range",
+        reason: "woocommerce_multiple_current_variation_prices",
+        tier: 4, method: "woocommerce_variation_range", confidence: "high",
+        evidence: {
+          kind: "variation_range", min_price: distinctVariationPrices[0], max_price: distinctVariationPrices.at(-1), currency,
+          variation_count: variationCandidates.length, distinct_prices: distinctVariationPrices,
+          variation_ids: variationCandidates.map((item) => item.variation_id).filter((value) => value != null),
+        },
+      };
     }
     return chooseExact(candidates, "woocommerce_product_data", 4, "medium");
   }

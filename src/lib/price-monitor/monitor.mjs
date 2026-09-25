@@ -28,7 +28,7 @@ function baseResult(product) {
     http_status: null, final_url: product.product_url, detected_price: null, currency: null,
     regular_price: null, regular_price_currency: null, regular_price_method: null, regular_price_evidence: null,
     extraction_tier: null, extraction_method: null, detected_platform: "unknown", confidence: null,
-    status: "error", extraction_status: null, redirected: false, previous_offer_price: parsePrice(product.offer_price_amount),
+    status: "error", extraction_status: null, extraction_outcome: null, redirected: false, previous_offer_price: parsePrice(product.offer_price_amount),
     previous_offer_currency: normalizeCurrency(product.offer_price_currency), price_changed: null,
     previous_offer_status: String(product.offer_price_status?.value ?? product.offer_price_status ?? "unverified").trim() || "unverified",
     currency_mismatch: false, error_reason: null, evidence: null,
@@ -53,6 +53,7 @@ export async function monitorProduct(product, options = {}) {
       regular_price_method: extracted.regular_price_method ?? null,
       regular_price_evidence: extracted.regular_price_evidence ?? null,
       extraction_tier: extracted.tier ?? null, extraction_method: extracted.method ?? null,
+      extraction_outcome: extracted.outcome ?? null,
       confidence: extracted.confidence ?? null, evidence: { ...(extracted.evidence || {}), diagnostics: extracted.diagnostics || null },
       error_reason: extracted.reason ?? null,
     });

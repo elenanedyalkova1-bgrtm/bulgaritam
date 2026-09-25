@@ -124,7 +124,69 @@ test("recognized WooCommerce adapter reads variation data and rejects ranges", (
   const exact = extractPrice(`<html><form class="variations_form cart" data-product_variations="${decoded}"></form></html>`, { url, platform: "woocommerce" });
   assert.deepEqual([exact.price, exact.method, exact.confidence], [32, "woocommerce_product_data", "medium"]);
   const range = JSON.stringify([{ display_price: 32 }, { display_price: 36 }]).replace(/"/g, "&quot;");
-  assert.equal(extractPrice(`<form class="variations_form" data-product_variations="${range}"></form>`, { url, platform: "woocommerce" }).status, "ambiguous");
+  const rangeResult = extractPrice(`<form class="variations_form" data-product_variations="${range}"></form>`, { url, platform: "woocommerce" });
+  assert.equal(rangeResult.status, "ambiguous"); assert.equal(rangeResult.outcome, "variation_range");
+});
+
+test("CherryMe multi-price album variations produce an explicit range outcome without selecting the main price", async () => {
+  const variations = JSON.stringify([
+    { variation_id: 101, variation_is_active: true, is_purchasable: true, display_price: 53.99, display_regular_price: 53.99, currency: "EUR" },
+    { variation_id: 102, variation_is_active: true, is_purchasable: true, display_price: 57.99, display_regular_price: 57.99, currency: "EUR" },
+    { variation_id: 103, variation_is_active: true, is_purchasable: true, display_price: 62.99, display_regular_price: 62.99, currency: "EUR" },
+    { variation_id: 104, variation_is_active: true, is_purchasable: true, display_price: 67.99, display_regular_price: 67.99, currency: "EUR" },
+    { variation_id: 105, variation_is_active: true, is_purchasable: true, display_price: 71.99, display_regular_price: 71.99, currency: "EUR" },
+  ]).replace(/"/g, "&quot;");
+  const html = `<div id="product-10" class="product"><p class="price"><span class="woocommerce-Price-amount">53.99 €</span></p><form class="variations_form cart" data-product_variations="${variations}"></form></div>`;
+  const extracted = extractPrice(html, { url: "https://cherryme.bg/produkti/travel-album-greece/", platform: "woocommerce" });
+  assert.deepEqual([extracted.status, extracted.outcome, extracted.method, extracted.price], ["ambiguous", "variation_range", "woocommerce_variation_range", undefined]);
+  assert.deepEqual(extracted.evidence, { kind: "variation_range", min_price: 53.99, max_price: 71.99, currency: "EUR", variation_count: 5, distinct_prices: [53.99, 57.99, 62.99, 67.99, 71.99], variation_ids: [101, 102, 103, 104, 105] });
+  const monitored = await monitorProduct({ product_url: "https://cherryme.bg/produkti/travel-album-greece/", offer_price_amount: 53.99, offer_price_currency: "EUR" }, { page: page(200, html) });
+  assert.deepEqual([monitored.status, monitored.extraction_outcome, monitored.detected_price, monitored.extraction_method, monitored.error_reason], ["ambiguous", "variation_range", null, "woocommerce_variation_range", "woocommerce_multiple_current_variation_prices"]);
+});
+
+test("MOMVY single-pack and three-pack prices remain an explicit variation range", () => {
+  const variations = JSON.stringify([
+    { variation_id: 201, variation_is_active: true, is_purchasable: true, display_price: 24.99, display_regular_price: 24.99, currency: "EUR" },
+    { variation_id: 202, variation_is_active: true, is_purchasable: true, display_price: 74.97, display_regular_price: 74.97, currency: "EUR" },
+  ]).replace(/"/g, "&quot;");
+  const html = `<div id="product-20" class="product"><p class="price"><span class="woocommerce-Price-amount">24.99 €</span></p><form class="variations_form cart" data-product_variations="${variations}"></form></div>`;
+  const result = extractPrice(html, { url: "https://momvy.eu/product/energia/", platform: "woocommerce" });
+  assert.deepEqual([result.status, result.outcome, result.price, result.evidence.min_price, result.evidence.max_price, result.evidence.currency], ["ambiguous", "variation_range", undefined, 24.99, 74.97, "EUR"]);
+});
+
+test("Aurora Sleepwear purchasable size prices use the existing variation-range outcome", async () => {
+  const variations = JSON.stringify([
+    { variation_id: "single-bed", variation_is_active: true, is_purchasable: true, display_price: 40, display_regular_price: 40, currency: "EUR" },
+    { variation_id: "prista", variation_is_active: true, is_purchasable: true, display_price: 48, display_regular_price: 48, currency: "EUR" },
+    { variation_id: "double-bed", variation_is_active: true, is_purchasable: true, display_price: 58, display_regular_price: 58, currency: "EUR" },
+  ]).replace(/"/g, "&quot;");
+  const productUrl = "https://www.aurorasleepwear.bg/bg/products/354d633e-e778-4319-b319-11d6ce92a4cf";
+  const html = `<div id="product-aurora" class="product"><p class="price"><span class="woocommerce-Price-amount">58,00 EUR</span></p><form class="variations_form cart" data-product_variations="${variations}"></form></div>`;
+  const result = await monitorProduct(
+    { product_url: productUrl, offer_price_amount: 58, offer_price_currency: "EUR" },
+    { page: page(200, html), platform: "woocommerce" },
+  );
+
+  assert.deepEqual(
+    [result.status, result.extraction_outcome, result.detected_price, result.extraction_method, result.error_reason],
+    ["ambiguous", "variation_range", null, "woocommerce_variation_range", "woocommerce_multiple_current_variation_prices"],
+  );
+  assert.deepEqual(
+    [result.evidence.kind, result.evidence.min_price, result.evidence.max_price, result.evidence.currency, result.evidence.variation_count],
+    ["variation_range", 40, 58, "EUR", 3],
+  );
+  assert.deepEqual(result.evidence.distinct_prices, [40, 48, 58]);
+  assert.deepEqual(result.evidence.variation_ids, ["single-bed", "prista", "double-bed"]);
+});
+
+test("WooCommerce identical purchasable variation prices preserve exact single-price verification", async () => {
+  const variations = JSON.stringify([
+    { variation_id: 301, variation_is_active: true, is_purchasable: true, display_price: 49, display_regular_price: 49, currency: "EUR" },
+    { variation_id: 302, variation_is_active: true, is_purchasable: true, display_price: 49, display_regular_price: 49, currency: "EUR" },
+  ]).replace(/"/g, "&quot;");
+  const html = `<div id="product-30" class="product"><p class="price"><span class="woocommerce-Price-amount">49 EUR</span></p><form class="variations_form cart" data-product_variations="${variations}"></form></div>`;
+  const result = await monitorProduct({ product_url: url, offer_price_amount: 49, offer_price_currency: "EUR" }, { page: page(200, html) });
+  assert.deepEqual([result.status, result.detected_price, result.currency, result.extraction_method, result.extraction_outcome], ["verified", 49, "EUR", "woocommerce_product_data", null]);
 });
 
 test("Tier 2 product meta can resolve ambiguous duplicate Product JSON-LD", () => {

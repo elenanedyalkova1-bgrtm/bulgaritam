@@ -1,0 +1,62 @@
+---
+import AdminLayout from "../layouts/AdminLayout.astro";
+import { filterAndSortPriceHealthRows, normalizePriceHealthRow, priceHealthOverview, PRICE_HEALTH_STATUSES } from "../lib/price-health";
+import { getProductFieldSchema, listBrands, listProducts } from "../lib/repositories";
+
+const staleDays = Math.max(1, Number(import.meta.env.PRICE_MONITOR_STALE_DAYS || 7) || 7);
+let error = ""; let products: any[] = []; let brands: any[] = []; let schema: any[] = [];
+try { [products, brands, schema] = await Promise.all([listProducts(), listBrands(), getProductFieldSchema()]); }
+catch (cause) { error = cause instanceof Error ? cause.message : "Price Health data could not be loaded."; }
+const brandMap = new Map(brands.map((brand) => [Number(brand.id), brand]));
+const rows = products.filter((product) => product.name_bg && product.product_url).map((product) => normalizePriceHealthRow(product, brandMap.get(Number(product.brand_ref?.[0]?.id))));
+const overview = priceHealthOverview(rows, { staleDays });
+const status = Astro.url.searchParams.get("status") || "all";
+const brandId = Number(Astro.url.searchParams.get("brand") || 0);
+const confidence = Astro.url.searchParams.get("confidence") || "all";
+const checked = Astro.url.searchParams.get("checked") || "all";
+const sort = Astro.url.searchParams.get("sort") || "recent_change";
+const visibleRows = filterAndSortPriceHealthRows(rows, { status, brandId, confidence, checked, sort, staleDays });
+const requiredFields = ["price_last_checked_at","price_check_status","price_detected_amount","price_detected_currency","price_extraction_method","price_confidence","price_change_detected"];
+const missingFields = requiredFields.filter((name) => !schema.some((field) => field.name === name));
+const money = (amount: number | null, currency: string | null) => amount == null ? "—" : `${new Intl.NumberFormat("bg-BG", { maximumFractionDigits: 4 }).format(amount)} ${currency || ""}`.trim();
+const date = (value: string | null) => value ? new Date(value).toLocaleString("bg-BG") : "Никога";
+const labels: Record<string, string> = { verified:"Verified/current",changed:"Changed",ambiguous:"Needs review",not_detected:"Not detected",blocked:"Blocked",dead_url:"Dead URL",redirected:"Redirected",browser_required:"Browser required",error:"Error",unmonitored:"Not monitored" };
+---
+<AdminLayout title="Price Health" active="price-health">
+  <header class="head"><div><h1>Price Health</h1><p class="muted">Read-only monitoring overview. Public and verified prices are never changed from this screen.</p></div></header>
+  {error && <div class="error">{error}</div>}
+  {missingFields.length > 0 && <div class="notice warning"><strong>Migration required.</strong> Missing Products fields: {missingFields.join(", ")}. Run the approved Price Monitor schema migration before monitoring data can appear.</div>}
+  <section class="cards health-cards">
+    <div class="metric">Total monitored<b>{overview.totalMonitored}</b></div><div class="metric">Verified/current<b>{overview.verified}</b></div>
+    <div class="metric">Changed<b>{overview.changed}</b></div><div class="metric">Needs review / ambiguous<b>{overview.needsReview}</b></div>
+    <div class="metric">Not detected<b>{overview.notDetected}</b></div><div class="metric">Blocked<b>{overview.blocked}</b></div>
+    <div class="metric">Dead URLs<b>{overview.deadUrls}</b></div><div class="metric">Redirected<b>{overview.redirected}</b></div>
+    <div class="metric">Not checked recently<b>{overview.notCheckedRecently}</b><span class="hint">По-стари от {staleDays} дни</span></div>
+  </section>
+
+  <form class="panel filters" method="get">
+    <select name="status"><option value="all">All statuses</option>{[...PRICE_HEALTH_STATUSES,"unmonitored"].map((value) => <option value={value} selected={status===value}>{labels[value]}</option>)}</select>
+    <select name="brand"><option value="">All Brands</option>{brands.filter((brand) => brand.brand_name).sort((a,b)=>String(a.brand_name).localeCompare(String(b.brand_name),"bg")).map((brand)=><option value={brand.id} selected={Number(brand.id)===brandId}>{brand.brand_name}</option>)}</select>
+    <select name="confidence"><option value="all">All confidence</option>{["high","medium","low"].map((value)=><option value={value} selected={confidence===value}>{value}</option>)}</select>
+    <select name="checked"><option value="all">Any last check</option><option value="24h" selected={checked==="24h"}>Last 24 hours</option><option value="7d" selected={checked==="7d"}>Last 7 days</option><option value="30d" selected={checked==="30d"}>Last 30 days</option><option value="stale" selected={checked==="stale"}>Not checked recently</option><option value="never" selected={checked==="never"}>Never checked</option></select>
+    <select name="sort"><option value="recent_change" selected={sort==="recent_change"}>Most recent change</option><option value="oldest_verification" selected={sort==="oldest_verification"}>Oldest verification</option><option value="largest_difference" selected={sort==="largest_difference"}>Largest price difference</option></select>
+    <button>Filter</button><a class="btn secondary" href="/price-health/">Clear</a>
+  </form>
+
+  <section class="panel table-wrap">
+    <div class="table-summary"><strong>{visibleRows.length}</strong> products <span class="muted">· {overview.neverChecked} never checked</span></div>
+    <table><thead><tr><th>Product</th><th>Brand</th><th>Bulgaritam offer</th><th>Detected source</th><th>Difference</th><th>Status</th><th>Confidence</th><th>Method</th><th>Last checked</th><th>External URL</th></tr></thead>
+      <tbody>{visibleRows.map((row) => <tr class={row.status === "changed" ? "changed-row" : ""}>
+        <td><a class="row-link" href={`/products/${row.id}/`}>{row.product}</a>{row.status === "changed" && <div class="change-detail"><span>OLD: <b>{money(row.currentOfferPrice,row.currentOfferCurrency)}</b></span><span>DETECTED: <b>{money(row.detectedPrice,row.detectedCurrency)}</b></span><span>CHECKED: <b>{date(row.lastChecked)}</b></span><span>CONFIDENCE: <b>{row.confidence || "—"}</b></span></div>}</td>
+        <td>{row.brand}</td><td>{money(row.currentOfferPrice,row.currentOfferCurrency)}</td><td>{money(row.detectedPrice,row.detectedCurrency)}</td>
+        <td class={row.difference != null && row.difference !== 0 ? "difference" : ""}>{row.difference == null ? "—" : `${row.difference > 0 ? "+" : ""}${money(row.difference,row.detectedCurrency)}`}</td>
+        <td><span class={`status price-status ${row.status}`}>{labels[row.status]}</span>{row.currencyMatches === false && <div class="hint">Currency mismatch</div>}</td>
+        <td>{row.confidence || "—"}</td><td><code>{row.extractionMethod || "—"}</code></td><td>{date(row.lastChecked)}</td>
+        <td><a href={row.productUrl} target="_blank" rel="noreferrer">Source ↗</a>{row.status === "changed" && <div class="hint">SOURCE: external product URL</div>}</td>
+      </tr>)}</tbody></table>
+    {!visibleRows.length && <div class="empty">No Products match these filters.</div>}
+  </section>
+</AdminLayout>
+<style>
+  .health-cards{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:20px}.metric .hint{display:block;margin-top:5px}.table-summary{margin-bottom:12px}.changed-row{background:#fffaf0}.change-detail{display:grid;gap:3px;margin-top:9px;padding:9px;border-left:3px solid #bd7a18;background:#fff;font-size:12px}.difference{font-weight:700;color:#9c3838}.price-status.changed,.price-status.dead_url{background:#fbe9e7;color:#842b27}.price-status.ambiguous,.price-status.not_detected{background:#fff2c9;color:#72530b}.price-status.blocked,.price-status.error{background:#eeeae5;color:#5d5750}.price-status.redirected,.price-status.browser_required{background:#e8edf8;color:#344f7c}code{white-space:nowrap;font-size:12px}@media(max-width:1100px){.health-cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.health-cards{grid-template-columns:repeat(2,1fr)}}
+</style>

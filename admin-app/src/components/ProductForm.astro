@@ -42,10 +42,12 @@ const recommendedParts = guidance?.recommended.split("→").map((part) => part.t
 const missingRecommendedSubcategory = recommendedParts[1] && !subcategoryOptions.some((value: string) => value.trim().toLocaleLowerCase("bg") === recommendedParts[1].toLocaleLowerCase("bg")) ? recommendedParts[1] : "";
 const missingRecommendedType = recommendedParts[2] && !productTypeOptions.some((value: string) => value.trim().toLocaleLowerCase("bg") === recommendedParts[2].toLocaleLowerCase("bg")) ? recommendedParts[2] : "";
 const siteOrigin = (import.meta.env.SITE_ORIGIN || "https://bulgaritam.bg").replace(/\/$/, "");
+const exactPriceValue = product.offer_price_amount ?? "";
+const exactPriceVerifiedAt = product.offer_price_verified_at || "";
 ---
 {error && <div class="error">{error}</div>}
 <form method="post" class="panel form-grid">
-  <input type="hidden" name="csrf" value={csrf}/><input type="hidden" name="_action" value="save"/>
+  <input type="hidden" name="csrf" value={csrf}/>
   <label>Brand<select name="brand_ref"><option value="">Create/link from identity below</option>{brands.filter((b) => b.brand_name && b.brand_slug).map((b) => <option value={b.id} selected={b.id === linkedBrandId}>{b.brand_name}{b.is_active ? "" : " (hidden)"}</option>)}</select></label>
   <fieldset class="span-2"><legend>New Brand identity (only when no Brand is selected)</legend><div class="form-grid"><label>Name<input name="new_brand_name" /></label><label>Slug<input name="new_brand_slug" /></label><label class="span-2">Website<input type="url" name="new_brand_url" /></label></div></fieldset>
   <label class="check"><input type="checkbox" name="is_active" value="true" checked={active}/> Published</label>
@@ -63,8 +65,14 @@ const siteOrigin = (import.meta.env.SITE_ORIGIN || "https://bulgaritam.bg").repl
   {colorOptions.length > 0 && <fieldset><legend>Colors</legend>{colorOptions.map((value: string) => <label class="check"><input type="checkbox" name="colors" value={value} checked={selectedColors.has(value)}/>{value}</label>)}</fieldset>}
   {materialOptions.length > 0 && <fieldset><legend>Materials</legend>{materialOptions.map((value: string) => <label class="check"><input type="checkbox" name="materials" value={value} checked={selectedMaterials.has(value)}/>{value}</label>)}</fieldset>}
   {fields.map(({name,label,type,required}) => type === "textarea" ? <label class="span-2">{label}<textarea name={name} required={required}>{product[name] || ""}</textarea></label> : <label>{label}<input type={type} name={name} value={product[name] || (name === "currency" ? "EUR" : "")} required={required}/></label>)}
+  <fieldset class="span-2"><legend>Точна текуща цена</legend><div class="form-grid">
+    <label>Цена при бранда<input type="number" min="0.0001" step="0.0001" name="catalog_exact_price" value={exactPriceValue}/></label>
+    <div><strong>Валута</strong><p class="hint">{product.currency || "EUR"} — използва се продуктовата валута</p></div>
+    <div class="span-2"><strong>Provenance</strong><p class="hint">Официалният Product URL и текущият момент се записват автоматично. {exactPriceVerifiedAt ? `Последно потвърдена: ${new Intl.DateTimeFormat("bg-BG", { dateStyle: "medium", timeStyle: "short" }).format(new Date(exactPriceVerifiedAt))}.` : "Все още няма authoritative exact price."}</p></div>
+  </div><p class="hint">Нова или променена цена се приема като изрично човешко потвърждение при Save. Несвързана редакция не подновява timestamp-а.</p>
+  {!isNew && <button type="submit" name="_action" value="confirm-price" class="secondary">Потвърди текущата цена</button>}</fieldset>
   {!isNew && <div class="span-2 panel warning"><strong>System-managed compatibility fields</strong><p class="hint">Legacy ID: {product["id 2"] || "—"}. Brand name, slug, URL, introduction and address are refreshed from the selected Brands row when this Product is saved. Brand editing always uses the Brands table.</p></div>}
-  <div class="span-2 actions"><button type="submit">{isNew ? "Create Product" : "Save Product"}</button>{!isNew && <a class="btn secondary" href={`${siteOrigin}/p/${product.slug}/`} target="_blank">Preview public page ↗</a>}</div>
+  <div class="span-2 actions"><button type="submit" name="_action" value="save">{isNew ? "Create Product" : "Save Product"}</button>{!isNew && <a class="btn secondary" href={`${siteOrigin}/p/${product.slug}/`} target="_blank">Preview public page ↗</a>}</div>
 </form>
 <script define:vars={{ csrf }}>
   document.querySelectorAll('.taxonomy-add').forEach((button) => button.addEventListener('click', async () => {

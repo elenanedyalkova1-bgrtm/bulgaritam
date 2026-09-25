@@ -17,6 +17,8 @@
     "analytics:audit": "tsx scripts/audit-analytics-migration.ts",
     "analytics:verify": "tsx scripts/verify-baserow-supabase-analytics-parity.ts",
     "test:brand-applications": "tsx tests/brand-applications.test.ts",
+    "test:price-health": "tsx tests/price-health.test.ts",
+    "test:catalog-prices": "node --import ./node_modules/tsx/dist/loader.mjs --test tests/catalog-price-import.test.ts",
     "sync:product-brands": "tsx scripts/sync-product-brands.ts",
     "preview": "astro preview"
   },

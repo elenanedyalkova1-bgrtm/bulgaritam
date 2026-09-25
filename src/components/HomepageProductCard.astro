@@ -1,4 +1,5 @@
 ---
+import { resolvePublishableOffer, formatVerifiedOfferAmount } from "../lib/verified-offer";
 import type { Product } from "../lib/products";
 import { buildSearchDocument } from "../lib/search";
 import { getCategoryLabelForLang, getTaxonomyForProduct } from "../lib/taxonomy";
@@ -13,7 +14,8 @@ const { isBio, isEco, isHandmade, isGift } = getProductBadges(p);
 const shouldEagerLoad = index < 4;
 const categoryLabelBg = taxonomy.categoryLabel;
 const categoryLabelEn = getCategoryLabelForLang(taxonomy.categoryKey, "en");
-const price = p.price_min_eur != null && p.price_max_eur != null
+const offer = resolvePublishableOffer(p, new Date(), { visible: true });
+const price = offer ? formatVerifiedOfferAmount(offer) : p.price_min_eur != null && p.price_max_eur != null
   ? `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`
   : p.price_min_eur != null ? `${p.price_min_eur}+ ${p.currency}` : "";
 ---

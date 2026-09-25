@@ -1,6 +1,7 @@
 import { BRANDS_TABLE, PRODUCTS_TABLE, createRow, getRow, listFields, listRows, updateRow } from "./baserow";
 import { STRUCTURED_FACET_OPTIONS, structuredCategoryForSubcategory } from "./product-taxonomy";
 import { brandMirrorFields, resolveOrCreateBrand } from "./brand-sync";
+import { buildCatalogPriceMutation, type CatalogPriceAction } from "../../../src/lib/verified-offer";
 
 export const productFields = ["name_bg","slug","category","subcategory","product_type","tags","price_min_eur","price_max_eur","currency","short_desc_bg","long_desc_bg","product_url","image_urls","created_at","meta_title_bg","meta_desc_bg","rating"] as const;
 export const brandFields = ["brand_name","brand_slug","brand_url","description_bg","instagram_url","logo_url","address"] as const;
@@ -47,6 +48,14 @@ export async function saveProduct(form: FormData, rowId?: number) {
     ...brandMirrorFields(brand),
     is_active: form.get("is_active") === "true" ? "true" : "false",
   };
+  const action = (text(form.get("_action")) || "save") as "save" | "confirm-price";
+  if (!["save", "confirm-price"].includes(action)) throw new Error("Unknown Product action.");
+  const currentProduct = rowId ? products.find((row) => row.id === rowId) || await findProduct(rowId) : {};
+  Object.assign(fields, buildCatalogPriceMutation(
+    { ...currentProduct, product_url: values.product_url, currency: values.currency },
+    { exact_price: form.get("catalog_exact_price"), currency: values.currency },
+    (action === "confirm-price" ? "confirm" : "save") as CatalogPriceAction,
+  ));
   const structuredValue = (fieldName: string, submitted: string[]) => {
     const field = schema.find((item: any) => item.name === fieldName);
     if (!field) throw new Error(`Baserow field ${fieldName} is missing.`);

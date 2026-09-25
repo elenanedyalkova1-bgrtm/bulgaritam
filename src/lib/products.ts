@@ -43,6 +43,16 @@ export type Product = {
   price_min_eur: number | null;
   price_max_eur: number | null;
   currency: string;
+  offer_price_amount: number | null;
+  offer_price_currency: string;
+  offer_price_verified_at: string;
+  offer_price_source: string;
+  offer_price_source_url: string;
+  offer_price_status: string;
+  manual_price_amount: number | null;
+  manual_price_currency: string;
+  manual_price_verified_at: string;
+  manual_price_source_url: string;
 
   short_desc_bg: string;
   long_desc_bg: string;
@@ -160,6 +170,16 @@ type BaserowRow = {
   price_min_eur?: string;
   price_max_eur?: string;
   currency?: string;
+  offer_price_amount?: string;
+  offer_price_currency?: string;
+  offer_price_verified_at?: string;
+  offer_price_source?: { value?: string } | string;
+  offer_price_source_url?: string;
+  offer_price_status?: { value?: string } | string;
+  manual_price_amount?: string;
+  manual_price_currency?: string;
+  manual_price_verified_at?: string;
+  manual_price_source_url?: string;
   short_desc_bg?: string;
   long_desc_bg?: string;
   product_url?: string;
@@ -258,6 +278,16 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
     price_min_eur: toNum(row.price_min_eur),
     price_max_eur: toNum(row.price_max_eur),
     currency: norm(row.currency) || "EUR",
+    offer_price_amount: toNum(row.offer_price_amount),
+    offer_price_currency: norm(row.offer_price_currency).toUpperCase(),
+    offer_price_verified_at: norm(row.offer_price_verified_at),
+    offer_price_source: selectValue(row.offer_price_source),
+    offer_price_source_url: norm(row.offer_price_source_url),
+    offer_price_status: selectValue(row.offer_price_status) || "unverified",
+    manual_price_amount: toNum(row.manual_price_amount),
+    manual_price_currency: norm(row.manual_price_currency).toUpperCase(),
+    manual_price_verified_at: norm(row.manual_price_verified_at),
+    manual_price_source_url: norm(row.manual_price_source_url),
 
     short_desc_bg: norm(row.short_desc_bg),
     long_desc_bg: norm(row.long_desc_bg),

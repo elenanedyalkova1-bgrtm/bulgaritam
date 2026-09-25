@@ -5,6 +5,7 @@ import { getProductBadges } from "../../lib/product-badges";
 import { getCategoryKey, getCategoryLanding, getCanonicalPathForLanding, getDisplayCategoryForProduct, getRelevantLandingsForProduct } from "../../lib/seo-landings";
 import { getTaxonomyForProduct } from "../../lib/taxonomy";
 import { loadProducts } from "../../lib/products";
+import { formatVerifiedOfferAmount, resolvePublishableOffer } from "../../lib/verified-offer";
 
 /** Helpers */
 const clean = (v) => (v == null ? "" : String(v).trim());
@@ -52,6 +53,9 @@ const priceText =
     : product.price_min_eur !== null
       ? `${product.price_min_eur}+ ${product.currency}`
       : "";
+const verifiedOffer = resolvePublishableOffer(product, new Date(), { visible: true });
+const verifiedOfferText = verifiedOffer ? formatVerifiedOfferAmount(verifiedOffer) : "";
+const verifiedOfferDate = verifiedOffer ? new Intl.DateTimeFormat("bg-BG", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(verifiedOffer.verifiedAt)) : "";
 
 // Breadcrumbs
 const categoryLanding = getCategoryLanding(getCategoryKey(product.category));
@@ -95,12 +99,15 @@ const related = all
   .slice(0, 4)
   .map((x) => x.p);
 
-const relatedPrice = (p) =>
-  p.price_min_eur !== null && p.price_max_eur !== null
+const relatedPrice = (p) => {
+  const offer = resolvePublishableOffer(p, new Date(), { visible: true });
+  if (offer) return formatVerifiedOfferAmount(offer);
+  return p.price_min_eur !== null && p.price_max_eur !== null
     ? `${p.price_min_eur}–${p.price_max_eur} ${p.currency}`
     : p.price_min_eur !== null
       ? `${p.price_min_eur}+ ${p.currency}`
       : "";
+};
 
 const metaDescriptionOverrides = {
   cheresha: "Натурален черешов ликьор „Череша“ от 2 Лета, 25% алк. и 500 мл, приготвен чрез мацерация на пресни череши в черешов дестилат.",
@@ -120,12 +127,8 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
   description: product.short_desc_bg || product.long_desc_bg,
   image: product.image_urls?.[0],
   category: productCategoryLabel,
-  productUrl: product.product_url,
   brandUrl: product.website_url || product.brand_url,
-  currency: product.currency,
-  exactPrice: product.price_min_eur !== null && product.price_min_eur === product.price_max_eur
-    ? product.price_min_eur
-    : null,
+  verifiedOffer,
   breadcrumbs: breadcrumbs.map((entry) => ({ name: entry.label, item: entry.href }))
 } }} i18n={{
   en: {
@@ -243,7 +246,14 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
               <span class="meta-value">{productCategoryLabel}</span>
             </div>
 
-            {priceText ? (
+            {verifiedOffer ? (
+              <div class="meta-item meta-item--price verified-offer" data-verified-offer data-verified-offer-status="verified_current" data-verified-offer-source={verifiedOffer.source}>
+                <span class="meta-label">Цена при бранда</span>
+                <span class="price" data-verified-offer-price>{verifiedOfferText}</span>
+                <span class="verified-offer__checked">Проверена на <time datetime={verifiedOffer.verifiedAt}>{verifiedOfferDate}</time></span>
+                <span class="verified-offer__note">Крайната цена и наличността се потвърждават на сайта на бранда.</span>
+              </div>
+            ) : priceText ? (
               <div class="meta-item meta-item--price">
                 <span class="meta-label" data-i18n="product.price">Цена</span>
                 <span class="price">{priceText}</span>
@@ -277,7 +287,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
           </div>
 
           <a
-            href={product.product_url}
+            href={verifiedOffer?.sourceUrl || product.product_url}
             target="_blank"
             rel="noopener noreferrer"
             class="btn"
@@ -289,7 +299,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
             data-brand-slug={product.brand_slug ?? ""}
             data-brand-id={product.brand_id ?? ""}
             data-brand-name={product.brand_name ?? ""}
-            data-product-url={product.product_url ?? ""}
+            data-product-url={verifiedOffer?.sourceUrl || product.product_url || ""}
           >
             Виж на сайта на бранда →
           </a>
@@ -709,6 +719,13 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       font-size: 24px;
       font-weight: 800;
       color: var(--accent);
+    }
+
+    .verified-offer__checked,
+    .verified-offer__note {
+      color: rgba(26, 26, 26, 0.62);
+      font-size: 13px;
+      line-height: 1.45;
     }
 
     .desc {

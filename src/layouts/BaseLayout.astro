@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { offerJsonLd } from "../lib/verified-offer";
 const SITE_URL = (
   (import.meta.env.PUBLIC_SITE_URL && String(import.meta.env.PUBLIC_SITE_URL).trim()) ||
   (Astro.site ? String(Astro.site) : "") ||
@@ -240,11 +241,7 @@ if (breadcrumbItems.length > 1) {
 if (seoType === "product" && seoData.productName) {
   const productImage = normalizeUrl(seoData.image);
   const brandName = normalizeText(seoData.brandName);
-  const productUrl = normalizeUrl(seoData.productUrl);
-  const brandUrl = normalizeUrl(seoData.brandUrl);
-  const exactPrice = Number(seoData.exactPrice);
-  const priceCurrency = normalizeText(seoData.currency).toUpperCase();
-  const hasTrustworthyOffer = productUrl && Number.isFinite(exactPrice) && exactPrice > 0 && /^[A-Z]{3}$/.test(priceCurrency);
+  const verifiedOffer = seoData.verifiedOffer || null;
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -254,17 +251,7 @@ if (seoType === "product" && seoData.productName) {
     image: productImage ? [productImage] : undefined,
     brand: brandName ? { "@type": "Brand", name: brandName } : undefined,
     category: normalizeText(seoData.category) || undefined,
-    offers: hasTrustworthyOffer ? {
-      "@type": "Offer",
-      url: productUrl,
-      price: exactPrice,
-      priceCurrency,
-      seller: brandName ? {
-        "@type": "Organization",
-        name: brandName,
-        url: brandUrl || undefined,
-      } : undefined,
-    } : undefined,
+    offers: verifiedOffer ? offerJsonLd(verifiedOffer) : undefined,
   };
 
   structuredData.push(productSchema);

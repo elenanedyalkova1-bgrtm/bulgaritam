@@ -1,4 +1,5 @@
 import { isReliableDetectedObservation, PRICE_HISTORY_HEADERS } from "./google-sheets-history.mjs";
+import { classifyPromotionSemantics, promotionConsumerEligible } from "./promotion-semantics.mjs";
 
 const text = (value) => String(value ?? "").trim();
 const finite = (value) => {
@@ -15,9 +16,10 @@ const samePrice = (a, b) => a != null && b != null && Math.abs(a - b) < 0.000001
 const rounded = (value) => Number.isFinite(value) ? Math.round(value * 10_000) / 10_000 : null;
 
 function observation(raw) {
-  return Array.isArray(raw)
+  const row = Array.isArray(raw)
     ? Object.fromEntries(PRICE_HISTORY_HEADERS.map((header, index) => [header, raw[index] ?? ""]))
     : raw;
+  return { ...row, entity_type: text(row.entity_type) || "catalog_product", entity_id: text(row.entity_id) || text(row.product_id) };
 }
 
 function evaluationWindow(options = {}) {
@@ -69,7 +71,7 @@ function priceDrop(reliable, latestIndex, current, currentCurrency) {
 
 export function evaluateProductDiscount(rawObservations, options = {}) {
   const window = evaluationWindow(options);
-  const rows = rawObservations.map(observation).filter((row) => text(row.product_id));
+  const rows = rawObservations.map(observation).filter((row) => text(row.entity_id));
   if (!rows.length) return null;
   const reliable = rows
     .filter(isReliableDetectedObservation)
@@ -78,8 +80,9 @@ export function evaluateProductDiscount(rawObservations, options = {}) {
   if (!reliable.length) {
     const latest = rows.slice().sort((a, b) => (time(b.checked_at) ?? -Infinity) - (time(a.checked_at) ?? -Infinity))[0];
     return {
-      product_id: text(latest.product_id), product_name: text(latest.product_name), brand: text(latest.brand), product_url: text(latest.product_url),
+      entity_type: latest.entity_type, entity_id: latest.entity_id, product_id: text(latest.product_id), product_name: text(latest.product_name), brand: text(latest.brand), product_url: text(latest.product_url),
       active_sale: false, verified_price_drop: false, weekly_discount_eligible: false,
+      promotion_confidence: "UNKNOWN", promotion_consumer_eligible: false,
       current_price: null, regular_price: null, previous_price: null, currency: null,
       discount_amount: null, discount_percent: null, price_drop_amount: null, price_drop_percent: null,
       latest_checked_at: null, last_verified_at: null, drop_first_seen_at: null,
@@ -93,14 +96,24 @@ export function evaluateProductDiscount(rawObservations, options = {}) {
   const drop = priceDrop(reliable, latestIndex, current, currentCurrency);
   const checkedAt = text(latest.checked_at); const checkedTime = time(checkedAt);
   const withinWindow = checkedTime >= window.start && checkedTime < window.end;
+  const promotionConfidence = classifyPromotionSemantics({
+    activeSale: Boolean(sale), verifiedPriceDrop: Boolean(drop),
+    regularPriceMethod: sale ? latest.regular_price_method : null,
+    regularPriceEvidence: sale ? latest.regular_price_evidence : null,
+  });
+  const consumerEligible = promotionConsumerEligible(promotionConfidence);
+  const comparisonPrice = sale?.regular ?? drop?.previous ?? null;
+  const discountAmount = comparisonPrice != null ? rounded(comparisonPrice - current) : null;
+  const discountPercent = comparisonPrice != null ? rounded(((comparisonPrice - current) / comparisonPrice) * 100) : null;
 
   return {
-    product_id: text(latest.product_id), product_name: text(latest.product_name), brand: text(latest.brand), product_url: text(latest.product_url),
-    active_sale: Boolean(sale), verified_price_drop: Boolean(drop), weekly_discount_eligible: Boolean(sale && withinWindow),
-    current_price: current, regular_price: sale?.regular ?? null, previous_price: drop?.previous ?? null,
+    entity_type: latest.entity_type, entity_id: latest.entity_id, product_id: text(latest.product_id), product_name: text(latest.product_name), brand: text(latest.brand), product_url: text(latest.product_url),
+    active_sale: Boolean(sale), verified_price_drop: Boolean(drop), weekly_discount_eligible: Boolean(consumerEligible && withinWindow),
+    promotion_confidence: promotionConfidence, promotion_consumer_eligible: consumerEligible,
+    current_price: current, regular_price: comparisonPrice, previous_price: drop?.previous ?? null,
     currency: currentCurrency || null,
-    discount_amount: sale ? rounded(sale.regular - sale.current) : null,
-    discount_percent: sale ? rounded(((sale.regular - sale.current) / sale.regular) * 100) : null,
+    discount_amount: discountAmount,
+    discount_percent: discountPercent,
     price_drop_amount: drop?.amount ?? null, price_drop_percent: drop?.percent ?? null,
     latest_checked_at: checkedAt || null, last_verified_at: checkedAt || null, drop_first_seen_at: drop?.firstSeenAt ?? null,
     confidence: text(latest.confidence) || null, extraction_method: text(latest.extraction_method) || null,
@@ -113,7 +126,7 @@ export function evaluateDiscounts(rawObservations, options = {}) {
   evaluationWindow(options);
   const groups = new Map();
   for (const raw of rawObservations) {
-    const row = observation(raw); const id = text(row.product_id);
+    const row = observation(raw); const id = `${row.entity_type}|${row.entity_id}`;
     if (!id) continue;
     if (!groups.has(id)) groups.set(id, []);
     groups.get(id).push(row);

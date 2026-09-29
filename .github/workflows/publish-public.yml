@@ -63,6 +63,9 @@ jobs:
           GOOGLE_PRICE_MONITOR_SPREADSHEET_ID: ${{ vars.GOOGLE_PRICE_MONITOR_SPREADSHEET_ID }}
           GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
           GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          BASEROW_OBSERVED_PRODUCTS_TABLE_ID: 1229183
+          PHASE3_EXTERNAL_DEALS_LOCAL: true
+          PUBLIC_DYNAMIC_DEALS_ENDPOINT: https://admin.bulgaritam.bg/api/consumer-deals/
           PUBLIC_ANALYTICS_ENDPOINT: https://admin.bulgaritam.bg/api/events/
           PRODUCT_HEALTH_REPORT_PATH: /tmp/product-health-report.json
 

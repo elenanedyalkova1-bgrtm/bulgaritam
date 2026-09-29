@@ -12,10 +12,11 @@ const row = (overrides = {}) => ({
 });
 
 test("A latest explicit pair is an active sale and weekly eligible", () => {
-  const result = evaluateProductDiscount([row({ regular_price: 59, regular_price_currency: "EUR", regular_price_method: "json_ld_list_price", regular_price_evidence: '{"path":"offer.list"}' })], window);
+  const result = evaluateProductDiscount([row({ regular_price: 59, regular_price_currency: "EUR", regular_price_method: "json_ld_list_price", regular_price_evidence: '{"path":"offer.list","price_type":"https://schema.org/ListPrice"}' })], window);
   assert.equal(result.active_sale, true); assert.equal(result.weekly_discount_eligible, true);
   assert.deepEqual([result.current_price, result.regular_price, result.discount_amount], [49, 59, 10]);
   assert.ok(Math.abs(result.discount_percent - 16.9492) < 0.0001);
+  assert.equal(result.promotion_confidence, "EXPLICIT_SALE");
 });
 
 test("B later reliable return to regular price ends active sale", () => {
@@ -34,13 +35,37 @@ test("C same current price without a fresh explicit pair ends active sale", () =
   assert.equal(result.active_sale, false); assert.equal(result.weekly_discount_eligible, false);
 });
 
-test("D historical reliable 59 to latest 49 is a price drop but not an active sale", () => {
+test("D historical reliable 59 to latest 49 is an eligible verified price drop", () => {
   const result = evaluateProductDiscount([
     row({ checked_at: "2026-09-10T10:00:00Z", detected_price: 59, previous_verified_price: 59 }),
     row({ checked_at: "2026-09-25T10:00:00Z", detected_price: 49, previous_verified_price: 59, difference: -10, status: "changed" }),
   ], window);
-  assert.equal(result.verified_price_drop, true); assert.equal(result.active_sale, false); assert.equal(result.weekly_discount_eligible, false);
-  assert.deepEqual([result.previous_price, result.price_drop_amount], [59, 10]);
+  assert.equal(result.verified_price_drop, true); assert.equal(result.active_sale, false); assert.equal(result.weekly_discount_eligible, true);
+  assert.equal(result.promotion_confidence, "VERIFIED_PRICE_DROP");
+  assert.deepEqual([result.regular_price, result.previous_price, result.price_drop_amount], [59, 59, 10]);
+});
+
+test("reference-value evidence is classified and fails consumer eligibility closed", () => {
+  const result = evaluateProductDiscount([row({ regular_price: 79, regular_price_currency: "EUR", regular_price_method: "json_ld_list_price", regular_price_evidence: '{"price_type":"BundleValue","relationship":"combined component value"}' })], window);
+  assert.equal(result.active_sale, true);
+  assert.equal(result.promotion_confidence, "REFERENCE_VALUE_SAVING");
+  assert.equal(result.promotion_consumer_eligible, false);
+  assert.equal(result.weekly_discount_eligible, false);
+});
+
+test("unproven regular pair is UNKNOWN and fails closed", () => {
+  const result = evaluateProductDiscount([row({ regular_price: 59, regular_price_currency: "EUR", regular_price_method: "generic_pair", regular_price_evidence: "" })], window);
+  assert.equal(result.promotion_confidence, "UNKNOWN");
+  assert.equal(result.weekly_discount_eligible, false);
+});
+
+test("verified history outranks reference-value signals", () => {
+  const result = evaluateProductDiscount([
+    row({ checked_at: "2026-09-10T10:00:00Z", detected_price: 79 }),
+    row({ detected_price: 49, regular_price: 79, regular_price_currency: "EUR", regular_price_method: "reference_value", regular_price_evidence: "combined value" }),
+  ], window);
+  assert.equal(result.promotion_confidence, "VERIFIED_PRICE_DROP");
+  assert.equal(result.weekly_discount_eligible, true);
 });
 
 test("E regular price not higher than current is not an active sale", () => {

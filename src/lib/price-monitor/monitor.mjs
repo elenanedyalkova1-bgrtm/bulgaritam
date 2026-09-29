@@ -1,6 +1,8 @@
 import { extractPrice } from "./extract.mjs";
 import { detectPlatform } from "./platform.mjs";
 import { normalizeCurrency, parsePrice, pricesEqual } from "./normalize.mjs";
+import { extractProductMetadata } from "./product-metadata.mjs";
+import { entityIdentity } from "./entity-identity.mjs";
 
 const DEFAULT_HEADERS = {
   Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
@@ -18,7 +20,9 @@ export async function fetchProductPage(url, { fetchImpl = fetch, timeoutMs = 15_
 }
 
 function baseResult(product) {
+  const identity = entityIdentity(product);
   return {
+    ...identity,
     product_id: product.product_id ?? product.id ?? null,
     product_slug: product.product_slug ?? product.slug ?? null,
     product_name: product.product_name ?? product.name_bg ?? product.name ?? null,
@@ -32,6 +36,7 @@ function baseResult(product) {
     previous_offer_currency: normalizeCurrency(product.offer_price_currency), price_changed: null,
     previous_offer_status: String(product.offer_price_status?.value ?? product.offer_price_status ?? "unverified").trim() || "unverified",
     currency_mismatch: false, error_reason: null, evidence: null,
+    title: null, image_url: null, canonical_url: null, availability: null, sku: null, external_product_id: null, metadata_method: null,
   };
 }
 
@@ -46,7 +51,9 @@ export async function monitorProduct(product, options = {}) {
     if ([401, 403, 429].includes(page.httpStatus)) return { ...result, status: "blocked", error_reason: `http_${page.httpStatus}` };
     if (page.httpStatus < 200 || page.httpStatus >= 400) return { ...result, status: "error", error_reason: `http_${page.httpStatus}` };
     const extracted = extractPrice(page.html || "", { url: result.final_url, platform: result.detected_platform });
+    const metadata = extractProductMetadata(page.html || "", { url: result.final_url });
     Object.assign(result, {
+      ...metadata,
       detected_price: extracted.price ?? null, currency: extracted.currency ?? null,
       regular_price: extracted.regular_price ?? null,
       regular_price_currency: extracted.regular_price_currency ?? null,

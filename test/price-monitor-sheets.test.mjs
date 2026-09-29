@@ -41,7 +41,7 @@ test("history observation appends a validated regular-price pair and serialized 
   const observation=historyObservation(result({regular_price:79,regular_price_currency:"EUR",regular_price_method:"woocommerce_del_ins",regular_price_evidence:{path:"product.price.del"}}));
   assert.equal(observation.regular_price,79); assert.equal(observation.regular_price_currency,"EUR");
   assert.equal(observation.regular_price_method,"woocommerce_del_ins"); assert.equal(observation.regular_price_evidence,'{"path":"product.price.del"}');
-  assert.equal(PRICE_HISTORY_HEADERS.indexOf("observation_id"),12); assert.deepEqual(PRICE_HISTORY_HEADERS.slice(13),["regular_price","regular_price_currency","regular_price_method","regular_price_evidence"]);
+  assert.equal(PRICE_HISTORY_HEADERS.indexOf("observation_id"),12); assert.deepEqual(PRICE_HISTORY_HEADERS.slice(13),["regular_price","regular_price_currency","regular_price_method","regular_price_evidence","entity_type","entity_id"]);
 });
 
 test("history drops invalid and currency-mismatched regular prices",()=>{
@@ -103,7 +103,7 @@ test("Sheets append is append-only and idempotent by observation_id",async()=>{
   const writer=createGoogleSheetsHistory({spreadsheetId:"sheet",serviceAccountEmail:"service@test",privateKey:"key",fetchImpl,tokenProvider:async()=>"token"});
   const output=await writer.append([result(),result({checked_at:"2026-09-15T10:00:00Z"})]); assert.equal(output.appended,1); assert.equal(output.duplicates,1);
   const append=calls.find(call=>call.url.includes(":append")); assert.equal(append.init.method,"POST"); assert.match(append.url,/insertDataOption=OVERWRITE/); const body=JSON.parse(append.init.body); assert.equal(body.values.length,1); assert.equal(body.values[0][1],"p1");
-  assert.match(append.url,/A%3AQ/); assert.equal(body.values[0].length,17);
+  assert.match(append.url,/A%3AS/); assert.equal(body.values[0].length,19);
 });
 
 test("timeline pivots the date portion of each observation timestamp",()=>{

@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { entityIdentity } from "./entity-identity.mjs";
 
 export const PRICE_HISTORY_TAB = "Price History";
 export const PRICES_TAB = "Prices";
@@ -7,6 +8,7 @@ export const PRICE_HISTORY_HEADERS = [
   "checked_at", "product_id", "product_name", "brand", "product_url", "detected_price", "currency", "status",
   "extraction_method", "confidence", "previous_verified_price", "difference", "observation_id",
   "regular_price", "regular_price_currency", "regular_price_method", "regular_price_evidence",
+  "entity_type", "entity_id",
 ];
 export const PRICES_HEADERS = [
   "product_id", "product_name", "brand", "product_url", "current_detected_price", "previous_detected_price", "difference",
@@ -27,12 +29,14 @@ const selectValue = (value) => text(value && typeof value === "object" ? value.v
 const base64url = (value) => Buffer.from(value).toString("base64url");
 
 export function observationId(result) {
-  const stable = [result.product_id, result.checked_at, result.product_url].map(text).join("|");
-  if (!text(result.product_id) || !text(result.checked_at)) throw new Error("History observation requires stable product_id and checked_at");
+  const identity = entityIdentity(result);
+  const stable = [identity.entity_type, identity.entity_id, result.checked_at, result.product_url].map(text).join("|");
+  if (!identity.entity_id || !text(result.checked_at)) throw new Error("History observation requires stable entity_id and checked_at");
   return crypto.createHash("sha256").update(stable).digest("hex").slice(0, 32);
 }
 
 export function historyObservation(result) {
+  const identity = entityIdentity(result);
   const detected = positiveFinite(result.detected_price); const previous = positiveFinite(result.previous_offer_price);
   const regular = positiveFinite(result.regular_price);
   const currency = text(result.currency).toUpperCase(); const regularCurrency = text(result.regular_price_currency).toUpperCase();
@@ -49,6 +53,7 @@ export function historyObservation(result) {
     regular_price_evidence: validRegular && result.regular_price_evidence != null
       ? (typeof result.regular_price_evidence === "string" ? result.regular_price_evidence : JSON.stringify(result.regular_price_evidence))
       : "",
+    entity_type: identity.entity_type, entity_id: identity.entity_id,
   };
 }
 
@@ -135,7 +140,7 @@ export function createGoogleSheetsHistory({ spreadsheetId, serviceAccountEmail, 
       const observations = results.map(historyObservation); const ids = await google(`${valuesUrl(`${PRICE_HISTORY_TAB}!M2:M`)}?majorDimension=COLUMNS`);
       const existing = new Set((ids.values?.[0] || []).map(text)); const fresh = observations.filter((item) => !existing.has(item.observation_id));
       if (!fresh.length) return { appended: 0, duplicates: observations.length, observation_ids: observations.map((item) => item.observation_id) };
-      await google(`${valuesUrl(`${PRICE_HISTORY_TAB}!A:Q`)}:append?valueInputOption=RAW&insertDataOption=OVERWRITE`, { method: "POST", body: JSON.stringify({ majorDimension: "ROWS", values: fresh.map(observationRow) }) });
+      await google(`${valuesUrl(`${PRICE_HISTORY_TAB}!A:S`)}:append?valueInputOption=RAW&insertDataOption=OVERWRITE`, { method: "POST", body: JSON.stringify({ majorDimension: "ROWS", values: fresh.map(observationRow) }) });
       return { appended: fresh.length, duplicates: observations.length - fresh.length, observation_ids: observations.map((item) => item.observation_id) };
     },
     async metadata() { return google(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=properties.title,sheets.properties`); },

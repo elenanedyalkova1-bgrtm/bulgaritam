@@ -1,8 +1,8 @@
 import { defineMiddleware } from "astro:middleware";
 import { readSession, sessionCookie } from "./lib/auth";
 
-function secure(response: Response) {
-  response.headers.set("Cache-Control", "no-store");
+function secure(response: Response, options: { preserveCache?: boolean } = {}) {
+  if (!options.preserveCache) response.headers.set("Cache-Control", "no-store");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "same-origin");
@@ -11,6 +11,7 @@ function secure(response: Response) {
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const pathname = context.url.pathname;
+  if (["/api/consumer-deals", "/api/consumer-deals/"].includes(pathname)) return secure(await next(), { preserveCache: true });
   if (["/api/events", "/api/events/", "/api/discovery-states", "/api/discovery-states/", "/api/brand-applications", "/api/brand-applications/", "/api/newsletter", "/api/newsletter/"].includes(pathname)) return secure(await next());
   const isLogin = pathname === "/login/" || pathname === "/login";
   const session = await readSession(context.cookies.get(sessionCookie.name)?.value);

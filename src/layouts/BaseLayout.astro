@@ -1,6 +1,8 @@
 ---
 import "../styles/global.css";
+import "../styles/save-discoverability.css";
 import { offerJsonLd } from "../lib/verified-offer";
+import { productTitle, productDescription } from "../lib/product-seo";
 const SITE_URL = (
   (import.meta.env.PUBLIC_SITE_URL && String(import.meta.env.PUBLIC_SITE_URL).trim()) ||
   (Astro.site ? String(Astro.site) : "") ||
@@ -22,6 +24,7 @@ const {
   seo,
   robots,
   i18n = {},
+  newsletterContext = "generic",
 } = Astro.props;
 
 const normalizeText = (value = "") => String(value ?? "").replace(/\s+/g, " ").trim();
@@ -62,6 +65,14 @@ const buildTitleWithSuffix = (primary, suffix, max = 60) => {
 };
 
 function generateTitle(seoConfig, manualTitle) {
+  // Product identity must not be clipped by the shared 60-character title cap.
+  if (normalizeText(seoConfig?.type).toLowerCase() === "product") {
+    return productTitle({
+      meta_title_bg: manualTitle || seoConfig?.title,
+      name_bg: seoConfig?.data?.productName,
+      brand_name: seoConfig?.data?.brandName,
+    });
+  }
   const directTitle = trimAtWord(manualTitle || seoConfig?.title, 60);
   if (directTitle) return directTitle;
 
@@ -69,13 +80,6 @@ function generateTitle(seoConfig, manualTitle) {
   const data = seoConfig?.data || {};
 
   switch (type) {
-    case "product": {
-      const productName = normalizeText(data.productName);
-      const brandName = normalizeText(data.brandName);
-      if (!productName || !brandName) return HOME_SEO.title;
-      return buildTitleWithSuffix(productName, `| От ${brandName} | Българитъм`);
-    }
-
     case "brand": {
       const brandName = normalizeText(data.brandName);
       if (!brandName) return HOME_SEO.title;
@@ -103,6 +107,14 @@ function generateTitle(seoConfig, manualTitle) {
 }
 
 function generateDescription(seoConfig, manualDescription) {
+  if (normalizeText(seoConfig?.type).toLowerCase() === "product") {
+    return productDescription({
+      meta_desc_bg: manualDescription || seoConfig?.description,
+      short_desc_bg: seoConfig?.data?.description,
+      name_bg: seoConfig?.data?.productName,
+      brand_name: seoConfig?.data?.brandName,
+    });
+  }
   const directDescription = trimAtWord(manualDescription || seoConfig?.description, 155);
   if (directDescription) return directDescription;
 
@@ -110,16 +122,6 @@ function generateDescription(seoConfig, manualDescription) {
   const data = seoConfig?.data || {};
 
   switch (type) {
-    case "product": {
-      const productName = normalizeText(data.productName);
-      const brandName = normalizeText(data.brandName);
-      if (!productName || !brandName) return HOME_SEO.description;
-      return trimAtWord(
-        `Открий ${productName} от ${brandName} в Българитъм. Подбрани български продукти с неповторим дизайн и качество.`,
-        155
-      );
-    }
-
     case "brand": {
       const brandName = normalizeText(data.brandName);
       if (!brandName) return HOME_SEO.description;
@@ -188,6 +190,7 @@ const openGraphType = seoType === "product" ? "product" : "website";
 const gaMeasurementId = normalizeText(import.meta.env.PUBLIC_GA_MEASUREMENT_ID) || "G-7XT69Z6DKS";
 const gtmContainerId = normalizeText(import.meta.env.PUBLIC_GTM_CONTAINER_ID) || "GTM-58MC374T";
 const newsletterEndpoint = normalizeText(import.meta.env.PUBLIC_NEWSLETTER_ENDPOINT) || "https://admin.bulgaritam.bg/api/newsletter/";
+const isDiscountNewsletter = newsletterContext === "discounts" || /^\/namaleniya(?:\/|$)/.test(pathname);
 const suppressNewsletterAutoOpen = pathname === "/partnyori/" || pathname === "/partnyori";
 const faviconSvg = "/favicon.svg";
 const faviconPng48 = "/favicon-48x48.png";
@@ -323,25 +326,7 @@ if (seoType === "category" && seoData.category) {
     <meta name="twitter:image" content={socialImage} />
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)}></script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;600;700&display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;600;700&display=swap"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Forum&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;600;700&display=swap"
-      />
-    </noscript>
+    <link rel="preload" href="/fonts/manrope/Manrope-VariableFont_wght.ttf" as="font" type="font/ttf" crossorigin />
 
     <!-- Consent Mode must be initialized before GTM or the Google tag loads. -->
     <script is:inline>
@@ -803,9 +788,36 @@ if (seoType === "category" && seoData.category) {
           });
         };
 
+        const getDealContext = (node) => {
+          const scope = node?.closest?.("[data-analytics-kind='deal']");
+          if (!scope) return {};
+          return sanitizeParams({
+            entity_type: scope.dataset.entityType,
+            entity_id: scope.dataset.entityId,
+            product_id: scope.dataset.productId,
+            product_name: scope.dataset.productName,
+            brand_id: scope.dataset.brandId,
+            brand_name: scope.dataset.brandName,
+            category: scope.dataset.categoryKey,
+            discount_percentage: scope.dataset.discountPercent,
+            destination_type: node?.dataset?.dealDestinationType || scope.dataset.destinationType,
+            position: scope.dataset.position,
+            source_page: scope.dataset.sourcePage || "namaleniya",
+          });
+        };
+
         document.addEventListener("click", (event) => {
           const target = event.target instanceof Element ? event.target : null;
           if (!target) return;
+
+          const dealLink = target.closest("a[data-deal-link]");
+          if (dealLink) {
+            window.bulgaritamTrack?.("deal_click", {
+              ...getDealContext(dealLink),
+              destination_domain: destinationDomain(dealLink.getAttribute("href") || ""),
+            });
+            return;
+          }
 
           const signalButton = target.closest("button[data-user-signal]");
           if (signalButton) {
@@ -897,7 +909,9 @@ if (seoType === "category" && seoData.category) {
               const seen = impressionSeen.get(node) || new Set();
               if (seen.has(signature)) return;
               let accepted = false;
-              if (node.dataset.analyticsKind === "brand") {
+              if (node.dataset.analyticsKind === "deal") {
+                accepted = Boolean(window.bulgaritamTrack?.("deal_impression", getDealContext(node)));
+              } else if (node.dataset.analyticsKind === "brand") {
                 accepted = Boolean(window.bulgaritamTrack?.("brand_impression", getBrandContext(node)));
               } else {
                 accepted = Boolean(window.bulgaritamTrack?.("product_impression", getProductContext(node)));
@@ -1230,6 +1244,7 @@ const getSaveModalUI = () => {
 
 let pendingItem = null;
 let selectedBoardId = DEFAULT_BOARD_ID;
+let saveReturnFocus = null;
 
 const renderBoards = (state) => {
   const { boardsWrap, hasModalUI } = getSaveModalUI();
@@ -1276,6 +1291,8 @@ const closeModal = () => {
   modal.setAttribute("aria-hidden", "true");
   document.documentElement.classList.remove("no-scroll");
   pendingItem = null;
+  saveReturnFocus?.focus({ preventScroll: true });
+  saveReturnFocus = null;
 };
 
 const createBoardFromModal = () => {
@@ -1327,6 +1344,7 @@ const savePendingItemToBoard = () => {
 
   syncSaveButtons();
   closeModal();
+  window.dispatchEvent(new CustomEvent("bulgaritam:save-confirmed"));
 };
 
 document.addEventListener("click", (e) => {
@@ -1401,6 +1419,8 @@ document.addEventListener("keydown", (e) => {
       const saved = isSavedAnywhere(state, id);
       btn.classList.toggle("is-saved", saved);
       btn.setAttribute("aria-pressed", saved ? "true" : "false");
+      btn.setAttribute("aria-label", saved ? "Запазено — избери колекция" : "Запази продукта");
+      btn.dataset.saveLabel = saved ? "Запазено" : "Запази";
     });
   };
   window.syncSaveButtons = syncSaveButtons;
@@ -1419,6 +1439,7 @@ document.addEventListener("keydown", (e) => {
     // Always ask where to save.
     // If there are no custom collections yet, the modal still opens so the user
     // can explicitly choose "Всички запазени" or create a new one first.
+    saveReturnFocus = btn;
     openModal(item);
   });
 
@@ -1440,6 +1461,14 @@ window.addEventListener("bulgaritam:saved", (e) => {
 
 </script>
 
+
+    <div class="saved-toast save-feedback" id="save-feedback" role="status" aria-live="polite" hidden>
+      <span>Запазено · <a href="/zapazeni/">Виж запазените</a></span>
+      <button type="button" data-save-feedback-close aria-label="Затвори потвърждението">×</button>
+    </div>
+    <script>
+      import "../scripts/save-discoverability.js";
+    </script>
 
     <!-- FOOTER -->
     <footer class="footer">
@@ -1498,19 +1527,24 @@ window.addEventListener("bulgaritam:saved", (e) => {
       <button class="newsletter-modal__backdrop" type="button" aria-label="Затвори" data-newsletter-close></button>
       <section class="newsletter-modal__card" role="dialog" aria-modal="true" aria-labelledby="newsletter-title">
         <button class="newsletter-modal__close" type="button" aria-label="Затвори" data-newsletter-close>×</button>
-        <p class="newsletter-modal__kicker">Подбрано от Българитъм</p>
-        <h2 id="newsletter-title">Избери какво искаш да получаваш</h2>
-        <p class="newsletter-modal__intro">Само темите, които са ти полезни. Можеш да избереш една или повече.</p>
+        <p class="newsletter-modal__kicker">{isDiscountNewsletter ? "БЪЛГАРСКИ БРАНДОВЕ" : "ПОДБРАНО ОТ БЪЛГАРИТЪМ"}</p>
+        <h2 id="newsletter-title">{isDiscountNewsletter ? "Седмичните намаления, директно по имейл" : "Български находки, директно в пощата ти"}</h2>
+        <p class="newsletter-modal__intro">{isDiscountNewsletter ? "Веднъж седмично подбираме намалени продукти от български брандове и ги изпращаме в един имейл." : "Намаления, нови продукти и интересни неща от български брандове — подбрани, за да не се налага да ги търсиш сам."}</p>
         <form class="newsletter-form" name="bulgaritam-newsletter">
           <div class="newsletter-form__identity">
+            <label class="newsletter-form__email"><span>Имейл</span><input type="email" name="email" autocomplete="email" required /></label>
             <label><span>Име</span><input type="text" name="name" autocomplete="name" required /></label>
-            <label><span>Имейл</span><input type="email" name="email" autocomplete="email" required /></label>
           </div>
+          {isDiscountNewsletter && (
+            <label class="newsletter-theme newsletter-theme--primary"><input type="checkbox" name="preference_discounts" value="Да" checked /><span><strong>Отстъпки</strong><small>Седмична селекция от намалени продукти на български брандове.</small></span></label>
+          )}
           <fieldset>
-            <legend>Какъв тип информация искаш да получаваш?</legend>
-            <label class="newsletter-theme newsletter-theme--primary"><input type="checkbox" name="preference_discounts" value="Да" /><span><strong>Отстъпки</strong><small>Подбрана информация за намаления и продукти с отстъпка от български брандове, открити чрез Българитъм.</small></span></label>
-            <label class="newsletter-theme"><input type="checkbox" name="preference_discoveries" value="Да" /><span><strong>Нови български находки</strong><small>Интересни продукти и брандове, които добавяме и откриваме чрез Българитъм.</small></span></label>
-            <label class="newsletter-theme"><input type="checkbox" name="preference_for_brands" value="Да" /><span><strong>От брандовете</strong><small>Полезни бизнес изводи, уроци и обобщени практики или статистики, споделени от български брандове.</small></span></label>
+            <legend>{isDiscountNewsletter ? "Искаш да получаваш и:" : "Какъв тип информация искаш да получаваш?"}</legend>
+            {!isDiscountNewsletter && (
+              <label class="newsletter-theme newsletter-theme--primary"><input type="checkbox" name="preference_discounts" value="Да" /><span><strong>Отстъпки</strong><small>Седмична селекция от намалени продукти на български брандове.</small></span></label>
+            )}
+            <label class="newsletter-theme"><input type="checkbox" name="preference_discoveries" value="Да" /><span><strong>Нови български находки</strong><small>Нови продукти и брандове, които си заслужава да откриеш.</small></span></label>
+            <label class="newsletter-theme"><input type="checkbox" name="preference_for_brands" value="Да" /><span><strong>От брандовете</strong><small>Истории, идеи и полезни неща от хората зад българските марки.</small></span></label>
           </fieldset>
           <button class="newsletter-form__submit" type="submit">Искам да получавам</button>
           <p class="newsletter-form__status" role="status" aria-live="polite" hidden></p>
@@ -1529,7 +1563,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
         let previouslyFocused = null;
         let autoOpenTimer = 0;
         const open = () => {
-          if (!modal) return;
+          if (!modal || !modal.hidden) return;
           previouslyFocused = document.activeElement;
           modal.removeAttribute("hidden");
           document.documentElement.classList.add("newsletter-open");
@@ -1577,6 +1611,7 @@ window.addEventListener("bulgaritam:saved", (e) => {
             });
             const result = await response.json().catch(() => ({}));
             if (!response.ok || result.accepted !== true) throw new Error(result.error || "Записването не беше успешно.");
+            window.clearTimeout(autoOpenTimer);
             form.reset();
             try { sessionStorage.setItem(storageKey, "1"); } catch {}
             if (status) {
@@ -1598,8 +1633,9 @@ window.addEventListener("bulgaritam:saved", (e) => {
         let dismissed = false;
         try { dismissed = sessionStorage.getItem(storageKey) === "1"; } catch {}
         if (!dismissed && !suppressNewsletterAutoOpen) autoOpenTimer = window.setTimeout(() => {
+          try { if (sessionStorage.getItem(storageKey) === "1") return; } catch {}
           open();
-        }, 15000);
+        }, 25000);
       })();
     </script>
 

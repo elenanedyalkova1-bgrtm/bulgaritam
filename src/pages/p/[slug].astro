@@ -6,6 +6,7 @@ import { getCategoryKey, getCategoryLanding, getCanonicalPathForLanding, getDisp
 import { getTaxonomyForProduct } from "../../lib/taxonomy";
 import { loadProducts } from "../../lib/products";
 import { formatVerifiedOfferAmount, resolvePublishableOffer } from "../../lib/verified-offer";
+import { productPublishing } from "../../lib/product-seo";
 
 /** Helpers */
 const clean = (v) => (v == null ? "" : String(v).trim());
@@ -109,22 +110,13 @@ const relatedPrice = (p) => {
       : "";
 };
 
-const metaDescriptionOverrides = {
-  cheresha: "Натурален черешов ликьор „Череша“ от 2 Лета, 25% алк. и 500 мл, приготвен чрез мацерация на пресни череши в черешов дестилат.",
-  "roklya-dot": "Дамска рокля Dot от DVETE с десен на точки, предлагана в размери S, M и L. Виж модела, снимките и актуалните условия при бранда.",
-  samodiva: "Дамска рокля „Самодива“ от КИТНА, изработена от лиосел с бродерия, вдъхновена от българските традиции и предлагана в бяло и черно.",
-  "set-lora": "Дамски сет Лора от OMAYA в бяло: дълъг панталон с висока талия и ефирен елек със стилни копчета. Виж снимки и подробности за модела.",
-  "svatba-e": "Поздравителна картичка „Сватба е!“ от Mazno във формат А6, с празна вътрешна страна за лично пожелание, прецизен печат и включен плик.",
-  kaisiya: "Натурален кайсиев ликьор „Кайсия“ от 2 Лета, 25% алк. и 500 мл, приготвен чрез мацерация на пресни кайсии в кайсиев дестилат.",
-  "az-i-ti": "„Аз и Ти“ от Moments е комплект от 30 карти с идеи за изненади, места и занимания, създадени за повече споделени моменти между двойки.",
-};
-const productMetaDescription = metaDescriptionOverrides[product.slug];
+const publishing = productPublishing(product);
 
 ---
-<BaseLayout seo={{ type: "product", description: productMetaDescription, data: {
+<BaseLayout seo={{ type: "product", title: publishing.title, description: publishing.description, data: {
   productName: product.name_bg,
   brandName: product.brand_name,
-  description: product.short_desc_bg || product.long_desc_bg,
+  description: publishing.schemaDescription,
   image: product.image_urls?.[0],
   category: productCategoryLabel,
   brandUrl: product.website_url || product.brand_url,
@@ -239,6 +231,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
           <h1 class="title">{product.name_bg}</h1>
 
           {product.short_desc_bg ? <p class="desc desc--lead">{product.short_desc_bg}</p> : null}
+          {publishing.longParagraphs.map((paragraph) => <p class="desc desc--detail">{paragraph}</p>)}
 
           <div class="meta">
             <div class="meta-item">
@@ -403,7 +396,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
           <h2 class="landing-links__title" data-i18n="product.relatedTitle">Разгледай още в подобни селекции</h2>
         </div>
 
-        <div class="landing-links__grid">
+        <div class="landing-links__grid" data-seo-link-group="product">
           {landingLinks.map((landing) => (
             <a class="landing-link-card" href={"path" in landing ? landing.path : getCanonicalPathForLanding(landing)}>
               <span class="landing-link-card__label">{landing.label}</span>
@@ -528,7 +521,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       gap: 6px;
       text-decoration: none;
       color: var(--accent);
-      font-weight: 650;
+      font-weight: var(--weight-ui);
       font-size: 0.95rem;
     }
 
@@ -597,7 +590,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       margin: 0;
       text-decoration: none;
       font-size: 13px;
-      font-weight: 750;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: rgba(0, 0, 0, 0.62);
@@ -650,7 +643,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       background: rgba(255, 255, 255, 0.74);
       color: rgba(26, 26, 26, 0.78);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: var(--weight-ui);
       text-decoration: none;
       transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
@@ -669,8 +662,8 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
 
     .product-brand-block { width: 100%; margin: 30px 0 46px; padding: 24px; }
     .product-brand-block p:not(.page-kicker) { margin: 8px 0 14px; color: rgba(26,26,26,.74); line-height: 1.65; }
-    .product-brand-block a { color: var(--accent-strong); font-weight: 750; text-decoration: none; }
-    .related-brand-profile { display:table; margin:18px auto 0; color:var(--accent-strong); font-weight:700; text-decoration:none; }
+    .product-brand-block a { color: var(--accent-strong); font-weight: var(--weight-ui); text-decoration: none; }
+    .related-brand-profile { display:table; margin:18px auto 0; color:var(--accent-strong); font-weight:var(--weight-ui); text-decoration:none; }
 
     .product-signal {
       min-height: 42px;
@@ -679,7 +672,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.72);
       color: rgba(26, 26, 26, 0.82);
-      font: 700 14px var(--font-body);
+      font: var(--weight-ui) 14px var(--font-body);
       cursor: pointer;
     }
 
@@ -707,7 +700,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.48);
-      font-weight: 700;
+      font-weight: var(--weight-ui);
     }
 
     .meta-value {
@@ -717,7 +710,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
 
     .price {
       font-size: 24px;
-      font-weight: 800;
+      font-weight: var(--weight-medium);
       color: var(--accent);
     }
 
@@ -750,7 +743,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       background: var(--accent);
       color: #fff;
       text-decoration: none;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       border: 1px solid rgba(0,0,0,.06);
       margin-top: 6px;
       box-shadow: 0 10px 24px rgba(0,0,0,.08);
@@ -820,16 +813,16 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
     }
 
     .landing-link-card__label {
-      font-family: var(--font-title);
+      font-family: var(--font-display);
       font-size: var(--type-h2);
       line-height: 1.12;
       letter-spacing: -0.03em;
       text-wrap: balance;
-    }
+     font-weight: var(--weight-display); }
 
     .landing-link-card__cta {
       font-size: 14px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       color: rgba(26, 26, 26, 0.72);
     }
 
@@ -928,7 +921,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       padding: 0 10px;
       border-radius: 999px;
       font-size: 10px;
-      font-weight: 800;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
@@ -959,7 +952,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       background: rgba(95, 127, 107, 0.1);
       color: rgba(26, 26, 26, 0.7);
       font-size: 11px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -985,7 +978,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
     }
 
     .related-name {
-      font-weight: 700;
+      font-weight: var(--weight-medium);
       font-size: clamp(17px, 1.35vw, 21px);
       line-height: 1.12;
       letter-spacing: -0.02em;
@@ -1002,7 +995,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
     }
 
     .related-price {
-      font-weight: 700;
+      font-weight: var(--weight-medium);
       font-size: 13px;
       color: var(--accent);
     }
@@ -1028,7 +1021,7 @@ const productMetaDescription = metaDescriptionOverrides[product.slug];
       color: rgba(26,26,26,.82);
       text-decoration: none;
       font-size: 14px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       transition: background .15s ease, border-color .15s ease, color .15s ease;
     }
 

@@ -1,0 +1,108 @@
+/* Overlay-only additions. Card/image geometry and masonry are untouched. */
+:root body .save-discoverable {
+  --save-rest-width: 38px;
+  font-size: 13px;
+  font-weight: var(--weight-ui);
+}
+
+:root body .save-discoverable .save-ic { flex: 0 0 20px; }
+
+:root body .save-discoverable::after {
+  content: attr(data-save-label);
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  :root body .save-discoverable:is(.save-btn--card, .save-btn--related) {
+    --save-rest-width: 40px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root body .save-discoverable {
+    width: var(--save-rest-width);
+    transition: width 180ms ease, padding 180ms ease;
+  }
+  :root body .save-discoverable::after {
+    transition: max-width 180ms ease, opacity 180ms ease, margin 180ms ease;
+  }
+  :root body :is(.card, .related-card):is(:hover, :focus-within) .save-discoverable {
+    width: calc(var(--save-rest-width) + 6em);
+    padding-inline: 10px;
+  }
+  :root body :is(.card, .related-card):is(:hover, :focus-within) .save-discoverable::after {
+    max-width: 6em;
+    margin-left: 6px;
+    opacity: 1;
+  }
+}
+
+/* Pseudo-element: showing/dismissing the hint never mutates grid children. */
+:root body .save-discoverable[data-save-hint]::before {
+  content: "Запази за по-късно";
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  width: max-content;
+  max-width: min(160px, calc(50vw - 42px));
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+  animation: save-hint-arrive 180ms ease-out;
+}
+
+@keyframes save-hint-arrive {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reuse the Saved page's small fixed-toast visual pattern, with a usable link. */
+.save-feedback {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 121;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #263d34;
+  color: #fff;
+  font-size: 14px;
+  font-weight: var(--weight-ui);
+  box-shadow: 0 12px 30px rgba(0,0,0,.2);
+  pointer-events: auto;
+}
+.save-feedback[hidden] { display: none; }
+.save-feedback a, .save-feedback a:visited { color: inherit; text-decoration: underline; }
+.save-feedback button {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+.save-feedback :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root body .save-discoverable,
+  :root body .save-discoverable::after { transition: none; }
+  :root body .save-discoverable[data-save-hint]::before { animation: none; }
+}

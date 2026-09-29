@@ -4,6 +4,9 @@ import test from "node:test";
 import type { Product } from "../src/lib/products";
 import {
   formatDiscountMoney,
+  buildConsumerDeals,
+  DEFAULT_CONSUMER_DEALS_EXCLUDED_BRAND_IDS,
+  diversifyConsumerDeals,
   getSofiaWeekWindow,
   joinWeeklyDiscountProducts,
   loadWeeklyDiscountProducts,
@@ -18,6 +21,7 @@ const product = (row_id: number, overrides: Partial<Product> = {}) => ({
 const discount = (product_id: string, overrides: Record<string, unknown> = {}) => ({
   product_id, product_name: `History ${product_id}`, brand: "History Brand", product_url: "https://brand.test/p",
   weekly_discount_eligible: true, current_price: 49, regular_price: 59, currency: "EUR",
+  promotion_confidence: "EXPLICIT_SALE", promotion_consumer_eligible: true,
   discount_amount: 10, discount_percent: 16.9492, latest_checked_at: "2026-09-25T10:00:00Z",
   confidence: "high", extraction_method: "json_ld_product_offer", regular_price_method: "json_ld_list_price",
   ...overrides,
@@ -91,12 +95,81 @@ test("HomepageProductCard keeps normal price fallback and uses evaluator prices 
 
 test("discount page has an explicit valid empty state and no report snapshot dependency", () => {
   const source = fs.readFileSync("src/pages/namaleniya/index.astro", "utf8");
-  assert.match(source, /discounts\.length \?/);
-  assert.match(source, /няма потвърдени намаления/);
+  assert.match(source, /deals\.length \?/);
+  assert.match(source, /няма потвърдени намаления|няма активно проверени намаления/);
   assert.doesNotMatch(source, /reports\/discounts|price_min_eur|price_max_eur/);
-  assert.match(source, /discountActiveSelections/);
-  assert.match(source, /Премахни филтър/);
-  assert.match(source, /selection\.kind === "facet"/);
+  assert.match(source, /PHASE3_EXTERNAL_DEALS_LOCAL/);
+  assert.match(source, /Препоръчани/);
+  assert.match(source, /Търси продукт или бранд/);
+});
+
+test("consumer deals fail closed, enforce 72-hour freshness and route observed matches internally", () => {
+  const now = new Date("2026-09-29T12:00:00Z");
+  const evaluations = [
+    discount("", { entity_type: "observed_product", entity_id: "11", latest_checked_at: "2026-09-28T12:00:00Z", brand: "Алфа" }),
+    discount("", { entity_type: "observed_product", entity_id: "12", latest_checked_at: "2026-09-25T12:00:00Z", brand: "Алфа" }),
+    discount("", { entity_type: "observed_product", entity_id: "13", latest_checked_at: "2026-09-28T12:00:00Z", brand: "Алфа" }),
+  ];
+  const observed = [
+    { id: 11, brand_id: 1, title: "Външен", image_url: "https://shop.test/a.jpg", canonical_url: "https://shop.test/a", is_active: true, lifecycle_status: "active", bulgaritam_product_id: 7 },
+    { id: 12, brand_id: 1, title: "Стар", image_url: "https://shop.test/b.jpg", canonical_url: "https://shop.test/b", is_active: true, lifecycle_status: "active" },
+    { id: 13, brand_id: 1, title: "Без снимка", image_url: "", canonical_url: "https://shop.test/c", is_active: true, lifecycle_status: "active" },
+  ];
+  const deals = buildConsumerDeals(evaluations as any, observed, [{ id: 1, brand_name: "Алфа", is_active: true }], [product(7)], now);
+  assert.equal(deals.length, 1); assert.equal(deals[0].destination_type, "internal"); assert.equal(deals[0].destination_url, "/p/product-7/");
+});
+
+test("consumer deal eligibility excludes PhytoEssenceBio by canonical brand id only", () => {
+  const now = new Date("2026-09-29T12:00:00Z");
+  assert.deepEqual(DEFAULT_CONSUMER_DEALS_EXCLUDED_BRAND_IDS, [43]);
+  const evaluations = [
+    discount("", { entity_type: "observed_product", entity_id: "43", latest_checked_at: "2026-09-29T10:00:00Z", brand: "PhytoEssenceBio" }),
+    discount("", { entity_type: "observed_product", entity_id: "44", latest_checked_at: "2026-09-29T10:00:00Z", brand: "Друг бранд" }),
+  ];
+  const observed = [
+    { id: 43, brand_id: 43, title: "Изключен продукт", image_url: "https://shop.test/43.jpg", canonical_url: "https://shop.test/43", is_active: true, lifecycle_status: "active" },
+    { id: 44, brand_id: 44, title: "Публичен продукт", image_url: "https://shop.test/44.jpg", canonical_url: "https://shop.test/44", is_active: true, lifecycle_status: "active" },
+  ];
+  const brands = [
+    { id: 43, brand_name: "PhytoEssenceBio", is_active: true },
+    { id: 44, brand_name: "Друг бранд", is_active: true },
+  ];
+  const deals = buildConsumerDeals(evaluations as any, observed, brands, [], now);
+  assert.deepEqual(deals.map((deal) => deal.entity_id), ["44"]);
+});
+
+test("consumer deals reject UNKNOWN and REFERENCE_VALUE_SAVING semantic states", () => {
+  const now = new Date("2026-09-29T12:00:00Z");
+  const evaluations = [
+    discount("", { entity_type: "observed_product", entity_id: "1", latest_checked_at: "2026-09-29T10:00:00Z", promotion_confidence: "UNKNOWN", promotion_consumer_eligible: false }),
+    discount("", { entity_type: "observed_product", entity_id: "2", latest_checked_at: "2026-09-29T10:00:00Z", promotion_confidence: "REFERENCE_VALUE_SAVING", promotion_consumer_eligible: false }),
+  ];
+  const observed = [1, 2].map((id) => ({ id, brand_id: 1, title: `Product ${id}`, image_url: `https://shop.test/${id}.jpg`, canonical_url: `https://shop.test/${id}`, is_active: true, lifecycle_status: "active" }));
+  assert.deepEqual(buildConsumerDeals(evaluations as any, observed, [{ id: 1, brand_name: "Brand", is_active: true }], [], now), []);
+});
+
+test("discount page reuses the existing card, masonry and filter-modal UI contracts", () => {
+  const page = fs.readFileSync("src/pages/namaleniya/index.astro", "utf8");
+  const card = fs.readFileSync("src/components/HomepageProductCard.astro", "utf8");
+  assert.match(page, /HomepageProductCard consumerDeal=\{deal\}/);
+  assert.match(page, /data-masonry-grid/);
+  assert.match(page, /filters-modal__panel/);
+  assert.match(page, /name="material"/);
+  assert.match(page, /name="ingredient"/);
+  assert.doesNotMatch(page, /DealCard/);
+  assert.match(page, /Покупката винаги се извършва директно в сайта на съответния бранд\./);
+  assert.doesNotMatch(page, /Покупката се извършва в сайта на бранда\./);
+  assert.match(card, /Виж в сайта на бранда ↗/);
+  assert.match(card, /const cardUrl = consumerDeal\?\.destination_url/);
+  assert.match(card, /const outboundUrl = consumerDeal\?\.outbound_url/);
+  assert.match(card, /data-deal-destination-type=\{consumerDeal \? "external" : undefined\}/);
+});
+
+test("recommended consumer ranking is deterministic and avoids same-brand runs while alternatives exist", () => {
+  const make = (id: string, brand_id: number, brand: string, percent: number) => ({ entity_id: id, brand_id, brand, discount_percent: percent, latest_checked_at: "2026-09-29T10:00:00Z" } as any);
+  const ranked = diversifyConsumerDeals([make("1", 1, "A", 60), make("2", 1, "A", 55), make("3", 1, "A", 50), make("4", 2, "B", 20), make("5", 3, "C", 10)]);
+  assert.deepEqual(ranked.map((x) => x.brand), ["A", "B", "A", "C", "A"]);
+  assert.deepEqual(diversifyConsumerDeals([...ranked]).map((x) => x.entity_id), ranked.map((x) => x.entity_id));
 });
 
 const uiItems = [

@@ -9,6 +9,14 @@ const sha256 = value => crypto.createHash("sha256").update(value).digest("hex");
 const posix = value => value.split(path.sep).join("/");
 const quote = value => `"${String(value).replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`;
 
+export function ensureRemoteDirectoryCommands(directory) {
+  const target = quote(directory);
+  // Avoid issuing MKD for an existing directory. If CWD fails because the
+  // directory is absent, MKD must succeed; otherwise cmd:fail-exit stops the
+  // script when the following unconditional command is reached.
+  return [`cd ${target} || mkdir -p ${target}`, 'cd "/"'];
+}
+
 function filesBelow(root, directory = root) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const absolute = path.join(directory, entry.name);
@@ -82,7 +90,7 @@ export function writeLftpCommands(plan, { distDir = "dist", output, stateOutput,
   const commands = []; const directories = new Set();
   for (const file of [...plan.changed, ...plan.new]) {
     const remote = `/${file}`; const directory = path.posix.dirname(remote);
-    if (!directories.has(directory)) { commands.push(`mkdir -p ${quote(directory)}`); directories.add(directory); }
+    if (!directories.has(directory)) { commands.push(...ensureRemoteDirectoryCommands(directory)); directories.add(directory); }
     const temporary = `${remote}.upload-${runId}`;
     commands.push(`put -o ${quote(temporary)} ${quote(path.join(distDir, file))}`);
     commands.push(`mv ${quote(temporary)} ${quote(remote)}`);

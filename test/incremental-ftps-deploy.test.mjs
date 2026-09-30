@@ -3,9 +3,38 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { createIncrementalPlan, writeLftpCommands } from "../scripts/plan-incremental-ftps-deploy.mjs";
+import { createIncrementalPlan, ensureRemoteDirectoryCommands, writeLftpCommands } from "../scripts/plan-incremental-ftps-deploy.mjs";
 
 const response = (body, status = 200) => new Response(body, { status });
+
+function simulateDirectoryGuard(commands, { directoryExists, mkdirSucceeds }) {
+  let previousSucceeded = true;
+  for (const command of commands) {
+    if (command.startsWith("cd ") && command.includes(" || mkdir ")) {
+      previousSucceeded = directoryExists || mkdirSucceeds;
+      continue;
+    }
+    if (!previousSucceeded) throw new Error("lftp cmd:fail-exit");
+    previousSucceeded = true;
+  }
+}
+
+test("remote directory guard proceeds when the directory already exists", () => {
+  const commands = ensureRemoteDirectoryCommands("/brand/160-candles");
+  assert.deepEqual(commands, [
+    'cd "/brand/160-candles" || mkdir -p "/brand/160-candles"',
+    'cd "/"',
+  ]);
+  assert.doesNotThrow(() => simulateDirectoryGuard(commands, { directoryExists: true, mkdirSucceeds: false }));
+});
+
+test("remote directory guard fails when an absent directory cannot be created", () => {
+  const commands = ensureRemoteDirectoryCommands("/brand/forbidden");
+  assert.throws(
+    () => simulateDirectoryGuard(commands, { directoryExists: false, mkdirSucceeds: false }),
+    /lftp cmd:fail-exit/,
+  );
+});
 
 test("incremental plan hashes remote content, uploads only differences and deletes only stale generated routes", async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "deploy-plan-"));

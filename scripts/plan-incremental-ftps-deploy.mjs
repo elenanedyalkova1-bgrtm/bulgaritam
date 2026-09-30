@@ -17,6 +17,13 @@ export function ensureRemoteDirectoryCommands(directory) {
   return [`cd ${target} || mkdir -p ${target}`, 'cd "/"'];
 }
 
+export function atomicUploadCommands(local, temporary, remote) {
+  // lftp 4.9.2 syntax requires the local file before its -o remote target.
+  // The final path is never removed first: only a completed temporary upload
+  // is renamed into place.
+  return [`put ${quote(local)} -o ${quote(temporary)}`, `mv ${quote(temporary)} ${quote(remote)}`];
+}
+
 function filesBelow(root, directory = root) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
     const absolute = path.join(directory, entry.name);
@@ -92,13 +99,11 @@ export function writeLftpCommands(plan, { distDir = "dist", output, stateOutput,
     const remote = `/${file}`; const directory = path.posix.dirname(remote);
     if (!directories.has(directory)) { commands.push(...ensureRemoteDirectoryCommands(directory)); directories.add(directory); }
     const temporary = `${remote}.upload-${runId}`;
-    commands.push(`put -o ${quote(temporary)} ${quote(path.join(distDir, file))}`);
-    commands.push(`mv ${quote(temporary)} ${quote(remote)}`);
+    commands.push(...atomicUploadCommands(path.join(distDir, file), temporary, remote));
   }
   for (const file of plan.stale) commands.push(`rm -f ${quote(`/${file}`)}`);
   const stateTemporary = `${DEPLOY_STATE_PATH}.upload-${runId}`;
-  commands.push(`put -o ${quote(stateTemporary)} ${quote(stateOutput)}`);
-  commands.push(`mv ${quote(stateTemporary)} ${quote(DEPLOY_STATE_PATH)}`);
+  commands.push(...atomicUploadCommands(stateOutput, stateTemporary, DEPLOY_STATE_PATH));
   fs.writeFileSync(output, `${commands.join("\n")}\n`);
 }
 

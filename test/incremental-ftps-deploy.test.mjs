@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { createIncrementalPlan, ensureRemoteDirectoryCommands, writeLftpCommands } from "../scripts/plan-incremental-ftps-deploy.mjs";
+import { atomicUploadCommands, createIncrementalPlan, ensureRemoteDirectoryCommands, writeLftpCommands } from "../scripts/plan-incremental-ftps-deploy.mjs";
 
 const response = (body, status = 200) => new Response(body, { status });
 
@@ -34,6 +34,32 @@ test("remote directory guard fails when an absent directory cannot be created", 
     () => simulateDirectoryGuard(commands, { directoryExists: false, mkdirSucceeds: false }),
     /lftp cmd:fail-exit/,
   );
+});
+
+test("changed file uses lftp 4.9.2 local-first put syntax then atomic rename", () => {
+  const commands = atomicUploadCommands(
+    "dist/bizhuta-s-hematit/index.html",
+    "/bizhuta-s-hematit/index.html.upload-9",
+    "/bizhuta-s-hematit/index.html",
+  );
+  assert.deepEqual(commands, [
+    'put "dist/bizhuta-s-hematit/index.html" -o "/bizhuta-s-hematit/index.html.upload-9"',
+    'mv "/bizhuta-s-hematit/index.html.upload-9" "/bizhuta-s-hematit/index.html"',
+  ]);
+  assert.doesNotMatch(commands.join("\n"), /(?:^|\n)(?:rm|rm -f) .*bizhuta-s-hematit\/index\.html(?:$|\n)/);
+});
+
+test("failed temporary upload stops before rename and never deletes the valid final file", () => {
+  const commands = atomicUploadCommands("dist/index.html", "/index.html.upload-9", "/index.html");
+  const executed = [];
+  assert.throws(() => {
+    for (const command of commands) {
+      if (executed.length && executed.at(-1) === "failed") throw new Error("lftp cmd:fail-exit");
+      executed.push(command.startsWith("put ") ? "failed" : command);
+    }
+  }, /lftp cmd:fail-exit/);
+  assert.deepEqual(executed, ["failed"]);
+  assert.equal(commands.some(command => command.startsWith("rm ") || command.startsWith("rm -f ")), false);
 });
 
 test("incremental plan hashes remote content, uploads only differences and deletes only stale generated routes", async () => {

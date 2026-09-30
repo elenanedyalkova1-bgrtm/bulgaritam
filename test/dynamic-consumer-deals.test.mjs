@@ -32,6 +32,12 @@ test("dynamic page path is feature flagged and keeps static snapshot as fetch fa
   assert.match(client,/refreshDealFacetOptions/); assert.match(page,/data-deal-facet-options="brand"/);
 });
 
+test("dynamic cards replace the static template price accessibility label", () => {
+  const client = fs.readFileSync("src/scripts/dynamic-consumer-deals.ts", "utf8");
+  assert.match(client, /price\.setAttribute\("aria-label"/);
+  assert.match(client, /Редовна цена.*текуща цена.*намаление/);
+});
+
 test("admin endpoint is disabled by default, origin restricted and CDN cached", () => {
   const api=fs.readFileSync("admin-app/src/pages/api/consumer-deals.ts","utf8"); const middleware=fs.readFileSync("admin-app/src/middleware.ts","utf8");
   assert.match(api,/CONSUMER_DEALS_API_ENABLED/); assert.match(api,/s-maxage=600/); assert.match(api,/stale-if-error=86400/); assert.match(api,/ALLOWED_ORIGINS/); assert.match(middleware,/consumer-deals/);

@@ -43,6 +43,8 @@ function renderDeal(template: HTMLElement, deal: any, index: number) {
   const regular = card.querySelector(".discount-price__regular"); if (regular) regular.textContent = money(deal.regular_price, deal.currency);
   const current = card.querySelector(".discount-price__current"); if (current) current.textContent = money(deal.current_price, deal.currency);
   const badge = card.querySelector(".discount-price__badge"); if (badge) badge.textContent = `−${Math.round(deal.discount_percent)}%`;
+  const price = card.querySelector(".discount-price");
+  if (price) price.setAttribute("aria-label", `Редовна цена ${money(deal.regular_price, deal.currency)}; текуща цена ${money(deal.current_price, deal.currency)}; намаление −${Math.round(deal.discount_percent)}%`);
   const fresh = card.querySelector(".deal-freshness"); if (fresh) fresh.textContent = freshness(deal.latest_checked_at);
   const category = card.querySelector(".cat"); if (category) category.textContent = deal.category || deal.product_type || "Продукт";
   return card;

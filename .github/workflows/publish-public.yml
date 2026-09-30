@@ -99,11 +99,28 @@ jobs:
     timeout-minutes: 90
     environment: public-production
     steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - name: Download verified artifact
         uses: actions/download-artifact@v6
         with:
           name: ${{ needs.build-and-verify.outputs.artifact-name }}
           path: dist
+
+      - name: Plan byte-verified incremental deployment
+        run: node scripts/plan-incremental-ftps-deploy.mjs --dist=dist --origin=https://bulgaritam.bg --output=/tmp/incremental-deploy-plan.json --commands=/tmp/incremental-deploy.lftp --state-output=/tmp/bulgaritam-deploy-state.json --run-id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+      - name: Store incremental deployment plan
+        uses: actions/upload-artifact@v6
+        with:
+          name: incremental-deploy-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/incremental-deploy-plan.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Validate restricted FTPS configuration
         env:
@@ -132,7 +149,7 @@ jobs:
           FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
         run: echo "$FTPS_SERVER_IP $FTPS_TLS_HOST" | sudo tee -a /etc/hosts > /dev/null
 
-      - name: Upload site over strict FTPS and remove stale Product/Brand pages
+      - name: Upload only byte-changed files over strict FTPS
         env:
           FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
           FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
@@ -152,9 +169,7 @@ jobs:
           set ssl:verify-certificate true
           set ssl:check-hostname true
           cd /
-          mirror --reverse --verbose --exclude-glob 'p/**' --exclude-glob 'brand/**' dist/ /
-          mirror --reverse --delete --verbose dist/p/ /p/
-          mirror --reverse --delete --verbose dist/brand/ /brand/
+          source /tmp/incremental-deploy.lftp
           get /.htaccess -o /tmp/live-htaccess
           bye
           LFTP

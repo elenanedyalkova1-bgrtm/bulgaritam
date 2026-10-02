@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildPersistencePlan, createBaserowCurrentStatePersistence, extractPrice, monitorProduct, normalizeCurrency, parsePrice, persistMonitorResults, persistenceStatus } from "../src/lib/price-monitor/index.mjs";
+import { buildPersistencePlan, createBaserowCurrentStatePersistence, evaluateDiscounts, extractPrice, historyObservation, monitorProduct, normalizeCurrency, parsePrice, persistMonitorResults, persistenceStatus } from "../src/lib/price-monitor/index.mjs";
 
 const url = "https://shop.example/products/main";
 const jsonLd = (value) => `<html><head><title>Main Product | Shop</title><link rel="canonical" href="${url}"><script type="application/ld+json">${JSON.stringify(value)}</script></head><body></body></html>`;
@@ -400,6 +400,72 @@ test("Shopify missing compare-at on one relevant variant blocks enrichment unles
   ];
   assert.equal(extractPrice(shopifyMetaPage(variants, url), { url, platform: "shopify" }).regular_price, undefined);
   assert.equal(extractPrice(shopifyMetaPage(variants), { url: `${url}?variant=7`, platform: "shopify" }).regular_price, 59);
+});
+
+function shopifyMinorUnitPage({ raw = 640, compare = 815, meta = null, decimal = null, relatedDecimal = null } = {}) {
+  const productState = decimal == null ? "" : `<script>${JSON.stringify({
+    handle: "main", variants: [{ id: 7, available: true, price: { amount: decimal, currencyCode: "EUR" }, compareAtPrice: { amount: compare / 100, currencyCode: "EUR" } }],
+  })}</script>`;
+  const relatedState = relatedDecimal == null ? "" : `<script>${JSON.stringify({
+    handle: "related", variants: [{ id: 9, available: true, price: { amount: relatedDecimal, currencyCode: "EUR" } }],
+  })}</script>`;
+  const rawState = `<script id="ProductJson-main">${JSON.stringify({ handle: "main", currency: "EUR", variants: [{ id: 7, available: true, price: raw, compare_at_price: compare }] })}</script>`;
+  const metaTags = meta == null ? "" : `<meta property="product:price:amount" content="${meta}"><meta property="product:price:currency" content="EUR">`;
+  return `<html><head><title>Main Product</title><link rel="canonical" href="${url}">${metaTags}<script>window.Shopify=window.Shopify||{};Shopify.theme={name:"test"}</script><script type="application/ld+json">${JSON.stringify(product(offer(String(raw), "EUR")))}</script></head><body>${productState}${relatedState}${rawState}</body></html>`;
+}
+
+test("Shopify JSON-LD minor units reconcile with product-scoped OpenGraph and normalize compare-at with the same divisor", () => {
+  const result = extractPrice(shopifyMinorUnitPage({ raw: 640, compare: 815, meta: "6.40" }), { url, platform: "shopify" });
+  assert.deepEqual([result.price, result.regular_price, result.currency], [6.4, 8.15, "EUR"]);
+  assert.equal(result.evidence.unit_reconciliation.divisor, 100);
+  assert.equal(result.regular_price_evidence.unit_reconciliation.divisor, 100);
+  assert.equal(result.regular_price_evidence.unit_reconciliation.raw_regular_price, 815);
+});
+
+test("Shopify JSON-LD minor units reconcile with independently product-scoped decimal amount", () => {
+  const result = extractPrice(shopifyMinorUnitPage({ raw: 4540, compare: 5540, decimal: "45.40" }), { url, platform: "shopify" });
+  assert.deepEqual([result.price, result.regular_price], [45.4, 55.4]);
+  assert.equal(result.evidence.unit_reconciliation.corroborating_method, "shopify_product_scoped_decimal_amount");
+});
+
+test("Shopify EasyBundle active-product raw pair uses the proven current-price divisor", () => {
+  const base = shopifyMinorUnitPage({ raw: 640, compare: null, meta: "6.40" });
+  const easyBundle = `<script>window.easybundle_active_product_data = window.easybundle_active_product_data ?? {price: 640,price_min: 640,price_max: 640,price_varies: false,compare_at_price: 815,compare_at_price_min: 815,compare_at_price_max: 815,compare_at_price_varies: false,variants: [{"available":true,"price":640,"compare_at_price":815}]};</script>`;
+  const result = extractPrice(base.replace("</body>", `${easyBundle}</body>`), { url, platform: "shopify" });
+  assert.deepEqual([result.price, result.regular_price], [6.4, 8.15]);
+});
+
+test("Shopify integer JSON-LD remains major units when product-scoped OpenGraph agrees", () => {
+  const result = extractPrice(shopifyMinorUnitPage({ raw: 640, compare: null, meta: "640" }), { url, platform: "shopify" });
+  assert.equal(result.price, 640);
+  assert.equal(result.evidence.unit_reconciliation, undefined);
+});
+
+test("Shopify integer JSON-LD without independent product-scoped unit evidence fails closed", () => {
+  const result = extractPrice(shopifyMinorUnitPage({ raw: 640, compare: null }), { url, platform: "shopify" });
+  assert.deepEqual([result.status, result.reason, result.price], ["ambiguous", "shopify_integer_price_unit_unverified", undefined]);
+});
+
+test("unrelated Shopify recommendation price cannot normalize the main product", () => {
+  const result = extractPrice(shopifyMinorUnitPage({ raw: 640, compare: 815, relatedDecimal: "6.40" }), { url, platform: "shopify" });
+  assert.deepEqual([result.status, result.reason, result.price], ["ambiguous", "shopify_integer_price_unit_unverified", undefined]);
+});
+
+test("already-correct Shopify decimal JSON-LD remains unchanged", () => {
+  const result = extractPrice(shopifyMinorUnitPage({ raw: 9.5, compare: 12, meta: "9.50" }), { url, platform: "shopify" });
+  assert.equal(result.price, 9.5);
+});
+
+test("reconciled Shopify values survive extractor, observation, history and discount evaluation", async () => {
+  const monitored = await monitorProduct(
+    { product_id: 1151, product_name: "Rose Water", brand_name: "Latifolia", product_url: url, offer_price_amount: 6.4, offer_price_currency: "EUR" },
+    { page: page(200, shopifyMinorUnitPage({ raw: 640, compare: 815, meta: "6.40" })), platform: "shopify" },
+  );
+  assert.deepEqual([monitored.detected_price, monitored.regular_price, monitored.status], [6.4, 8.15, "verified"]);
+  const observation = historyObservation(monitored);
+  assert.deepEqual([observation.detected_price, observation.regular_price], [6.4, 8.15]);
+  const [deal] = evaluateDiscounts([observation], { week_start: "2026-01-01", week_end: "2027-01-01" });
+  assert.deepEqual([deal.current_price, deal.regular_price, deal.active_sale], [6.4, 8.15, true]);
 });
 
 test("strictly co-located product-price-new and product-price-old are preserved", () => {

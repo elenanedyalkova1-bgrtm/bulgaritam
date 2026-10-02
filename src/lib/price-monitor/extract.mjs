@@ -261,6 +261,7 @@ function selectedVariantId(url) {
 function jsonObjectsContainingVariants(script) {
   const objects = [];
   for (const marker of script.matchAll(/["']variants["']\s*:/gi)) {
+    let foundForMarker = false;
     for (let start = script.lastIndexOf("{", marker.index); start >= 0; start = script.lastIndexOf("{", start - 1)) {
       let depth = 0; let quote = ""; let escaped = false;
       for (let index = start; index < script.length; index += 1) {
@@ -278,11 +279,11 @@ function jsonObjectsContainingVariants(script) {
         if (depth !== 0) continue;
         try {
           const value = JSON.parse(script.slice(start, index + 1));
-          if (Array.isArray(value?.variants)) objects.push(value);
+          if (Array.isArray(value?.variants)) { objects.push(value); foundForMarker = true; }
         } catch { /* only strict JSON product objects are accepted */ }
         break;
       }
-      if (objects.length) break;
+      if (foundForMarker) break;
     }
   }
   return objects;
@@ -290,7 +291,7 @@ function jsonObjectsContainingVariants(script) {
 
 function easyBundleProduct(script) {
   if (!/window\.easybundle_active_product_data\s*=/.test(script)) return null;
-  const field = (name) => script.match(new RegExp(`(?:^|[,\\s])${name}\\s*:\\s*([^,}]+)`, "i"))?.[1]?.trim();
+  const field = (name) => script.match(new RegExp(`(?:^|[{,\\s])${name}\\s*:\\s*([^,}]+)`, "i"))?.[1]?.trim();
   const bool = (name) => field(name) === "true" ? true : field(name) === "false" ? false : null;
   const price = parsePrice(field("price")); const priceMin = parsePrice(field("price_min")); const priceMax = parsePrice(field("price_max"));
   const compareAt = parsePrice(field("compare_at_price")); const compareMin = parsePrice(field("compare_at_price_min")); const compareMax = parsePrice(field("compare_at_price_max"));
@@ -315,6 +316,136 @@ function shopifyProductNodes(html) {
     const easyBundle = easyBundleProduct(script); if (easyBundle) nodes.push(easyBundle);
   }
   return nodes;
+}
+
+function shopifyHandle(value) {
+  try {
+    const match = new URL(value).pathname.replace(/\/$/, "").match(/\/products\/([^/]+)$/i);
+    return match ? decodeURIComponent(match[1]).toLowerCase() : "";
+  } catch { return ""; }
+}
+
+function shopifyNodeMatchesMainProduct(node, context) {
+  const expectedHandle = shopifyHandle(context.canonical || context.url);
+  const nodeHandle = String(node?.handle || "").trim().toLowerCase();
+  if (expectedHandle && nodeHandle) return expectedHandle === nodeHandle;
+  const nodeUrl = node?.url || node?.onlineStoreUrl;
+  return Boolean(nodeUrl && (sameUrl(nodeUrl, context.url) || sameUrl(nodeUrl, context.canonical)));
+}
+
+function shopifyVariantDecision(node, context) {
+  if (!Array.isArray(node?.variants)) return null;
+  const variants = node.variants.filter((item) => item && item.available !== false && item.is_purchasable !== false);
+  if (!variants.length) return null;
+  const variantId = selectedVariantId(context.url);
+  if (variantId) {
+    const exact = variants.filter((item) => String(item.id ?? "") === String(variantId));
+    return exact.length === 1 ? { variants: exact, decision: "url_selected_variant", variant_id: variantId } : null;
+  }
+  return { variants, decision: "all_purchasable_variants_same_pair", variant_id: null };
+}
+
+function shopifyDecimalPriceEvidence(html, context) {
+  const candidates = [];
+  for (const node of shopifyProductNodes(html)) {
+    if (!shopifyNodeMatchesMainProduct(node, context)) continue;
+    const selection = shopifyVariantDecision(node, context);
+    if (!selection) continue;
+    const values = selection.variants.map((item) => {
+      const raw = item.price;
+      if (!raw || typeof raw !== "object") return null;
+      const price = parsePrice(raw.amount ?? raw.value);
+      const currency = normalizeCurrency(raw.currencyCode ?? raw.currency ?? node.currencyCode ?? node.currency);
+      return price != null && currency ? { price, currency } : null;
+    });
+    if (values.some((item) => !item)) continue;
+    const unique = new Map(values.map((item) => [`${item.price}|${item.currency}`, item]));
+    if (unique.size !== 1) continue;
+    candidates.push({
+      ...[...unique.values()][0],
+      method: "shopify_product_scoped_decimal_amount",
+      evidence: { source: node._source, path: "shopify.variants.price.amount", decision: selection.decision, variant_id: selection.variant_id },
+    });
+  }
+  const unique = new Map(candidates.map((item) => [`${item.price}|${item.currency}`, item]));
+  return unique.size === 1 ? [...unique.values()][0] : null;
+}
+
+function shopifyRawPair(html, context, selectedRawPrice) {
+  const pairs = [];
+  for (const node of shopifyProductNodes(html)) {
+    if (!shopifyNodeMatchesMainProduct(node, context) && node._source !== "easybundle_active_product_data") continue;
+    const selection = shopifyVariantDecision(node, context);
+    if (!selection) continue;
+    const values = selection.variants.map((item) => {
+      const rawCurrent = item.price;
+      const rawRegular = item.compare_at_price ?? item.compareAtPrice;
+      return {
+        current: parsePrice(typeof rawCurrent === "object" ? rawCurrent.amount ?? rawCurrent.value : rawCurrent),
+        regular: parsePrice(typeof rawRegular === "object" ? rawRegular?.amount ?? rawRegular?.value : rawRegular),
+      };
+    });
+    if (values.some((item) => item.current == null)) continue;
+    const unique = new Map(values.map((item) => [`${item.current}|${item.regular ?? ""}`, item]));
+    if (unique.size !== 1) continue;
+    const pair = [...unique.values()][0];
+    if (!pricesEqual(pair.current, selectedRawPrice)) continue;
+    if (pair.regular != null) pairs.push({ ...pair, source: node._source, decision: selection.decision, variant_id: selection.variant_id });
+  }
+  const unique = new Map(pairs.map((item) => [`${item.current}|${item.regular ?? ""}`, item]));
+  return unique.size === 1 ? [...unique.values()][0] : null;
+}
+
+function shopifyEasyBundleRawPair(html, selectedRawPrice) {
+  const pairs = [];
+  for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
+    const script = decodeHtml(match[1]).trim();
+    if (!/window\.easybundle_active_product_data\s*=/.test(script)) continue;
+    const field = (name) => script.match(new RegExp(`(?:^|[{,\\s])${name}\\s*:\\s*([^,}]+)`, "i"))?.[1]?.trim();
+    if (field("price_varies") !== "false" || field("compare_at_price_varies") !== "false") continue;
+    const current = parsePrice(field("price")); const regular = parsePrice(field("compare_at_price"));
+    if (current == null || regular == null || regular <= current || !pricesEqual(current, selectedRawPrice)) continue;
+    pairs.push({ current, regular, source: "easybundle_active_product_data", decision: "active_product_single_pair", variant_id: null });
+  }
+  const unique = new Map(pairs.map((item) => [`${item.current}|${item.regular}`, item]));
+  return unique.size === 1 ? [...unique.values()][0] : null;
+}
+
+function reconcileShopifyJsonLdUnits(html, context, selected) {
+  const rawPrice = parsePrice(selected?.price);
+  if (rawPrice == null || !Number.isInteger(rawPrice)) return selected;
+  const selectedCurrency = normalizeCurrency(selected.currency);
+  const corroboration = [];
+  const meta = extractMeta(html);
+  if (meta?.price != null && meta.currency) corroboration.push({ price: meta.price, currency: normalizeCurrency(meta.currency), method: meta.method, evidence: meta.evidence });
+  const decimal = shopifyDecimalPriceEvidence(html, context);
+  if (decimal) corroboration.push(decimal);
+  const compatible = corroboration.filter((item) => item.currency === selectedCurrency);
+  const minor = compatible.filter((item) => pricesEqual(item.price * 100, rawPrice));
+  const major = compatible.filter((item) => pricesEqual(item.price, rawPrice));
+  if (minor.length && major.length) return { status: "ambiguous", reason: "shopify_price_unit_conflict", evidence: { raw_price: rawPrice, corroboration: compatible } };
+  if (!minor.length && !major.length) return { status: "ambiguous", reason: "shopify_integer_price_unit_unverified", evidence: { raw_price: rawPrice, currency: selectedCurrency, corroboration: compatible } };
+  if (major.length) return selected;
+
+  const proof = minor[0];
+  const reconciliation = {
+    reason: "shopify_minor_units_confirmed_by_product_scoped_evidence", divisor: 100, raw_price: rawPrice,
+    corroborating_method: proof.method, corroborating_price: proof.price, corroborating_evidence: proof.evidence,
+  };
+  const normalized = { ...selected, price: rawPrice / 100, evidence: { ...(selected.evidence || {}), unit_reconciliation: reconciliation } };
+  const rawRegular = parsePrice(selected.regular_price);
+  const pair = shopifyEasyBundleRawPair(html, rawPrice) || shopifyRawPair(html, context, rawPrice);
+  const regular = pair?.regular ?? (rawRegular != null && rawRegular > rawPrice ? rawRegular : null);
+  if (regular != null && regular > rawPrice) {
+    normalized.regular_price = regular / 100;
+    normalized.regular_price_currency = selectedCurrency;
+    normalized.regular_price_method = pair?.regular != null ? "shopify_compare_at_price_enrichment" : selected.regular_price_method;
+    normalized.regular_price_evidence = {
+      ...(pair?.regular != null ? { source: pair.source, path: "shopify.variants.compare_at_price", decision: pair.decision, variant_id: pair.variant_id } : selected.regular_price_evidence),
+      unit_reconciliation: { ...reconciliation, raw_regular_price: regular },
+    };
+  }
+  return normalized;
 }
 
 function shopifyRegularEnrichment(html, context, selected) {
@@ -660,7 +791,11 @@ export function extractPrice(html, { url = "", platform = "unknown" } = {}) {
   const strongDomain = extractStrongDomainProductPrice(html, context, jsonLd.result);
   if (strongDomain?.price != null) return { ...finish(strongDomain), diagnostics: diagnostics(jsonLd.diagnostics) };
   if (strongDomain?.status) return { ...strongDomain, diagnostics: diagnostics(jsonLd.diagnostics) };
-  if (jsonLd.result?.price != null) return { ...finish(jsonLd.result), diagnostics: diagnostics(jsonLd.diagnostics) };
+  if (jsonLd.result?.price != null) {
+    const selected = platform === "shopify" ? reconcileShopifyJsonLdUnits(html, context, jsonLd.result) : jsonLd.result;
+    if (selected?.status) return { ...selected, diagnostics: diagnostics(jsonLd.diagnostics) };
+    return { ...finish(selected), diagnostics: diagnostics(jsonLd.diagnostics) };
+  }
   const meta = extractMeta(html);
   if (meta?.price != null) return { ...finish(meta), diagnostics: diagnostics(jsonLd.diagnostics) };
   if (meta?.status) return { ...meta, diagnostics: diagnostics(jsonLd.diagnostics) };

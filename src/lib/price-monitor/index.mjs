@@ -1,7 +1,7 @@
 export { extractPrice } from "./extract.mjs";
 export { extractProductMetadata, normalizeExternalProductUrl } from "./product-metadata.mjs";
 export { ENTITY_TYPES, entityIdentity, matchObservedToCatalog, observedCanonicalKey } from "./entity-identity.mjs";
-export { discoverBrandProducts, fetchDiscoveryPage, validateDiscoveredProductUrl } from "./discovery.mjs";
+export { discoverBrandProducts, fetchDiscoveryPage, selectDiscoveryCandidates, validateDiscoveredProductUrl } from "./discovery.mjs";
 export { OBSERVED_PRODUCT_FIELDS, createObservedProductStore, nextObservedLifecycle, observedProductRecord } from "./observed-products.mjs";
 export { buildDealCard } from "./deal-contract.mjs";
 export { detectPlatform } from "./platform.mjs";

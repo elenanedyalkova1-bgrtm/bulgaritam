@@ -5,7 +5,7 @@ import { baserowUrl } from "./lib/baserow-url.mjs";
 import {
   createGoogleSheetsHistory, createObservedProductStore, discoverBrandProducts, externalMonitoringEnabled,
   matchObservedToCatalog, monitorProduct, nextObservedLifecycle, observedProductRecord, runDomainThrottled,
-  selectExternalDue, withTransientRetry,
+  selectDiscoveryCandidates, selectExternalDue, withTransientRetry,
 } from "../src/lib/price-monitor/index.mjs";
 
 try { process.loadEnvFile?.(); } catch (error) { if (error?.code !== "ENOENT") throw error; }
@@ -24,6 +24,7 @@ const budget = Math.min(10_000, Math.max(1, Number(arg("--daily-budget", process
 const perDomainCap = Math.max(1, Number(arg("--per-domain-cap", process.env.EXTERNAL_MONITOR_DOMAIN_DAILY_CAP || "50")) || 50);
 const discoveryBudget = Math.min(5_000, Math.max(1, Number(arg("--discovery-budget", process.env.EXTERNAL_DISCOVERY_RUN_BUDGET || "1000")) || 1_000));
 const perBrandDiscoveryCap = Math.min(1_000, Math.max(1, Number(arg("--max-products-per-brand", process.env.EXTERNAL_DISCOVERY_BRAND_CAP || "250")) || 250));
+const perBrandDiscoveryScanCap = Math.min(10_000, Math.max(perBrandDiscoveryCap, Number(arg("--max-scanned-products-per-brand", process.env.EXTERNAL_DISCOVERY_SCAN_CAP || "1000")) || 1_000));
 const timeoutMs = Math.max(5_000, Number(arg("--timeout-ms", "15000")) || 15_000); const concurrency = Math.min(12, Math.max(1, Number(arg("--concurrency", "6")) || 6));
 const domainDelayMs = Math.max(1_000, Number(arg("--domain-delay-ms", "2000")) || 2_000);
 
@@ -44,9 +45,11 @@ if (["discover", "all"].includes(command)) {
     if (discoveryProcessed >= discoveryBudget) break;
     try {
       const brandBudget = Math.min(perBrandDiscoveryCap, discoveryBudget - discoveryProcessed);
-      const found = await discoverBrandProducts({ brand_id: brand.id, brand_url: brand.brand_url }, { maxProducts: brandBudget });
-      const seenKeys = new Set(); let created = 0; let updated = 0;
-      for (const candidate of found.candidates) {
+      const found = await discoverBrandProducts({ brand_id: brand.id, brand_url: brand.brand_url }, { maxProducts: perBrandDiscoveryScanCap });
+      const brandExisting = existing.filter((row) => String(row.brand_id) === String(brand.id));
+      const candidateSelection = selectDiscoveryCandidates(found.candidates, brandExisting, brandBudget);
+      const seenKeys = candidateSelection.seenCanonicalKeys; let created = 0; let updated = 0;
+      for (const candidate of candidateSelection.selected) {
         discoveryProcessed += 1;
         const observation = await monitorProduct({ entity_type: "observed_product", entity_id: `discovery:${brand.id}:${candidate.normalized_url}`, product_id: null, product_name: null, brand_name: brand.brand_name, product_url: candidate.source_url }, { timeoutMs });
         const match = matchObservedToCatalog({ brand_id: brand.id, source_url: candidate.source_url, canonical_url: observation.canonical_url || candidate.normalized_url, external_product_id: observation.external_product_id, sku: observation.sku }, catalog);
@@ -70,9 +73,9 @@ if (["discover", "all"].includes(command)) {
         report.discovery_observations.push(observation);
         known ? updated++ : created++;
       }
-      const missing = found.capacity_reached ? [] : existing.filter((row) => String(row.brand_id) === String(brand.id) && !seenKeys.has(row.canonical_key));
+      const missing = found.capacity_reached ? [] : brandExisting.filter((row) => !seenKeys.has(row.canonical_key));
       if (write) for (const row of missing) await store.update(row.id, nextObservedLifecycle(row, "not_seen"));
-      report.discovery.push({ brand_id: brand.id, brand: brand.brand_name, status: found.status, discovered: found.candidates.length, capacity_reached: found.capacity_reached, lifecycle_missing_applied: !found.capacity_reached, created, updated, not_seen: missing.length, requests: found.request_count + found.candidates.length, run_budget_used: discoveryProcessed, run_budget: discoveryBudget });
+      report.discovery.push({ brand_id: brand.id, brand: brand.brand_name, status: found.status, discovered: found.candidates.length, processed: candidateSelection.selected.length, unseen_discovered: candidateSelection.unseen, capacity_reached: found.capacity_reached, lifecycle_missing_applied: !found.capacity_reached, created, updated, not_seen: missing.length, requests: found.request_count + candidateSelection.selected.length, run_budget_used: discoveryProcessed, run_budget: discoveryBudget });
     } catch (error) { report.errors.push({ stage: "discovery", brand_id: brand.id, error: String(error?.message || error) }); }
   }
 }

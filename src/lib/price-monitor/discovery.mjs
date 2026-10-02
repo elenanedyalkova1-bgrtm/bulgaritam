@@ -10,6 +10,23 @@ const listing = (url, base) => { try { const p = new URL(url).pathname.replace(/
 const productPattern = (url) => { try { const p = new URL(url).pathname; return /\/(products?|produkt|produkti|p|shop\/[^/]+)\//i.test(p) || /\/singleproduct\/\d+/i.test(p); } catch { return false; } };
 export const validateDiscoveredProductUrl = (url, base) => { const normalized = normalizeExternalProductUrl(url); return normalized && sameDomain(normalized, base) && !listing(normalized, base) ? normalized : null; };
 
+export function selectDiscoveryCandidates(candidates = [], existing = [], limit = 10) {
+  const byUrl = new Map();
+  for (const row of existing) {
+    for (const value of [row.source_url, row.canonical_url]) {
+      const normalized = normalizeExternalProductUrl(value);
+      if (normalized) byUrl.set(normalized, row);
+    }
+  }
+  const ranked = candidates.map((candidate, index) => ({ candidate, index, known: byUrl.get(normalizeExternalProductUrl(candidate.normalized_url || candidate.source_url)) || null }));
+  ranked.sort((a, b) => Number(Boolean(a.known)) - Number(Boolean(b.known)) || a.index - b.index);
+  return {
+    selected: ranked.slice(0, Math.max(1, limit)).map(({ candidate }) => candidate),
+    seenCanonicalKeys: new Set(ranked.map(({ known }) => known?.canonical_key).filter(Boolean)),
+    unseen: ranked.filter(({ known }) => !known).length,
+  };
+}
+
 export async function fetchDiscoveryPage(url, { fetchImpl = fetch, timeoutMs = 12_000, userAgent = "BulgaritamProductDiscovery/1.0 (+https://bulgaritam.bg/)" } = {}) {
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), timeoutMs);
   try { const response = await fetchImpl(url, { redirect: "follow", signal: controller.signal, headers: { "User-Agent": userAgent, Accept: "text/html,application/xml,text/xml,application/json,*/*" } }); return { ok: response.ok, status: response.status, final_url: response.url || url, content_type: response.headers?.get?.("content-type") || "", body: (await response.text()).slice(0, 8_000_000) }; }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildDealCard, createObservedProductStore, discoverBrandProducts, evaluateDiscounts, extractProductMetadata, historyObservation, matchObservedToCatalog, nextObservedLifecycle, normalizeExternalProductUrl, observedCanonicalKey, observedProductRecord } from "../src/lib/price-monitor/index.mjs";
+import { buildDealCard, createObservedProductStore, discoverBrandProducts, evaluateDiscounts, extractProductMetadata, historyObservation, matchObservedToCatalog, nextObservedLifecycle, normalizeExternalProductUrl, observedCanonicalKey, observedProductRecord, selectDiscoveryCandidates } from "../src/lib/price-monitor/index.mjs";
 import fs from "node:fs";
 
 test("bounded discovery prefers product sitemap and rejects listing URLs", async () => {
@@ -21,6 +21,15 @@ test("bounded discovery reports truncation so lifecycle does not mark unseen pro
   ]);
   const result = await discoverBrandProducts({ brand_id:1,brand_url:"https://brand.test" }, { fetchPage:async(url)=>pages.get(url)||{ok:false,status:404,final_url:url,body:""}, maxProducts:1 });
   assert.equal(result.candidates.length, 1); assert.equal(result.capacity_reached, true);
+});
+
+test("weekly discovery prioritizes unseen sitemap URLs without increasing the product-read cap", () => {
+  const existing = [1, 2, 3].map((id) => ({ id, canonical_key: `7|https://brand.test/p/${id}`, brand_id: 7, source_url: `https://brand.test/p/${id}` }));
+  const candidates = [1, 2, 3, 4, 5].map((id) => ({ source_url: `https://brand.test/p/${id}`, normalized_url: `https://brand.test/p/${id}` }));
+  const result = selectDiscoveryCandidates(candidates, existing, 2);
+  assert.deepEqual(result.selected.map((row) => row.normalized_url), ["https://brand.test/p/4", "https://brand.test/p/5"]);
+  assert.equal(result.unseen, 2);
+  assert.deepEqual([...result.seenCanonicalKeys].sort(), existing.map((row) => row.canonical_key));
 });
 
 test("custom single-segment shop indexes are rejected as discovery candidates", async () => {

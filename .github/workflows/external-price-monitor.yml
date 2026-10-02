@@ -1,0 +1,72 @@
+name: Bulgaritam External Price Monitor
+
+on:
+  schedule:
+    - cron: "43 3 * * *"
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Bounded external operation
+        required: true
+        default: monitor
+        type: choice
+        options: [monitor, discover, all]
+      brand_ids:
+        description: Optional comma-separated enabled Brand IDs
+        required: false
+      dry_run:
+        description: Do not persist Observed Products or Price History
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: bulgaritam-external-price-monitor-single-writer
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  external-monitor:
+    if: ${{ vars.EXTERNAL_MONITORING_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Run bounded external monitoring
+        env:
+          EXTERNAL_MONITORING_ENABLED: ${{ vars.EXTERNAL_MONITORING_ENABLED }}
+          EXTERNAL_MONITOR_DAILY_BUDGET: ${{ vars.EXTERNAL_MONITOR_DAILY_BUDGET }}
+          EXTERNAL_MONITOR_DOMAIN_DAILY_CAP: ${{ vars.EXTERNAL_MONITOR_DOMAIN_DAILY_CAP }}
+          EXTERNAL_DISCOVERY_RUN_BUDGET: ${{ vars.EXTERNAL_DISCOVERY_RUN_BUDGET }}
+          EXTERNAL_DISCOVERY_BRAND_CAP: ${{ vars.EXTERNAL_DISCOVERY_BRAND_CAP }}
+          EXTERNAL_MONITOR_BRAND_IDS: ${{ vars.EXTERNAL_MONITOR_BRAND_IDS }}
+          BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
+          BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
+          BASEROW_BRANDS_TABLE_ID: ${{ vars.BASEROW_BRANDS_TABLE_ID }}
+          BASEROW_OBSERVED_PRODUCTS_TABLE_ID: ${{ vars.BASEROW_OBSERVED_PRODUCTS_TABLE_ID }}
+          GOOGLE_PRICE_MONITOR_SPREADSHEET_ID: ${{ vars.GOOGLE_PRICE_MONITOR_SPREADSHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          REQUESTED_COMMAND: ${{ github.event_name == 'schedule' && 'monitor' || inputs.command }}
+          REQUESTED_BRANDS: ${{ inputs.brand_ids }}
+          REQUESTED_DRY_RUN: ${{ github.event_name == 'schedule' && 'false' || inputs.dry_run }}
+        run: |
+          args=("$REQUESTED_COMMAND" --daily-budget="${EXTERNAL_MONITOR_DAILY_BUDGET:-500}" --per-domain-cap="${EXTERNAL_MONITOR_DOMAIN_DAILY_CAP:-50}" --concurrency=6 --domain-delay-ms=2000 --timeout-ms=15000 --output=/tmp/external-monitor-run.json)
+          if [ -n "$REQUESTED_BRANDS" ]; then args+=(--brand-ids="$REQUESTED_BRANDS"); fi
+          if [ "$REQUESTED_DRY_RUN" != "true" ]; then args+=(--write-monitor-results); fi
+          node scripts/run-external-price-monitor.mjs "${args[@]}"
+      - name: Upload run summary
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: external-price-monitor-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/external-monitor-run.json
+          if-no-files-found: error
+          retention-days: 30

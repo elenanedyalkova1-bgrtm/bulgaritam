@@ -3,6 +3,7 @@ name: Bulgaritam External Price Monitor
 on:
   schedule:
     - cron: "43 3 * * *"
+    - cron: "13 2 * * 1"
   workflow_dispatch:
     inputs:
       command:
@@ -54,7 +55,7 @@ jobs:
           GOOGLE_PRICE_MONITOR_SPREADSHEET_ID: ${{ vars.GOOGLE_PRICE_MONITOR_SPREADSHEET_ID }}
           GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
           GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY }}
-          REQUESTED_COMMAND: ${{ github.event_name == 'schedule' && 'monitor' || inputs.command }}
+          REQUESTED_COMMAND: ${{ github.event_name == 'schedule' && github.event.schedule == '13 2 * * 1' && 'discover' || github.event_name == 'schedule' && 'monitor' || inputs.command }}
           REQUESTED_BRANDS: ${{ inputs.brand_ids }}
           REQUESTED_DRY_RUN: ${{ github.event_name == 'schedule' && 'false' || inputs.dry_run }}
         run: |

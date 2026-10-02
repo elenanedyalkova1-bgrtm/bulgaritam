@@ -1,5 +1,5 @@
 import { isReliableDetectedObservation, PRICE_HISTORY_HEADERS } from "./google-sheets-history.mjs";
-import { classifyPromotionSemantics, promotionConsumerEligible } from "./promotion-semantics.mjs";
+import { classifyPromotionSemantics, MINIMUM_DISCOUNT, promotionConsumerEligible } from "./promotion-semantics.mjs";
 
 const text = (value) => String(value ?? "").trim();
 const finite = (value) => {
@@ -14,6 +14,11 @@ const time = (value) => {
 };
 const samePrice = (a, b) => a != null && b != null && Math.abs(a - b) < 0.000001;
 const rounded = (value) => Number.isFinite(value) ? Math.round(value * 10_000) / 10_000 : null;
+const meaningfulDiscount = (higher, current) => {
+  if (higher == null || current == null || higher <= current) return false;
+  const amount = higher - current; const percent = amount / higher * 100;
+  return amount >= MINIMUM_DISCOUNT.amount && percent >= MINIMUM_DISCOUNT.percent;
+};
 
 function observation(raw) {
   const row = Array.isArray(raw)
@@ -33,15 +38,9 @@ function evaluationWindow(options = {}) {
 function explicitSalePair(latest) {
   const current = finite(latest.detected_price); const regular = finite(latest.regular_price);
   const currentCurrency = currency(latest.currency); const regularCurrency = currency(latest.regular_price_currency);
-  if (current == null || current <= 0 || regular == null || regular <= current) return null;
+  if (current == null || current <= 0 || regular == null || !meaningfulDiscount(regular, current)) return null;
   if (!currentCurrency || currentCurrency !== regularCurrency) return null;
   return { current, regular, currency: currentCurrency };
-}
-
-function authoritativePrevious(latest, current) {
-  const previous = finite(latest.previous_verified_price); const difference = finite(latest.difference);
-  if (previous == null || previous <= current || difference == null) return null;
-  return samePrice(difference, current - previous) ? previous : null;
 }
 
 function priceDrop(reliable, latestIndex, current, currentCurrency) {
@@ -59,8 +58,7 @@ function priceDrop(reliable, latestIndex, current, currentCurrency) {
     previous = finite(candidate.detected_price);
     break;
   }
-  if (previous == null) previous = authoritativePrevious(reliable[latestIndex], current);
-  if (previous == null || previous <= current) return null;
+  if (!meaningfulDiscount(previous, current)) return null;
   return {
     previous,
     amount: rounded(previous - current),
@@ -100,6 +98,7 @@ export function evaluateProductDiscount(rawObservations, options = {}) {
     activeSale: Boolean(sale), verifiedPriceDrop: Boolean(drop),
     regularPriceMethod: sale ? latest.regular_price_method : null,
     regularPriceEvidence: sale ? latest.regular_price_evidence : null,
+    productName: text(latest.product_name),
   });
   const consumerEligible = promotionConsumerEligible(promotionConfidence);
   const comparisonPrice = sale?.regular ?? drop?.previous ?? null;

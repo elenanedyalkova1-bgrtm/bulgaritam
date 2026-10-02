@@ -16,7 +16,7 @@ const history = createGoogleSheetsHistory({
   serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
   privateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
 });
-const rows = (await history.getValues("Price History!A2:Q")).values || [];
+const rows = (await history.getValues("Price History!A2:S")).values || [];
 const report = buildDiscountReport(rows, { week_start, week_end });
 if (output) {
   const absolute = path.resolve(output);

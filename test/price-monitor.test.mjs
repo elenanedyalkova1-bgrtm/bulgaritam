@@ -343,6 +343,20 @@ test("monitor carries regular price without changing authoritative price compari
   assert.deepEqual([result.detected_price, result.regular_price, result.price_changed, result.status], [49, 59, false, "verified"]);
 });
 
+test("monitor records deterministic bundle promotion semantics without changing extracted prices", async () => {
+  const body = `${jsonLd(product(offer("49", "EUR", { priceSpecification: { price: "59", priceCurrency: "EUR", priceType: "ListPrice" } })))}<h1>Подаръчен комплект</h1><div>Редовна цена €59 Промоционална цена €49</div>`;
+  const result = await monitorProduct({ product_url: url, product_name: "Подаръчен комплект" }, { page: page(200, body) });
+  assert.deepEqual([result.detected_price, result.regular_price], [49, 59]);
+  assert.equal(result.regular_price_evidence.promotion_semantics.product_is_bundle, true);
+  assert.ok(result.regular_price_evidence.promotion_semantics.temporary_sale_signals.includes("promotional_price_label"));
+});
+
+test("monitor identifies quantified bundle-saving wording as reference-value evidence", async () => {
+  const body = `${jsonLd(product(offer("49", "EUR", { priceSpecification: { price: "59", priceCurrency: "EUR", priceType: "ListPrice" } })))}<h1>Пълен комплект</h1><div>Спести €10 с пълния комплект</div>`;
+  const result = await monitorProduct({ product_url: url, product_name: "Пълен комплект" }, { page: page(200, body) });
+  assert.ok(result.regular_price_evidence.promotion_semantics.reference_value_signals.includes("quantified_bundle_saving_claim"));
+});
+
 const shopifyMetaPage = (variants, pageUrl = `${url}?variant=7`) => `<html><head>
   <meta property="product:price:amount" content="49"><meta property="product:price:currency" content="EUR">
   </head><body><script id="ProductJson-product-template">${JSON.stringify({ currency: "EUR", variants })}</script></body></html>`;

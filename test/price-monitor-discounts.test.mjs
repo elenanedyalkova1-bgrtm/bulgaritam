@@ -101,9 +101,33 @@ test("I repeated current prices preserve the first observation of one price-drop
   assert.equal(result.drop_first_seen_at, "2026-09-20T10:00:00Z");
 });
 
-test("authoritative baseline proves a drop when no earlier reliable observation exists", () => {
+test("authoritative baseline alone never proves a historical price drop", () => {
   const result = evaluateProductDiscount([row({ previous_verified_price: 59, difference: -10, status: "changed" })], window);
-  assert.equal(result.verified_price_drop, true); assert.equal(result.previous_price, 59);
+  assert.equal(result.verified_price_drop, false); assert.equal(result.previous_price, null);
+  assert.equal(result.weekly_discount_eligible, false);
+});
+
+test("bundle compare-at price fails closed without temporary-sale semantics", () => {
+  const result = evaluateProductDiscount([row({ product_name: "Подаръчен комплект", regular_price: 59, regular_price_currency: "EUR", regular_price_method: "shopify_compare_at_price_enrichment", regular_price_evidence: '{"path":"compare_at_price","promotion_semantics":{"product_is_bundle":true,"temporary_sale_signals":[],"reference_value_signals":[]}}' })], window);
+  assert.equal(result.active_sale, true); assert.equal(result.promotion_confidence, "UNKNOWN"); assert.equal(result.weekly_discount_eligible, false);
+});
+
+test("bundle remains an explicit sale with deterministic temporary-sale evidence", () => {
+  const result = evaluateProductDiscount([row({ product_name: "Подаръчен комплект", regular_price: 59, regular_price_currency: "EUR", regular_price_method: "shopify_compare_at_price_enrichment", regular_price_evidence: '{"promotion_semantics":{"product_is_bundle":true,"temporary_sale_signals":["promotional_price_label"],"reference_value_signals":[]}}' })], window);
+  assert.equal(result.promotion_confidence, "EXPLICIT_SALE"); assert.equal(result.weekly_discount_eligible, true);
+});
+
+test("quantified bundle saving is reference value even when sale labels also exist", () => {
+  const result = evaluateProductDiscount([row({ product_name: "Пълен комплект", regular_price: 59, regular_price_currency: "EUR", regular_price_method: "shopify_compare_at_price_enrichment", regular_price_evidence: '{"promotion_semantics":{"product_is_bundle":true,"temporary_sale_signals":["sale_or_discount_label"],"reference_value_signals":["quantified_bundle_saving_claim"]}}' })], window);
+  assert.equal(result.promotion_confidence, "REFERENCE_VALUE_SAVING"); assert.equal(result.weekly_discount_eligible, false);
+});
+
+test("sub-percent and sub-unit differences are rounding noise, not discounts", () => {
+  const explicit = evaluateProductDiscount([row({ detected_price: 69, regular_price: 69.02, regular_price_currency: "EUR", regular_price_method: "woocommerce_del_ins" })], window);
+  const historical = evaluateProductDiscount([row({ checked_at: "2026-09-10T10:00:00Z", detected_price: 69.02 }), row({ detected_price: 69 })], window);
+  for (const result of [explicit, historical]) {
+    assert.equal(result.active_sale, false); assert.equal(result.verified_price_drop, false); assert.equal(result.weekly_discount_eligible, false);
+  }
 });
 
 test("nearest different reliable price prevents reaching past a later increase", () => {

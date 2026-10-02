@@ -2,6 +2,7 @@ import { productDomain } from "./scheduler.mjs";
 
 const DAY = 86_400_000;
 const text = (value) => String(value ?? "").trim();
+const enabled = (value) => value === true || ["true", "1", "yes", "y"].includes(text(value).toLowerCase());
 const select = (value) => text(value && typeof value === "object" ? value.value : value);
 const dateMs = (value) => { const parsed = Date.parse(text(value)); return Number.isFinite(parsed) ? parsed : null; };
 
@@ -16,6 +17,10 @@ export const EXTERNAL_CADENCE_DAYS = Object.freeze({
 
 export function externalMonitoringEnabled(env = process.env) {
   return ["1", "true", "yes"].includes(text(env.EXTERNAL_MONITORING_ENABLED).toLowerCase());
+}
+
+export function externalBrandMonitoringEligible(brand = {}) {
+  return enabled(brand.external_monitoring_enabled) && !enabled(brand.external_monitoring_paused);
 }
 
 export function observedMonitoringState(row) {

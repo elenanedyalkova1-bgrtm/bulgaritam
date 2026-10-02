@@ -115,7 +115,7 @@ test("consumer deals fail closed, enforce 72-hour freshness and route observed m
     { id: 12, brand_id: 1, title: "Стар", image_url: "https://shop.test/b.jpg", canonical_url: "https://shop.test/b", is_active: true, lifecycle_status: "active" },
     { id: 13, brand_id: 1, title: "Без снимка", image_url: "", canonical_url: "https://shop.test/c", is_active: true, lifecycle_status: "active" },
   ];
-  const deals = buildConsumerDeals(evaluations as any, observed, [{ id: 1, brand_name: "Алфа", is_active: true }], [product(7)], now);
+  const deals = buildConsumerDeals(evaluations as any, observed, [{ id: 1, brand_name: "Алфа", is_active: true, external_monitoring_enabled: true }], [product(7)], now);
   assert.equal(deals.length, 1); assert.equal(deals[0].destination_type, "internal"); assert.equal(deals[0].destination_url, "/p/product-7/");
 });
 
@@ -131,8 +131,8 @@ test("consumer deal eligibility excludes PhytoEssenceBio by canonical brand id o
     { id: 44, brand_id: 44, title: "Публичен продукт", image_url: "https://shop.test/44.jpg", canonical_url: "https://shop.test/44", is_active: true, lifecycle_status: "active" },
   ];
   const brands = [
-    { id: 43, brand_name: "PhytoEssenceBio", is_active: true },
-    { id: 44, brand_name: "Друг бранд", is_active: true },
+    { id: 43, brand_name: "PhytoEssenceBio", is_active: true, external_monitoring_enabled: true },
+    { id: 44, brand_name: "Друг бранд", is_active: true, external_monitoring_enabled: true },
   ];
   const deals = buildConsumerDeals(evaluations as any, observed, brands, [], now);
   assert.deepEqual(deals.map((deal) => deal.entity_id), ["44"]);
@@ -145,7 +145,28 @@ test("consumer deals reject UNKNOWN and REFERENCE_VALUE_SAVING semantic states",
     discount("", { entity_type: "observed_product", entity_id: "2", latest_checked_at: "2026-09-29T10:00:00Z", promotion_confidence: "REFERENCE_VALUE_SAVING", promotion_consumer_eligible: false }),
   ];
   const observed = [1, 2].map((id) => ({ id, brand_id: 1, title: `Product ${id}`, image_url: `https://shop.test/${id}.jpg`, canonical_url: `https://shop.test/${id}`, is_active: true, lifecycle_status: "active" }));
-  assert.deepEqual(buildConsumerDeals(evaluations as any, observed, [{ id: 1, brand_name: "Brand", is_active: true }], [], now), []);
+  assert.deepEqual(buildConsumerDeals(evaluations as any, observed, [{ id: 1, brand_name: "Brand", is_active: true, external_monitoring_enabled: true }], [], now), []);
+});
+
+test("inactive explicitly monitored brand produces an external consumer deal", () => {
+  const now = new Date("2026-09-29T12:00:00Z");
+  const evaluations = [discount("", { entity_type: "observed_product", entity_id: "21", latest_checked_at: "2026-09-29T10:00:00Z", brand: "Скрит бранд" })];
+  const observed = [{ id: 21, brand_id: 9, title: "Външен продукт", image_url: "https://shop.test/image.jpg", canonical_url: "https://shop.test/product", source_url: "https://shop.test/product", is_active: true, lifecycle_status: "active", bulgaritam_product_id: 7 }];
+  const brands = [{ id: 9, brand_name: "Скрит бранд", is_active: false, external_monitoring_enabled: true, external_monitoring_paused: false }];
+  const deals = buildConsumerDeals(evaluations as any, observed, brands, [product(7, { brand_id: 9 })], now);
+  assert.equal(deals.length, 1);
+  assert.equal(deals[0].destination_type, "external");
+  assert.equal(deals[0].destination_url, "https://shop.test/product");
+  assert.equal(deals[0].outbound_url, "https://shop.test/product");
+  assert.equal(deals[0].internal_slug, null);
+});
+
+test("external consumer deals require explicit monitoring opt-in and respect pause", () => {
+  const now = new Date("2026-09-29T12:00:00Z");
+  const evaluations = [discount("", { entity_type: "observed_product", entity_id: "21", latest_checked_at: "2026-09-29T10:00:00Z" })];
+  const observed = [{ id: 21, brand_id: 9, title: "Външен продукт", image_url: "https://shop.test/image.jpg", canonical_url: "https://shop.test/product", is_active: true, lifecycle_status: "active" }];
+  assert.deepEqual(buildConsumerDeals(evaluations as any, observed, [{ id: 9, is_active: false }], [], now), []);
+  assert.deepEqual(buildConsumerDeals(evaluations as any, observed, [{ id: 9, is_active: false, external_monitoring_enabled: true, external_monitoring_paused: true }], [], now), []);
 });
 
 test("discount page reuses the existing card, masonry and filter-modal UI contracts", () => {

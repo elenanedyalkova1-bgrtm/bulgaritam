@@ -3,6 +3,7 @@ import { detectPlatform } from "./platform.mjs";
 import { normalizeCurrency, parsePrice, pricesEqual } from "./normalize.mjs";
 import { extractProductMetadata } from "./product-metadata.mjs";
 import { entityIdentity } from "./entity-identity.mjs";
+import { extractPromotionSemanticEvidence } from "./promotion-semantics.mjs";
 
 const DEFAULT_HEADERS = {
   Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
@@ -52,13 +53,18 @@ export async function monitorProduct(product, options = {}) {
     if (page.httpStatus < 200 || page.httpStatus >= 400) return { ...result, status: "error", error_reason: `http_${page.httpStatus}` };
     const extracted = extractPrice(page.html || "", { url: result.final_url, platform: result.detected_platform });
     const metadata = extractProductMetadata(page.html || "", { url: result.final_url });
+    const promotionSemantics = extractPromotionSemanticEvidence({ html: page.html || "", productName: metadata.title || result.product_name, regularPriceMethod: extracted.regular_price_method });
+    const regularPriceEvidence = extracted.regular_price_evidence == null ? null
+      : typeof extracted.regular_price_evidence === "object"
+        ? { ...extracted.regular_price_evidence, promotion_semantics: promotionSemantics }
+        : { source_evidence: extracted.regular_price_evidence, promotion_semantics: promotionSemantics };
     Object.assign(result, {
       ...metadata,
       detected_price: extracted.price ?? null, currency: extracted.currency ?? null,
       regular_price: extracted.regular_price ?? null,
       regular_price_currency: extracted.regular_price_currency ?? null,
       regular_price_method: extracted.regular_price_method ?? null,
-      regular_price_evidence: extracted.regular_price_evidence ?? null,
+      regular_price_evidence: regularPriceEvidence,
       extraction_tier: extracted.tier ?? null, extraction_method: extracted.method ?? null,
       extraction_outcome: extracted.outcome ?? null,
       confidence: extracted.confidence ?? null, evidence: { ...(extracted.evidence || {}), diagnostics: extracted.diagnostics || null },

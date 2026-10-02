@@ -1,11 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { dueObservedProduct, externalMonitoringEnabled, observedMonitoringState, scaleBenchmark, selectExternalDue } from "../src/lib/price-monitor/index.mjs";
+import { dueObservedProduct, externalBrandMonitoringEligible, externalMonitoringEnabled, observedMonitoringState, scaleBenchmark, selectExternalDue } from "../src/lib/price-monitor/index.mjs";
 
 test("external monitoring is opt-in and false by default", () => {
   assert.equal(externalMonitoringEnabled({}), false);
   assert.equal(externalMonitoringEnabled({ EXTERNAL_MONITORING_ENABLED: "true" }), true);
+});
+
+test("external brand monitoring ignores catalog visibility and respects explicit opt-in and pause", () => {
+  assert.equal(externalBrandMonitoringEligible({ is_active: false, external_monitoring_enabled: true }), true);
+  assert.equal(externalBrandMonitoringEligible({ is_active: true, external_monitoring_enabled: false }), false);
+  assert.equal(externalBrandMonitoringEligible({ is_active: true, external_monitoring_enabled: "" }), false);
+  assert.equal(externalBrandMonitoringEligible({ is_active: false, external_monitoring_enabled: true, external_monitoring_paused: true }), false);
 });
 
 test("adaptive states preserve blocked and inactive long cadence", () => {
@@ -36,10 +43,13 @@ test("scale benchmark exposes current 30-minute worker constraint", () => {
 
 test("external workflow is independently feature-flagged and cannot deploy", () => {
   const workflow = fs.readFileSync(new URL("../.github/workflows/external-price-monitor.yml", import.meta.url), "utf8");
+  const worker = fs.readFileSync(new URL("../scripts/run-external-price-monitor.mjs", import.meta.url), "utf8");
   assert.match(workflow, /vars\.EXTERNAL_MONITORING_ENABLED == 'true'/);
   assert.match(workflow, /external-price-monitor-single-writer/);
   assert.match(workflow, /cron: "43 3 \* \* \*"/);
   assert.match(workflow, /cron: "13 2 \* \* 1"/);
   assert.match(workflow, /github\.event\.schedule == '13 2 \* \* 1' && 'discover'/);
   assert.doesNotMatch(workflow, /apps-script-fallback|deploy|publish-public/);
+  assert.match(worker, /externalBrandMonitoringEligible\(brand\)/);
+  assert.doesNotMatch(worker, /brand\.is_active\s*===\s*true|EXTERNAL_MONITOR_BRAND_IDS/);
 });

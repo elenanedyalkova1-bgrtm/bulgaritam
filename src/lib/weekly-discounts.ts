@@ -1,5 +1,5 @@
 import { loadProducts, type Product } from "./products";
-import { createGoogleSheetsHistory, evaluateDiscounts } from "./price-monitor/index.mjs";
+import { createGoogleSheetsHistory, evaluateDiscounts, externalBrandMonitoringEligible } from "./price-monitor/index.mjs";
 
 const SOFIA_TIME_ZONE = "Europe/Sofia";
 
@@ -196,8 +196,9 @@ export function buildConsumerDeals(evaluations: DiscountEvaluation[], observed: 
       continue;
     }
     const row = observedById.get(entityId); const brand = row ? brandsById.get(String(row.brand_id)) : null;
-    if (!row || !brand || !brandEligible(brand, row.brand_id) || !active(row.is_active) || !active(brand.is_active) || clean(row.lifecycle_status) === "inactive") continue;
-    const matched = row.bulgaritam_product_id ? productsByRowId.get(String(row.bulgaritam_product_id)) : null;
+    if (!row || !brand || !brandEligible(brand, row.brand_id) || !externalBrandMonitoringEligible(brand)
+      || !active(row.is_active) || clean(row.lifecycle_status) === "inactive") continue;
+    const matched = active(brand.is_active) && row.bulgaritam_product_id ? productsByRowId.get(String(row.bulgaritam_product_id)) : null;
     const destination = matched ? `/p/${matched.slug}/` : clean(row.canonical_url || row.source_url || evaluation.product_url);
     if ((!matched && !validDestination(destination)) || !clean(row.title) || !validDestination(row.image_url)) continue;
     cards.push({ ...evaluation, entity_type: entityType, entity_id: entityId, brand_id: Number(row.brand_id) || null, title: clean(row.title),

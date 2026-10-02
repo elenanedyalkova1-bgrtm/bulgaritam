@@ -14,6 +14,7 @@ const row = (overrides = {}) => ({
 
 test("discount report reuses evaluator output, groups methods, counts eligibility, and sorts deterministically", () => {
   const report = buildDiscountReport([
+    row({ product_id: "p1", product_name: "Alpha", brand: "Alpha", checked_at: "2026-09-20T10:00:00+03:00", detected_price: 60, regular_price: null, regular_price_currency: "", regular_price_method: "", regular_price_evidence: "" }),
     row({ product_id: "p2", product_name: "Zulu", brand: "Beta", detected_price: 80, regular_price: 100, previous_verified_price: 80, difference: 0 }),
     row({ product_id: "p1", product_name: "Alpha", brand: "Alpha", detected_price: 50, regular_price: 100, previous_verified_price: 60, difference: -10 }),
     row({ product_id: "p3", product_name: "Old", checked_at: "2026-09-15T10:00:00+03:00", detected_price: 40, regular_price: 50 }),
@@ -33,7 +34,7 @@ test("discount report reuses evaluator output, groups methods, counts eligibilit
 test("report CLI is Google read-only and delegates domain logic", () => {
   const cli = fs.readFileSync("scripts/report-discounts.mjs", "utf8");
   const domain = fs.readFileSync("src/lib/price-monitor/discount-report.mjs", "utf8");
-  assert.match(cli, /getValues\("Price History!A2:Q"\)/); assert.match(cli, /buildDiscountReport/);
+  assert.match(cli, /getValues\("Price History!A2:S"\)/); assert.match(cli, /buildDiscountReport/);
   assert.match(domain, /evaluateDiscounts/);
   assert.doesNotMatch(cli, /\.append\(|updateValues|batchUpdate|createBaserow|api\.baserow/i);
 });

@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { baserowUrl } from "./lib/baserow-url.mjs";
 import {
-  createGoogleSheetsHistory, createObservedProductStore, discoverBrandProducts, externalMonitoringEnabled,
+  createGoogleSheetsHistory, createObservedProductStore, discoverBrandProducts, externalBrandMonitoringEligible, externalMonitoringEnabled,
   matchObservedToCatalog, monitorProduct, nextObservedLifecycle, observedProductRecord, runDomainThrottled,
   selectDiscoveryCandidates, selectExternalDue, withTransientRetry,
 } from "../src/lib/price-monitor/index.mjs";
@@ -30,9 +30,8 @@ const domainDelayMs = Math.max(1_000, Number(arg("--domain-delay-ms", "2000")) |
 
 async function rows(table) { const result=[];let next=`https://api.baserow.io/api/database/rows/table/${table}/?user_field_names=true&size=200`;while(next){const response=await fetch(baserowUrl(next),{headers:{Authorization:`Token ${token}`}});if(!response.ok)throw new Error(`Baserow ${response.status}`);const page=await response.json();result.push(...(page.results||[]));next=page.next||"";}return result; }
 const [brands, catalog] = await Promise.all([rows(brandsTable), rows(productsTable)]);
-const envEnabled = new Set(String(process.env.EXTERNAL_MONITOR_BRAND_IDS || "").split(",").map((v) => v.trim()).filter(Boolean));
-const enabledBrands = brands.filter((brand) => brand.is_active === true && /^https?:\/\//i.test(String(brand.brand_url || ""))
-  && !brand.external_monitoring_paused && (brand.external_monitoring_enabled === true || envEnabled.has(String(brand.id))));
+const enabledBrands = brands.filter((brand) => /^https?:\/\//i.test(String(brand.brand_url || ""))
+  && externalBrandMonitoringEligible(brand));
 const selectedBrandIds = new Set(String(arg("--brand-ids", "")).split(",").map((v) => v.trim()).filter(Boolean));
 const selectedBrands = selectedBrandIds.size ? enabledBrands.filter((brand) => selectedBrandIds.has(String(brand.id))) : enabledBrands;
 const store = observedTableId ? createObservedProductStore({ token, tableId: observedTableId }) : null;

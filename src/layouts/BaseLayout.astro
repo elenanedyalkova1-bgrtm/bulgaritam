@@ -1,5 +1,7 @@
 ---
 import "../styles/global.css";
+import BrandLogo from "../components/BrandLogo.astro";
+import FaviconHead from "../components/FaviconHead.astro";
 import "../styles/save-discoverability.css";
 import { offerJsonLd } from "../lib/verified-offer";
 import { productTitle, productDescription } from "../lib/product-seo";
@@ -192,10 +194,7 @@ const gtmContainerId = normalizeText(import.meta.env.PUBLIC_GTM_CONTAINER_ID) ||
 const newsletterEndpoint = normalizeText(import.meta.env.PUBLIC_NEWSLETTER_ENDPOINT) || "https://admin.bulgaritam.bg/api/newsletter/";
 const isDiscountNewsletter = newsletterContext === "discounts" || /^\/namaleniya(?:\/|$)/.test(pathname);
 const suppressNewsletterAutoOpen = pathname === "/partnyori/" || pathname === "/partnyori";
-const faviconSvg = "/favicon.svg";
-const faviconPng48 = "/favicon-48x48.png";
 const faviconPng192 = "/favicon-192x192.png";
-const appleTouchIcon = "/apple-touch-icon.png";
 
 const defaultBreadcrumbs = [{ name: "Начало", item: `${SITE_URL}/` }];
 if (pathname !== "/") {
@@ -299,15 +298,7 @@ if (seoType === "category" && seoData.category) {
     <meta name="description" content={resolvedDescription} />
     <meta name="robots" content={robotsDirective} />
     <meta name="googlebot" content={robotsDirective} />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="icon" type="image/svg+xml" sizes="any" href={faviconSvg} />
-    <link rel="icon" type="image/png" sizes="48x48" href={faviconPng48} />
-    <link rel="icon" type="image/png" sizes="192x192" href={faviconPng192} />
-    <link rel="apple-touch-icon" sizes="180x180" href={appleTouchIcon} />
-    <link rel="manifest" href="/site.webmanifest" />
-    <meta name="msapplication-TileImage" content="/mstile-150x150.png" />
-    <meta name="msapplication-TileColor" content="#f4eee6" />
-    <meta name="theme-color" content="#f4eee6" />
+    <FaviconHead />
     <link rel="canonical" href={resolvedCanonical} />
     <link rel="alternate" hrefLang="bg-BG" href={resolvedCanonical} />
     <link rel="alternate" hrefLang="x-default" href={resolvedCanonical} />
@@ -318,8 +309,8 @@ if (seoType === "category" && seoData.category) {
     <meta property="og:site_name" content="Българитъм" />
     <meta property="og:locale" content="bg_BG" />
     <meta property="og:image" content={socialImage} />
-    {!normalizeUrl(seoData.image) && <meta property="og:image:width" content="1920" />}
-    {!normalizeUrl(seoData.image) && <meta property="og:image:height" content="1200" />}
+    {!normalizeUrl(seoData.image) && <meta property="og:image:width" content="1200" />}
+    {!normalizeUrl(seoData.image) && <meta property="og:image:height" content="630" />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={resolvedTitle} />
     <meta name="twitter:description" content={resolvedDescription} />
@@ -978,7 +969,7 @@ if (seoType === "category" && seoData.category) {
     <!-- HEADER -->
     <header class="topbar">
       <div class="wrap topbar-inner">
-        <a class="brand" href="/" aria-label="Българитъм – начало">БЪЛГАРИТЪМ</a>
+        <BrandLogo />
 
         <!-- Desktop nav -->
         <nav class="nav nav-desktop" aria-label="Основна навигация">

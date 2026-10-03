@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { verifyBranding } from "./verify-branding.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { baserowUrl } from "./lib/baserow-url.mjs";
@@ -32,6 +33,8 @@ const pageSlugs = directory => fs.existsSync(directory)
 for (const required of ["index.html", "sitemap-index.xml", ".htaccess", "p", "brand"]) {
   if (!fs.existsSync(path.join(dist, required))) throw new Error(`Missing required build output: dist/${required}`);
 }
+
+console.log(JSON.stringify({ branding: verifyBranding(dist) }));
 
 const [products, brands] = await Promise.all([rows(productsTable), rows(brandsTable)]);
 const healthExcluded = healthReportPath

@@ -4,7 +4,7 @@ import path from "node:path";
 import { baserowUrl } from "./lib/baserow-url.mjs";
 import {
   calculateDailyTarget, calculateRunCapacity, createAppsScriptFetchProvider, createBaserowCurrentStatePersistence, createGoogleSheetsHistory, isActiveMonitorable, monitorProduct, monitorProductWithAppsScriptFallback, persistMonitorResults, productDomain, runDomainThrottled,
-  scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, withTransientRetry,
+  scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, trustedOfferCurrency, withTransientRetry,
 } from "../src/lib/price-monitor/index.mjs";
 
 try { process.loadEnvFile?.(); } catch (error) { if (error?.code !== "ENOENT") throw error; }
@@ -32,7 +32,7 @@ async function fetchProducts() {
   return rows.filter((row) => /^https?:\/\//i.test(clean(row.product_url))).map((row) => ({
     ...row, product_id: row.id, product_slug: clean(row.slug), product_name: clean(row.name_bg),
     brand_name: clean(row.brand_name) || clean(row.brand_ref?.[0]?.value), domain: productDomain(row.product_url),
-    offer_price_amount: row.offer_price_amount ?? null, offer_price_currency: row.offer_price_currency ?? null,
+    offer_price_amount: row.offer_price_amount ?? null, offer_price_currency: trustedOfferCurrency(row.offer_price_currency, row.currency),
   }));
 }
 

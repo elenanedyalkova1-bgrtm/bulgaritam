@@ -4,6 +4,7 @@ import { normalizeCurrency, parsePrice, pricesEqual } from "./normalize.mjs";
 import { extractProductMetadata } from "./product-metadata.mjs";
 import { entityIdentity } from "./entity-identity.mjs";
 import { extractPromotionSemanticEvidence } from "./promotion-semantics.mjs";
+import { extractShopifyMarketEvidence, shopifyMarketUrl, validateShopifyMarket } from "./shopify-market.mjs";
 
 const DEFAULT_HEADERS = {
   Accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
@@ -45,9 +46,18 @@ export async function monitorProduct(product, options = {}) {
   const result = baseResult(product);
   if (!/^https?:\/\//i.test(String(product.product_url || ""))) return { ...result, error_reason: "invalid_product_url" };
   try {
-    const page = options.page || await fetchProductPage(product.product_url, options);
+    let page = options.page || await fetchProductPage(product.product_url, options);
+    let platform = detectPlatform(page.html || "", page.headers || {});
+    const intendedShopifyCountry = String(options.intendedShopifyCountry || "BG").trim().toUpperCase();
+    let shopifyMarketEvidence = platform === "shopify" ? extractShopifyMarketEvidence(page.html || "") : null;
+    if (!options.page && platform === "shopify" && shopifyMarketEvidence?.shopify_country !== intendedShopifyCountry) {
+      const marketUrl = shopifyMarketUrl(page.finalUrl || product.product_url, intendedShopifyCountry);
+      page = await fetchProductPage(marketUrl, options);
+      platform = detectPlatform(page.html || "", page.headers || {});
+      shopifyMarketEvidence = platform === "shopify" ? extractShopifyMarketEvidence(page.html || "") : null;
+    }
     result.http_status = page.httpStatus; result.final_url = page.finalUrl || product.product_url;
-    result.detected_platform = detectPlatform(page.html || "", page.headers || {});
+    result.detected_platform = platform;
     if ([404, 410].includes(page.httpStatus)) return { ...result, status: "dead_url", error_reason: `http_${page.httpStatus}` };
     if ([401, 403, 429].includes(page.httpStatus)) return { ...result, status: "blocked", error_reason: `http_${page.httpStatus}` };
     if (page.httpStatus < 200 || page.httpStatus >= 400) return { ...result, status: "error", error_reason: `http_${page.httpStatus}` };
@@ -70,6 +80,28 @@ export async function monitorProduct(product, options = {}) {
       confidence: extracted.confidence ?? null, evidence: { ...(extracted.evidence || {}), diagnostics: extracted.diagnostics || null },
       error_reason: extracted.reason ?? null,
     });
+    if (result.detected_platform === "shopify") {
+      const marketValidation = validateShopifyMarket({
+        evidence: { ...shopifyMarketEvidence, requested_country: intendedShopifyCountry },
+        intendedCountry: intendedShopifyCountry,
+        detectedCurrency: result.currency,
+        regularCurrency: result.regular_price_currency,
+        expectedCurrency: result.previous_offer_currency || (intendedShopifyCountry === "BG" ? "EUR" : null),
+      });
+      result.evidence = { ...(result.evidence || {}), shopify_market: marketValidation };
+      if (result.regular_price_evidence && typeof result.regular_price_evidence === "object") {
+        result.regular_price_evidence = { ...result.regular_price_evidence, shopify_market: marketValidation };
+      }
+      if (!marketValidation.valid) {
+        result.status = "ambiguous";
+        result.extraction_status = "ambiguous";
+        result.currency_mismatch = /currency/.test(marketValidation.reason || "");
+        result.price_changed = null;
+        result.error_reason = marketValidation.reason;
+        result.confidence = "low";
+        return result;
+      }
+    }
     const redirected = page.redirected === true;
     result.redirected = redirected;
     if (extracted.status) result.extraction_status = extracted.status;

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
 import path from "node:path";
-import { createBaserowCurrentStatePersistence, createGoogleSheetsHistory, monitorBatch, monitorProduct, persistMonitorResults } from "../src/lib/price-monitor/index.mjs";
+import { createBaserowCurrentStatePersistence, createGoogleSheetsHistory, monitorBatch, monitorProduct, persistMonitorResults, trustedOfferCurrency } from "../src/lib/price-monitor/index.mjs";
 import { baserowUrl } from "./lib/baserow-url.mjs";
 
 try { process.loadEnvFile?.(); } catch (error) { if (error?.code !== "ENOENT") throw error; }
@@ -23,7 +23,7 @@ function productFromRow(row) {
   return {
     product_id: row.id, product_slug: clean(row.slug), product_name: clean(row.name_bg),
     product_url: clean(row.product_url), offer_price_amount: row.offer_price_amount ?? row.exact_price_no_discount ?? null,
-    offer_price_currency: row.offer_price_currency ?? row.currency ?? null,
+    offer_price_currency: trustedOfferCurrency(row.offer_price_currency, row.currency),
     brand_name: clean(row.brand_name), category: clean(row.category),
   };
 }

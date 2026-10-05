@@ -10,6 +10,10 @@ export function normalizeCurrency(value) {
   return CURRENCY_ALIASES.get(raw.toLowerCase()) || (/^[A-Za-z]{3}$/.test(raw) ? raw.toUpperCase() : null);
 }
 
+export function trustedOfferCurrency(offerCurrency, catalogCurrency = null) {
+  return normalizeCurrency(String(offerCurrency ?? "").trim() || catalogCurrency) || null;
+}
+
 export function parsePrice(value) {
   if (typeof value === "number") return Number.isFinite(value) && value > 0 ? value : null;
   let raw = String(value ?? "").replace(/\u00a0/g, " ").trim();

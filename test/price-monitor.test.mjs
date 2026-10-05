@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildPersistencePlan, createBaserowCurrentStatePersistence, evaluateDiscounts, extractPrice, historyObservation, monitorProduct, normalizeCurrency, parsePrice, persistMonitorResults, persistenceStatus } from "../src/lib/price-monitor/index.mjs";
+import { buildPersistencePlan, createBaserowCurrentStatePersistence, evaluateDiscounts, extractPrice, historyObservation, monitorProduct, normalizeCurrency, parsePrice, persistMonitorResults, persistenceStatus, trustedOfferCurrency, validateShopifyMarket } from "../src/lib/price-monitor/index.mjs";
 
 const url = "https://shop.example/products/main";
 const jsonLd = (value) => `<html><head><title>Main Product | Shop</title><link rel="canonical" href="${url}"><script type="application/ld+json">${JSON.stringify(value)}</script></head><body></body></html>`;
@@ -116,6 +116,80 @@ test("recognized Shopify adapter rejects divergent variant prices", () => {
   const data = { variants: [{ available: true, price: 2500 }, { available: true, price: 3000 }] };
   const result = extractPrice(`<html><script id="ProductJson-main">${JSON.stringify(data)}</script></html>`, { url, platform: "shopify" });
   assert.equal(result.status, "ambiguous"); assert.equal(result.price, undefined);
+});
+
+const shopifyMarketHtml = ({ country, currency, price, regular = null }) => `<html><head>
+  <link rel="canonical" href="${url}"><meta property="og:price:amount" content="${price}"><meta property="og:price:currency" content="${currency}">
+  <script>Shopify.currency = ${JSON.stringify({ active: currency, rate: currency === "EUR" ? "1.0" : "1.1434914" })}; Shopify.country = ${JSON.stringify(country)};</script>
+  <script src="https://cdn.shopify.com/theme.js"></script>
+  <script id="ProductJson-main" type="application/json">${JSON.stringify({ product: { currency, variants: [{ available: true, price: Math.round(price * 100), compare_at_price: regular == null ? null : Math.round(regular * 100) }] } })}</script>
+  </head><body><main><h1>Main Product</h1></main></body></html>`;
+
+test("Shopify monitoring refetches the deterministic Bulgarian market instead of accepting US presentment", async () => {
+  const requests = [];
+  const fetchImpl = async (requestUrl) => {
+    requests.push(String(requestUrl));
+    const bg = new URL(requestUrl).searchParams.get("country") === "BG";
+    const html = bg ? shopifyMarketHtml({ country: "BG", currency: "EUR", price: 69.9 }) : shopifyMarketHtml({ country: "US", currency: "USD", price: 80 });
+    return { status: 200, url: String(requestUrl), redirected: false, headers: new Headers(), text: async () => html };
+  };
+  const result = await monitorProduct({ product_url: url }, { fetchImpl });
+  assert.equal(requests.length, 2);
+  assert.equal(new URL(requests[1]).searchParams.get("country"), "BG");
+  assert.deepEqual([result.detected_price, result.currency, result.status], [69.9, "EUR", "verified"]);
+  assert.deepEqual([result.evidence.shopify_market.valid, result.evidence.shopify_market.shopify_country, result.evidence.shopify_market.shopify_active_currency], [true, "BG", "EUR"]);
+});
+
+test("Shopify US response fails closed when used directly for intended Bulgarian monitoring", async () => {
+  const result = await monitorProduct({ product_url: url }, { page: page(200, shopifyMarketHtml({ country: "US", currency: "USD", price: 80 })) });
+  assert.deepEqual([result.status, result.confidence, result.error_reason], ["ambiguous", "low", "shopify_market_conflict"]);
+});
+
+test("Shopify Bulgarian current and compare-at prices use one validated EUR market", async () => {
+  const result = await monitorProduct({ product_url: url }, { page: page(200, shopifyMarketHtml({ country: "BG", currency: "EUR", price: 47.7, regular: 53 })) });
+  assert.deepEqual([result.detected_price, result.currency, result.regular_price, result.regular_price_currency], [47.7, "EUR", 53, "EUR"]);
+  assert.equal(result.evidence.shopify_market.valid, true);
+});
+
+test("Shopify product currency conflicting with active market currency fails closed", async () => {
+  const html = shopifyMarketHtml({ country: "BG", currency: "USD", price: 80 }).replace('Shopify.currency = {"active":"USD","rate":"1.1434914"}', 'Shopify.currency = {"active":"EUR","rate":"1.0"}');
+  const result = await monitorProduct({ product_url: url }, { page: page(200, html) });
+  assert.deepEqual([result.status, result.error_reason, result.currency_mismatch], ["ambiguous", "shopify_currency_conflict", true]);
+});
+
+test("Shopify Bulgarian monitoring rejects USD even when country evidence is missing", async () => {
+  const html = shopifyMarketHtml({ country: "US", currency: "USD", price: 80 }).replace('Shopify.country = "US";', "");
+  const result = await monitorProduct({ product_url: url }, { page: page(200, html) });
+  assert.deepEqual([result.status, result.error_reason], ["ambiguous", "shopify_expected_currency_conflict"]);
+});
+
+test("legitimate non-Shopify USD product evidence remains unaffected", async () => {
+  const html = jsonLd(product(offer("80", "USD")));
+  const result = await monitorProduct({ product_url: url }, { page: page(200, html) });
+  assert.deepEqual([result.status, result.detected_price, result.currency, result.confidence], ["verified", 80, "USD", "high"]);
+});
+
+test("Shopify recommendation currency cannot validate or override the main product market", async () => {
+  const html = shopifyMarketHtml({ country: "BG", currency: "EUR", price: 69.9 })
+    .replace("</body>", '<aside class="recommendations"><script type="application/json">{"currencyCode":"USD","price":80}</script></aside></body>');
+  const result = await monitorProduct({ product_url: url }, { page: page(200, html) });
+  assert.deepEqual([result.status, result.detected_price, result.currency, result.evidence.shopify_market.valid], ["verified", 69.9, "EUR", true]);
+});
+
+test("Shopify current and compare-at currencies cannot be mixed across markets", () => {
+  const validation = validateShopifyMarket({
+    evidence: { shopify_country: "BG", shopify_active_currency: "EUR" },
+    intendedCountry: "BG", detectedCurrency: "EUR", regularCurrency: "USD",
+  });
+  assert.deepEqual([validation.valid, validation.reason], [false, "shopify_current_regular_currency_conflict"]);
+});
+
+test("blank authoritative currency falls back to trusted catalog currency", () => {
+  assert.equal(trustedOfferCurrency(null, "EUR"), "EUR");
+  assert.equal(trustedOfferCurrency(undefined, "EUR"), "EUR");
+  assert.equal(trustedOfferCurrency("", "EUR"), "EUR");
+  assert.equal(trustedOfferCurrency("   ", "EUR"), "EUR");
+  assert.equal(trustedOfferCurrency("USD", "EUR"), "USD");
 });
 
 test("recognized WooCommerce adapter reads variation data and rejects ranges", () => {

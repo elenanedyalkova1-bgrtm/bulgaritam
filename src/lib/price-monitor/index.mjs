@@ -7,7 +7,8 @@ export { OBSERVED_PRODUCT_FIELDS, createObservedProductStore, nextObservedLifecy
 export { buildDealCard } from "./deal-contract.mjs";
 export { detectPlatform } from "./platform.mjs";
 export { fetchProductPage, monitorBatch, monitorProduct } from "./monitor.mjs";
-export { normalizeCurrency, parsePrice, pricesEqual } from "./normalize.mjs";
+export { extractShopifyMarketEvidence, shopifyMarketUrl, validateShopifyMarket } from "./shopify-market.mjs";
+export { normalizeCurrency, parsePrice, pricesEqual, trustedOfferCurrency } from "./normalize.mjs";
 export { buildPersistencePlan, createBaserowCurrentStatePersistence, createBaserowPersistence, persistMonitorResults, persistenceSafety, persistenceStatus } from "./persistence.mjs";
 export { createGoogleSheetsHistory, derivePrices, deriveTimeline, historyObservation, isReliableDetectedObservation, observationId, PRICE_HISTORY_HEADERS, PRICES_HEADERS } from "./google-sheets-history.mjs";
 export { evaluateDiscounts, evaluateProductDiscount } from "./discount-evaluator.mjs";

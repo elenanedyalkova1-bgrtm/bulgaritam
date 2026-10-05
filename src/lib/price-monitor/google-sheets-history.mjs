@@ -146,6 +146,11 @@ export function createGoogleSheetsHistory({ spreadsheetId, serviceAccountEmail, 
     async metadata() { return google(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=properties.title,sheets.properties`); },
     async batchUpdate(requests) { return google(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}:batchUpdate`, { method: "POST", body: JSON.stringify({ requests }) }); },
     async getValues(range) { return google(`${valuesUrl(range)}?majorDimension=ROWS`); },
+    async batchUpdateValues(data, valueInputOption = "RAW") {
+      return google(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchUpdate`, {
+        method: "POST", body: JSON.stringify({ valueInputOption, data }),
+      });
+    },
     async updateValues(range, values, valueInputOption = "USER_ENTERED") { return google(`${valuesUrl(range)}?valueInputOption=${valueInputOption}`, { method: "PUT", body: JSON.stringify({ majorDimension: "ROWS", values }) }); },
   };
 }

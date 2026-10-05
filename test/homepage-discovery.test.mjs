@@ -12,14 +12,14 @@ async function harness(total, seed = 3, fail = () => false) {
   const math = Object.create(Math);
   math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
   const context = vm.createContext({ Math: math, Set, Array, Number, String, Error,
-    productCardCatalogue: { content: { querySelectorAll: () => pages[0] } },
+    grid: { querySelectorAll: () => pages[0] },
     productFeed: { dataset: { totalPages: pages.length, totalItems: total } },
     document: { importNode: card => ({ dataset: { ...card.dataset } }) },
     DOMParser: class { parseFromString(html) { return { querySelectorAll: () => pages[Number(html) - 1] }; } },
     fetch: async url => { const page = Number(url.split('/')[2]); requests.push(page); if (fail(page)) throw Error('offline'); return { ok: true, text: async () => String(page) }; },
   });
   const api = await vm.runInContext(`(async () => { ${loader}; return { cards: () => allCards, next: () => loadStaticPage(pageOrder[loadedThroughPage]), all: ensureAllStaticPages, pages: pageOrder }; })()`, context);
-  return { api, requests };
+  return { api, requests, initialNodes: pages[0] };
 }
 for (const total of [1000, 2000, 10032]) test(`progressive discovery preserves order and unique membership: ${total}`, async () => {
   const { api, requests } = await harness(total);
@@ -34,11 +34,12 @@ for (const total of [1000, 2000, 10032]) test(`progressive discovery preserves o
   assert.equal(new Set(requests).size, requests.length, 'each remote page fetched once');
   assert.deepEqual(Array.from(api.cards().slice(0, initial.length), c => c.dataset.productSlug), initial);
 });
-test('a new load changes initial discovery order', async () => {
+test('first SSR page stays stable while subsequent discovery changes', async () => {
   const a = await harness(2000, 3), b = await harness(2000, 987);
-  assert.notDeepEqual(Array.from(a.api.cards(), c => c.dataset.productSlug), Array.from(b.api.cards(), c => c.dataset.productSlug));
+  assert.deepEqual(Array.from(a.api.cards(), c => c.dataset.productSlug), Array.from(b.api.cards(), c => c.dataset.productSlug));
+  assert.notDeepEqual(Array.from(a.api.pages.slice(1)), Array.from(b.api.pages.slice(1)));
 });
-test('offline initial request falls back to embedded cards; retry preserves membership', async () => {
+test('offline entry retains SSR cards; failed subsequent request and retry preserve membership', async () => {
   let offline = true;
   const { api } = await harness(1000, 3, () => offline);
   assert.equal(api.cards().length, 48);
@@ -48,4 +49,24 @@ test('offline initial request falls back to embedded cards; retry preserves memb
   offline = false;
   await api.all();
   assert.equal(new Set(api.cards().map(c => c.dataset.productSlug)).size, 1000);
+});
+
+test('adopts the original nodes and metadata without fetching page one', async () => {
+  const { api, requests, initialNodes } = await harness(1000);
+  assert.equal(requests.length, 0);
+  assert.equal(api.pages[0], 1);
+  for (let i = 0; i < 48; i++) {
+    assert.equal(api.cards()[i], initialNodes[i]);
+    assert.equal(api.cards()[i].dataset.originalIndex, String(i));
+    assert.equal(api.cards()[i].dataset.featuredIndex, String(i));
+  }
+  await api.all();
+  assert.ok(!requests.includes(1));
+});
+test('small catalogues stay usable without a subsequent page', async () => {
+  const { api, requests } = await harness(7);
+  assert.equal(api.cards().length, 7);
+  assert.equal(await api.next(), false);
+  await api.all();
+  assert.equal(requests.length, 0);
 });

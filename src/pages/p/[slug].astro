@@ -5,6 +5,7 @@ import { getProductBadges } from "../../lib/product-badges";
 import { getCategoryKey, getCategoryLanding, getCanonicalPathForLanding, getDisplayCategoryForProduct, getRelevantLandingsForProduct } from "../../lib/seo-landings";
 import { getTaxonomyForProduct } from "../../lib/taxonomy";
 import { loadProducts } from "../../lib/products";
+import { getRecommendationPlan } from "../../lib/product-recommendations";
 import { formatVerifiedOfferAmount, resolvePublishableOffer } from "../../lib/verified-offer";
 import { productPublishing } from "../../lib/product-seo";
 
@@ -45,7 +46,6 @@ const all = await loadProducts();
 
 // Normalize tags (important!)
 const tags = normalizeTags(product.tags);
-const tagSet = new Set(tags.map((t) => t.toLowerCase()));
 
 // Price text
 const priceText =
@@ -69,36 +69,8 @@ const breadcrumbs = [
   { label: product.brand_name || "Бранд", href: product.brand_slug ? `/brand/${product.brand_slug}/` : undefined },
   { label: product.name_bg || "Продукт", href: `/p/${product.slug}/` },
 ];
-const sameBrandProducts = all
-  .filter((p) => p.slug !== product.slug)
-  .filter((p) => product.brand_slug && p.brand_slug === product.brand_slug)
-  .slice(0, 4);
-
-// Related products: score by shared tags + same category + same brand
 const productTaxonomy = getTaxonomyForProduct(product);
-const related = all
-  .filter((p) => p.slug !== product.slug)
-  .filter((p) => !product.brand_slug || p.brand_slug !== product.brand_slug)
-  .map((p) => {
-    const pTags = normalizeTags(p.tags);
-    const relatedTaxonomy = getTaxonomyForProduct(p);
-    const sharedCategoryCount = relatedTaxonomy.categoryKeys.filter((key) =>
-      productTaxonomy.categoryKeys.includes(key)
-    ).length;
-    const sameCategory = sharedCategoryCount ? 5 + (sharedCategoryCount - 1) * 2 : 0;
-
-    const sharedTags = pTags.reduce(
-      (acc, t) => acc + (tagSet.has(String(t).toLowerCase()) ? 3 : 0),
-      0
-    );
-
-    const score = sameCategory + sharedTags;
-    return { p, score };
-  })
-  .filter((x) => x.score > 0)
-  .sort((a, b) => b.score - a.score)
-  .slice(0, 4)
-  .map((x) => x.p);
+const { sameBrand: sameBrandProducts, related } = getRecommendationPlan(all).get(product.slug)!;
 
 const relatedPrice = (p) => {
   const offer = resolvePublishableOffer(p, new Date(), { visible: true });

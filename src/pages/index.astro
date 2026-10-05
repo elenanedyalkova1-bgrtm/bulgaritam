@@ -314,10 +314,10 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         <p class="intent-status" id="intentStatus" hidden></p>
       </div>
 
-      <ul class="grid" id="grid" data-masonry-grid></ul>
-      <template id="productCardCatalogue">
+      <ul class="grid" id="grid" data-masonry-grid data-initial-batch>
         {displayProducts.slice(0, productPageSize).map((product, index) => <HomepageProductCard product={product} index={index} />)}
-      </template>
+      </ul>
+      <noscript><style is:inline>#grid[data-initial-batch] > li.card { display: block !important; }</style></noscript>
 
       <div class="feed-meta">
         <p class="feed-status" id="feedStatus" aria-live="polite"></p>
@@ -329,6 +329,13 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
   </main>
 
   <style>
+    :global(#grid[data-initial-batch] > li.card:nth-child(n+17)) { display: none; }
+    @media (max-width: 768px) {
+      :global(#grid[data-initial-batch] > li.card:nth-child(n+11)) { display: none; }
+    }
+    @media (max-width: 640px) {
+      :global(#grid[data-initial-batch] > li.card:nth-child(n+9)) { display: none; }
+    }
     .home-hero {
       max-width: 960px;
       margin: 0 auto;
@@ -1283,7 +1290,6 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     const feedStatus = document.getElementById("feedStatus");
     const feedSentinel = document.getElementById("feedSentinel");
     const feedLoadMore = document.getElementById("feedLoadMore");
-    const productCardCatalogue = document.querySelector("template#productCardCatalogue");
     const homeLandingData = document.getElementById("homeLandingData");
     const homeCategoriesData = document.getElementById("homeCategoriesData");
     const occasionToggle = document.getElementById("occasionToggle");
@@ -1297,11 +1303,14 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     const filtersBadge = document.getElementById("filtersBadge");
     const filtersApply = document.getElementById("filtersApply");
     const filtersReset = document.getElementById("filtersReset");
-    // Randomize the static page order once per visit, then each disjoint page
-    // once before display. Discovery fetches only the next 48-card page.
-    const firstPageCards = Array.from(productCardCatalogue?.content.querySelectorAll("li.card") || []);
-    let allCards = [];
-    let loadedThroughPage = 0; // Number consumed from pageOrder, not a page number.
+    // Adopt the first static page without shuffling or recreating its SSR nodes.
+    const firstPageCards = Array.from(grid.querySelectorAll("li.card"));
+    const allCards = [...firstPageCards];
+    firstPageCards.forEach((card, index) => {
+      card.dataset.originalIndex = String(index);
+      card.dataset.featuredIndex = String(index);
+    });
+    let loadedThroughPage = 1; // Number consumed from pageOrder, not a page number.
     const totalStaticPages = Number(productFeed?.dataset.totalPages || 1);
     const totalCatalogueItems = Number(productFeed?.dataset.totalItems || firstPageCards.length);
     const discoverySeed = Math.floor(Math.random() * 0x100000000);
@@ -1320,8 +1329,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       }
       return shuffled;
     };
-    const pageOrder = createShuffledOrder(Array.from({ length: totalStaticPages }, (_, i) => i + 1));
-    const loadedPages = new Set();
+    const pageOrder = [1, ...createShuffledOrder(Array.from({ length: Math.max(0, totalStaticPages - 1) }, (_, i) => i + 2))];
+    const loadedPages = new Set([1]);
     let pageLoadPromise = null;
     const loadStaticPage = async (page) => {
       if (loadedPages.has(page) || !page) return false;
@@ -1359,14 +1368,6 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     const ensureAllStaticPages = async () => {
       for (const page of pageOrder) await loadStaticPage(page);
     };
-    try {
-      await loadStaticPage(pageOrder[0]);
-    } catch {
-      // First-page HTML is already available even if the network is offline.
-      pageOrder.splice(pageOrder.indexOf(1), 1);
-      pageOrder.unshift(1);
-      await loadStaticPage(1);
-    }
     const catalogueMaterials = Array.from(document.querySelectorAll('input[name="materialFilter"]')).map((input) => input.value);
 
     const getBatchSize = () => {
@@ -1831,7 +1832,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       const desiredCards = matchedCards.slice(0, visibleCount);
       const currentCards = Array.from(grid.children);
       const unchanged = desiredCards.length === currentCards.length && desiredCards.every((card, index) => card === currentCards[index]);
-      if (unchanged) return;
+      if (unchanged) { grid.removeAttribute("data-initial-batch"); return; }
       const appendOnly = currentCards.every((card, index) => card === desiredCards[index]);
       if (!appendOnly) grid.classList.remove("is-masonry-ready");
       const fragment = document.createDocumentFragment();
@@ -1843,6 +1844,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
       });
       if (appendOnly) grid.appendChild(fragment);
       else grid.replaceChildren(fragment);
+      grid.removeAttribute("data-initial-batch");
       window.bulgaritamScheduleMasonry?.(grid);
       window.dispatchEvent(new CustomEvent("bulgaritam:products-appended", { detail: { nodes: changedCards } }));
     };

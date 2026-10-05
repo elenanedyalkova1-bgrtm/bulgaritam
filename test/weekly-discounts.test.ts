@@ -161,6 +161,13 @@ test("inactive explicitly monitored brand produces an external consumer deal", (
   assert.equal(deals[0].internal_slug, null);
 });
 
+test("consumer deals preserve persistent category and canonical gift state",()=>{
+  const now=new Date("2026-09-29T12:00:00Z");const evaluations=[discount("",{entity_type:"observed_product",entity_id:"31",latest_checked_at:"2026-09-29T10:00:00Z",brand:"Brand"})];
+  const observed=[{id:31,brand_id:1,title:"Комплект рокля",deal_category:"Облекло",image_url:"https://shop.test/a.jpg",canonical_url:"https://shop.test/a",is_active:true,lifecycle_status:"active",bulgaritam_product_id:7}];
+  const products=[product(7,{brand_id:1,giftable:false})];const deals=buildConsumerDeals(evaluations as any,observed,[{id:1,brand_name:"Brand",is_active:true,external_monitoring_enabled:true}],products,now);
+  assert.equal(deals[0].deal_category,"Облекло");assert.equal(deals[0].giftable,false);
+});
+
 test("external consumer deals require explicit monitoring opt-in and respect pause", () => {
   const now = new Date("2026-09-29T12:00:00Z");
   const evaluations = [discount("", { entity_type: "observed_product", entity_id: "21", latest_checked_at: "2026-09-29T10:00:00Z" })];

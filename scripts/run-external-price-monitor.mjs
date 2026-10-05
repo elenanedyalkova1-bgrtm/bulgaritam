@@ -52,7 +52,8 @@ if (["discover", "all"].includes(command)) {
         discoveryProcessed += 1;
         const observation = await monitorProduct({ entity_type: "observed_product", entity_id: `discovery:${brand.id}:${candidate.normalized_url}`, product_id: null, product_name: null, brand_name: brand.brand_name, product_url: candidate.source_url }, { timeoutMs });
         const match = matchObservedToCatalog({ brand_id: brand.id, source_url: candidate.source_url, canonical_url: observation.canonical_url || candidate.normalized_url, external_product_id: observation.external_product_id, sku: observation.sku }, catalog);
-        const provisional = observedProductRecord({ ...candidate, brand_id: brand.id, bulgaritam_product_id: match?.product_id || null }, observation, report.generated_at);
+        const matchedProduct = match ? catalog.find((row) => String(row.id ?? row.product_id) === String(match.product_id)) : null;
+        const provisional = observedProductRecord({ ...candidate, brand_id: brand.id, bulgaritam_product_id: match?.product_id || null, catalog_category: matchedProduct?.category }, observation, report.generated_at);
         const known = store ? await store.findByCanonicalKey(provisional.canonical_key) : existing.find((row) => row.canonical_key === provisional.canonical_key);
         const record = { ...provisional, first_seen_at: known?.first_seen_at || provisional.first_seen_at };
         seenKeys.add(record.canonical_key);
@@ -63,7 +64,7 @@ if (["discover", "all"].includes(command)) {
           last_seen_at: record.last_seen_at, last_checked_at: record.last_checked_at,
           discovery_method: record.discovery_method, discovery_confidence: record.discovery_confidence,
           reader_status: record.reader_status, reader_error: record.reader_error, lifecycle_status: "active", consecutive_not_seen: 0, consecutive_dead: 0, is_active: true,
-          bulgaritam_product_id: record.bulgaritam_product_id,
+          bulgaritam_product_id: record.bulgaritam_product_id, deal_category: record.deal_category ?? known.deal_category ?? null,
         });
         else if (write) {
           const saved = await store.upsert(record); observation.entity_id = saved.id;

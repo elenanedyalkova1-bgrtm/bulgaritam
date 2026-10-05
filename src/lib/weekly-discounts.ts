@@ -1,5 +1,6 @@
 import { loadProducts, type Product } from "./products";
 import { createGoogleSheetsHistory, evaluateDiscounts, externalBrandMonitoringEligible } from "./price-monitor/index.mjs";
+import { normalizeDealCategory } from "./deal-category.mjs";
 
 const SOFIA_TIME_ZONE = "Europe/Sofia";
 
@@ -38,6 +39,8 @@ export type ConsumerDeal = DiscountEvaluation & {
   destination_label: "Виж продукта" | "Към магазина";
   internal_slug: string | null;
   category: string | null;
+  deal_category: string | null;
+  giftable: boolean;
   product_type: string;
   materials: string[];
   ingredients: string[];
@@ -190,7 +193,7 @@ export function buildConsumerDeals(evaluations: DiscountEvaluation[], observed: 
       if (!product?.image_urls?.[0] || !product.slug || !product.brand_id || !brandEligible(brand, product.brand_id)) continue;
       cards.push({ ...evaluation, entity_type: entityType, entity_id: entityId, brand_id: product.brand_id, title: product.name_bg,
         image_url: product.image_urls[0], destination_type: "internal", destination_url: `/p/${product.slug}/`, outbound_url: product.product_url,
-        destination_label: "Виж продукта", internal_slug: product.slug, category: product.category || null, product_type: product.product_type,
+        destination_label: "Виж продукта", internal_slug: product.slug, category: normalizeDealCategory(product.category), deal_category: normalizeDealCategory(product.category), giftable: product.giftable === true, product_type: product.product_type,
         materials: product.materials, ingredients: product.ingredient,
         search_text: `${product.name_bg} ${product.brand_name}`.toLocaleLowerCase("bg"), original_index: 0 });
       continue;
@@ -205,7 +208,8 @@ export function buildConsumerDeals(evaluations: DiscountEvaluation[], observed: 
       image_url: clean(row.image_url), destination_type: matched ? "internal" : "external", destination_url: destination,
       outbound_url: matched?.product_url || clean(row.canonical_url || row.source_url || evaluation.product_url),
       destination_label: matched ? "Виж продукта" : "Към магазина", internal_slug: matched?.slug || null,
-      category: matched?.category || null, product_type: matched?.product_type || "", materials: matched?.materials || [], ingredients: matched?.ingredient || [],
+      category: normalizeDealCategory(row.deal_category), deal_category: normalizeDealCategory(row.deal_category), giftable: matched?.giftable === true,
+      product_type: matched?.product_type || "", materials: matched?.materials || [], ingredients: matched?.ingredient || [],
       search_text: `${clean(row.title)} ${clean(brand.brand_name || evaluation.brand)}`.toLocaleLowerCase("bg"), original_index: 0 });
   }
   const deduped = new Map<string, ConsumerDeal>();

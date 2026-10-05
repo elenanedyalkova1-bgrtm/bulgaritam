@@ -1,6 +1,7 @@
 const text = (value, max = 300) => String(value ?? "").trim().slice(0, max);
 const positive = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : null;
 const strings = (value, maxItems = 20) => (Array.isArray(value) ? value : []).map((item) => text(item, 100)).filter(Boolean).slice(0, maxItems);
+const DEAL_CATEGORIES = new Set(["Аксесоари","Деца и бебе","Дом и интериор","Домашни любимци","Книги, игри и творчество","Здраве и грижа","Козметика","Облекло","Спорт и туризъм","Храна и напитки"]);
 const safeUrl = (value, { relative = false } = {}) => {
   const raw = text(value, 2_000);
   if (relative && /^\/[a-z0-9/_-]*$/i.test(raw)) return raw;
@@ -29,7 +30,8 @@ export function sanitizeConsumerDeal(deal) {
     discount_percent: Number(discountPercent.toFixed(4)), latest_checked_at: new Date(checkedTime).toISOString(),
     destination_type: destinationType, destination_url: destination, outbound_url: outbound,
     internal_slug: destinationType === "internal" ? text(deal.internal_slug, 160) || null : null,
-    category: text(deal.category, 120) || null, product_type: text(deal.product_type, 120),
+    deal_category: DEAL_CATEGORIES.has(text(deal.deal_category,120)) ? text(deal.deal_category,120) : null,
+    giftable: deal.giftable === true, product_type: text(deal.product_type, 120),
     materials: strings(deal.materials), ingredients: strings(deal.ingredients), search_text: text(deal.search_text, 1_000),
   };
 }

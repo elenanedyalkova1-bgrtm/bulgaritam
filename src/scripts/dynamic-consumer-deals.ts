@@ -11,11 +11,11 @@ const setLink = (node: Element | null, href: string, external: boolean) => { if 
 
 export function refreshDealFacetOptions(root: ParentNode, deals: any[]) {
   const facets = deriveDealFacets(deals);
-  for (const kind of ["brand", "material", "ingredient"] as const) {
+  for (const kind of ["category", "brand", "material", "ingredient"] as const) {
     const group = root.querySelector<HTMLElement>(`[data-deal-facet-group="${kind}"]`);
     const container = root.querySelector<HTMLElement>(`[data-deal-facet-options="${kind}"]`);
     if (!group || !container) continue;
-    const inputName = kind === "brand" ? "brand" : kind;
+    const inputName = kind;
     const selected = new Set(Array.from(container.querySelectorAll<HTMLInputElement>(`input[name="${inputName}"]:checked`)).map((input) => input.value));
     const values = facets[kind];
     container.replaceChildren(...values.map(([value, label]) => {
@@ -30,7 +30,7 @@ export function refreshDealFacetOptions(root: ParentNode, deals: any[]) {
 function renderDeal(template: HTMLElement, deal: any, index: number) {
   const card = template.cloneNode(true) as HTMLElement; const external = deal.destination_type === "external";
   Object.assign(card.dataset, { entityType: deal.entity_type, entityId: deal.entity_id, destinationType: deal.destination_type, productId: deal.entity_id,
-    productName: deal.title, brandId: String(deal.brand_id || ""), brandName: deal.brand, productUrl: deal.outbound_url, productType: deal.product_type || "",
+    productName: deal.title, brandId: String(deal.brand_id || ""), brandName: deal.brand, productUrl: deal.outbound_url, productType: deal.product_type || "", dealCategory: deal.deal_category || "", giftable: deal.giftable ? "1" : "0",
     materials: (deal.materials || []).join("|"), ingredients: (deal.ingredients || []).join("|"), search: deal.search_text || `${deal.title} ${deal.brand}`.toLocaleLowerCase("bg"),
     discountCurrent: String(deal.current_price), currentPrice: String(deal.current_price), checkedAt: deal.latest_checked_at,
     discountPercent: String(deal.discount_percent), discountFacets: JSON.stringify([...(deal.materials || []), ...(deal.ingredients || [])]), discountRowId: deal.entity_id, position: String(index + 1) });
@@ -46,7 +46,12 @@ function renderDeal(template: HTMLElement, deal: any, index: number) {
   const price = card.querySelector(".discount-price");
   if (price) price.setAttribute("aria-label", `Редовна цена ${money(deal.regular_price, deal.currency)}; текуща цена ${money(deal.current_price, deal.currency)}; намаление −${Math.round(deal.discount_percent)}%`);
   const fresh = card.querySelector(".deal-freshness"); if (fresh) fresh.textContent = freshness(deal.latest_checked_at);
-  const category = card.querySelector(".cat"); if (category) category.textContent = deal.category || deal.product_type || "Продукт";
+  const value=card.querySelector<HTMLElement>("[data-deal-category-value]"); if(value)value.dataset.dealCategoryValue=deal.deal_category||"";
+  const badgeContainer=card.querySelector<HTMLElement>(".card-badges");
+  card.querySelector("[data-deal-category-badge]")?.remove(); card.querySelector("[data-deal-gift-badge]")?.remove();
+  if(badgeContainer&&deal.deal_category){const badge=document.createElement("span");badge.className="cat";badge.dataset.dealCategoryBadge="";badge.textContent=deal.deal_category;badgeContainer.prepend(badge);}
+  if(badgeContainer&&deal.giftable===true){const gift=document.createElement("span");gift.className="cat cat--gift";gift.dataset.dealGiftBadge="";gift.textContent="Подарък";badgeContainer.append(gift);}
+  if(badgeContainer)badgeContainer.hidden=!badgeContainer.children.length;
   return card;
 }
 

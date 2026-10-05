@@ -1,16 +1,18 @@
 import { observedCanonicalKey } from "./entity-identity.mjs";
+import { classifyDealCategory, normalizeDealCategory } from "../deal-category.mjs";
 
 export const OBSERVED_PRODUCT_FIELDS = Object.freeze([
   "canonical_key", "brand_id", "source_url", "canonical_url", "external_product_id", "sku", "title", "image_url",
   "current_price", "currency", "regular_price", "regular_price_currency", "availability", "first_seen_at", "last_seen_at",
   "last_checked_at", "discovery_method", "discovery_confidence", "reader_status", "reader_error", "lifecycle_status",
-  "consecutive_not_seen", "consecutive_dead", "is_active", "bulgaritam_product_id",
+  "consecutive_not_seen", "consecutive_dead", "is_active", "bulgaritam_product_id", "deal_category",
 ]);
 
 export function observedProductRecord(candidate, observation = {}, now = new Date().toISOString()) {
   const canonicalUrl = observation.canonical_url || candidate.normalized_url || candidate.source_url;
   const canonicalKey = observedCanonicalKey({ brand_id: candidate.brand_id, canonical_url: canonicalUrl, source_url: candidate.source_url });
   if (!canonicalKey) throw new Error("Observed product requires brand_id and a valid canonical/source URL");
+  const dealCategory=normalizeDealCategory(candidate.deal_category)||classifyDealCategory({catalog_category:candidate.catalog_category,title:observation.title,product_url:canonicalUrl,description:observation.description,product_metadata:observation.product_metadata}).category;
   return {
     canonical_key: canonicalKey, brand_id: candidate.brand_id, source_url: candidate.source_url, canonical_url: canonicalUrl,
     external_product_id: observation.external_product_id || null, sku: observation.sku || null, title: observation.title || null,
@@ -20,7 +22,7 @@ export function observedProductRecord(candidate, observation = {}, now = new Dat
     last_checked_at: observation.checked_at || null, discovery_method: candidate.discovery_method,
     discovery_confidence: candidate.discovery_confidence, reader_status: observation.extraction_status || observation.status || "not_checked",
     reader_error: observation.error_reason || null, lifecycle_status: "active", consecutive_not_seen: 0,
-    consecutive_dead: 0, is_active: true, bulgaritam_product_id: candidate.bulgaritam_product_id || null,
+    consecutive_dead: 0, is_active: true, bulgaritam_product_id: candidate.bulgaritam_product_id || null, deal_category: dealCategory,
   };
 }
 

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { baserowUrl } from "./lib/baserow-url.mjs";
+import { probeImage, confirmImageHealth } from "./lib/image-health.mjs";
 
 try {
   process.loadEnvFile?.();
@@ -60,10 +61,10 @@ async function fetchRows() {
 }
 
 async function probe(url, kind) {
+  if (kind === "image") return probeImage(url, { headers: publicHeaders, timeoutMs: TIMEOUT_MS });
   if (!/^https?:\/\//i.test(url)) return { status: 0, state: "invalid_url", finalUrl: url };
   try {
-    const headers = kind === "image" ? { ...publicHeaders, Range: "bytes=0-2047" } : publicHeaders;
-    const response = await fetchWithTimeout(url, { headers, redirect: "follow" });
+    const response = await fetchWithTimeout(url, { headers: publicHeaders, redirect: "follow" });
     const contentType = clean(response.headers.get("content-type")).toLowerCase();
     const finalUrl = response.url || url;
     await response.body?.cancel();
@@ -75,9 +76,6 @@ async function probe(url, kind) {
       return { status: response.status, state: "blocked", finalUrl, contentType };
     }
     if (!response.ok) return { status: response.status, state: "http_error", finalUrl, contentType };
-    if (kind === "image" && !contentType.startsWith("image/")) {
-      return { status: response.status, state: "not_image", finalUrl, contentType };
-    }
     if (kind === "product") {
       const original = new URL(url);
       const final = new URL(finalUrl);
@@ -102,31 +100,12 @@ async function confirmGone(url) {
   return { confirmed: attempts.length === 3 && attempts.every((item) => item.state === "gone"), attempts };
 }
 
-async function confirmBrokenImage(url, initial) {
-  if (!url) return { confirmed: true, attempts: [initial], reason: "missing" };
-  if (initial.state === "invalid_url") return { confirmed: true, attempts: [initial], reason: "invalid_url" };
-  const deterministicClientError =
-    initial.state === "http_error" &&
-    initial.status >= 400 &&
-    initial.status < 500;
-  if (!["gone", "not_image"].includes(initial.state) && !deterministicClientError) {
-    return { confirmed: false, attempts: [initial], reason: initial.state };
-  }
-  const attempts = [initial];
-  for (let index = 1; index < 3; index += 1) attempts.push(await probe(url, "image"));
-  const confirmed = attempts.length === 3 && attempts.every((item) =>
-    item.state === initial.state &&
-    (!deterministicClientError || item.status === initial.status)
-  );
-  return { confirmed, attempts, reason: confirmed ? initial.state : "inconsistent_response" };
-}
-
 async function checkProduct(row) {
   const productUrl = clean(row.product_url);
   const imageUrl = splitUrls(row.image_urls)[0] || "";
   const product = await probe(productUrl, "product");
   const image = imageUrl ? await probe(imageUrl, "image") : { status: 0, state: "missing", finalUrl: "" };
-  const imageConfirmation = await confirmBrokenImage(imageUrl, image);
+  const imageConfirmation = await confirmImageHealth(imageUrl, image, (url) => probe(url, "image"));
   let confirmedGone = false;
   let productAttempts = [product];
 
@@ -136,7 +115,7 @@ async function checkProduct(row) {
     productAttempts = confirmation.attempts;
   }
 
-  const needsReview = !confirmedGone && (product.state !== "ok" || image.state !== "ok");
+  const needsReview = !confirmedGone && (product.state !== "ok" || imageConfirmation.classification !== "valid");
 
   return {
     id: row.id,
@@ -150,6 +129,7 @@ async function checkProduct(row) {
     image,
     image_attempts: imageConfirmation.attempts,
     image_confirmed_broken: imageConfirmation.confirmed,
+    image_classification: imageConfirmation.classification,
     image_reason: imageConfirmation.reason,
     confirmed_gone: confirmedGone,
     needs_review: needsReview,
@@ -193,6 +173,7 @@ const gone = checked.filter((item) => item.confirmed_gone);
 const review = checked.filter((item) => item.needs_review);
 const brokenImages = checked.filter((item) => item.image.state !== "ok");
 const confirmedBrokenImages = checked.filter((item) => item.image_confirmed_broken);
+const inconclusiveImages = checked.filter((item) => item.image_classification === "inconclusive");
 const deactivated = [];
 
 if (APPLY) {
@@ -210,11 +191,13 @@ const report = {
   confirmed_gone: gone.length,
   broken_images: brokenImages.length,
   confirmed_broken_images: confirmedBrokenImages.length,
+  inconclusive_images: inconclusiveImages.length,
   needs_review: review.length,
   deactivated,
   gone,
   review,
   confirmed_broken_image_products: confirmedBrokenImages,
+  inconclusive_image_products: inconclusiveImages,
 };
 
 if (REPORT_PATH) {

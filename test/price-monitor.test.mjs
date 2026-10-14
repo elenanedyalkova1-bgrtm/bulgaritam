@@ -750,6 +750,7 @@ test("failed scans preserve the last detected current-state fields", () => {
 test("persistence is dry-run by default", async () => {
   const output = await persistMonitorResults([persistedResult()]);
   assert.equal(output.mode, "dry-run"); assert.equal(output.writes_performed, false); assert.equal(output.planned, 1);
+  assert.deepEqual(output.authoritative_renewals, { eligible: 1, rejected: 0 });
 });
 
 test("Google history appends before Baserow current-state patch", async () => {
@@ -763,6 +764,7 @@ test("Google history appends before Baserow current-state patch", async () => {
   const currentWriter = createBaserowCurrentStatePersistence({ token: "test", productsTableId: "products", fetchImpl });
   const output = await persistMonitorResults([persistedResult()], { write: true, historyWriter, currentWriter });
   assert.equal(output.writes_performed, true); assert.equal(calls.length, 1);
+  assert.deepEqual(output.authoritative_renewals, { eligible: 1, rejected: 0 });
   assert.equal(calls[0].method, "PATCH"); assert.match(calls[0].url, /table\/products\/42/);
   assert.equal("offer_price_amount" in calls[0].body, false);
   assert.equal(calls[0].body.offer_price_verified_at, "2026-09-17T10:00:00.000Z");

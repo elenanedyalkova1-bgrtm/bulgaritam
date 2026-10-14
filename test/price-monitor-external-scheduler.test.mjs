@@ -45,10 +45,10 @@ test("external workflow is independently feature-flagged and cannot deploy", () 
   const workflow = fs.readFileSync(new URL("../.github/workflows/external-price-monitor.yml", import.meta.url), "utf8");
   const worker = fs.readFileSync(new URL("../scripts/run-external-price-monitor.mjs", import.meta.url), "utf8");
   assert.match(workflow, /vars\.EXTERNAL_MONITORING_ENABLED == 'true'/);
-  assert.match(workflow, /external-price-monitor-single-writer/);
+  assert.match(workflow, /bulgaritam-monitoring-single-writer/);
   assert.match(workflow, /cron: "43 3 \* \* \*"/);
-  assert.match(workflow, /cron: "13 2 \* \* 1"/);
-  assert.match(workflow, /github\.event\.schedule == '13 2 \* \* 1' && 'discover'/);
+  assert.match(workflow, /cron: "13 6 \* \* 1"/);
+  assert.match(workflow, /github\.event\.schedule == '13 6 \* \* 1' && 'discover'/);
   assert.doesNotMatch(workflow, /apps-script-fallback|deploy|publish-public/);
   assert.match(worker, /externalBrandMonitoringEligible\(brand\)/);
   assert.doesNotMatch(worker, /brand\.is_active\s*===\s*true|EXTERNAL_MONITOR_BRAND_IDS/);

@@ -22,7 +22,9 @@ on:
         required: false
 
 concurrency:
-  group: bulgaritam-price-monitor
+  # Catalog and external monitoring share Products/Observed Products and the
+  # same Price History sheet. Keep every writer in one repository-wide lane.
+  group: bulgaritam-monitoring-single-writer
   cancel-in-progress: false
 
 permissions:

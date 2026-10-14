@@ -152,15 +152,33 @@ if (canaryAudit) {
   if (auditFailure && !persistenceError) persistenceError = "Canary post-write reconciliation failed; inspect report before any further run";
 }
 const finishedAt = Date.now();
-const coverage = monitoringCoverageMetrics(catalog, { now: finishedAt, cycleDays: 7, selected: selection, plannedCapacity: runCapacity });
+const coverageBefore = monitoringCoverageMetrics(catalog, { now: finishedAt, cycleDays: 7, selected: selection, plannedCapacity: runCapacity });
+let coverageCatalog = catalog; let coverageReadbackError = null;
+if (write) {
+  try { coverageCatalog = await fetchProducts(); }
+  catch (error) { coverageReadbackError = error instanceof Error ? error.message : String(error); }
+}
+const coverageAfter = monitoringCoverageMetrics(coverageCatalog, { now: finishedAt, cycleDays: 7, selected: [], plannedCapacity: runCapacity });
+const operational = {
+  due_backlog_before: dueStats?.total_due ?? coverageBefore.monitoring_coverage.overdue_checks,
+  deferred_due_before: dueStats?.deferred_due ?? coverageBefore.monitoring_coverage.deferred_products,
+  authoritative_renewals_eligible: persistence?.authoritative_renewals?.eligible ?? 0,
+  authoritative_renewals_rejected: persistence?.authoritative_renewals?.rejected ?? results.length,
+  expired_offers_before: coverageBefore.authoritative_offer_coverage.expired,
+  expired_offers_after: coverageAfter.authoritative_offer_coverage.expired,
+  coverage_readback_error: coverageReadbackError,
+};
+if (coverageReadbackError && !persistenceError) persistenceError = `Post-write coverage readback failed: ${coverageReadbackError}`;
 const report = {
-  generated_at: new Date(finishedAt).toISOString(), mode: write ? "write-monitor-results" : "dry-run", writes_performed: write && !persistenceError,
+  generated_at: new Date(finishedAt).toISOString(), mode: write ? "write-monitor-results" : "dry-run", write_attempted: write,
+  writes_performed: write && !persistenceError, writes_may_be_partial: Boolean(write && persistenceError),
   command, configuration: { selected: selection.length, requested_limit: requestedLimit, daily_target: dailyTarget, max_bounded_run: runCapacity, concurrency, per_domain_concurrency: 1, domain_delay_ms: domainDelayMs, timeout_ms: timeoutMs, max_retries: 2, apps_script_fallback: appsScriptFallback },
-  due: dueStats, coverage, summary: scheduledRunSummary(results, startedAt, finishedAt), persistence, persistence_error: persistenceError, canary_audit: canaryAudit, retry_events: retryEvents, results,
+  due: dueStats, coverage: coverageAfter, coverage_before: coverageBefore, coverage_after: coverageAfter, operational,
+  summary: scheduledRunSummary(results, startedAt, finishedAt), persistence, persistence_error: persistenceError, canary_audit: canaryAudit, retry_events: retryEvents, results,
 };
 await fs.mkdir(path.dirname(outputPath), { recursive: true }); await fs.writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify({ output: outputPath, mode: report.mode, configuration: report.configuration, due: report.due, summary: report.summary, retries: retryEvents.length }, null, 2));
 if (persistenceError) {
-  console.error(`Persistence failed after monitoring; diagnostic report preserved at ${outputPath}: ${persistenceError}`);
+  console.error(`Scheduled monitoring failed after checks; diagnostic report preserved at ${outputPath}: ${persistenceError}`);
   process.exitCode = 1;
 }

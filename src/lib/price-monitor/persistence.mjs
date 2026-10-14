@@ -221,14 +221,19 @@ export const createBaserowPersistence = createBaserowCurrentStatePersistence;
 
 export async function persistMonitorResults(results, { write = false, historyWriter, currentWriter, writer } = {}) {
   const plans = results.map(buildPersistencePlan);
-  if (!write) return { mode: "dry-run", writes_performed: false, planned: plans.length, plans };
+  const authoritativeRenewals = plans.filter((plan) => plan.authoritative_renewal).length;
+  const renewalSummary = {
+    eligible: authoritativeRenewals,
+    rejected: plans.length - authoritativeRenewals,
+  };
+  if (!write) return { mode: "dry-run", writes_performed: false, planned: plans.length, authoritative_renewals: renewalSummary, plans };
   const stateWriter = currentWriter || writer;
   if (!historyWriter?.append) throw new Error("Google Sheets Price History writer is required when write=true");
   if (!stateWriter?.write) throw new Error("Baserow current-state writer is required when write=true");
   const history = await historyWriter.append(results);
   const written = [];
   for (const plan of plans) written.push(await stateWriter.write(plan));
-  return { mode: "write-monitor-results", writes_performed: true, planned: plans.length, history, current_state: written };
+  return { mode: "write-monitor-results", writes_performed: true, planned: plans.length, authoritative_renewals: renewalSummary, history, current_state: written };
 }
 
 export const persistenceSafety = Object.freeze({

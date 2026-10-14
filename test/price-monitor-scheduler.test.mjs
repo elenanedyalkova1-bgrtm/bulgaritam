@@ -135,7 +135,21 @@ test("domain throttling never runs two requests for one domain concurrently", as
 
 test("scheduled summary exposes requested operational counts", () => {
   const summary=scheduledRunSummary([{status:"verified"},{status:"changed"},{status:"ambiguous"},{status:"not_detected"},{status:"blocked"},{status:"dead_url"},{status:"error"},{status:"redirected",redirected:true}],100,350);
-  assert.deepEqual(summary,{checked:8,verified:1,changed:1,ambiguous:1,not_detected:1,blocked:1,dead:1,redirected:1,errors:1,duration_ms:250});
+  assert.deepEqual(summary,{checked:8,verified:1,changed:1,ambiguous:1,not_detected:1,blocked:1,dead:1,redirected:1,errors:1,browser_required:0,other:0,duration_ms:250});
+});
+
+test("scheduled summary uses mutually exclusive canonical outcomes", () => {
+  const summary=scheduledRunSummary([
+    {status:"verified",extraction_status:"verified"},
+    {status:"ambiguous",extraction_status:"verified",error_reason:"currency_mismatch"},
+    {status:"blocked",extraction_status:null},
+    {status:"browser_required",extraction_status:"not_detected"},
+    {status:"unexpected",extraction_status:"verified"},
+  ],100,200);
+  assert.equal(summary.checked,5); assert.equal(summary.verified,1); assert.equal(summary.ambiguous,1);
+  assert.equal(summary.blocked,1); assert.equal(summary.browser_required,1); assert.equal(summary.other,1);
+  const total=["verified","changed","ambiguous","not_detected","blocked","dead","redirected","errors","browser_required","other"].reduce((sum,key)=>sum+summary[key],0);
+  assert.equal(total,summary.checked);
 });
 
 test("all selection includes every active monitorable product without capacity truncation in deterministic ID order", () => {

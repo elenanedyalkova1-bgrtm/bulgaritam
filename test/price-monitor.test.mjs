@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildAuthoritativeRenewal, buildPersistencePlan, createBaserowCurrentStatePersistence, evaluateDiscounts, extractPrice, historyObservation, monitorProduct, normalizeCurrency, parsePrice, persistMonitorResults, persistenceStatus, trustedOfferCurrency, validateShopifyMarket } from "../src/lib/price-monitor/index.mjs";
+import { buildAuthoritativeRenewal, buildPersistencePlan, createBaserowCurrentStatePersistence, evaluateDiscounts, extractPrice, historyObservation, monitorProduct, normalizeCurrency, normalizeProductIdentityUrl, parsePrice, persistMonitorResults, persistenceStatus, trustedOfferCurrency, validateShopifyMarket } from "../src/lib/price-monitor/index.mjs";
 
 const url = "https://shop.example/products/main";
 const jsonLd = (value) => `<html><head><title>Main Product | Shop</title><link rel="canonical" href="${url}"><script type="application/ld+json">${JSON.stringify(value)}</script></head><body></body></html>`;
@@ -649,6 +649,41 @@ test("different authoritative source or product identity cannot renew", () => {
   assert.equal(buildAuthoritativeRenewal(persistedResult({ previous_offer_source: "monitor_product_meta" })), null);
   assert.equal(buildAuthoritativeRenewal(persistedResult({ previous_offer_source_url: "https://shop.example/products/other" })), null);
   assert.equal(buildAuthoritativeRenewal(persistedResult({ evidence: { ...persistedResult().evidence, diagnostics: { selected_product: { score: 5 }, page_identity: { canonical: url } } } })), null);
+});
+
+test("product identity normalizes equivalent Unicode and UTF-8 percent-encoded Cyrillic paths", () => {
+  const raw = "https://www.shop.example/продукт/жилетка/?sRef=tracking";
+  const encoded = "https://shop.example/%d0%bf%d1%80%d0%be%d0%b4%d1%83%d0%ba%d1%82/%d0%b6%d0%b8%d0%bb%d0%b5%d1%82%d0%ba%d0%b0";
+  assert.equal(normalizeProductIdentityUrl(raw), normalizeProductIdentityUrl(encoded));
+  const result = persistedResult({
+    product_url: raw, final_url: encoded, previous_offer_source_url: encoded,
+    evidence: { ...persistedResult().evidence, diagnostics: { selected_product: { score: 100 }, page_identity: { canonical: encoded, title: "Main Product" } } },
+  });
+  assert.ok(buildAuthoritativeRenewal(result));
+});
+
+test("product identity preserves different Cyrillic products hosts and identity query parameters", () => {
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/продукт/жилетка"), normalizeProductIdentityUrl("https://shop.example/продукт/рокля"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/p?variant=7"), normalizeProductIdentityUrl("https://shop.example/p?variant=8"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/p?id=7"), normalizeProductIdentityUrl("https://shop.example/p?id=8"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/p"), normalizeProductIdentityUrl("https://other.example/p"));
+});
+
+test("product identity fails closed for malformed double-encoded separator and traversal-like paths", () => {
+  assert.equal(normalizeProductIdentityUrl("https://shop.example/%ZZ"), null);
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/%252Fproduct"), normalizeProductIdentityUrl("https://shop.example/%2Fproduct"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/a%2Fb"), normalizeProductIdentityUrl("https://shop.example/a/b"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/%2E%2E/product"), normalizeProductIdentityUrl("https://shop.example/product"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/a%5Cb"), normalizeProductIdentityUrl("https://shop.example/a/b"));
+});
+
+test("redirect identity still fails closed after safe Unicode normalization", () => {
+  const raw = "https://shop.example/продукт/жилетка";
+  const encodedOther = "https://shop.example/%D0%BF%D1%80%D0%BE%D0%B4%D1%83%D0%BA%D1%82/%D1%80%D0%BE%D0%BA%D0%BB%D1%8F";
+  assert.equal(buildAuthoritativeRenewal(persistedResult({
+    product_url: raw, previous_offer_source_url: raw, final_url: encodedOther, redirected: true,
+    evidence: { ...persistedResult().evidence, diagnostics: { selected_product: { score: 100 }, page_identity: { canonical: encodedOther, title: "Main Product" } } },
+  })), null);
 });
 
 test("manual authoritative provenance can be renewed but is never overwritten", () => {

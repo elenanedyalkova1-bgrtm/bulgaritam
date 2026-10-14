@@ -9,7 +9,7 @@ export { detectPlatform } from "./platform.mjs";
 export { fetchProductPage, monitorBatch, monitorProduct } from "./monitor.mjs";
 export { extractShopifyMarketEvidence, shopifyMarketUrl, validateShopifyMarket } from "./shopify-market.mjs";
 export { normalizeCurrency, parsePrice, pricesEqual, trustedOfferCurrency } from "./normalize.mjs";
-export { buildAuthoritativeRenewal, buildPersistencePlan, createBaserowCurrentStatePersistence, createBaserowPersistence, persistMonitorResults, persistenceSafety, persistenceStatus } from "./persistence.mjs";
+export { buildAuthoritativeRenewal, buildPersistencePlan, createBaserowCurrentStatePersistence, createBaserowPersistence, normalizeProductIdentityUrl, persistMonitorResults, persistenceSafety, persistenceStatus } from "./persistence.mjs";
 export { createGoogleSheetsHistory, derivePrices, deriveTimeline, historyObservation, isReliableDetectedObservation, observationId, PRICE_HISTORY_HEADERS, PRICES_HEADERS } from "./google-sheets-history.mjs";
 export { evaluateDiscounts, evaluateProductDiscount } from "./discount-evaluator.mjs";
 export { classifyPromotionSemantics, extractPromotionSemanticEvidence, promotionConsumerEligible, MINIMUM_DISCOUNT, PROMOTION_CONFIDENCE } from "./promotion-semantics.mjs";

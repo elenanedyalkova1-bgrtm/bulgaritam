@@ -22,13 +22,66 @@ const APPROVED_AUTHORITATIVE_SOURCES = new Set([
 
 function finiteOrNull(value) { return Number.isFinite(value) ? value : null; }
 function selectValue(value) { return String(value && typeof value === "object" ? value.value : value ?? "").trim(); }
-function normalizedProductUrl(value) {
+const NON_IDENTITY_QUERY = /^(?:utm_[a-z0-9_]+|sref|fbclid|gclid|_ga|mc_cid|mc_eid)$/i;
+const HEX = /^[0-9a-f]{2}$/i;
+
+function canonicalIdentityPath(pathname) {
+  let output = "";
+  for (let index = 0; index < pathname.length;) {
+    if (pathname[index] !== "%") { output += pathname[index]; index += 1; continue; }
+    const firstHex = pathname.slice(index + 1, index + 3);
+    if (!HEX.test(firstHex)) return null;
+    const first = Number.parseInt(firstHex, 16);
+    if (first < 0x80) { output += `%${firstHex.toUpperCase()}`; index += 3; continue; }
+    const length = first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 0;
+    if (!length) return null;
+    const bytes = [first];
+    for (let offset = 1; offset < length; offset += 1) {
+      const at = index + offset * 3;
+      const hex = pathname.slice(at + 1, at + 3);
+      if (pathname[at] !== "%" || !HEX.test(hex)) return null;
+      const byte = Number.parseInt(hex, 16);
+      if (byte < 0x80 || byte > 0xbf) return null;
+      bytes.push(byte);
+    }
+    try {
+      const decoded = new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(bytes));
+      if ([...decoded].some((character) => character.codePointAt(0) < 0x80)) return null;
+      output += decoded.normalize("NFC");
+    } catch { return null; }
+    index += length * 3;
+  }
+  return (output.normalize("NFC").replace(/\/+$/, "") || "/");
+}
+
+function canonicalIdentityQuery(url) {
+  if (/%(?![0-9a-f]{2})/i.test(url.search)) return null;
+  const kept = [];
+  for (const [name, value] of url.searchParams) {
+    if (NON_IDENTITY_QUERY.test(name)) continue;
+    if (name.toLowerCase() === "country" && value.toUpperCase() === "BG") continue;
+    kept.push(`${encodeURIComponent(name.normalize("NFC"))}=${encodeURIComponent(value.normalize("NFC"))}`);
+  }
+  return kept.length ? `?${kept.join("&")}` : "";
+}
+
+export function normalizeProductIdentityUrl(value) {
   try {
-    const url = new URL(String(value ?? "").trim());
+    const raw = String(value ?? "").trim();
+    const authorityAt = raw.indexOf("://");
+    const pathAt = authorityAt < 0 ? -1 : raw.indexOf("/", authorityAt + 3);
+    const rawPath = pathAt < 0 ? "" : raw.slice(pathAt).split(/[?#]/, 1)[0];
+    // WHATWG URL parsing collapses encoded dot segments before pathname can be
+    // inspected. Reject them up front rather than equating traversal-like input.
+    if (/%2e/i.test(rawPath)) return null;
+    const url = new URL(raw);
     if (!["http:", "https:"].includes(url.protocol)) return null;
-    const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
-    const pathname = url.pathname.replace(/\/+$/, "") || "/";
-    return `${hostname}${pathname}`;
+    if (url.username || url.password) return null;
+    const hostname = url.host.toLowerCase().replace(/^www\./, "");
+    const pathname = canonicalIdentityPath(url.pathname);
+    const query = canonicalIdentityQuery(url);
+    if (!pathname || query == null) return null;
+    return `${hostname}${pathname}${query}`;
   } catch { return null; }
 }
 function successfulHttpStatus(value) { return Number.isInteger(value) && value >= 200 && value < 400; }
@@ -36,8 +89,8 @@ function successfulHttpStatus(value) { return Number.isInteger(value) && value >
 function hasApprovedProductIdentity(result, canonicalProductUrl) {
   const pageIdentity = result.evidence?.diagnostics?.page_identity || {};
   const selectedProduct = result.evidence?.diagnostics?.selected_product || {};
-  const sourceUrl = normalizedProductUrl(result.final_url || result.product_url);
-  const pageCanonical = normalizedProductUrl(pageIdentity.canonical || result.final_url || result.product_url);
+  const sourceUrl = normalizeProductIdentityUrl(result.final_url || result.product_url);
+  const pageCanonical = normalizeProductIdentityUrl(pageIdentity.canonical || result.final_url || result.product_url);
   const canonicalMatches = Boolean(canonicalProductUrl && sourceUrl === canonicalProductUrl && pageCanonical === canonicalProductUrl);
   if (result.extraction_method === "json_ld_product_offer") {
     return canonicalMatches
@@ -63,8 +116,8 @@ export function buildAuthoritativeRenewal(result) {
   const detectedAmount = parsePrice(result.detected_price);
   const authoritativeCurrency = normalizeCurrency(result.previous_offer_currency);
   const detectedCurrency = normalizeCurrency(result.currency);
-  const productUrl = normalizedProductUrl(result.product_url);
-  const sourceUrl = normalizedProductUrl(result.previous_offer_source_url);
+  const productUrl = normalizeProductIdentityUrl(result.product_url);
+  const sourceUrl = normalizeProductIdentityUrl(result.previous_offer_source_url);
   const checkedAt = String(result.checked_at ?? "").trim();
 
   if (result.observation_origin !== "fresh_monitor_check" || !successfulHttpStatus(result.http_status)) return null;
@@ -76,7 +129,7 @@ export function buildAuthoritativeRenewal(result) {
   if (authoritativeAmount == null || detectedAmount == null || !pricesEqual(authoritativeAmount, detectedAmount)) return null;
   if (!authoritativeCurrency || !detectedCurrency || authoritativeCurrency !== detectedCurrency) return null;
   if (!productUrl || !sourceUrl || productUrl !== sourceUrl || !hasApprovedProductIdentity(result, productUrl)) return null;
-  if (result.redirected === true && normalizedProductUrl(result.final_url) !== productUrl) return null;
+  if (result.redirected === true && normalizeProductIdentityUrl(result.final_url) !== productUrl) return null;
   if (result.detected_platform === "shopify" && result.evidence?.shopify_market?.valid !== true) return null;
   if (result.evidence?.shopify_market?.valid === false) return null;
   const checkedMs = Date.parse(checkedAt);

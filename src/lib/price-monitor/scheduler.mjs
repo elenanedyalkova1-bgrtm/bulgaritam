@@ -210,12 +210,17 @@ export async function runDomainThrottled(items, worker, {
 }
 
 export function scheduledRunSummary(results, startedAt, finishedAt = Date.now()) {
-  const outcome = (result) => result?.extraction_status || result?.status;
-  const count = (value) => results.filter((result) => outcome(result) === value || result?.status === value).length;
+  const categories = {
+    verified: 0, changed: 0, ambiguous: 0, not_detected: 0, blocked: 0,
+    dead: 0, redirected: 0, errors: 0, browser_required: 0, other: 0,
+  };
+  const categoryFor = (status) => ({ dead_url: "dead", error: "errors" })[status] || status;
+  for (const result of results) {
+    const category = categoryFor(result?.status);
+    if (Object.hasOwn(categories, category)) categories[category] += 1;
+    else categories.other += 1;
+  }
   return {
-    checked: results.length, verified: count("verified"), changed: count("changed"), ambiguous: count("ambiguous"),
-    not_detected: count("not_detected"), blocked: count("blocked"), dead: count("dead_url"),
-    redirected: results.filter((result) => result?.redirected || result?.status === "redirected").length,
-    errors: count("error"), duration_ms: Math.max(0, finishedAt - startedAt),
+    checked: results.length, ...categories, duration_ms: Math.max(0, finishedAt - startedAt),
   };
 }

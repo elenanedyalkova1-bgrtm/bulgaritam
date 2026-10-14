@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateDailyTarget, calculateRunCapacity, dueIntervalDays, isTransientResult, runDomainThrottled, scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, withTransientRetry } from "../src/lib/price-monitor/index.mjs";
+import { calculateDailyTarget, calculateRunCapacity, dueIntervalDays, dueProduct, isTransientResult, monitoringCoverageMetrics, OFFER_RENEWAL_TARGET_DAYS, runDomainThrottled, scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, withTransientRetry } from "../src/lib/price-monitor/index.mjs";
 
 const now = Date.parse("2026-09-17T12:00:00Z");
 const daysAgo = (days) => new Date(now - days * 86_400_000).toISOString();
-const product = (id, domain, status, days) => ({ id, product_url: `https://${domain}/p/${id}`, price_check_status: status, price_last_checked_at: days == null ? null : daysAgo(days) });
+const product = (id, domain, status, days, extra = {}) => ({ id, product_url: `https://${domain}/p/${id}`, price_check_status: status, price_last_checked_at: days == null ? null : daysAgo(days), ...extra });
 
 test("due intervals prioritize changes and back off blocked/dead URLs", () => {
   assert.equal(dueIntervalDays("changed"), 3); assert.equal(dueIntervalDays("verified"), 7);
@@ -19,7 +19,7 @@ test("due selection is bounded and domain-first", () => {
   const result = selectDueProducts(catalog,{now,limit:3});
   assert.equal(result.total_due,4); assert.equal(result.selected.length,3); assert.equal(result.deferred_due,1);
   assert.equal(new Set(result.selected.map((item)=>item.domain)).size,3,"first pass selects distinct domains");
-  assert.equal(result.selected[0].id,1,"changed product has highest priority");
+  assert.equal(result.selected[0].id,6,"never-checked product cannot be starved by repeatedly due changed products");
 });
 
 test("daily sizing is catalog-aware and bounded", () => {
@@ -34,9 +34,87 @@ test("large domains are spread across the 7-day cycle and backlog remains due", 
     ...Array.from({length:14},(_,index)=>product(index+101,`small-${index}.test`,"verified",20)),
   ];
   const result = selectDueProducts(catalog,{now});
-  assert.equal(result.daily_target,17); assert.equal(result.selected.length,17); assert.equal(result.deferred_due,97);
-  assert.ok(result.selected.filter((item)=>item.domain==="large.test").length <= 15,"100-product domain is capped at ceil(100/7) per day");
+  assert.equal(result.daily_target,17); assert.equal(result.run_capacity,25); assert.equal(result.selected.length,25); assert.equal(result.deferred_due,89);
+  assert.ok(result.selected.filter((item)=>item.domain==="large.test").length <= 19,"100-product domain is capped at 125% of its seven-day target");
   assert.ok(new Set(result.selected.map((item)=>item.domain)).size > 1,"domain round-robin preserves diversity");
+});
+
+test("Offer near expiry receives priority over ordinary due products", () => {
+  const nearExpiry = product(2, "risk.test", "verified", 4, { offer_price_status: "verified_current", offer_price_verified_at: daysAgo(12) });
+  const ordinary = product(1, "ordinary.test", "changed", 4);
+  const result = selectDueProducts([ordinary, nearExpiry], { now, limit: 1 });
+  assert.equal(result.selected[0].id, 2);
+  assert.equal(result.selected[0].offer_expiring_within_3_days, true);
+});
+
+test("authoritative renewal deadline is day 9 and can make an otherwise early check due", () => {
+  const row = dueProduct(product(1, "offer.test", "blocked", 1, { offer_price_status: "verified_current", offer_price_verified_at: daysAgo(OFFER_RENEWAL_TARGET_DAYS) }), now);
+  assert.equal(row.offer_renewal_due_at_ms, now);
+  assert.equal(row.monitoring_due_at_ms, now);
+  assert.equal(selectDueProducts([row], { now }).selected.length, 1);
+});
+
+test("expired Offers are eligible for prompt rechecking", () => {
+  const expired = product(1, "offer.test", "blocked", 4, { offer_price_status: "verified_current", offer_price_verified_at: daysAgo(15) });
+  const selected = selectDueProducts([expired], { now, limit: 1 }).selected[0];
+  assert.equal(selected.id, 1); assert.equal(selected.offer_expired, true);
+});
+
+test("failed renewal attempts use a bounded three-day retry cadence", () => {
+  const attemptedYesterday = product(1, "offer.test", "blocked", 1, { offer_price_status: "verified_current", offer_price_verified_at: daysAgo(15) });
+  const attemptedThreeDaysAgo = product(2, "offer.test", "blocked", 3, { offer_price_status: "verified_current", offer_price_verified_at: daysAgo(15) });
+  assert.equal(selectDueProducts([attemptedYesterday], { now }).selected.length, 0);
+  assert.equal(selectDueProducts([attemptedThreeDaysAgo], { now }).selected.length, 1);
+});
+
+test("products without authoritative Offers retain normal status intervals", () => {
+  assert.equal(selectDueProducts([product(1, "plain.test", "verified", 6)], { now }).selected.length, 0);
+  assert.equal(selectDueProducts([product(1, "plain.test", "verified", 7)], { now }).selected.length, 1);
+  assert.equal(selectDueProducts([product(2, "plain.test", "blocked", 29)], { now }).selected.length, 0);
+});
+
+test("changed products do not starve never-checked or substantially older due products", () => {
+  const rows = [
+    product(1, "same.test", "changed", 4),
+    product(2, "same.test", "verified", 20),
+    product(3, "same.test", null, null),
+  ];
+  assert.deepEqual(selectDueProducts(rows, { now, limit: 2 }).selected.map((row) => row.id), [3, 2]);
+});
+
+test("default selection uses bounded spare capacity without exceeding global or domain ceilings", () => {
+  const rows = Array.from({ length: 1_164 }, (_, index) => product(index + 1, `domain-${index % 80}.test`, "verified", 20));
+  const result = selectDueProducts(rows, { now });
+  assert.equal(result.daily_target, 167);
+  assert.equal(result.run_capacity, 209);
+  assert.equal(result.selected.length, 209);
+  assert.ok(Object.entries(result.domain_capacities).every(([domain, cap]) => result.selected.filter((row) => row.domain === domain).length <= cap));
+});
+
+test("missing and invalid timestamps fail safe without manufacturing Offer expiry", () => {
+  const missing = dueProduct(product(1, "safe.test", "verified", null, { offer_price_status: "verified_current", offer_price_verified_at: "invalid" }), now);
+  assert.equal(missing.offer_expires_at_ms, null);
+  assert.equal(missing.monitoring_due_at_ms, 0);
+  assert.equal(selectDueProducts([missing], { now }).selected.length, 1);
+});
+
+test("coverage metrics separate monitoring attempts from authoritative freshness", () => {
+  const rows = [
+    product(1, "a.test", "verified", 1, { offer_price_status: "verified_current", offer_price_verified_at: daysAgo(1) }),
+    product(2, "b.test", "blocked", 1, { offer_price_status: "verified_current", offer_price_verified_at: daysAgo(15) }),
+    product(3, "c.test", "ambiguous", 8),
+    product(4, "d.test", null, null),
+  ];
+  const selected = selectDueProducts(rows, { now }).selected;
+  const metrics = monitoringCoverageMetrics(rows, { now, selected, plannedCapacity: 25 });
+  assert.equal(metrics.monitoring_coverage.total_eligible, 4);
+  assert.equal(metrics.monitoring_coverage.unique_checked_last_7_days, 2);
+  assert.equal(metrics.monitoring_coverage.never_checked, 1);
+  assert.equal(metrics.monitoring_coverage.blocked, 1);
+  assert.equal(metrics.monitoring_coverage.ambiguous, 1);
+  assert.equal(metrics.authoritative_offer_coverage.fresh, 1);
+  assert.equal(metrics.authoritative_offer_coverage.expired, 1);
+  assert.equal(metrics.capacity.planned, 25);
 });
 
 test("retry only retries transient failures with exponential backoff", async () => {

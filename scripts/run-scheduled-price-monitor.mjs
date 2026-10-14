@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { baserowUrl } from "./lib/baserow-url.mjs";
 import {
-  calculateDailyTarget, calculateRunCapacity, createAppsScriptFetchProvider, createBaserowCurrentStatePersistence, createGoogleSheetsHistory, isActiveMonitorable, monitorProduct, monitorProductWithAppsScriptFallback, persistMonitorResults, productDomain, runDomainThrottled,
+  calculateDailyTarget, calculateRunCapacity, createAppsScriptFetchProvider, createBaserowCurrentStatePersistence, createGoogleSheetsHistory, isActiveMonitorable, monitorProduct, monitorProductWithAppsScriptFallback, monitoringCoverageMetrics, persistMonitorResults, productDomain, runDomainThrottled,
   scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, trustedOfferCurrency, withTransientRetry,
 } from "../src/lib/price-monitor/index.mjs";
 
@@ -55,7 +55,7 @@ if (command === "one") {
   selection = selectAllMonitorableProducts(catalog);
 } else if (command === "due") {
   const due = selectDueProducts(catalog, { limit: requestedLimit ?? undefined, cycleDays: 7 }); selection = due.selected;
-  dueStats = { total_due: due.total_due, deferred_due: due.deferred_due, active_monitorable: due.active_monitorable, cycle_days: due.cycle_days, daily_target: due.daily_target, run_capacity: due.run_capacity };
+  dueStats = { total_due: due.total_due, deferred_due: due.deferred_due, active_monitorable: due.active_monitorable, cycle_days: due.cycle_days, daily_target: due.daily_target, run_capacity: due.run_capacity, selected_capacity_used: due.selected_capacity_used, domain_targets: due.domain_targets, domain_capacities: due.domain_capacities };
 } else throw new Error("Commands: one --slug/--id, domain --domain/--brand, batch --limit, all-read-only, all, due --limit");
 if (!selection.length) throw new Error("No matching products to check");
 
@@ -91,10 +91,11 @@ try {
   persistenceError = error instanceof Error ? error.message : String(error);
 }
 const finishedAt = Date.now();
+const coverage = monitoringCoverageMetrics(catalog, { now: finishedAt, cycleDays: 7, selected: selection, plannedCapacity: runCapacity });
 const report = {
   generated_at: new Date(finishedAt).toISOString(), mode: write ? "write-monitor-results" : "dry-run", writes_performed: write && !persistenceError,
   command, configuration: { selected: selection.length, requested_limit: requestedLimit, daily_target: dailyTarget, max_bounded_run: runCapacity, concurrency, per_domain_concurrency: 1, domain_delay_ms: domainDelayMs, timeout_ms: timeoutMs, max_retries: 2, apps_script_fallback: appsScriptFallback },
-  due: dueStats, summary: scheduledRunSummary(results, startedAt, finishedAt), persistence, persistence_error: persistenceError, retry_events: retryEvents, results,
+  due: dueStats, coverage, summary: scheduledRunSummary(results, startedAt, finishedAt), persistence, persistence_error: persistenceError, retry_events: retryEvents, results,
 };
 await fs.mkdir(path.dirname(outputPath), { recursive: true }); await fs.writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify({ output: outputPath, mode: report.mode, configuration: report.configuration, due: report.due, summary: report.summary, retries: retryEvents.length }, null, 2));

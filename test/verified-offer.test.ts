@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildCatalogPriceMutation, buildManualPriceMutation, candidateFromMonitorResult, formatVerifiedOfferAmount, offerJsonLd, resolvePublishableOffer } from "../src/lib/verified-offer";
+import { buildAuthoritativeRenewal } from "../src/lib/price-monitor/persistence.mjs";
 
 const now = new Date("2026-09-17T12:00:00Z");
 const base = {
@@ -19,6 +20,24 @@ test("only verified_current and fresh complete snapshots publish", () => {
   assert.equal(resolvePublishableOffer(base, now)?.amount, 20);
   for (const status of ["change_pending", "stale", "source_unavailable", "revoked", "unverified"]) assert.equal(resolvePublishableOffer({ ...base, offer_price_status: status }, now), null);
   assert.equal(resolvePublishableOffer({ ...base, offer_price_verified_at: "2026-08-01T00:00:00Z" }, now), null);
+});
+
+test("safe monitor renewal restores publishability without weakening resolver gates", () => {
+  const stale = { ...base, offer_price_verified_at: "2026-08-01T00:00:00Z" };
+  assert.equal(resolvePublishableOffer(stale, now), null);
+  const result = {
+    product_id: 42, product_name: "Product", product_url: base.product_url, final_url: base.product_url,
+    checked_at: "2026-09-17T11:00:00.000Z", http_status: 200, detected_price: 20, currency: "EUR",
+    extraction_method: "json_ld_product_offer", confidence: "high", status: "verified", extraction_status: "verified",
+    extraction_outcome: null, detected_platform: "unknown", redirected: false, price_changed: false, currency_mismatch: false,
+    previous_offer_price: 20, previous_offer_currency: "EUR", previous_offer_status: "verified_current",
+    previous_offer_source: "monitor_json_ld_product_offer", previous_offer_source_url: base.product_url,
+    observation_origin: "fresh_monitor_check",
+    evidence: { path: "$.offers.price", candidate_count: 1, diagnostics: { selected_product: { score: 100 }, page_identity: { canonical: base.product_url, title: "Product" } } },
+  };
+  const renewal = buildAuthoritativeRenewal(result);
+  assert.equal(resolvePublishableOffer({ ...stale, ...renewal }, now)?.amount, 20);
+  assert.equal(resolvePublishableOffer({ ...stale, ...renewal, offer_price_status: "change_pending" }, now), null);
 });
 
 test("source currency URL and brand gates are enforced", () => {

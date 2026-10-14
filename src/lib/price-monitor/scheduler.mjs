@@ -1,5 +1,9 @@
 const DAY_MS = 86_400_000;
 const TRANSIENT_HTTP = new Set([408, 425, 500, 502, 503, 504]);
+export const OFFER_FRESHNESS_DAYS = 14;
+export const OFFER_RENEWAL_TARGET_DAYS = 9;
+export const OFFER_EXPIRY_PRIORITY_DAYS = 3;
+export const OFFER_RENEWAL_RETRY_DAYS = 3;
 
 const text = (value) => String(value ?? "").trim();
 const selectValue = (value) => text(value && typeof value === "object" ? value.value : value);
@@ -17,8 +21,53 @@ function priority(status) {
 export function dueProduct(product, now = Date.now()) {
   const status = selectValue(product.price_check_status) || "unmonitored";
   const checkedAt = time(product.price_last_checked_at);
-  const dueAt = checkedAt == null ? 0 : checkedAt + dueIntervalDays(status) * DAY_MS;
-  return { ...product, monitoring_status: status, monitoring_checked_at_ms: checkedAt, monitoring_due_at_ms: dueAt, monitoring_overdue_ms: Math.max(0, now - dueAt), monitoring_priority: priority(status), domain: productDomain(product.product_url) };
+  const normalDueAt = checkedAt == null ? 0 : checkedAt + dueIntervalDays(status) * DAY_MS;
+  const offerStatus = selectValue(product.offer_price_status);
+  const offerVerifiedAt = time(product.offer_price_verified_at);
+  const hasAuthoritativeOffer = offerStatus === "verified_current" && offerVerifiedAt != null;
+  const offerExpiresAt = hasAuthoritativeOffer ? offerVerifiedAt + OFFER_FRESHNESS_DAYS * DAY_MS : null;
+  const offerRenewalDeadlineAt = hasAuthoritativeOffer ? offerVerifiedAt + OFFER_RENEWAL_TARGET_DAYS * DAY_MS : null;
+  const offerRenewalDueAt = offerRenewalDeadlineAt != null && checkedAt != null && checkedAt >= offerRenewalDeadlineAt
+    ? checkedAt + OFFER_RENEWAL_RETRY_DAYS * DAY_MS
+    : offerRenewalDeadlineAt;
+  const dueAt = offerRenewalDueAt == null ? normalDueAt : Math.min(normalDueAt, offerRenewalDueAt);
+  const offerRemainingMs = offerExpiresAt == null ? null : offerExpiresAt - now;
+  const lastSuccessfulAt = ["verified", "changed", "redirected"].includes(status) ? checkedAt : offerVerifiedAt;
+  return {
+    ...product,
+    monitoring_status: status,
+    monitoring_checked_at_ms: checkedAt,
+    monitoring_last_successful_at_ms: lastSuccessfulAt,
+    monitoring_normal_due_at_ms: normalDueAt,
+    monitoring_due_at_ms: dueAt,
+    monitoring_overdue_ms: Math.max(0, now - dueAt),
+    monitoring_priority: priority(status),
+    offer_verified_at_ms: offerVerifiedAt,
+    offer_renewal_deadline_at_ms: offerRenewalDeadlineAt,
+    offer_renewal_due_at_ms: offerRenewalDueAt,
+    offer_expires_at_ms: offerExpiresAt,
+    offer_remaining_ms: offerRemainingMs,
+    offer_expired: offerRemainingMs != null && offerRemainingMs < 0,
+    offer_expiring_within_3_days: offerRemainingMs != null && offerRemainingMs >= 0 && offerRemainingMs <= OFFER_EXPIRY_PRIORITY_DAYS * DAY_MS,
+    domain: productDomain(product.product_url),
+  };
+}
+
+function schedulingScore(product, now) {
+  const overdueDays = product.monitoring_overdue_ms / DAY_MS;
+  const attemptAgeDays = product.monitoring_checked_at_ms == null ? Number.POSITIVE_INFINITY : Math.max(0, now - product.monitoring_checked_at_ms) / DAY_MS;
+  const successAgeDays = product.monitoring_last_successful_at_ms == null ? attemptAgeDays : Math.max(0, now - product.monitoring_last_successful_at_ms) / DAY_MS;
+  if (product.offer_expired) return 1_000_000 + Math.min(10_000, Math.abs(product.offer_remaining_ms) / DAY_MS);
+  if (product.offer_expiring_within_3_days) return 900_000 + Math.max(0, OFFER_EXPIRY_PRIORITY_DAYS - product.offer_remaining_ms / DAY_MS) * 100;
+  if (product.monitoring_checked_at_ms == null) return 800_000 + Math.min(10_000, Number(product.id) ? 1 / Number(product.id) : 0);
+  if (product.offer_renewal_due_at_ms != null && product.offer_renewal_due_at_ms <= now) return 700_000 + overdueDays * 100 + successAgeDays;
+  return overdueDays * 100 + successAgeDays * 2 + attemptAgeDays + product.monitoring_priority;
+}
+
+function compareScheduled(a, b, now) {
+  return schedulingScore(b, now) - schedulingScore(a, now)
+    || (a.monitoring_checked_at_ms ?? 0) - (b.monitoring_checked_at_ms ?? 0)
+    || Number(a.id) - Number(b.id);
 }
 
 export function calculateDailyTarget(activeMonitorableProducts, cycleDays = 7) {
@@ -44,24 +93,25 @@ export function selectDueProducts(products, { now = Date.now(), limit, cycleDays
   const monitorable = products.filter(isActiveMonitorable);
   const dailyTarget = calculateDailyTarget(monitorable.length, cycleDays);
   const runCapacity = calculateRunCapacity(dailyTarget);
-  const requestedLimit = limit == null ? dailyTarget : Math.max(1, Number(limit) || dailyTarget);
+  const requestedLimit = limit == null ? runCapacity : Math.max(1, Number(limit) || dailyTarget);
   const boundedLimit = Math.min(requestedLimit, runCapacity || requestedLimit);
   const due = monitorable.map((product) => dueProduct(product, now)).filter((product) => product.monitoring_due_at_ms <= now);
   const groups = new Map();
   for (const product of due) { if (!groups.has(product.domain)) groups.set(product.domain, []); groups.get(product.domain).push(product); }
-  for (const rows of groups.values()) rows.sort((a, b) => b.monitoring_priority - a.monitoring_priority || b.monitoring_overdue_ms - a.monitoring_overdue_ms || Number(a.id) - Number(b.id));
+  for (const rows of groups.values()) rows.sort((a, b) => compareScheduled(a, b, now));
   const domains = [...groups.keys()].sort((a, b) => {
     const aa = groups.get(a)[0]; const bb = groups.get(b)[0];
-    return bb.monitoring_priority - aa.monitoring_priority || bb.monitoring_overdue_ms - aa.monitoring_overdue_ms || a.localeCompare(b);
+    return compareScheduled(aa, bb, now) || a.localeCompare(b);
   });
   const selected = [];
   const domainCounts = new Map();
   for (const product of monitorable) domainCounts.set(productDomain(product.product_url), (domainCounts.get(productDomain(product.product_url)) || 0) + 1);
   const domainTargets = new Map(domains.map((domain) => [domain, calculateDailyTarget(domainCounts.get(domain) || 0, cycleDays)]));
+  const domainCapacities = new Map(domains.map((domain) => [domain, Math.max(domainTargets.get(domain), Math.ceil(domainTargets.get(domain) * 1.25))]));
   const domainSelected = new Map();
-  while (selected.length < boundedLimit && domains.some((domain) => groups.get(domain).length && (domainSelected.get(domain) || 0) < domainTargets.get(domain))) {
+  while (selected.length < boundedLimit && domains.some((domain) => groups.get(domain).length && (domainSelected.get(domain) || 0) < domainCapacities.get(domain))) {
     for (const domain of domains) {
-      if ((domainSelected.get(domain) || 0) >= domainTargets.get(domain)) continue;
+      if ((domainSelected.get(domain) || 0) >= domainCapacities.get(domain)) continue;
       const product = groups.get(domain).shift();
       if (product && selected.length < boundedLimit) {
         selected.push(product);
@@ -72,7 +122,49 @@ export function selectDueProducts(products, { now = Date.now(), limit, cycleDays
   return {
     selected, total_due: due.length, deferred_due: Math.max(0, due.length - selected.length),
     active_monitorable: monitorable.length, cycle_days: cycleDays, daily_target: dailyTarget, run_capacity: runCapacity,
-    domain_targets: Object.fromEntries(domainTargets),
+    selected_capacity_used: selected.length, domain_targets: Object.fromEntries(domainTargets), domain_capacities: Object.fromEntries(domainCapacities),
+  };
+}
+
+export function monitoringCoverageMetrics(products, { now = Date.now(), cycleDays = 7, selected = [], plannedCapacity = null } = {}) {
+  const eligible = products.filter(isActiveMonitorable).map((product) => dueProduct(product, now));
+  const withinCycle = eligible.filter((product) => product.monitoring_checked_at_ms != null && now - product.monitoring_checked_at_ms <= cycleDays * DAY_MS);
+  const freshOffers = eligible.filter((product) => product.offer_expires_at_ms != null && product.offer_remaining_ms >= 0);
+  const expiringOffers = eligible.filter((product) => product.offer_expiring_within_3_days);
+  const expiredOffers = eligible.filter((product) => product.offer_expired);
+  const overdue = eligible.filter((product) => product.monitoring_due_at_ms <= now);
+  const neverChecked = eligible.filter((product) => product.monitoring_checked_at_ms == null);
+  const selectedIds = new Set(selected.map((product) => String(product.id ?? product.product_id)));
+  const selectedOverdue = overdue.filter((product) => selectedIds.has(String(product.id ?? product.product_id))).length;
+  const backlog = new Map();
+  for (const product of overdue) {
+    const entry = backlog.get(product.domain) || { due: 0, selected: 0, deferred: 0 };
+    entry.due += 1;
+    if (selectedIds.has(String(product.id ?? product.product_id))) entry.selected += 1;
+    backlog.set(product.domain, entry);
+  }
+  for (const entry of backlog.values()) entry.deferred = entry.due - entry.selected;
+  const statusCount = (statuses) => eligible.filter((product) => statuses.includes(product.monitoring_status)).length;
+  const capacity = plannedCapacity == null ? calculateRunCapacity(calculateDailyTarget(eligible.length, cycleDays)) : plannedCapacity;
+  return {
+    monitoring_coverage: {
+      total_eligible: eligible.length,
+      checked_within_intended_cycle: withinCycle.length,
+      unique_checked_last_7_days: eligible.filter((product) => product.monitoring_checked_at_ms != null && now - product.monitoring_checked_at_ms <= 7 * DAY_MS).length,
+      overdue_checks: overdue.length,
+      deferred_products: Math.max(0, overdue.length - selectedOverdue),
+      never_checked: neverChecked.length,
+      failed_or_problematic: statusCount(["error", "not_detected", "browser_required"]),
+      blocked: statusCount(["blocked"]),
+      ambiguous: statusCount(["ambiguous"]),
+    },
+    authoritative_offer_coverage: {
+      fresh: freshOffers.length,
+      expiring_within_3_days: expiringOffers.length,
+      expired: expiredOffers.length,
+    },
+    capacity: { planned: capacity, selected: selected.length, unused: Math.max(0, capacity - selected.length) },
+    backlog_by_domain: Object.fromEntries([...backlog.entries()].sort((a, b) => b[1].deferred - a[1].deferred || a[0].localeCompare(b[0]))),
   };
 }
 

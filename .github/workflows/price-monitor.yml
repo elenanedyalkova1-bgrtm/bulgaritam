@@ -48,7 +48,7 @@ jobs:
           RUN_IDS: ${{ github.event_name == 'workflow_dispatch' && inputs.ids || '' }}
         run: |
           if [ -n "$RUN_IDS" ]; then
-            args=(ids "--ids=${RUN_IDS}" --concurrency=6 --domain-delay-ms=2000 --timeout-ms=15000 --output=/tmp/price-monitor-run.json)
+            args=(ids "--ids=${RUN_IDS}" --concurrency=6 --domain-delay-ms=2000 --timeout-ms=15000 --output=/tmp/price-monitor-run.json --audit-snapshot=/tmp/price-monitor-pre-snapshot.json)
           else
             args=(due --concurrency=6 --domain-delay-ms=2000 --timeout-ms=15000 --output=/tmp/price-monitor-run.json)
             if [ -n "$RUN_LIMIT" ]; then args+=("--limit=${RUN_LIMIT}"); fi
@@ -60,6 +60,8 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: price-monitor-${{ github.run_id }}-${{ github.run_attempt }}
-          path: /tmp/price-monitor-run.json
+          path: |
+            /tmp/price-monitor-run.json
+            /tmp/price-monitor-pre-snapshot.json
           if-no-files-found: error
           retention-days: 30

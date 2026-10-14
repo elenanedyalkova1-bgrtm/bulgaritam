@@ -126,3 +126,13 @@ test("last checked formula sorts ISO timestamps instead of applying numeric MAX"
 test("monitoring workflow has no build or deploy trigger",()=>{
   const workflow=fs.readFileSync(".github/workflows/price-monitor.yml","utf8"); assert.doesNotMatch(workflow,/npm run build|publish-public|ftp|deploy/i);
 });
+
+test("explicit-ID write canary captures a pre-write audit snapshot",()=>{
+  const workflow=fs.readFileSync(".github/workflows/price-monitor.yml","utf8");
+  const runner=fs.readFileSync("scripts/run-scheduled-price-monitor.mjs","utf8");
+  assert.match(workflow,/--audit-snapshot=\/tmp\/price-monitor-pre-snapshot\.json/);
+  assert.match(workflow,/\/tmp\/price-monitor-pre-snapshot\.json/);
+  assert.match(runner,/Price History!A:S/);
+  assert.match(runner,/non_allowlisted_changed_product_ids/);
+  assert.match(runner,/old_history_rows_unchanged/);
+});

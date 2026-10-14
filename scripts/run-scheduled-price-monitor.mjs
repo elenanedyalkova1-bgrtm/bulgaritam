@@ -1,9 +1,10 @@
 #!/usr/bin/env node
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { baserowUrl } from "./lib/baserow-url.mjs";
 import {
-  calculateDailyTarget, calculateRunCapacity, createAppsScriptFetchProvider, createBaserowCurrentStatePersistence, createGoogleSheetsHistory, isActiveMonitorable, monitorProduct, monitorProductWithAppsScriptFallback, monitoringCoverageMetrics, persistMonitorResults, productDomain, runDomainThrottled,
+  calculateDailyTarget, calculateRunCapacity, createAppsScriptFetchProvider, createBaserowCurrentStatePersistence, createGoogleSheetsHistory, isActiveMonitorable, monitorProduct, monitorProductWithAppsScriptFallback, monitoringCoverageMetrics, persistMonitorResults, PRICE_HISTORY_HEADERS, productDomain, runDomainThrottled,
   scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, selectProductsByIds, trustedOfferCurrency, withTransientRetry,
 } from "../src/lib/price-monitor/index.mjs";
 
@@ -19,6 +20,7 @@ const concurrency = Math.min(8, Math.max(1, Number(arg("--concurrency", "6")) ||
 const domainDelayMs = Math.max(1_000, Number(arg("--domain-delay-ms", "2000")) || 2_000);
 const timeoutMs = Math.max(5_000, Number(arg("--timeout-ms", "15000")) || 15_000);
 const outputPath = path.resolve(arg("--output", `reports/price-monitor-run-${new Date().toISOString().slice(0, 10)}.json`));
+const auditSnapshotPath = path.resolve(arg("--audit-snapshot", "/tmp/price-monitor-pre-snapshot.json"));
 if (!token) throw new Error("BASEROW_API_TOKEN is required");
 
 const clean = (value) => String(value ?? "").trim();
@@ -34,6 +36,27 @@ async function fetchProducts() {
     brand_name: clean(row.brand_name) || clean(row.brand_ref?.[0]?.value), domain: productDomain(row.product_url),
     offer_price_amount: row.offer_price_amount ?? null, offer_price_currency: trustedOfferCurrency(row.offer_price_currency, row.currency),
   }));
+}
+
+const AUDIT_PRODUCT_FIELDS = [
+  "product_url", "offer_price_amount", "offer_price_currency", "offer_price_verified_at", "offer_price_source",
+  "offer_price_source_url", "offer_price_status", "price_last_checked_at", "price_check_status", "price_detected_amount",
+  "price_detected_currency", "price_extraction_method", "price_confidence", "price_change_detected",
+];
+const hash = (value) => crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
+const auditProduct = (product) => Object.fromEntries(["id", ...AUDIT_PRODUCT_FIELDS].map((field) => [field, product[field] ?? null]));
+function auditState(products, historyValues, allowlist) {
+  const allowed = new Set(allowlist.map(String));
+  const header = historyValues[0] || [];
+  if (PRICE_HISTORY_HEADERS.some((field, index) => header[index] !== field)) throw new Error("Price History A:S header mismatch; canary stopped before persistence");
+  const historyRows = historyValues.slice(1);
+  const targets = products.filter((product) => allowed.has(String(product.id))).map(auditProduct).sort((a, b) => Number(a.id) - Number(b.id));
+  if (targets.length !== allowlist.length) throw new Error(`Canary snapshot expected ${allowlist.length} target rows, found ${targets.length}`);
+  return {
+    captured_at: new Date().toISOString(), allowlist: allowlist.map(String), product_count: products.length, targets,
+    product_hashes: Object.fromEntries(products.map((product) => [String(product.id), hash(auditProduct(product))])),
+    price_history: { row_count: historyRows.length, row_hashes: historyRows.map(hash), target_rows: historyRows.filter((row) => allowed.has(String(row[1]))) },
+  };
 }
 
 const catalog = await fetchProducts(); let selection; let dueStats = null;
@@ -64,6 +87,7 @@ if (!selection.length) throw new Error("No matching products to check");
 
 const currentWriter = write ? createBaserowCurrentStatePersistence({ token, productsTableId }) : null;
 const historyWriter = write ? createGoogleSheetsHistory({ spreadsheetId: process.env.GOOGLE_PRICE_MONITOR_SPREADSHEET_ID, serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL, privateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY }) : null;
+if (write && command === "ids" && appsScriptFallback) throw new Error("Explicit-ID write canary cannot use a fallback provider");
 const fallbackProvider = appsScriptFallback ? createAppsScriptFetchProvider({ endpoint: process.env.APPS_SCRIPT_PRICE_FETCH_URL, secret: process.env.APPS_SCRIPT_PRICE_FETCH_SECRET }) : null;
 const startedAt = Date.now(); const retryEvents = [];
 const results = await runDomainThrottled(selection, async (product) => {
@@ -87,18 +111,48 @@ const results = await runDomainThrottled(selection, async (product) => {
   result.attempts = attempts;
   return result;
 }, { concurrency, domainDelayMs });
-let persistence = null; let persistenceError = null;
+let persistence = null; let persistenceError = null; let canaryAudit = null;
+if (write && command === "ids") {
+  const beforeHistory = (await historyWriter.getValues("Price History!A:S")).values || [];
+  canaryAudit = { before: auditState(catalog, beforeHistory, selection.map((product) => product.id)) };
+  await fs.mkdir(path.dirname(auditSnapshotPath), { recursive: true });
+  await fs.writeFile(auditSnapshotPath, `${JSON.stringify(canaryAudit.before, null, 2)}\n`, { mode: 0o600 });
+}
 try {
   persistence = write ? await persistMonitorResults(results, { write: true, historyWriter, currentWriter }) : await persistMonitorResults(results);
 } catch (error) {
   persistenceError = error instanceof Error ? error.message : String(error);
+}
+if (canaryAudit) {
+  const afterCatalog = await fetchProducts();
+  const afterHistory = (await historyWriter.getValues("Price History!A:S")).values || [];
+  canaryAudit.after = auditState(afterCatalog, afterHistory, selection.map((product) => product.id));
+  const beforeHashes = canaryAudit.before.product_hashes; const afterHashes = canaryAudit.after.product_hashes;
+  const changedProductIds = Object.keys(beforeHashes).filter((id) => afterHashes[id] !== beforeHashes[id]);
+  const allowed = new Set(canaryAudit.before.allowlist);
+  const oldHistoryUnchanged = canaryAudit.before.price_history.row_hashes.every((rowHash, index) => canaryAudit.after.price_history.row_hashes[index] === rowHash);
+  const appendedRows = afterHistory.slice(canaryAudit.before.price_history.row_count + 1);
+  canaryAudit.reconciliation = {
+    changed_product_ids: changedProductIds,
+    non_allowlisted_changed_product_ids: changedProductIds.filter((id) => !allowed.has(id)),
+    old_history_rows_unchanged: oldHistoryUnchanged,
+    history_rows_before: canaryAudit.before.price_history.row_count,
+    history_rows_after: canaryAudit.after.price_history.row_count,
+    appended_history_rows: appendedRows.length,
+    appended_product_ids: appendedRows.map((row) => String(row[1] ?? "")),
+  };
+  const auditFailure = canaryAudit.reconciliation.non_allowlisted_changed_product_ids.length
+    || !oldHistoryUnchanged
+    || appendedRows.length !== results.length
+    || appendedRows.some((row) => !allowed.has(String(row[1] ?? "")));
+  if (auditFailure && !persistenceError) persistenceError = "Canary post-write reconciliation failed; inspect report before any further run";
 }
 const finishedAt = Date.now();
 const coverage = monitoringCoverageMetrics(catalog, { now: finishedAt, cycleDays: 7, selected: selection, plannedCapacity: runCapacity });
 const report = {
   generated_at: new Date(finishedAt).toISOString(), mode: write ? "write-monitor-results" : "dry-run", writes_performed: write && !persistenceError,
   command, configuration: { selected: selection.length, requested_limit: requestedLimit, daily_target: dailyTarget, max_bounded_run: runCapacity, concurrency, per_domain_concurrency: 1, domain_delay_ms: domainDelayMs, timeout_ms: timeoutMs, max_retries: 2, apps_script_fallback: appsScriptFallback },
-  due: dueStats, coverage, summary: scheduledRunSummary(results, startedAt, finishedAt), persistence, persistence_error: persistenceError, retry_events: retryEvents, results,
+  due: dueStats, coverage, summary: scheduledRunSummary(results, startedAt, finishedAt), persistence, persistence_error: persistenceError, canary_audit: canaryAudit, retry_events: retryEvents, results,
 };
 await fs.mkdir(path.dirname(outputPath), { recursive: true }); await fs.writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify({ output: outputPath, mode: report.mode, configuration: report.configuration, due: report.due, summary: report.summary, retries: retryEvents.length }, null, 2));

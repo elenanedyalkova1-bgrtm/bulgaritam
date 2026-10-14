@@ -89,6 +89,21 @@ export function selectAllMonitorableProducts(products) {
   return products.filter(isActiveMonitorable).sort((a, b) => Number(a.id) - Number(b.id));
 }
 
+export function selectProductsByIds(products, requestedIds, { maxIds = 25 } = {}) {
+  if (!Array.isArray(requestedIds) || !requestedIds.length) throw new Error("ids requires a non-empty explicit product allowlist");
+  const ids = requestedIds.map((value) => String(value).trim());
+  if (ids.some((value) => !/^\d+$/.test(value))) throw new Error("ids accepts positive numeric product IDs only");
+  if (new Set(ids).size !== ids.length) throw new Error("ids allowlist contains duplicates");
+  if (ids.length > maxIds) throw new Error(`ids allowlist exceeds the ${maxIds}-product safety cap`);
+  const byId = new Map(products.map((product) => [String(product.id ?? product.product_id), product]));
+  const selected = ids.map((id) => byId.get(id));
+  const missing = ids.filter((id, index) => !selected[index]);
+  if (missing.length) throw new Error(`ids allowlist contains missing products: ${missing.join(",")}`);
+  const ineligible = selected.filter((product) => !isActiveMonitorable(product)).map((product) => String(product.id ?? product.product_id));
+  if (ineligible.length) throw new Error(`ids allowlist contains non-monitorable products: ${ineligible.join(",")}`);
+  return selected;
+}
+
 export function selectDueProducts(products, { now = Date.now(), limit, cycleDays = 7 } = {}) {
   const monitorable = products.filter(isActiveMonitorable);
   const dailyTarget = calculateDailyTarget(monitorable.length, cycleDays);

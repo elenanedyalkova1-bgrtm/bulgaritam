@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateDailyTarget, calculateRunCapacity, dueIntervalDays, dueProduct, isTransientResult, monitoringCoverageMetrics, OFFER_RENEWAL_TARGET_DAYS, runDomainThrottled, scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, withTransientRetry } from "../src/lib/price-monitor/index.mjs";
+import { calculateDailyTarget, calculateRunCapacity, dueIntervalDays, dueProduct, isTransientResult, monitoringCoverageMetrics, OFFER_RENEWAL_TARGET_DAYS, runDomainThrottled, scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, selectProductsByIds, withTransientRetry } from "../src/lib/price-monitor/index.mjs";
 
 const now = Date.parse("2026-09-17T12:00:00Z");
 const daysAgo = (days) => new Date(now - days * 86_400_000).toISOString();
@@ -167,4 +167,14 @@ test("all selection includes every active monitorable product without capacity t
   assert.equal(selected.some((item) => item.id === 2), false, "inactive product is excluded");
   assert.equal(selected.some((item) => item.id === 4 || item.id === 5), false, "missing or invalid URL is excluded");
   assert.deepEqual(selected.map((item) => item.id), selected.map((item) => item.id).slice().sort((a, b) => a - b));
+});
+
+test("explicit ID selection enforces the exact bounded monitorable allowlist", () => {
+  const rows = [product(3,"c.test","verified",8),product(47,"a.test","verified",8),product(41,"b.test","verified",8)];
+  assert.deepEqual(selectProductsByIds(rows,["47","41","3"]).map((row)=>row.id),[47,41,3]);
+  assert.throws(()=>selectProductsByIds(rows,["47","47"]),/duplicates/);
+  assert.throws(()=>selectProductsByIds(rows,["47","999"]),/missing products: 999/);
+  assert.throws(()=>selectProductsByIds([...rows,{id:9,is_active:false,product_url:"https:\/\/x.test\/p\/9"}],["9"]),/non-monitorable/);
+  assert.throws(()=>selectProductsByIds(rows,["not-an-id"]),/numeric product IDs/);
+  assert.throws(()=>selectProductsByIds(Array.from({length:26},(_,i)=>product(i+1,"x.test","verified",8)),Array.from({length:26},(_,i)=>String(i+1))),/25-product safety cap/);
 });

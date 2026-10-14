@@ -14,7 +14,7 @@ export { createGoogleSheetsHistory, derivePrices, deriveTimeline, historyObserva
 export { evaluateDiscounts, evaluateProductDiscount } from "./discount-evaluator.mjs";
 export { classifyPromotionSemantics, extractPromotionSemanticEvidence, promotionConsumerEligible, MINIMUM_DISCOUNT, PROMOTION_CONFIDENCE } from "./promotion-semantics.mjs";
 export { buildDiscountReport } from "./discount-report.mjs";
-export { calculateDailyTarget, calculateRunCapacity, dueIntervalDays, dueProduct, isActiveMonitorable, isTransientResult, monitoringCoverageMetrics, OFFER_EXPIRY_PRIORITY_DAYS, OFFER_FRESHNESS_DAYS, OFFER_RENEWAL_RETRY_DAYS, OFFER_RENEWAL_TARGET_DAYS, productDomain, runDomainThrottled, scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, withTransientRetry } from "./scheduler.mjs";
+export { calculateDailyTarget, calculateRunCapacity, dueIntervalDays, dueProduct, isActiveMonitorable, isTransientResult, monitoringCoverageMetrics, OFFER_EXPIRY_PRIORITY_DAYS, OFFER_FRESHNESS_DAYS, OFFER_RENEWAL_RETRY_DAYS, OFFER_RENEWAL_TARGET_DAYS, productDomain, runDomainThrottled, scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, selectProductsByIds, withTransientRetry } from "./scheduler.mjs";
 export { EXTERNAL_CADENCE_DAYS, dueObservedProduct, externalBrandMonitoringEligible, externalMonitoringEnabled, observedMonitoringState, scaleBenchmark, selectExternalDue } from "./external-scheduler.mjs";
 export { canonicalAppsScriptFetchRequest, signAppsScriptFetchRequest, verifyAppsScriptFetchRequest } from "./apps-script-auth.mjs";
 export { createAppsScriptFetchProvider } from "./apps-script-fetch-provider.mjs";

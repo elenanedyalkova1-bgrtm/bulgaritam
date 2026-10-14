@@ -4,7 +4,7 @@ import path from "node:path";
 import { baserowUrl } from "./lib/baserow-url.mjs";
 import {
   calculateDailyTarget, calculateRunCapacity, createAppsScriptFetchProvider, createBaserowCurrentStatePersistence, createGoogleSheetsHistory, isActiveMonitorable, monitorProduct, monitorProductWithAppsScriptFallback, monitoringCoverageMetrics, persistMonitorResults, productDomain, runDomainThrottled,
-  scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, trustedOfferCurrency, withTransientRetry,
+  scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, selectProductsByIds, trustedOfferCurrency, withTransientRetry,
 } from "../src/lib/price-monitor/index.mjs";
 
 try { process.loadEnvFile?.(); } catch (error) { if (error?.code !== "ENOENT") throw error; }
@@ -53,10 +53,13 @@ if (command === "one") {
   selection = catalog.slice().sort((a, b) => Number(a.id) - Number(b.id));
 } else if (command === "all") {
   selection = selectAllMonitorableProducts(catalog);
+} else if (command === "ids") {
+  const ids = clean(arg("--ids")).split(",").map((value) => value.trim()).filter(Boolean);
+  selection = selectProductsByIds(catalog, ids);
 } else if (command === "due") {
   const due = selectDueProducts(catalog, { limit: requestedLimit ?? undefined, cycleDays: 7 }); selection = due.selected;
   dueStats = { total_due: due.total_due, deferred_due: due.deferred_due, active_monitorable: due.active_monitorable, cycle_days: due.cycle_days, daily_target: due.daily_target, run_capacity: due.run_capacity, selected_capacity_used: due.selected_capacity_used, domain_targets: due.domain_targets, domain_capacities: due.domain_capacities };
-} else throw new Error("Commands: one --slug/--id, domain --domain/--brand, batch --limit, all-read-only, all, due --limit");
+} else throw new Error("Commands: one --slug/--id, ids --ids=1,2,3, domain --domain/--brand, batch --limit, all-read-only, all, due --limit");
 if (!selection.length) throw new Error("No matching products to check");
 
 const currentWriter = write ? createBaserowCurrentStatePersistence({ token, productsTableId }) : null;

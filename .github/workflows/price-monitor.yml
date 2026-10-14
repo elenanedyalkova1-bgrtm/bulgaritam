@@ -17,6 +17,9 @@ on:
       ids:
         description: Optional exact comma-separated product-ID allowlist (manual runs only, max 25)
         required: false
+      recovery_ids:
+        description: Optional exact bounded recovery allowlist (manual runs only, max 100; mutually exclusive with ids)
+        required: false
 
 concurrency:
   group: bulgaritam-price-monitor
@@ -46,8 +49,14 @@ jobs:
           RUN_MODE: ${{ github.event_name == 'schedule' && 'write-monitor-results' || inputs.mode }}
           RUN_LIMIT: ${{ inputs.limit }}
           RUN_IDS: ${{ github.event_name == 'workflow_dispatch' && inputs.ids || '' }}
+          RUN_RECOVERY_IDS: ${{ github.event_name == 'workflow_dispatch' && inputs.recovery_ids || '' }}
         run: |
-          if [ -n "$RUN_IDS" ]; then
+          if [ -n "$RUN_IDS" ] && [ -n "$RUN_RECOVERY_IDS" ]; then
+            echo "ids and recovery_ids are mutually exclusive" >&2
+            exit 1
+          elif [ -n "$RUN_RECOVERY_IDS" ]; then
+            args=(recovery-ids "--ids=${RUN_RECOVERY_IDS}" --concurrency=6 --domain-delay-ms=2000 --timeout-ms=15000 --output=/tmp/price-monitor-run.json --audit-snapshot=/tmp/price-monitor-pre-snapshot.json)
+          elif [ -n "$RUN_IDS" ]; then
             args=(ids "--ids=${RUN_IDS}" --concurrency=6 --domain-delay-ms=2000 --timeout-ms=15000 --output=/tmp/price-monitor-run.json --audit-snapshot=/tmp/price-monitor-pre-snapshot.json)
           else
             args=(due --concurrency=6 --domain-delay-ms=2000 --timeout-ms=15000 --output=/tmp/price-monitor-run.json)

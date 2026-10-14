@@ -177,4 +177,6 @@ test("explicit ID selection enforces the exact bounded monitorable allowlist", (
   assert.throws(()=>selectProductsByIds([...rows,{id:9,is_active:false,product_url:"https:\/\/x.test\/p\/9"}],["9"]),/non-monitorable/);
   assert.throws(()=>selectProductsByIds(rows,["not-an-id"]),/numeric product IDs/);
   assert.throws(()=>selectProductsByIds(Array.from({length:26},(_,i)=>product(i+1,"x.test","verified",8)),Array.from({length:26},(_,i)=>String(i+1))),/25-product safety cap/);
+  assert.equal(selectProductsByIds(Array.from({length:100},(_,i)=>product(i+1,`d${i}.test`,"verified",8)),Array.from({length:100},(_,i)=>String(i+1)),{maxIds:100}).length,100);
+  assert.throws(()=>selectProductsByIds(Array.from({length:101},(_,i)=>product(i+1,"x.test","verified",8)),Array.from({length:101},(_,i)=>String(i+1)),{maxIds:100}),/100-product safety cap/);
 });

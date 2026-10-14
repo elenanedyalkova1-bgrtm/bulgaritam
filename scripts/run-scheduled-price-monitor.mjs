@@ -54,6 +54,7 @@ function auditState(products, historyValues, allowlist) {
   if (targets.length !== allowlist.length) throw new Error(`Canary snapshot expected ${allowlist.length} target rows, found ${targets.length}`);
   return {
     captured_at: new Date().toISOString(), allowlist: allowlist.map(String), product_count: products.length, targets,
+    target_full_records: products.filter((product) => allowed.has(String(product.id))).sort((a, b) => Number(a.id) - Number(b.id)),
     product_hashes: Object.fromEntries(products.map((product) => [String(product.id), hash(auditProduct(product))])),
     price_history: { row_count: historyRows.length, row_hashes: historyRows.map(hash), target_rows: historyRows.filter((row) => allowed.has(String(row[1]))) },
   };
@@ -79,15 +80,18 @@ if (command === "one") {
 } else if (command === "ids") {
   const ids = clean(arg("--ids")).split(",").map((value) => value.trim()).filter(Boolean);
   selection = selectProductsByIds(catalog, ids);
+} else if (command === "recovery-ids") {
+  const ids = clean(arg("--ids")).split(",").map((value) => value.trim()).filter(Boolean);
+  selection = selectProductsByIds(catalog, ids, { maxIds: 100 });
 } else if (command === "due") {
   const due = selectDueProducts(catalog, { limit: requestedLimit ?? undefined, cycleDays: 7 }); selection = due.selected;
   dueStats = { total_due: due.total_due, deferred_due: due.deferred_due, active_monitorable: due.active_monitorable, cycle_days: due.cycle_days, daily_target: due.daily_target, run_capacity: due.run_capacity, selected_capacity_used: due.selected_capacity_used, domain_targets: due.domain_targets, domain_capacities: due.domain_capacities };
-} else throw new Error("Commands: one --slug/--id, ids --ids=1,2,3, domain --domain/--brand, batch --limit, all-read-only, all, due --limit");
+} else throw new Error("Commands: one --slug/--id, ids --ids=1,2,3, recovery-ids --ids=1,2,3, domain --domain/--brand, batch --limit, all-read-only, all, due --limit");
 if (!selection.length) throw new Error("No matching products to check");
 
 const currentWriter = write ? createBaserowCurrentStatePersistence({ token, productsTableId }) : null;
 const historyWriter = write ? createGoogleSheetsHistory({ spreadsheetId: process.env.GOOGLE_PRICE_MONITOR_SPREADSHEET_ID, serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL, privateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY }) : null;
-if (write && command === "ids" && appsScriptFallback) throw new Error("Explicit-ID write canary cannot use a fallback provider");
+if (write && ["ids", "recovery-ids"].includes(command) && appsScriptFallback) throw new Error("Explicit-ID write run cannot use a fallback provider");
 const fallbackProvider = appsScriptFallback ? createAppsScriptFetchProvider({ endpoint: process.env.APPS_SCRIPT_PRICE_FETCH_URL, secret: process.env.APPS_SCRIPT_PRICE_FETCH_SECRET }) : null;
 const startedAt = Date.now(); const retryEvents = [];
 const results = await runDomainThrottled(selection, async (product) => {
@@ -112,7 +116,7 @@ const results = await runDomainThrottled(selection, async (product) => {
   return result;
 }, { concurrency, domainDelayMs });
 let persistence = null; let persistenceError = null; let canaryAudit = null;
-if (write && command === "ids") {
+if (write && ["ids", "recovery-ids"].includes(command)) {
   const beforeHistory = (await historyWriter.getValues("Price History!A:S")).values || [];
   canaryAudit = { before: auditState(catalog, beforeHistory, selection.map((product) => product.id)) };
   await fs.mkdir(path.dirname(auditSnapshotPath), { recursive: true });

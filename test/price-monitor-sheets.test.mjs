@@ -135,4 +135,7 @@ test("explicit-ID write canary captures a pre-write audit snapshot",()=>{
   assert.match(runner,/Price History!A:S/);
   assert.match(runner,/non_allowlisted_changed_product_ids/);
   assert.match(runner,/old_history_rows_unchanged/);
+  assert.match(runner,/target_full_records/);
+  assert.match(workflow,/recovery_ids/);
+  assert.match(workflow,/recovery-ids/);
 });

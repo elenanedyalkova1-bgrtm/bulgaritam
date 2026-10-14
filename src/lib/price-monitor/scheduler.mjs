@@ -1,3 +1,6 @@
+import { hasApprovedAuthoritativeBaseline } from "./persistence.mjs";
+import { normalizeCurrency, parsePrice, pricesEqual } from "./normalize.mjs";
+
 const DAY_MS = 86_400_000;
 const TRANSIENT_HTTP = new Set([408, 425, 500, 502, 503, 504]);
 export const OFFER_FRESHNESS_DAYS = 14;
@@ -102,6 +105,39 @@ export function selectProductsByIds(products, requestedIds, { maxIds = 25 } = {}
   const ineligible = selected.filter((product) => !isActiveMonitorable(product)).map((product) => String(product.id ?? product.product_id));
   if (ineligible.length) throw new Error(`ids allowlist contains non-monitorable products: ${ineligible.join(",")}`);
   return selected;
+}
+
+export function isRecoveryCandidate(product, { now = Date.now(), excludedIds = [] } = {}) {
+  if (!isActiveMonitorable(product) || new Set([...excludedIds].map(String)).has(String(product.id ?? product.product_id))) return false;
+  if (!hasApprovedAuthoritativeBaseline(product, product.price_extraction_method)) return false;
+  const verifiedAt = time(product.offer_price_verified_at);
+  if (verifiedAt == null || now - verifiedAt <= OFFER_FRESHNESS_DAYS * DAY_MS) return false;
+  if (selectValue(product.price_check_status) !== "verified" || selectValue(product.price_confidence) !== "high") return false;
+  const authoritativeAmount = parsePrice(product.offer_price_amount);
+  const detectedAmount = parsePrice(product.price_detected_amount);
+  if (authoritativeAmount == null || detectedAmount == null || !pricesEqual(authoritativeAmount, detectedAmount)) return false;
+  if (!normalizeCurrency(product.offer_price_currency) || normalizeCurrency(product.offer_price_currency) !== normalizeCurrency(product.price_detected_currency)) return false;
+  return product.price_change_detected !== true && text(product.price_change_detected).toLowerCase() !== "true";
+}
+
+export function selectRecoveryCandidates(products, { now = Date.now(), limit = 100, excludedIds = [] } = {}) {
+  const boundedLimit = Math.min(100, Math.max(1, Number(limit) || 100));
+  const candidates = products.filter((product) => isRecoveryCandidate(product, { now, excludedIds })).map((product) => ({ ...product, domain: productDomain(product.product_url) }));
+  const groups = new Map();
+  for (const product of candidates) {
+    if (!groups.has(product.domain)) groups.set(product.domain, []);
+    groups.get(product.domain).push(product);
+  }
+  for (const rows of groups.values()) rows.sort((a, b) => time(a.offer_price_verified_at) - time(b.offer_price_verified_at) || time(a.price_last_checked_at) - time(b.price_last_checked_at) || Number(a.id) - Number(b.id));
+  const domains = [...groups.keys()].sort((a, b) => time(groups.get(a)[0].offer_price_verified_at) - time(groups.get(b)[0].offer_price_verified_at) || a.localeCompare(b));
+  const selected = [];
+  for (let round = 0; selected.length < boundedLimit && domains.some((domain) => groups.get(domain)[round]); round += 1) {
+    for (const domain of domains) {
+      const product = groups.get(domain)[round];
+      if (product && selected.length < boundedLimit) selected.push(product);
+    }
+  }
+  return { selected, candidate_count: candidates.length, domain_count: new Set(selected.map((product) => product.domain)).size };
 }
 
 export function selectDueProducts(products, { now = Date.now(), limit, cycleDays = 7 } = {}) {

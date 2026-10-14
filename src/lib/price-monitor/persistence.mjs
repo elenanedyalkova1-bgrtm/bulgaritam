@@ -20,6 +20,19 @@ const APPROVED_AUTHORITATIVE_SOURCES = new Set([
   "manual_external_product_page",
 ]);
 
+export function hasApprovedAuthoritativeBaseline(product, extractionMethod = product?.price_extraction_method) {
+  const methodSource = APPROVED_RENEWAL_METHODS.get(String(extractionMethod ?? "").trim());
+  const status = selectValue(product?.offer_price_status ?? product?.previous_offer_status);
+  const source = selectValue(product?.offer_price_source ?? product?.previous_offer_source);
+  const amount = parsePrice(product?.offer_price_amount ?? product?.previous_offer_price);
+  const currency = normalizeCurrency(product?.offer_price_currency ?? product?.previous_offer_currency);
+  const productUrl = normalizeProductIdentityUrl(product?.product_url);
+  const sourceUrl = normalizeProductIdentityUrl(product?.offer_price_source_url ?? product?.previous_offer_source_url);
+  if (status !== "verified_current" || amount == null || !currency || !productUrl || productUrl !== sourceUrl) return false;
+  if (!APPROVED_AUTHORITATIVE_SOURCES.has(source)) return false;
+  return source === "manual_external_product_page" || Boolean(methodSource && source === methodSource);
+}
+
 function finiteOrNull(value) { return Number.isFinite(value) ? value : null; }
 function selectValue(value) { return String(value && typeof value === "object" ? value.value : value ?? "").trim(); }
 const NON_IDENTITY_QUERY = /^(?:utm_[a-z0-9_]+|sref|fbclid|gclid|_ga|mc_cid|mc_eid)$/i;
@@ -123,9 +136,7 @@ export function buildAuthoritativeRenewal(result) {
   if (result.observation_origin !== "fresh_monitor_check" || !successfulHttpStatus(result.http_status)) return null;
   if (!methodSource || result.confidence !== "high" || result.status !== "verified" || result.extraction_status === "ambiguous") return null;
   if (result.extraction_outcome === "variation_range" || result.currency_mismatch === true || result.price_changed !== false) return null;
-  if (selectValue(result.previous_offer_status) !== "verified_current") return null;
-  if (!APPROVED_AUTHORITATIVE_SOURCES.has(authoritativeSource)) return null;
-  if (authoritativeSource !== "manual_external_product_page" && authoritativeSource !== methodSource) return null;
+  if (!hasApprovedAuthoritativeBaseline(result, result.extraction_method)) return null;
   if (authoritativeAmount == null || detectedAmount == null || !pricesEqual(authoritativeAmount, detectedAmount)) return null;
   if (!authoritativeCurrency || !detectedCurrency || authoritativeCurrency !== detectedCurrency) return null;
   if (!productUrl || !sourceUrl || productUrl !== sourceUrl || !hasApprovedProductIdentity(result, productUrl)) return null;

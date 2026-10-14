@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateDailyTarget, calculateRunCapacity, dueIntervalDays, dueProduct, isTransientResult, monitoringCoverageMetrics, OFFER_RENEWAL_TARGET_DAYS, runDomainThrottled, scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, selectProductsByIds, withTransientRetry } from "../src/lib/price-monitor/index.mjs";
+import { calculateDailyTarget, calculateRunCapacity, dueIntervalDays, dueProduct, isActiveMonitorable, isRecoveryCandidate, isTransientResult, monitoringCoverageMetrics, OFFER_RENEWAL_TARGET_DAYS, runDomainThrottled, scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, selectProductsByIds, selectRecoveryCandidates, withTransientRetry } from "../src/lib/price-monitor/index.mjs";
 
 const now = Date.parse("2026-09-17T12:00:00Z");
 const daysAgo = (days) => new Date(now - days * 86_400_000).toISOString();
@@ -179,4 +179,25 @@ test("explicit ID selection enforces the exact bounded monitorable allowlist", (
   assert.throws(()=>selectProductsByIds(Array.from({length:26},(_,i)=>product(i+1,"x.test","verified",8)),Array.from({length:26},(_,i)=>String(i+1))),/25-product safety cap/);
   assert.equal(selectProductsByIds(Array.from({length:100},(_,i)=>product(i+1,`d${i}.test`,"verified",8)),Array.from({length:100},(_,i)=>String(i+1)),{maxIds:100}).length,100);
   assert.throws(()=>selectProductsByIds(Array.from({length:101},(_,i)=>product(i+1,"x.test","verified",8)),Array.from({length:101},(_,i)=>String(i+1)),{maxIds:100}),/100-product safety cap/);
+});
+
+test("recovery selection and execution share exact active/monitorable semantics", () => {
+  const base = { id: 1, is_active: true, product_url: "https://brand.test/p/1", offer_price_amount: 20, offer_price_currency: "EUR", offer_price_verified_at: "2026-09-01T00:00:00Z", offer_price_source: "monitor_json_ld_product_offer", offer_price_source_url: "https://brand.test/p/1", offer_price_status: "verified_current", price_last_checked_at: "2026-09-10T00:00:00Z", price_check_status: "verified", price_detected_amount: 20, price_detected_currency: "EUR", price_extraction_method: "json_ld_product_offer", price_confidence: "high", price_change_detected: false };
+  const now = Date.parse("2026-10-15T00:00:00Z");
+  for (const active of [true, "true", 1, "1", null, ""]) {
+    const row = { ...base, id: String(active) || "empty", is_active: active };
+    assert.equal(isRecoveryCandidate(row, { now }), isActiveMonitorable(row));
+  }
+  for (const [id, active] of [[334, false], [509, "false"], [811, 0], [812, "0"], [813, "unexpected"]]) {
+    const row = { ...base, id, is_active: active, product_url: `https://brand.test/p/${id}`, offer_price_source_url: `https://brand.test/p/${id}` };
+    assert.equal(isActiveMonitorable(row), false);
+    assert.equal(isRecoveryCandidate(row, { now }), false);
+    assert.throws(() => selectProductsByIds([row], [String(id)], { maxIds: 100 }), /non-monitorable/);
+  }
+  const invalidUrl = { ...base, id: 900, product_url: "not-a-url", offer_price_source_url: "not-a-url" };
+  assert.equal(isRecoveryCandidate(invalidUrl, { now }), false);
+  const valid = { ...base, id: 901, product_url: "https://brand.test/p/901", offer_price_source_url: "https://brand.test/p/901" };
+  const recovery = selectRecoveryCandidates([valid], { now, limit: 100 });
+  assert.deepEqual(recovery.selected.map((row) => row.id), [901]);
+  assert.deepEqual(selectProductsByIds([valid], recovery.selected.map((row) => String(row.id)), { maxIds: 100 }).map((row) => row.id), [901]);
 });

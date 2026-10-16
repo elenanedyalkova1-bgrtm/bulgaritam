@@ -126,3 +126,39 @@ test("last checked formula sorts ISO timestamps instead of applying numeric MAX"
 test("monitoring workflow has no build or deploy trigger",()=>{
   const workflow=fs.readFileSync(".github/workflows/price-monitor.yml","utf8"); assert.doesNotMatch(workflow,/npm run build|publish-public|ftp|deploy/i);
 });
+
+test("catalog and external writers share one non-cancelling concurrency lane",()=>{
+  const catalog=fs.readFileSync(".github/workflows/price-monitor.yml","utf8");
+  const external=fs.readFileSync(".github/workflows/external-price-monitor.yml","utf8");
+  for(const workflow of [catalog,external]) {
+    assert.match(workflow,/group: bulgaritam-monitoring-single-writer/);
+    assert.match(workflow,/cancel-in-progress: false/);
+  }
+  assert.match(external,/cron: "13 6 \* \* 1"/);
+  assert.doesNotMatch(external,/cron: "13 2 \* \* 1"/);
+});
+
+test("scheduled report exposes renewal and post-write coverage metrics",()=>{
+  const runner=fs.readFileSync("scripts/run-scheduled-price-monitor.mjs","utf8");
+  assert.match(runner,/authoritative_renewals_eligible/);
+  assert.match(runner,/authoritative_renewals_rejected/);
+  assert.match(runner,/expired_offers_before/);
+  assert.match(runner,/expired_offers_after/);
+  assert.match(runner,/coverage_before: coverageBefore/);
+  assert.match(runner,/coverage_after: coverageAfter/);
+  assert.match(runner,/writes_may_be_partial/);
+  assert.match(runner,/process\.exitCode = 1/);
+});
+
+test("explicit-ID write canary captures a pre-write audit snapshot",()=>{
+  const workflow=fs.readFileSync(".github/workflows/price-monitor.yml","utf8");
+  const runner=fs.readFileSync("scripts/run-scheduled-price-monitor.mjs","utf8");
+  assert.match(workflow,/--audit-snapshot=\/tmp\/price-monitor-pre-snapshot\.json/);
+  assert.match(workflow,/\/tmp\/price-monitor-pre-snapshot\.json/);
+  assert.match(runner,/Price History!A:S/);
+  assert.match(runner,/non_allowlisted_changed_product_ids/);
+  assert.match(runner,/old_history_rows_unchanged/);
+  assert.match(runner,/target_full_records/);
+  assert.match(workflow,/recovery_ids/);
+  assert.match(workflow,/recovery-ids/);
+});

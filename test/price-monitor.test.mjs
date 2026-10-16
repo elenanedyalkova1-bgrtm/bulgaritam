@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildPersistencePlan, createBaserowCurrentStatePersistence, evaluateDiscounts, extractPrice, historyObservation, monitorProduct, normalizeCurrency, parsePrice, persistMonitorResults, persistenceStatus, trustedOfferCurrency, validateShopifyMarket } from "../src/lib/price-monitor/index.mjs";
+import { buildAuthoritativeRenewal, buildPersistencePlan, createBaserowCurrentStatePersistence, evaluateDiscounts, extractPrice, historyObservation, monitorProduct, normalizeCurrency, normalizeProductIdentityUrl, parsePrice, persistMonitorResults, persistenceStatus, trustedOfferCurrency, validateShopifyMarket } from "../src/lib/price-monitor/index.mjs";
 
 const url = "https://shop.example/products/main";
 const jsonLd = (value) => `<html><head><title>Main Product | Shop</title><link rel="canonical" href="${url}"><script type="application/ld+json">${JSON.stringify(value)}</script></head><body></body></html>`;
@@ -581,10 +581,126 @@ test("zero current price cannot produce a reliable detected result", async () =>
 });
 
 const persistedResult = (overrides = {}) => ({
-  product_id: 42, product_url: url, checked_at: "2026-09-17T10:00:00.000Z", http_status: 200, final_url: url,
+  product_id: 42, product_name: "Main Product", product_url: url, checked_at: "2026-09-17T10:00:00.000Z", http_status: 200, final_url: url,
   detected_price: 50, currency: "EUR", extraction_method: "json_ld_product_offer", confidence: "high",
-  status: "verified", previous_offer_price: 50, price_changed: false, currency_mismatch: false, error_reason: null,
+  status: "verified", extraction_status: "verified", extraction_outcome: null, detected_platform: "unknown", redirected: false,
+  previous_offer_price: 50, previous_offer_currency: "EUR", previous_offer_verified_at: "2026-08-01T00:00:00.000Z",
+  previous_offer_source: "monitor_json_ld_product_offer", previous_offer_source_url: url, previous_offer_status: "verified_current",
+  observation_origin: "fresh_monitor_check", price_changed: false, currency_mismatch: false, error_reason: null,
+  evidence: { path: "$.offers.price", candidate_count: 1, diagnostics: { selected_product: { score: 100 }, page_identity: { canonical: url, title: "Main Product" } } },
   ...overrides,
+});
+
+test("authoritative renewal refreshes only the timestamp for the same exact approved Offer", () => {
+  const renewal = buildAuthoritativeRenewal(persistedResult());
+  assert.deepEqual(renewal, { offer_price_verified_at: "2026-09-17T10:00:00.000Z" });
+  assert.deepEqual(Object.keys(renewal), ["offer_price_verified_at"]);
+});
+
+test("an expired but otherwise valid authoritative Offer can be renewed", () => {
+  assert.deepEqual(buildPersistencePlan(persistedResult({ previous_offer_verified_at: "2020-01-01T00:00:00.000Z" })).authoritative_renewal,
+    { offer_price_verified_at: "2026-09-17T10:00:00.000Z" });
+});
+
+test("changed amount preserves change_pending and cannot renew", () => {
+  const plan = buildPersistencePlan(persistedResult({ detected_price: 55, status: "changed", extraction_status: "changed", price_changed: true }));
+  assert.equal(plan.authoritative_renewal, null);
+  assert.equal(plan.current.offer_price_status, "change_pending");
+});
+
+test("currency mismatch or different detected currency cannot renew", () => {
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ currency: "USD", currency_mismatch: true })), null);
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ currency: "USD", currency_mismatch: false })), null);
+});
+
+test("variation ranges and low-confidence extractions cannot renew", () => {
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ status: "ambiguous", extraction_status: "ambiguous", extraction_outcome: "variation_range", detected_price: null, price_changed: null })), null);
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ confidence: "low" })), null);
+});
+
+test("blocked unavailable and failed observations cannot renew", () => {
+  for (const [status, http_status] of [["blocked", 403], ["dead_url", 404], ["error", 503], ["not_detected", 200]]) {
+    assert.equal(buildAuthoritativeRenewal(persistedResult({ status, extraction_status: status, http_status, detected_price: null, price_changed: null })), null);
+  }
+});
+
+test("redirect identity mismatch cannot renew", () => {
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ status: "redirected", redirected: true, final_url: "https://shop.example/products/other" })), null);
+});
+
+test("Shopify market mismatch cannot renew", () => {
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ detected_platform: "shopify", evidence: { ...persistedResult().evidence, shopify_market: { valid: false, reason: "shopify_market_currency_mismatch" } } })), null);
+  assert.deepEqual(buildAuthoritativeRenewal(persistedResult({ detected_platform: "shopify", evidence: { ...persistedResult().evidence, shopify_market: { valid: true } } })), { offer_price_verified_at: "2026-09-17T10:00:00.000Z" });
+});
+
+test("missing authoritative amount source currency or source URL cannot renew", () => {
+  for (const patch of [
+    { previous_offer_price: null }, { previous_offer_currency: null }, { previous_offer_source: null }, { previous_offer_source_url: null },
+  ]) assert.equal(buildAuthoritativeRenewal(persistedResult(patch)), null);
+});
+
+test("non-approved authoritative lifecycle states cannot renew", () => {
+  for (const previous_offer_status of ["change_pending", "stale", "source_unavailable", "revoked", "unverified"]) {
+    assert.equal(buildAuthoritativeRenewal(persistedResult({ previous_offer_status })), null);
+  }
+});
+
+test("different authoritative source or product identity cannot renew", () => {
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ previous_offer_source: "monitor_product_meta" })), null);
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ previous_offer_source_url: "https://shop.example/products/other" })), null);
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ evidence: { ...persistedResult().evidence, diagnostics: { selected_product: { score: 5 }, page_identity: { canonical: url } } } })), null);
+});
+
+test("product identity normalizes equivalent Unicode and UTF-8 percent-encoded Cyrillic paths", () => {
+  const raw = "https://www.shop.example/продукт/жилетка/?sRef=tracking";
+  const encoded = "https://shop.example/%d0%bf%d1%80%d0%be%d0%b4%d1%83%d0%ba%d1%82/%d0%b6%d0%b8%d0%bb%d0%b5%d1%82%d0%ba%d0%b0";
+  assert.equal(normalizeProductIdentityUrl(raw), normalizeProductIdentityUrl(encoded));
+  const result = persistedResult({
+    product_url: raw, final_url: encoded, previous_offer_source_url: encoded,
+    evidence: { ...persistedResult().evidence, diagnostics: { selected_product: { score: 100 }, page_identity: { canonical: encoded, title: "Main Product" } } },
+  });
+  assert.ok(buildAuthoritativeRenewal(result));
+});
+
+test("product identity preserves different Cyrillic products hosts and identity query parameters", () => {
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/продукт/жилетка"), normalizeProductIdentityUrl("https://shop.example/продукт/рокля"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/p?variant=7"), normalizeProductIdentityUrl("https://shop.example/p?variant=8"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/p?id=7"), normalizeProductIdentityUrl("https://shop.example/p?id=8"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/p"), normalizeProductIdentityUrl("https://other.example/p"));
+});
+
+test("product identity fails closed for malformed double-encoded separator and traversal-like paths", () => {
+  assert.equal(normalizeProductIdentityUrl("https://shop.example/%ZZ"), null);
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/%252Fproduct"), normalizeProductIdentityUrl("https://shop.example/%2Fproduct"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/a%2Fb"), normalizeProductIdentityUrl("https://shop.example/a/b"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/%2E%2E/product"), normalizeProductIdentityUrl("https://shop.example/product"));
+  assert.notEqual(normalizeProductIdentityUrl("https://shop.example/a%5Cb"), normalizeProductIdentityUrl("https://shop.example/a/b"));
+});
+
+test("redirect identity still fails closed after safe Unicode normalization", () => {
+  const raw = "https://shop.example/продукт/жилетка";
+  const encodedOther = "https://shop.example/%D0%BF%D1%80%D0%BE%D0%B4%D1%83%D0%BA%D1%82/%D1%80%D0%BE%D0%BA%D0%BB%D1%8F";
+  assert.equal(buildAuthoritativeRenewal(persistedResult({
+    product_url: raw, previous_offer_source_url: raw, final_url: encodedOther, redirected: true,
+    evidence: { ...persistedResult().evidence, diagnostics: { selected_product: { score: 100 }, page_identity: { canonical: encodedOther, title: "Main Product" } } },
+  })), null);
+});
+
+test("manual authoritative provenance can be renewed but is never overwritten", () => {
+  const plan = buildPersistencePlan(persistedResult({ previous_offer_source: "manual_external_product_page" }));
+  assert.deepEqual(plan.authoritative_renewal, { offer_price_verified_at: "2026-09-17T10:00:00.000Z" });
+  assert.equal("offer_price_source" in plan.authoritative_renewal, false);
+});
+
+test("historical or reconstructed monitoring metadata is not a fresh renewable observation", () => {
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ observation_origin: null })), null);
+  assert.equal(buildAuthoritativeRenewal(persistedResult({ checked_at: "not-a-date" })), null);
+});
+
+test("repeated identical successful checks produce safe timestamp-only renewals", () => {
+  const first = buildAuthoritativeRenewal(persistedResult());
+  const repeated = buildAuthoritativeRenewal(persistedResult());
+  assert.deepEqual(repeated, first);
 });
 
 test("persistence maps high-confidence same and changed prices without protected fields", () => {
@@ -634,6 +750,7 @@ test("failed scans preserve the last detected current-state fields", () => {
 test("persistence is dry-run by default", async () => {
   const output = await persistMonitorResults([persistedResult()]);
   assert.equal(output.mode, "dry-run"); assert.equal(output.writes_performed, false); assert.equal(output.planned, 1);
+  assert.deepEqual(output.authoritative_renewals, { eligible: 1, rejected: 0 });
 });
 
 test("Google history appends before Baserow current-state patch", async () => {
@@ -647,8 +764,11 @@ test("Google history appends before Baserow current-state patch", async () => {
   const currentWriter = createBaserowCurrentStatePersistence({ token: "test", productsTableId: "products", fetchImpl });
   const output = await persistMonitorResults([persistedResult()], { write: true, historyWriter, currentWriter });
   assert.equal(output.writes_performed, true); assert.equal(calls.length, 1);
+  assert.deepEqual(output.authoritative_renewals, { eligible: 1, rejected: 0 });
   assert.equal(calls[0].method, "PATCH"); assert.match(calls[0].url, /table\/products\/42/);
-  assert.equal("offer_price_amount" in calls[0].body, false); assert.deepEqual(order,["history","current"]);
+  assert.equal("offer_price_amount" in calls[0].body, false);
+  assert.equal(calls[0].body.offer_price_verified_at, "2026-09-17T10:00:00.000Z");
+  assert.deepEqual(order,["history","current"]);
 });
 
 test("failed Google history append prevents Baserow current-state patch", async () => {
@@ -663,4 +783,18 @@ test("failed Baserow current-state patch does not remove appended history", asyn
   const currentWriter = { write: async () => { throw new Error("Baserow unavailable"); } };
   await assert.rejects(() => persistMonitorResults([persistedResult()], { write: true, historyWriter, currentWriter }), /Baserow unavailable/);
   assert.equal(historyAppends, 1);
+});
+
+test("authoritative renewal persistence failure never reports false success", async () => {
+  const historyWriter = { append: async () => ({ appended: 1 }) };
+  const currentWriter = { write: async (plan) => { assert.ok(plan.authoritative_renewal); throw new Error("renewal patch failed"); } };
+  await assert.rejects(() => persistMonitorResults([persistedResult()], { write: true, historyWriter, currentWriter }), /renewal patch failed/);
+});
+
+test("generic monitoring metadata payload cannot mutate protected authoritative fields", async () => {
+  let requests = 0;
+  const currentWriter = createBaserowCurrentStatePersistence({ token: "test", productsTableId: "products", fetchImpl: async () => { requests += 1; return new Response("{}", { status: 200 }); } });
+  await assert.rejects(() => currentWriter.write({ product_id: 42, current: { price_check_status: "verified", offer_price_verified_at: "2026-09-17T10:00:00.000Z" }, authoritative_renewal: null }), /Protected price field rejected/);
+  await assert.rejects(() => currentWriter.write({ product_id: 42, current: { price_check_status: "verified" }, authoritative_renewal: { offer_price_verified_at: "2026-09-17T10:00:00.000Z", offer_price_amount: 50 } }), /Invalid authoritative renewal payload/);
+  assert.equal(requests, 0);
 });

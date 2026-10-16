@@ -37,6 +37,10 @@ function baseResult(product) {
     status: "error", extraction_status: null, extraction_outcome: null, redirected: false, previous_offer_price: parsePrice(product.offer_price_amount),
     previous_offer_currency: normalizeCurrency(product.offer_price_currency), price_changed: null,
     previous_offer_status: String(product.offer_price_status?.value ?? product.offer_price_status ?? "unverified").trim() || "unverified",
+    previous_offer_verified_at: product.offer_price_verified_at ?? null,
+    previous_offer_source: String(product.offer_price_source?.value ?? product.offer_price_source ?? "").trim() || null,
+    previous_offer_source_url: product.offer_price_source_url ?? null,
+    observation_origin: "fresh_monitor_check",
     currency_mismatch: false, error_reason: null, evidence: null,
     title: null, image_url: null, canonical_url: null, availability: null, sku: null, external_product_id: null, metadata_method: null,
   };

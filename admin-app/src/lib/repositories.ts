@@ -2,6 +2,7 @@ import { BRANDS_TABLE, PRODUCTS_TABLE, createRow, getRow, listFields, listRows, 
 import { STRUCTURED_FACET_OPTIONS, structuredCategoryForSubcategory } from "./product-taxonomy";
 import { brandMirrorFields, resolveOrCreateBrand } from "./brand-sync";
 import { buildCatalogPriceMutation, type CatalogPriceAction } from "../../../src/lib/verified-offer";
+import { buildManualPriceReviewMutation, type ManualPriceReviewOutcome } from "./manual-price-review";
 
 export const productFields = ["name_bg","slug","category","subcategory","product_type","tags","price_min_eur","price_max_eur","currency","short_desc_bg","long_desc_bg","product_url","image_urls","created_at","meta_title_bg","meta_desc_bg","rating"] as const;
 export const brandFields = ["brand_name","brand_slug","brand_url","description_bg","instagram_url","logo_url","address"] as const;
@@ -13,6 +14,16 @@ export async function listBrands() { return listRows(BRANDS_TABLE); }
 export async function findProduct(id: number) { return getRow(PRODUCTS_TABLE, id); }
 export async function findBrand(id: number) { return getRow(BRANDS_TABLE, id); }
 export async function getProductFieldSchema() { return listFields(PRODUCTS_TABLE); }
+
+export async function reviewManualPrice(id: number, outcome: ManualPriceReviewOutcome, now: Date | number = new Date()) {
+  const [product, schema] = await Promise.all([findProduct(id), getProductFieldSchema()]);
+  const required = ["manual_price_last_reviewed_at", "manual_price_review_outcome"];
+  const missing = required.filter((name) => !schema.some((field: any) => field.name === name));
+  if (missing.length) throw new Error(`Manual review schema migration is required: ${missing.join(", ")}.`);
+  const mutation = buildManualPriceReviewMutation(product, outcome, now);
+  await updateRow(PRODUCTS_TABLE, id, mutation);
+  return findProduct(id);
+}
 
 export function validateCsrf(form: FormData, expected: string) {
   if (!expected || text(form.get("csrf")) !== expected) throw new Error("Invalid CSRF token");

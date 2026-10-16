@@ -17,7 +17,7 @@
     "health:products": "node scripts/check-product-health.mjs",
     "health:products:apply": "node scripts/check-product-health.mjs --apply",
     "price-monitor": "node scripts/price-monitor.mjs",
-    "test:price-monitor": "node --test test/price-monitor.test.mjs test/price-monitor-scheduler.test.mjs test/price-monitor-sheets.test.mjs test/price-monitor-discounts.test.mjs test/price-monitor-discount-report.test.mjs && node --import ./admin-app/node_modules/tsx/dist/loader.mjs --test test/verified-offer.test.ts",
+    "test:price-monitor": "node --test test/price-monitor.test.mjs test/price-monitor-scheduler.test.mjs test/price-monitor-sheets.test.mjs test/price-monitor-discounts.test.mjs test/price-monitor-discount-report.test.mjs test/manual-price-fallback-ui.test.mjs && node --import ./admin-app/node_modules/tsx/dist/loader.mjs --test test/verified-offer.test.ts",
     "test:weekly-discounts": "node --import ./admin-app/node_modules/tsx/dist/loader.mjs --test test/weekly-discounts.test.ts",
     "audit:verified-offers": "node scripts/audit-verified-offer-build.mjs",
     "canary:verified-offers": "admin-app/node_modules/.bin/tsx scripts/canary-verified-offers.ts",

@@ -53,6 +53,14 @@ export type Product = {
   manual_price_currency: string;
   manual_price_verified_at: string;
   manual_price_source_url: string;
+  manual_price_last_reviewed_at: string;
+  manual_price_review_outcome: string;
+  price_last_checked_at: string;
+  price_check_status: string;
+  price_detected_amount: number | null;
+  price_detected_currency: string;
+  price_extraction_outcome: string;
+  price_change_detected: boolean;
 
   short_desc_bg: string;
   long_desc_bg: string;
@@ -317,6 +325,14 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
     manual_price_currency: norm(row.manual_price_currency).toUpperCase(),
     manual_price_verified_at: norm(row.manual_price_verified_at),
     manual_price_source_url: norm(row.manual_price_source_url),
+    manual_price_last_reviewed_at: norm(row.manual_price_last_reviewed_at),
+    manual_price_review_outcome: selectValue(row.manual_price_review_outcome),
+    price_last_checked_at: norm(row.price_last_checked_at),
+    price_check_status: selectValue(row.price_check_status),
+    price_detected_amount: toNum(row.price_detected_amount),
+    price_detected_currency: norm(row.price_detected_currency).toUpperCase(),
+    price_extraction_outcome: selectValue(row.price_extraction_outcome),
+    price_change_detected: toBool(row.price_change_detected),
 
     short_desc_bg: norm(row.short_desc_bg),
     long_desc_bg: norm(row.long_desc_bg),

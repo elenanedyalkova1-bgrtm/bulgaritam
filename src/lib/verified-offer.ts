@@ -16,6 +16,8 @@ export const AUTOMATIC_CANDIDATE_METHODS = new Map<string, VerifiedOfferSource>(
 ] as const);
 
 export const DEFAULT_OFFER_FRESHNESS_DAYS = 14;
+export const MANUAL_PRICE_REFERENCE_DAYS = 90;
+export const MANUAL_PRICE_REVIEW_DUE_DAYS = 60;
 
 export type PublishableOffer = {
   amount: number;
@@ -24,6 +26,20 @@ export type PublishableOffer = {
   source: VerifiedOfferSource;
   sourceUrl: string;
   seller: { name: string; url: string | null };
+};
+
+export type ManualPriceReference = {
+  amount: number;
+  currency: string;
+  verifiedAt: string;
+  sourceUrl: string;
+  ageDays: number;
+  reviewState: "current" | "due" | "overdue";
+};
+
+export type ManualPriceReferenceEvaluation = {
+  reference: ManualPriceReference | null;
+  rejectionReason: string | null;
 };
 
 export type ManualPriceInput = {
@@ -171,6 +187,69 @@ export function resolvePublishableOffer(product: Record<string, any>, now: Date 
   if (options.visible === false) return null;
 
   return { amount: parsedAmount, currency, verifiedAt: new Date(verifiedMs).toISOString(), source, sourceUrl, seller: { name: brandName, url: brandUrl } };
+}
+
+const truthy = (value: unknown) => value === true || ["true", "1", "yes", "y"].includes(text(value).toLowerCase());
+const eligibleFetchError = (product: Record<string, any>) => {
+  const reason = text(product.price_error_reason || product.error_reason || product.price_check_error);
+  return /(?:timeout|network|dns|tls|fetch|econn|enotfound|eai_again|\b408\b|\b425\b|\b500\b|\b502\b|\b503\b|\b504\b)/i.test(reason);
+};
+
+/**
+ * Resolves historical human provenance for transparent display only. This is
+ * deliberately a different type and path from PublishableOffer: callers must
+ * never feed it to Product JSON-LD, discounts, or automatic approval.
+ */
+export function evaluateManualPriceReference(product: Record<string, any>, now: Date | number = new Date(), options: {
+  maxAgeDays?: number;
+  reviewDueDays?: number;
+  siteOrigin?: string;
+} = {}): ManualPriceReferenceEvaluation {
+  const parsedAmount = amount(product.manual_price_amount);
+  const currency = text(product.manual_price_currency).toUpperCase();
+  const verifiedAt = text(product.manual_price_verified_at);
+  const verifiedMs = Date.parse(verifiedAt);
+  const currentMs = now instanceof Date ? now.getTime() : Number(now);
+  const sourceUrl = validExternalProductUrl(product.manual_price_source_url, options.siteOrigin);
+  const canonicalUrl = validExternalProductUrl(product.product_url, options.siteOrigin);
+  if (parsedAmount == null || parsedAmount <= 0 || !isIso4217Currency(currency) || !Number.isFinite(verifiedMs) || !sourceUrl || !canonicalUrl) return { reference: null, rejectionReason: "incomplete_manual_provenance" };
+  if (!Number.isFinite(currentMs) || verifiedMs > currentMs) return { reference: null, rejectionReason: "invalid_manual_verification_date" };
+  if (normalizedProductUrl(sourceUrl, options.siteOrigin) !== normalizedProductUrl(canonicalUrl, options.siteOrigin)) return { reference: null, rejectionReason: "canonical_source_mismatch" };
+  const catalogCurrency = text(product.currency).toUpperCase();
+  if (isIso4217Currency(catalogCurrency) && catalogCurrency !== currency) return { reference: null, rejectionReason: "catalog_currency_mismatch" };
+
+  const monitorStatus = selectValue(product.price_check_status);
+  const offerStatus = selectValue(product.offer_price_status);
+  const extractionOutcome = selectValue(product.price_extraction_outcome || product.extraction_outcome);
+  const detectedCurrency = text(product.price_detected_currency).toUpperCase();
+  if (monitorStatus === "changed" || offerStatus === "change_pending" || truthy(product.price_change_detected)) return { reference: null, rejectionReason: "positive_price_change_evidence" };
+  if (monitorStatus === "ambiguous" || /variation|range|currency_conflict/i.test(extractionOutcome)) return { reference: null, rejectionReason: "ambiguous_price_evidence" };
+  if (detectedCurrency && isIso4217Currency(detectedCurrency) && detectedCurrency !== currency) return { reference: null, rejectionReason: "detected_currency_mismatch" };
+  if (["dead_url"].includes(monitorStatus) || ["source_unavailable", "revoked"].includes(offerStatus)) return { reference: null, rejectionReason: "source_unavailable" };
+  if (monitorStatus === "redirected") return { reference: null, rejectionReason: "canonical_identity_unconfirmed" };
+  const eligibleFailure = ["not_detected", "blocked", "browser_required"].includes(monitorStatus)
+    || (monitorStatus === "error" && eligibleFetchError(product));
+  if (!eligibleFailure) return { reference: null, rejectionReason: monitorStatus === "error" ? "unproven_fetch_error" : "monitor_result_not_eligible" };
+
+  const maxAgeDays = options.maxAgeDays ?? MANUAL_PRICE_REFERENCE_DAYS;
+  const reviewDueDays = options.reviewDueDays ?? MANUAL_PRICE_REVIEW_DUE_DAYS;
+  const ageMs = currentMs - verifiedMs;
+  const ageDays = ageMs / 86_400_000;
+  if (ageMs > maxAgeDays * 86_400_000) return { reference: null, rejectionReason: "manual_verification_expired" };
+  const reviewState = ageDays >= maxAgeDays ? "overdue" : ageDays >= reviewDueDays ? "due" : "current";
+  return { reference: { amount: parsedAmount, currency, verifiedAt: new Date(verifiedMs).toISOString(), sourceUrl, ageDays, reviewState }, rejectionReason: null };
+}
+
+export function resolveManualPriceReference(product: Record<string, any>, now: Date | number = new Date(), options: {
+  maxAgeDays?: number;
+  reviewDueDays?: number;
+  siteOrigin?: string;
+} = {}): ManualPriceReference | null {
+  return evaluateManualPriceReference(product, now, options).reference;
+}
+
+export function formatManualPriceReferenceAmount(reference: ManualPriceReference, locale = "bg-BG") {
+  return new Intl.NumberFormat(locale, { style: "currency", currency: reference.currency, minimumFractionDigits: 0, maximumFractionDigits: 4 }).format(reference.amount);
 }
 
 export function candidateFromMonitorResult(result: Record<string, any>, product: Record<string, any>, options: { siteOrigin?: string } = {}) {

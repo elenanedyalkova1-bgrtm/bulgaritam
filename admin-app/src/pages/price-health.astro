@@ -1,7 +1,21 @@
 ---
 import AdminLayout from "../layouts/AdminLayout.astro";
 import { filterAndSortPriceHealthRows, normalizePriceHealthRow, priceHealthOverview, PRICE_HEALTH_STATUSES } from "../lib/price-health";
-import { getProductFieldSchema, listBrands, listProducts } from "../lib/repositories";
+import { manualPriceReviewQueueState, MANUAL_PRICE_REVIEW_OUTCOMES, type ManualPriceReviewOutcome } from "../lib/manual-price-review";
+import { getProductFieldSchema, listBrands, listProducts, reviewManualPrice, validateCsrf } from "../lib/repositories";
+
+let actionError = "";
+if (Astro.request.method === "POST") {
+  const form = await Astro.request.formData();
+  try {
+    validateCsrf(form, Astro.locals.admin.csrf);
+    const productId = Number(form.get("product_id"));
+    const outcome = String(form.get("review_outcome") || "") as ManualPriceReviewOutcome;
+    if (!productId || !MANUAL_PRICE_REVIEW_OUTCOMES.includes(outcome)) throw new Error("Invalid manual review action.");
+    await reviewManualPrice(productId, outcome);
+    return Astro.redirect("/price-health/?manual-review=saved");
+  } catch (cause) { actionError = cause instanceof Error ? cause.message : "Manual price review failed."; }
+}
 
 const staleDays = Math.max(1, Number(import.meta.env.PRICE_MONITOR_STALE_DAYS || 7) || 7);
 let error = ""; let products: any[] = []; let brands: any[] = []; let schema: any[] = [];
@@ -18,13 +32,23 @@ const sort = Astro.url.searchParams.get("sort") || "recent_change";
 const visibleRows = filterAndSortPriceHealthRows(rows, { status, brandId, confidence, checked, sort, staleDays });
 const requiredFields = ["price_last_checked_at","price_check_status","price_detected_amount","price_detected_currency","price_extraction_method","price_confidence","price_change_detected"];
 const missingFields = requiredFields.filter((name) => !schema.some((field) => field.name === name));
+const manualReviewFields = ["manual_price_last_reviewed_at", "manual_price_review_outcome"];
+const missingManualReviewFields = manualReviewFields.filter((name) => !schema.some((field) => field.name === name));
+const manualReviewQueue = products.map((product) => ({ product, state: manualPriceReviewQueueState(product) }))
+  .filter((entry) => entry.state?.due
+    && Number(entry.product.manual_price_amount) > 0
+    && /^[A-Z]{3}$/.test(String(entry.product.manual_price_currency || "").toUpperCase())
+    && entry.product.manual_price_source_url)
+  .sort((a, b) => (b.state?.ageDays || 0) - (a.state?.ageDays || 0));
 const money = (amount: number | null, currency: string | null) => amount == null ? "—" : `${new Intl.NumberFormat("bg-BG", { maximumFractionDigits: 4 }).format(amount)} ${currency || ""}`.trim();
 const date = (value: string | null) => value ? new Date(value).toLocaleString("bg-BG") : "Никога";
 const labels: Record<string, string> = { verified:"Verified/current",changed:"Changed",ambiguous:"Needs review",not_detected:"Not detected",blocked:"Blocked",dead_url:"Dead URL",redirected:"Redirected",browser_required:"Browser required",error:"Error",unmonitored:"Not monitored" };
 ---
 <AdminLayout title="Price Health" active="price-health">
-  <header class="head"><div><h1>Price Health</h1><p class="muted">Read-only monitoring overview. Public and verified prices are never changed from this screen.</p></div></header>
+  <header class="head"><div><h1>Price Health</h1><p class="muted">Monitoring overview with explicit, audited manual-review actions. Automated results never approve price changes here.</p></div></header>
   {error && <div class="error">{error}</div>}
+  {actionError && <div class="error">{actionError}</div>}
+  {Astro.url.searchParams.get("manual-review") === "saved" && <div class="notice">Manual price review saved.</div>}
   {missingFields.length > 0 && <div class="notice warning"><strong>Migration required.</strong> Missing Products fields: {missingFields.join(", ")}. Run the approved Price Monitor schema migration before monitoring data can appear.</div>}
   <section class="cards health-cards">
     <div class="metric">Total monitored<b>{overview.totalMonitored}</b></div><div class="metric">Verified/current<b>{overview.verified}</b></div>
@@ -56,7 +80,33 @@ const labels: Record<string, string> = { verified:"Verified/current",changed:"Ch
       </tr>)}</tbody></table>
     {!visibleRows.length && <div class="empty">No Products match these filters.</div>}
   </section>
+
+  <section class="panel table-wrap manual-review">
+    <h2>Manual price review queue</h2>
+    <p class="muted">Due after 60 days; overdue after 90 days. Failed reviews record the attempt but never refresh the genuine verification date.</p>
+    {missingManualReviewFields.length > 0 ? (
+      <div class="notice warning"><strong>Schema migration required before actions are enabled.</strong> Missing: {missingManualReviewFields.join(", ")}.</div>
+    ) : (
+      <table><thead><tr><th>Product</th><th>Brand</th><th>Manual reference</th><th>Verified</th><th>Latest monitor</th><th>Age</th><th>Source</th><th>Intentional review action</th></tr></thead>
+        <tbody>{manualReviewQueue.map(({ product, state }) => <tr>
+          <td><a class="row-link" href={`/products/${product.id}/`}>{product.name_bg || `Row #${product.id}`}</a></td>
+          <td>{brandMap.get(Number(product.brand_ref?.[0]?.id))?.brand_name || product.brand_name || "—"}</td>
+          <td>{money(Number(product.manual_price_amount), String(product.manual_price_currency || ""))}</td>
+          <td>{date(product.manual_price_verified_at || null)}</td>
+          <td>{String(product.price_check_status?.value || product.price_check_status || "—")} · {date(product.price_last_checked_at || null)}</td>
+          <td><strong>{Math.floor(state?.ageDays || 0)} days</strong><div class="hint">{state?.state}</div></td>
+          <td><a href={product.manual_price_source_url} target="_blank" rel="noreferrer">Source ↗</a></td>
+          <td><form method="post" class="review-actions"><input type="hidden" name="csrf" value={Astro.locals.admin.csrf}/><input type="hidden" name="product_id" value={product.id}/>
+            <button name="review_outcome" value="confirmed_unchanged">Потвърди без промяна</button>
+            <button class="secondary" name="review_outcome" value="change_found">Открита е промяна</button>
+            <button class="secondary" name="review_outcome" value="unable_to_verify">Не може да бъде проверена</button>
+            <button class="danger" name="review_outcome" value="source_unavailable">Източникът вече не съществува</button>
+          </form></td>
+        </tr>)}</tbody></table>
+    )}
+    {!missingManualReviewFields.length && !manualReviewQueue.length && <div class="empty">No manual prices are due for review.</div>}
+  </section>
 </AdminLayout>
 <style>
-  .health-cards{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:20px}.metric .hint{display:block;margin-top:5px}.table-summary{margin-bottom:12px}.changed-row{background:#fffaf0}.change-detail{display:grid;gap:3px;margin-top:9px;padding:9px;border-left:3px solid #bd7a18;background:#fff;font-size:12px}.difference{font-weight:700;color:#9c3838}.price-status.changed,.price-status.dead_url{background:#fbe9e7;color:#842b27}.price-status.ambiguous,.price-status.not_detected{background:#fff2c9;color:#72530b}.price-status.blocked,.price-status.error{background:#eeeae5;color:#5d5750}.price-status.redirected,.price-status.browser_required{background:#e8edf8;color:#344f7c}code{white-space:nowrap;font-size:12px}@media(max-width:1100px){.health-cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.health-cards{grid-template-columns:repeat(2,1fr)}}
+  .health-cards{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:20px}.metric .hint{display:block;margin-top:5px}.table-summary{margin-bottom:12px}.changed-row{background:#fffaf0}.change-detail{display:grid;gap:3px;margin-top:9px;padding:9px;border-left:3px solid #bd7a18;background:#fff;font-size:12px}.difference{font-weight:700;color:#9c3838}.price-status.changed,.price-status.dead_url{background:#fbe9e7;color:#842b27}.price-status.ambiguous,.price-status.not_detected{background:#fff2c9;color:#72530b}.price-status.blocked,.price-status.error{background:#eeeae5;color:#5d5750}.price-status.redirected,.price-status.browser_required{background:#e8edf8;color:#344f7c}.manual-review{margin-top:20px}.review-actions{display:flex;flex-wrap:wrap;gap:6px}.review-actions button{font-size:12px;padding:7px 9px}code{white-space:nowrap;font-size:12px}@media(max-width:1100px){.health-cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.health-cards{grid-template-columns:repeat(2,1fr)}}
 </style>

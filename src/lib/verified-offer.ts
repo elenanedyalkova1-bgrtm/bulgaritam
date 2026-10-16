@@ -18,6 +18,8 @@ export const AUTOMATIC_CANDIDATE_METHODS = new Map<string, VerifiedOfferSource>(
 export const DEFAULT_OFFER_FRESHNESS_DAYS = 14;
 export const MANUAL_PRICE_REFERENCE_DAYS = 90;
 export const MANUAL_PRICE_REVIEW_DUE_DAYS = 60;
+export const MANUAL_PRICE_MAX_PUBLICATION_INTERVAL_DAYS = 7;
+export const MANUAL_PRICE_PUBLIC_BUILD_DAYS = MANUAL_PRICE_REFERENCE_DAYS - MANUAL_PRICE_MAX_PUBLICATION_INTERVAL_DAYS;
 
 export type PublishableOffer = {
   amount: number;
@@ -246,6 +248,22 @@ export function resolveManualPriceReference(product: Record<string, any>, now: D
   siteOrigin?: string;
 } = {}): ManualPriceReference | null {
   return evaluateManualPriceReference(product, now, options).reference;
+}
+
+/**
+ * Static HTML cannot remove an amount after it has been published. Public
+ * builds therefore stop emitting a manual amount seven days before its
+ * inclusive 90-day expiry. With the supported maximum weekly publishing
+ * interval, the already-published artifact can remain valid through day 90
+ * but never beyond it.
+ */
+export function resolvePublicManualPriceReference(product: Record<string, any>, now: Date | number = new Date(), options: {
+  siteOrigin?: string;
+} = {}): ManualPriceReference | null {
+  return resolveManualPriceReference(product, now, {
+    ...options,
+    maxAgeDays: MANUAL_PRICE_PUBLIC_BUILD_DAYS,
+  });
 }
 
 export function formatManualPriceReferenceAmount(reference: ManualPriceReference, locale = "bg-BG") {

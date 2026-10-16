@@ -6,7 +6,7 @@ import { getCategoryKey, getCategoryLanding, getCanonicalPathForLanding, getDisp
 import { getTaxonomyForProduct } from "../../lib/taxonomy";
 import { loadProducts } from "../../lib/products";
 import { getRecommendationPlan } from "../../lib/product-recommendations";
-import { formatManualPriceReferenceAmount, formatVerifiedOfferAmount, resolveManualPriceReference, resolvePublishableOffer } from "../../lib/verified-offer";
+import { formatManualPriceReferenceAmount, formatVerifiedOfferAmount, resolvePublicManualPriceReference, resolvePublishableOffer } from "../../lib/verified-offer";
 import { productPublishing } from "../../lib/product-seo";
 
 /** Helpers */
@@ -57,7 +57,7 @@ const priceText =
 const verifiedOffer = resolvePublishableOffer(product, new Date(), { visible: true });
 const verifiedOfferText = verifiedOffer ? formatVerifiedOfferAmount(verifiedOffer) : "";
 const verifiedOfferDate = verifiedOffer ? new Intl.DateTimeFormat("bg-BG", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(verifiedOffer.verifiedAt)) : "";
-const manualPriceReference = verifiedOffer ? null : resolveManualPriceReference(product, new Date());
+const manualPriceReference = verifiedOffer ? null : resolvePublicManualPriceReference(product, new Date());
 const manualPriceReferenceText = manualPriceReference ? formatManualPriceReferenceAmount(manualPriceReference) : "";
 const manualPriceReferenceDate = manualPriceReference ? new Intl.DateTimeFormat("bg-BG", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(manualPriceReference.verifiedAt)) : "";
 

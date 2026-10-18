@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildCatalogPriceMutation, buildManualPriceMutation, candidateFromMonitorResult, formatVerifiedOfferAmount, offerJsonLd, resolvePublishableOffer } from "../src/lib/verified-offer";
+import { buildCatalogPriceMutation, buildManualPriceMutation, candidateFromMonitorResult, evaluateManualPriceReference, formatManualPriceReferenceAmount, formatVerifiedOfferAmount, offerJsonLd, resolveManualPriceReference, resolvePublicManualPriceReference, resolvePublishableOffer } from "../src/lib/verified-offer";
 import { buildAuthoritativeRenewal } from "../src/lib/price-monitor/persistence.mjs";
+import { buildManualPriceReviewMutation, manualPriceReviewQueueState } from "../admin-app/src/lib/manual-price-review";
+import { validateManualPriceReviewSchema } from "../admin-app/src/lib/repositories";
 
 const now = new Date("2026-09-17T12:00:00Z");
 const base = {
@@ -166,4 +168,153 @@ test("catalog entry neither derives from ranges nor creates history or discount 
   assert.deepEqual(buildCatalogPriceMutation({ ...base, offer_price_amount: null }, { exact_price: "", currency: "EUR" }, "save", now), {});
   const mutation = buildCatalogPriceMutation(base, { exact_price: 30, currency: "EUR" }, "save", now);
   for (const forbidden of ["price_min_eur", "price_max_eur", "history", "observation", "discount", "reference_price"]) assert.equal(forbidden in mutation, false);
+});
+
+const manualFailure = {
+  ...base,
+  manual_price_amount: 59,
+  manual_price_currency: "EUR",
+  manual_price_verified_at: "2026-07-01T12:00:00.000Z",
+  manual_price_source_url: "https://brand.test/p?manual=1",
+  price_check_status: "not_detected",
+  price_change_detected: false,
+  offer_price_status: "stale",
+  offer_price_amount: 59,
+  offer_price_currency: "EUR",
+  offer_price_source: "manual_external_product_page",
+  offer_price_source_url: "https://brand.test/p?manual=1",
+};
+
+test("manual reference resolves only as transparent reference inside the 90-day boundary", () => {
+  const at60 = new Date("2026-08-30T12:00:00.000Z");
+  const exact90 = new Date("2026-09-29T12:00:00.000Z");
+  assert.equal(resolveManualPriceReference(manualFailure, at60)?.reviewState, "due");
+  assert.equal(resolveManualPriceReference(manualFailure, exact90)?.reviewState, "overdue");
+  assert.equal(formatManualPriceReferenceAmount(resolveManualPriceReference(manualFailure, exact90)!), "59 €");
+  assert.equal(resolveManualPriceReference(manualFailure, new Date("2026-09-29T12:00:00.001Z")), null);
+});
+
+test("static public rendering reserves the weekly interval while the canonical 90-day boundary stays inclusive", () => {
+  const day83 = new Date("2026-09-22T12:00:00.000Z");
+  const day89 = new Date("2026-09-28T12:00:00.000Z");
+  const day90 = new Date("2026-09-29T12:00:00.000Z");
+  const day91 = new Date("2026-09-30T12:00:00.000Z");
+  assert.ok(resolvePublicManualPriceReference(manualFailure, day83));
+  assert.equal(resolvePublicManualPriceReference(manualFailure, day89), null);
+  assert.equal(resolvePublicManualPriceReference(manualFailure, day90), null);
+  assert.equal(resolvePublicManualPriceReference(manualFailure, day91), null);
+  assert.ok(resolveManualPriceReference(manualFailure, day89));
+  assert.ok(resolveManualPriceReference(manualFailure, day90));
+  assert.equal(resolveManualPriceReference(manualFailure, day91), null);
+});
+
+test("manual reference fails closed for incomplete provenance and unsafe monitor evidence", () => {
+  assert.equal(evaluateManualPriceReference({ ...manualFailure, manual_price_source_url: "" }, now).rejectionReason, "incomplete_manual_provenance");
+  assert.equal(evaluateManualPriceReference({ ...manualFailure, price_check_status: "changed" }, now).rejectionReason, "positive_price_change_evidence");
+  assert.equal(evaluateManualPriceReference({ ...manualFailure, offer_price_status: "change_pending" }, now).rejectionReason, "positive_price_change_evidence");
+  assert.equal(evaluateManualPriceReference({ ...manualFailure, price_check_status: "ambiguous", price_extraction_outcome: "variation_range" }, now).rejectionReason, "ambiguous_price_evidence");
+  assert.equal(evaluateManualPriceReference({ ...manualFailure, price_detected_currency: "USD" }, now).rejectionReason, "detected_currency_mismatch");
+  assert.equal(evaluateManualPriceReference({ ...manualFailure, price_check_status: "dead_url" }, now).rejectionReason, "source_unavailable");
+  assert.equal(evaluateManualPriceReference({ ...manualFailure, price_check_status: "redirected" }, now).rejectionReason, "canonical_identity_unconfirmed");
+  assert.equal(evaluateManualPriceReference({ ...manualFailure, price_check_status: "error" }, now).rejectionReason, "unproven_fetch_error");
+  assert.ok(resolveManualPriceReference({ ...manualFailure, price_check_status: "error", price_error_reason: "network timeout exhausted" }, now));
+});
+
+test("manual reference and catalog ranges never become a publishable Offer or discount evidence", () => {
+  const referenceOnly = { ...manualFailure, offer_price_amount: null, offer_price_verified_at: "", offer_price_source: "" };
+  assert.ok(resolveManualPriceReference(referenceOnly, now));
+  assert.equal(resolvePublishableOffer(referenceOnly, now), null);
+  assert.equal("regular_price" in resolveManualPriceReference(referenceOnly, now)!, false);
+  assert.equal(referenceOnly.price_min_eur, 10);
+  assert.equal(referenceOnly.price_max_eur, 10);
+});
+
+test("fresh publishable Offer remains authoritative over any manual reference", () => {
+  const withManual = { ...base, ...manualFailure, offer_price_status: "verified_current", offer_price_verified_at: now.toISOString() };
+  assert.equal(resolvePublishableOffer(withManual, now)?.amount, 59);
+});
+
+test("manual review queue becomes due at day 60 and overdue at day 90", () => {
+  assert.deepEqual(manualPriceReviewQueueState(manualFailure, new Date("2026-08-30T12:00:00Z"))?.state, "due");
+  assert.deepEqual(manualPriceReviewQueueState(manualFailure, new Date("2026-09-29T12:00:00Z"))?.state, "overdue");
+});
+
+test("failed manual reviews record audit metadata but never renew verification", () => {
+  for (const outcome of ["unable_to_verify", "change_found", "source_unavailable"] as const) {
+    const mutation = buildManualPriceReviewMutation(manualFailure, outcome, now);
+    assert.equal(mutation.manual_price_last_reviewed_at, now.toISOString());
+    assert.equal(mutation.manual_price_review_outcome, outcome);
+    assert.equal("manual_price_verified_at" in mutation, false);
+    assert.equal("offer_price_verified_at" in mutation, false);
+    const permitted = outcome === "unable_to_verify"
+      ? ["manual_price_last_reviewed_at", "manual_price_review_outcome"]
+      : ["manual_price_last_reviewed_at", "manual_price_review_outcome", "offer_price_status"];
+    assert.deepEqual(Object.keys(mutation).sort(), permitted.sort());
+  }
+});
+
+test("intentional unchanged manual review renews provenance through the existing atomic helper", () => {
+  const mutation = buildManualPriceReviewMutation(manualFailure, "confirmed_unchanged", now);
+  assert.equal(mutation.manual_price_verified_at, now.toISOString());
+  assert.equal(mutation.offer_price_verified_at, now.toISOString());
+  assert.equal(mutation.offer_price_amount, 59);
+  assert.equal(mutation.offer_price_status, "verified_current");
+});
+
+test("manual unchanged confirmation is blocked by changed ambiguous unavailable and currency evidence", () => {
+  for (const unsafe of [
+    { price_check_status: "changed" },
+    { price_check_status: "ambiguous", price_extraction_outcome: "variation_range" },
+    { price_check_status: "dead_url" },
+    { price_check_status: "redirected" },
+    { price_detected_currency: "USD" },
+  ]) assert.throws(() => buildManualPriceReviewMutation({ ...manualFailure, ...unsafe }, "confirmed_unchanged", now));
+});
+
+test("matching fresh high-confidence verified evidence permits review without replacing an automatic Offer", () => {
+  const automatic = {
+    ...manualFailure,
+    price_check_status: "verified", price_confidence: "high", price_extraction_method: "json_ld_product_offer",
+    price_detected_amount: 59, price_detected_currency: "EUR", price_last_checked_at: now.toISOString(),
+    offer_price_status: "verified_current", offer_price_source: "monitor_json_ld_product_offer",
+  };
+  const mutation = buildManualPriceReviewMutation(automatic, "confirmed_unchanged", now);
+  assert.equal(mutation.manual_price_verified_at, now.toISOString());
+  for (const field of ["offer_price_amount", "offer_price_currency", "offer_price_verified_at", "offer_price_source", "offer_price_source_url", "offer_price_status"]) {
+    assert.equal(field in mutation, false);
+  }
+});
+
+test("verified evidence cannot confirm mismatching manual amount or incomplete stale evidence", () => {
+  const verified = {
+    ...manualFailure,
+    price_check_status: "verified", price_confidence: "high", price_extraction_method: "json_ld_product_offer",
+    price_detected_amount: 59, price_detected_currency: "EUR", price_last_checked_at: now.toISOString(),
+  };
+  assert.throws(() => buildManualPriceReviewMutation({ ...verified, price_detected_amount: 58 }, "confirmed_unchanged", now), /contradicts/i);
+  assert.throws(() => buildManualPriceReviewMutation({ ...verified, price_confidence: "medium" }, "confirmed_unchanged", now), /incomplete or stale/i);
+  assert.throws(() => buildManualPriceReviewMutation({ ...verified, price_last_checked_at: "2026-08-01T00:00:00Z" }, "confirmed_unchanged", now), /incomplete or stale/i);
+  assert.throws(() => buildManualPriceReviewMutation({ ...verified, price_extraction_method: "" }, "confirmed_unchanged", now), /incomplete or stale/i);
+});
+
+test("manual confirmation never overwrites a different approved authoritative Offer", () => {
+  assert.throws(() => buildManualPriceReviewMutation({ ...manualFailure, offer_price_amount: 60 }, "confirmed_unchanged", now), /different approved/i);
+  assert.throws(() => buildManualPriceReviewMutation({ ...manualFailure, offer_price_currency: "BGN" }, "confirmed_unchanged", now), /different approved/i);
+  assert.throws(() => buildManualPriceReviewMutation({ ...manualFailure, offer_price_source_url: "https://brand.test/other" }, "confirmed_unchanged", now), /different approved/i);
+});
+
+test("manual review schema validation requires exact types time support and option set", () => {
+  const valid = [
+    { name: "manual_price_last_reviewed_at", type: "date", date_include_time: true },
+    { name: "manual_price_review_outcome", type: "single_select", select_options: [
+      { value: "confirmed_unchanged" }, { value: "change_found" }, { value: "unable_to_verify" }, { value: "source_unavailable" },
+    ] },
+  ];
+  assert.doesNotThrow(() => validateManualPriceReviewSchema(valid));
+  assert.throws(() => validateManualPriceReviewSchema(valid.filter((field) => field.name !== "manual_price_last_reviewed_at")));
+  assert.throws(() => validateManualPriceReviewSchema(valid.map((field) => field.name === "manual_price_last_reviewed_at" ? { ...field, type: "text" } : field)));
+  assert.throws(() => validateManualPriceReviewSchema(valid.map((field) => field.name === "manual_price_last_reviewed_at" ? { ...field, date_include_time: false } : field)));
+  assert.throws(() => validateManualPriceReviewSchema(valid.map((field) => field.name === "manual_price_review_outcome" ? { ...field, type: "text" } : field)));
+  assert.throws(() => validateManualPriceReviewSchema(valid.map((field) => field.name === "manual_price_review_outcome" ? { ...field, select_options: [{ value: "confirmed_unchanged" }] } : field)));
+  assert.throws(() => validateManualPriceReviewSchema(valid.map((field) => field.name === "manual_price_review_outcome" ? { ...field, select_options: [...field.select_options!, { value: "unexpected" }] } : field)));
 });

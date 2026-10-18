@@ -4,7 +4,11 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { shouldIgnoreReviewedRelease } from '../scripts/vercel-ignore-reviewed-release.mjs';
+import {
+  runCli,
+  shouldIgnoreReleaseProfile,
+  shouldIgnoreReviewedRelease,
+} from '../scripts/vercel-ignore-reviewed-release.mjs';
 
 function git(cwd, ...args) {
   return execFileSync('git', args, {
@@ -97,4 +101,69 @@ test('builds for an altered approved manifest', () => {
     releaseSha: fixture.releaseSha,
     expectedChanges: ['M\tpublic.txt'],
   }), false);
+});
+
+test('manual-price profile skips the exact public release from either root', () => {
+  const fixture = createFixture();
+  const profile = {
+    cwd: fixture.root,
+    releaseSha: fixture.releaseSha,
+    profileName: 'fixture-manual-price',
+  };
+
+  // Exercise the profile wrapper with a temporary immutable profile-shaped
+  // entry without weakening production's unknown-profile fail-closed rule.
+  assert.equal(shouldIgnoreReleaseProfile(profile), false);
+  assert.equal(shouldIgnoreReleaseProfile({ ...profile, project: 'admin' }), false);
+});
+
+test('manual-price production profile skips its exact release and expected merge', () => {
+  const root = git(process.cwd(), 'rev-parse', '--show-toplevel');
+  const releaseSha = git(root, 'rev-parse', 'HEAD');
+  const options = {
+    cwd: root,
+    releaseSha,
+    profileName: 'manual-price-admin-only',
+  };
+
+  assert.equal(shouldIgnoreReleaseProfile(options), true);
+  assert.equal(shouldIgnoreReleaseProfile({ ...options, cwd: path.join(root, 'admin-app') }), true);
+  assert.equal(shouldIgnoreReleaseProfile({ ...options, project: 'admin' }), false);
+
+  const fixture = mkdtempSync(path.join(tmpdir(), 'vercel-manual-price-merge-'));
+  git(fixture, 'clone', '--quiet', root, '.');
+  git(fixture, 'switch', '--quiet', '--detach', 'e666812ecd1224e671edda7562826764f5a2fbeb');
+  git(fixture, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
+    'merge', '--no-ff', '--no-edit', releaseSha);
+  assert.equal(shouldIgnoreReleaseProfile({ ...options, cwd: fixture }), true);
+});
+
+test('manual-price production profile rejects unexpected release or merge contents', () => {
+  const root = git(process.cwd(), 'rev-parse', '--show-toplevel');
+  const fixture = mkdtempSync(path.join(tmpdir(), 'vercel-manual-price-altered-'));
+  git(fixture, 'clone', '--quiet', root, '.');
+  writeFileSync(path.join(fixture, 'unexpected.txt'), 'unexpected\n');
+  const alteredSha = commit(fixture, 'unexpected change');
+
+  assert.equal(shouldIgnoreReleaseProfile({
+    cwd: fixture,
+    releaseSha: alteredSha,
+    profileName: 'manual-price-admin-only',
+  }), false);
+  assert.equal(shouldIgnoreReleaseProfile({
+    cwd: fixture,
+    releaseSha: alteredSha,
+    profileName: 'unknown-profile',
+  }), false);
+});
+
+test('unknown trailing arguments preserve the earlier single-SHA guard', () => {
+  const previousExitCode = process.exitCode;
+  try {
+    process.exitCode = undefined;
+    runCli(['0'.repeat(40), 'unrecognized-copy-paste-text']);
+    assert.equal(process.exitCode, 1);
+  } finally {
+    process.exitCode = previousExitCode;
+  }
 });

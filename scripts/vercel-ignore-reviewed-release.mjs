@@ -22,6 +22,26 @@ export const REVIEWED_CHANGESET = Object.freeze([
   'M\ttest/verified-offer.test.ts',
 ].sort());
 
+export const RELEASE_PROFILES = Object.freeze({
+  'manual-price-admin-only': Object.freeze({
+    baseSha: 'e666812ecd1224e671edda7562826764f5a2fbeb',
+    expectedChanges: Object.freeze([
+      'A\tadmin-app/src/lib/manual-price-review.ts',
+      'M\tadmin-app/src/lib/repositories.ts',
+      'M\tadmin-app/src/pages/price-health.astro',
+      'A\tdocs/manual-price-fallback-90-days.md',
+      'M\tpackage.json',
+      'M\tscripts/vercel-ignore-reviewed-release.mjs',
+      'M\tsrc/lib/products.ts',
+      'M\tsrc/lib/verified-offer.ts',
+      'M\tsrc/pages/p/[slug].astro',
+      'A\ttest/manual-price-fallback-ui.test.mjs',
+      'M\ttest/vercel-ignore-reviewed-release.test.mjs',
+      'M\ttest/verified-offer.test.ts',
+    ].sort()),
+  }),
+});
+
 function git(cwd, args) {
   return execFileSync('git', args, {
     cwd,
@@ -77,8 +97,31 @@ export function shouldIgnoreReviewedRelease({
   }
 }
 
+export function shouldIgnoreReleaseProfile({
+  cwd = process.cwd(),
+  releaseSha,
+  profileName,
+  project = 'public',
+} = {}) {
+  // This release intentionally builds the Admin project. Only the public
+  // project may use an exact reviewed profile to skip a deployment.
+  if (project !== 'public') return false;
+
+  const profile = RELEASE_PROFILES[profileName];
+  if (!profile) return false;
+
+  return shouldIgnoreReviewedRelease({
+    cwd,
+    releaseSha,
+    baseSha: profile.baseSha,
+    expectedChanges: profile.expectedChanges,
+  });
+}
+
 export function runCli(argv = process.argv.slice(2)) {
-  const ignore = shouldIgnoreReviewedRelease({ releaseSha: argv[0] });
+  const ignore = RELEASE_PROFILES[argv[1]]
+    ? shouldIgnoreReleaseProfile({ releaseSha: argv[0], profileName: argv[1] })
+    : shouldIgnoreReviewedRelease({ releaseSha: argv[0] });
   process.exitCode = ignore ? 0 : 1;
 }
 

@@ -2,6 +2,7 @@ import { BRANDS_TABLE, PRODUCTS_TABLE, createRow, getRow, listFields, listRows, 
 import { STRUCTURED_FACET_OPTIONS, structuredCategoryForSubcategory } from "./product-taxonomy";
 import { brandMirrorFields, resolveOrCreateBrand } from "./brand-sync";
 import { buildCatalogPriceMutation, type CatalogPriceAction } from "../../../src/lib/verified-offer";
+import { buildManualPriceReviewMutation, MANUAL_PRICE_REVIEW_OUTCOMES, type ManualPriceReviewOutcome } from "./manual-price-review";
 
 export const productFields = ["name_bg","slug","category","subcategory","product_type","tags","price_min_eur","price_max_eur","currency","short_desc_bg","long_desc_bg","product_url","image_urls","created_at","meta_title_bg","meta_desc_bg","rating"] as const;
 export const brandFields = ["brand_name","brand_slug","brand_url","description_bg","instagram_url","logo_url","address"] as const;
@@ -13,6 +14,28 @@ export async function listBrands() { return listRows(BRANDS_TABLE); }
 export async function findProduct(id: number) { return getRow(PRODUCTS_TABLE, id); }
 export async function findBrand(id: number) { return getRow(BRANDS_TABLE, id); }
 export async function getProductFieldSchema() { return listFields(PRODUCTS_TABLE); }
+
+export function validateManualPriceReviewSchema(schema: any[]) {
+  const reviewedAt = schema.find((field: any) => field.name === "manual_price_last_reviewed_at");
+  if (!reviewedAt || reviewedAt.type !== "date" || reviewedAt.date_include_time !== true) {
+    throw new Error("manual_price_last_reviewed_at must be a date field with time enabled.");
+  }
+  const outcome = schema.find((field: any) => field.name === "manual_price_review_outcome");
+  const actualOptions = (outcome?.select_options || []).map((option: any) => String(option.value)).sort();
+  const expectedOptions = [...MANUAL_PRICE_REVIEW_OUTCOMES].sort();
+  if (!outcome || outcome.type !== "single_select" || actualOptions.length !== expectedOptions.length
+    || actualOptions.some((value: string, index: number) => value !== expectedOptions[index])) {
+    throw new Error(`manual_price_review_outcome must be a single_select with exactly: ${MANUAL_PRICE_REVIEW_OUTCOMES.join(", ")}.`);
+  }
+}
+
+export async function reviewManualPrice(id: number, outcome: ManualPriceReviewOutcome, now: Date | number = new Date()) {
+  const [product, schema] = await Promise.all([findProduct(id), getProductFieldSchema()]);
+  validateManualPriceReviewSchema(schema);
+  const mutation = buildManualPriceReviewMutation(product, outcome, now);
+  await updateRow(PRODUCTS_TABLE, id, mutation);
+  return findProduct(id);
+}
 
 export function validateCsrf(form: FormData, expected: string) {
   if (!expected || text(form.get("csrf")) !== expected) throw new Error("Invalid CSRF token");

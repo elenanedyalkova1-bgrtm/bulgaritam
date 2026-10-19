@@ -1,4 +1,5 @@
 ---
+import { discoveryProducts } from "../lib/discovery-order";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import HomepageProductCard from "../components/HomepageProductCard.astro";
 import { CATEGORY_LANDINGS, SUBCATEGORY_LANDINGS } from "../lib/seo-landings";
@@ -7,7 +8,7 @@ import { loadProducts } from "../lib/products";
 import { getAvailablePublicBrowse, PUBLIC_GIFT_OCCASIONS } from "../lib/public-browse-taxonomy";
 
 const products = await loadProducts();
-const displayProducts = [...new Map(products.filter((product) => product.image_urls?.[0]).map((product) => [product.slug, product])).values()];
+const displayProducts = discoveryProducts([...new Map(products.filter((product) => product.image_urls?.[0]).map((product) => [product.slug, product])).values()]);
 const productPageSize = 48;
 const productPageCount = Math.ceil(displayProducts.length / productPageSize);
 const homeCategories = getAvailablePublicBrowse(displayProducts, true);
@@ -1268,6 +1269,8 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     }
   </style>
 
+  <script is:inline src="/filter-options.js"></script>
+  <script is:inline src="/product-discovery.js"></script>
   <script>
     import { parseBulgarianShoppingIntent } from "../lib/search-intent";
 
@@ -1303,33 +1306,17 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     const filtersBadge = document.getElementById("filtersBadge");
     const filtersApply = document.getElementById("filtersApply");
     const filtersReset = document.getElementById("filtersReset");
-    // Adopt the first static page without shuffling or recreating its SSR nodes.
     const firstPageCards = Array.from(grid.querySelectorAll("li.card"));
     const allCards = [...firstPageCards];
-    firstPageCards.forEach((card, index) => {
-      card.dataset.originalIndex = String(index);
-      card.dataset.featuredIndex = String(index);
-    });
-    let loadedThroughPage = 1; // Number consumed from pageOrder, not a page number.
     const totalStaticPages = Number(productFeed?.dataset.totalPages || 1);
     const totalCatalogueItems = Number(productFeed?.dataset.totalItems || firstPageCards.length);
-    const discoverySeed = Math.floor(Math.random() * 0x100000000);
-    const createShuffledOrder = (items, seed = discoverySeed) => {
-      let state = seed >>> 0;
-      const random = () => {
-        state += 0x6D2B79F5;
-        let value = Math.imul(state ^ (state >>> 15), 1 | state);
-        value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
-        return ((value ^ (value >>> 14)) >>> 0) / 0x100000000;
-      };
-      const shuffled = [...items];
-      for (let i = shuffled.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled;
-    };
-    const pageOrder = [1, ...createShuffledOrder(Array.from({ length: Math.max(0, totalStaticPages - 1) }, (_, i) => i + 2))];
+    const discoveryPlan = window.bulgaritamDiscoveryPlan(totalStaticPages, firstPageCards.length);
+    const pageOrder = discoveryPlan.pages;
+    let loadedThroughPage = 0;
+    firstPageCards.forEach((card, index) => {
+      card.dataset.originalIndex = String(index);
+      card.dataset.featuredIndex = String(discoveryPlan.rank(1, index));
+    });
     const loadedPages = new Set([1]);
     let pageLoadPromise = null;
     const loadStaticPage = async (page) => {
@@ -1346,7 +1333,7 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
           if (!cards.length) throw new Error("Empty product page");
         }
         const known = new Set(allCards.map((card) => card.dataset.productSlug));
-        const added = createShuffledOrder(cards, discoverySeed ^ page).filter((card) => {
+        const added = cards.filter((card) => {
           const slug = card.dataset.productSlug;
           if (!slug || known.has(slug)) return false;
           known.add(slug);
@@ -1355,12 +1342,12 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
         added.forEach((card) => {
           const node = page === 1 ? card : document.importNode(card, true);
           node.dataset.originalIndex = String((page - 1) * 48 + cards.indexOf(card));
-          node.dataset.featuredIndex = String(allCards.length);
+          node.dataset.featuredIndex = String(discoveryPlan.rank(page, cards.indexOf(card)));
           node.dataset.position = String(allCards.length + 1);
           allCards.push(node);
         });
         loadedPages.add(page);
-        loadedThroughPage = loadedPages.size;
+        while (loadedPages.has(pageOrder[loadedThroughPage])) loadedThroughPage += 1;
         return added.length > 0;
       })().finally(() => { pageLoadPromise = null; });
       return pageLoadPromise;
@@ -1368,6 +1355,23 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
     const ensureAllStaticPages = async () => {
       for (const page of pageOrder) await loadStaticPage(page);
     };
+    // Do not expose the cached SSR page before its turn in the session plan.
+    try {
+      await loadStaticPage(pageOrder[0]);
+      if (pageOrder[0] !== 1) allCards.splice(0, firstPageCards.length);
+      if (pageOrder[0] !== 1) {
+        loadedPages.delete(1);
+        firstPageCards.forEach((card) => card.remove());
+      }
+      loadedThroughPage = 0;
+      while (loadedPages.has(pageOrder[loadedThroughPage])) loadedThroughPage += 1;
+    } catch {
+      // Offline entry: pin the already-visible SSR page, then retry other pages later.
+      pageOrder.splice(pageOrder.indexOf(1), 1);
+      pageOrder.unshift(1);
+      firstPageCards.forEach((card, index) => { card.dataset.featuredIndex = String(index); });
+      loadedThroughPage = 1;
+    }
     const catalogueMaterials = Array.from(document.querySelectorAll('input[name="materialFilter"]')).map((input) => input.value);
 
     const getBatchSize = () => {
@@ -2432,20 +2436,13 @@ const giftAttributeOptions = attributeOptions.filter((value) => ["Персона
 
     function updateCollapsibleOptions() {
       document.querySelectorAll("[data-collapsible-options]").forEach((container) => {
-        const options = Array.from(container.querySelectorAll("[data-dynamic-filter-option]")).filter((option) => !option.hidden);
-        let button = container.parentElement?.querySelector(":scope > .filter-options-more");
-        if (options.length <= 8) { options.forEach((option) => option.classList.remove("is-overflow-option")); button?.remove(); return; }
-        if (!button) { button = document.createElement("button"); button.type = "button"; button.className = "filter-options-more"; container.insertAdjacentElement("afterend", button); }
-        const expanded = button.getAttribute("aria-expanded") === "true";
-        options.forEach((option, index) => option.classList.toggle("is-overflow-option", !expanded && index >= 8 && !option.querySelector("input")?.checked));
-        button.textContent = expanded ? "Покажи по-малко" : `Покажи още (${options.length - 8})`;
-        button.setAttribute("aria-expanded", String(expanded));
-        button.onclick = () => { button.setAttribute("aria-expanded", String(!expanded)); updateCollapsibleOptions(); };
+        window.bulgaritamUpdateFacetOverflow(container, "[data-dynamic-filter-option]", "filter-options-more");
       });
     }
 
-    function openFilters() {
+    async function openFilters() {
       if (!filtersModal) return;
+      await ensureAllStaticPages();
       syncFilterInputs();
       updateDynamicFilterOptions();
       filtersModal.removeAttribute("hidden");

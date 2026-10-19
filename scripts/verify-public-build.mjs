@@ -1,12 +1,15 @@
 import fs from "node:fs";
+import { verifyBranding } from "./verify-branding.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { verifyConsumerDealsBuild } from "./lib/verify-consumer-deals-build.mjs";
 import { baserowUrl } from "./lib/baserow-url.mjs";
 
 const token = process.env.BASEROW_API_TOKEN;
 const productsTable = process.env.BASEROW_TABLE_ID || "906650";
 const brandsTable = process.env.BASEROW_BRANDS_TABLE_ID || "1133942";
 const dist = path.resolve("dist");
+console.log(JSON.stringify({ consumer_deals: verifyConsumerDealsBuild(dist) }));
 const healthReportPath = process.env.PRODUCT_HEALTH_REPORT_PATH;
 if (!token) throw new Error("BASEROW_API_TOKEN is required");
 
@@ -32,6 +35,8 @@ const pageSlugs = directory => fs.existsSync(directory)
 for (const required of ["index.html", "sitemap-index.xml", ".htaccess", "p", "brand"]) {
   if (!fs.existsSync(path.join(dist, required))) throw new Error(`Missing required build output: dist/${required}`);
 }
+
+console.log(JSON.stringify({ branding: verifyBranding(dist) }));
 
 const [products, brands] = await Promise.all([rows(productsTable), rows(brandsTable)]);
 const healthExcluded = healthReportPath

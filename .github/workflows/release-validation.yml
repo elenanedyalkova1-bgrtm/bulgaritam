@@ -1,0 +1,33 @@
+name: Validate release without publishing
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            admin-app/package-lock.json
+      - run: npm ci
+      - run: npm --prefix admin-app ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:release
+      - run: npm run test:release-admin
+      - run: npm --prefix admin-app run check
+      - run: npm --prefix admin-app run build

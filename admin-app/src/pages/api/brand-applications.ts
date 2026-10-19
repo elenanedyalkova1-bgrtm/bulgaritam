@@ -83,15 +83,19 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const phone = clean(input.phone, 80);
   const website = normalizeUrl(input.website);
   const instagram = normalizeUrl(input.instagram);
+  const facebook = normalizeUrl(input.facebook);
   const physicalAddress = clean(input.physical_address, 500);
   const brandStory = clean(input.brand_story, 3000);
   const contributionOptions = new Set(["Дизайн", "Разработка", "Производство", "Ръчна изработка", "Персонализация", "Друг съществен принос"]);
   const ownContribution = cleanList(input.own_contribution, contributionOptions, 8);
   const ownContributionOther = clean(input.own_contribution_other, 300);
   const deliversOutsideBulgaria = clean(input.delivers_outside_bulgaria, 3);
-  if (!brandName || !contactName || !/^\S+@\S+\.\S+$/.test(email) || !website || !validUrl(website) || !brandStory || !ownContribution.length || !["Да", "Не"].includes(deliversOutsideBulgaria)) {
+  if (!brandName || !contactName || !/^\S+@\S+\.\S+$/.test(email) || !brandStory || !ownContribution.length || !["Да", "Не"].includes(deliversOutsideBulgaria)) {
     return json({ error: "Please complete the required fields" }, 400, origin);
   }
+  if (![website, instagram, facebook].some(Boolean)) return json({ error: "Provide a website, Instagram or Facebook profile" }, 400, origin);
+  if (website && !validUrl(website)) return json({ error: "Invalid website URL" }, 400, origin);
+  if (facebook && !validUrl(facebook)) return json({ error: "Invalid Facebook URL" }, 400, origin);
   if (instagram && !validUrl(instagram)) return json({ error: "Invalid Instagram URL" }, 400, origin);
   if (input.consent !== true) return json({ error: "Consent is required" }, 400, origin);
   if (ownContribution.includes("Друг съществен принос") && !ownContributionOther) return json({ error: "Please describe the other contribution" }, 400, origin);
@@ -119,7 +123,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const attempts = (recentByIp.get(ip) || []).filter((time) => now - time < 10 * 60_000);
   if (attempts.length >= 3) return json({ error: "Too many applications" }, 429, origin);
 
-  const payloadKey = await digest([brandName, email, website, deliversOutsideBulgaria, brandStory, ownContribution.join(",")].join("|"));
+  const payloadKey = await digest([brandName, email, website, instagram, facebook, deliversOutsideBulgaria, brandStory, ownContribution.join(",")].join("|"));
   const previous = recentPayloads.get(payloadKey);
   if (previous && now - previous < 10 * 60_000) return json({ error: "Duplicate application" }, 409, origin);
   recentByIp.set(ip, [...attempts, now]);
@@ -130,7 +134,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const timestamp = new Date(now).toISOString();
   const monthlyEmailOptIn = input.monthly_email === true;
   const sanitizedPayload = {
-    started_at: startedAt, brand_name: brandName, website, instagram, physical_address: physicalAddress,
+    started_at: startedAt, brand_name: brandName, website, instagram, facebook, physical_address: physicalAddress,
     delivers_outside_bulgaria: deliversOutsideBulgaria, brand_story: brandStory, own_contribution: ownContribution,
     own_contribution_other: ownContributionOther, contact_name: contactName, email, phone,
     consent: true, monthly_email: monthlyEmailOptIn, optional_consent: input.optional_consent === true,
@@ -193,8 +197,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     ["Лице за контакт", contactName],
     ["Email", email],
     ["Телефон", phone || "—"],
-    ["Сайт", website],
+    ["Сайт", website || "—"],
     ["Instagram", instagram || "—"],
+    ["Facebook", facebook || "—"],
     ["Физически адрес", physicalAddress || "—"],
     ["Доставка извън България", deliversOutsideBulgaria],
     ["История на бранда", brandStory],

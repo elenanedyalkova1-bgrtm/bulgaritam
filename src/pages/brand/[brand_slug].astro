@@ -403,7 +403,7 @@ const breadcrumbs = [
       margin-bottom: 14px;
       text-decoration:none;
       color: var(--accent);
-      font-weight: 650;
+      font-weight: var(--weight-ui);
       font-size: .95rem;
     }
     .back:hover{ color: var(--accent-strong); }
@@ -498,7 +498,7 @@ const breadcrumbs = [
       margin: 0 0 14px;
       color: rgba(26,26,26,.52);
       font-size: 12px;
-      font-weight: 800;
+      font-weight: var(--weight-ui);
       letter-spacing: .12em;
       text-transform: uppercase;
     }
@@ -506,10 +506,10 @@ const breadcrumbs = [
     .brand-summary__price{
       margin: 0;
       color: rgba(26,26,26,.86);
-      font-family: var(--font-title);
+      font-family: var(--font-body);
       font-size: clamp(24px, 2.4vw, 34px);
       line-height: 1.15;
-    }
+     font-weight: var(--weight-medium); }
 
     .brand-head{
       display: grid;
@@ -572,7 +572,7 @@ const breadcrumbs = [
     .brand-insight__title{
       margin: 0 0 8px;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: var(--weight-ui);
       letter-spacing: .12em;
       text-transform: uppercase;
       color: rgba(26,26,26,.48);
@@ -601,7 +601,7 @@ const breadcrumbs = [
       background: rgba(255,255,255,.76);
       color: rgba(26,26,26,.78);
       font-size: 12px;
-      font-weight: 800;
+      font-weight: var(--weight-ui);
       letter-spacing: .06em;
       text-transform: uppercase;
       box-shadow: 0 8px 18px rgba(0,0,0,.04);
@@ -665,7 +665,7 @@ const breadcrumbs = [
     .brand-intro-card__eyebrow{
       margin: 0;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: var(--weight-ui);
       letter-spacing: .14em;
       text-transform: uppercase;
       color: rgba(26,26,26,.48);
@@ -688,7 +688,7 @@ const breadcrumbs = [
       background: var(--accent);
       color: #fff;
       text-decoration: none;
-      font-weight: 750;
+      font-weight: var(--weight-ui);
       border: 1px solid rgba(0,0,0,.06);
       box-shadow: 0 10px 24px rgba(0,0,0,.08);
       transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
@@ -705,18 +705,18 @@ const breadcrumbs = [
       background: rgba(255,255,255,.7);
       color: rgba(0,0,0,.78);
       text-decoration: none;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       border: 1px solid rgba(0,0,0,.08);
     }
     .ig:hover{ text-decoration: underline; }
 
     .subhead{
       margin: 18px 0 10px;
-      font-family: var(--font-title);
+      font-family: var(--font-display);
       font-size: var(--type-h2);
       line-height: 1.12;
       opacity: .78;
-    }
+     font-weight: var(--weight-display); }
 
     .feed-meta {
       display: grid;
@@ -839,7 +839,7 @@ const breadcrumbs = [
       padding: 0 10px;
       border-radius: 999px;
       font-size: 10px;
-      font-weight: 800;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
@@ -890,7 +890,7 @@ const breadcrumbs = [
       padding: 0 9px;
       border-radius: 999px;
       font-size: 10px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -918,10 +918,10 @@ const breadcrumbs = [
     .card-titlelink {
       color: inherit;
       text-decoration: none;
-      font-family: var(--font-title);
+      font-family: var(--font-body);
       font-size: clamp(19px, 1.7vw, 28px);
       line-height: 1.08;
-      font-weight: 650;
+      font-weight: var(--weight-medium);
       letter-spacing: -0.02em;
       text-wrap: balance;
     }
@@ -941,7 +941,7 @@ const breadcrumbs = [
       opacity: .85;
       font-size: .95rem;
       color: var(--accent);
-      font-weight: 800;
+      font-weight: var(--weight-medium);
       white-space: nowrap;
     }
 
@@ -973,7 +973,7 @@ const breadcrumbs = [
       color: rgba(26,26,26,.82);
       text-decoration: none;
       font-size: 14px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       transition: background .15s ease, border-color .15s ease, color .15s ease;
     }
 

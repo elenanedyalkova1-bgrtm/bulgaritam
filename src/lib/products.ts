@@ -1,4 +1,5 @@
 // src/lib/products.ts
+import { normalizeProductType } from "../../admin-app/src/lib/product-taxonomy";
 
 import { getGiftMeta, type GiftTarget } from "./gifts";
 import { baserowUrl } from "./baserow-url";
@@ -290,7 +291,7 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
     category: norm(row.category),
     tags,
     subcategory: selectValue(row.subcategory),
-    product_type: selectValue(row.product_type),
+    product_type: normalizeProductType(selectValue(row.product_type)),
     recipient: multiSelectValues(row.recipient),
     gift_occasion: multiSelectValues(row.gift_occasion),
     attributes: multiSelectValues(row.attributes),

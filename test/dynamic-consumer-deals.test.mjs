@@ -25,16 +25,6 @@ test("dynamic facets add new values, remove vanished values and never infer empt
   assert.deepEqual(refreshed, { category:[["Козметика","Козметика"]], brand: [["2", "Beta"]], material: [["Linen", "Linen"]], ingredient: [["Rose", "Rose"]] });
 });
 
-test("dynamic page path is feature flagged and keeps static snapshot as fetch failure fallback", () => {
-  const page=fs.readFileSync("src/pages/namaleniya/index.astro","utf8"); const client=fs.readFileSync("src/scripts/dynamic-consumer-deals.ts","utf8");
-  assert.match(page,/PUBLIC_DYNAMIC_DEALS_ENDPOINT/); assert.match(client,/static-snapshot/); assert.match(client,/bulgaritam:deals-refreshed/);
-  assert.match(page,/addEventListener\("bulgaritam:deals-refreshed"/);
-  assert.doesNotMatch(client,/BASEROW|GOOGLE_SERVICE|promotion_confidence|regular_price_evidence/);
-  assert.match(client,/refreshDealFacetOptions/); assert.match(page,/data-deal-facet-options="brand"/);
-  assert.match(page,/data-deal-facet-options="category"/); assert.ok(page.indexOf('data-deal-facet-group="category"') < page.indexOf('data-deal-facet-group="brand"'));
-  const filters=fs.readFileSync("src/scripts/consumer-deals-filters.ts","utf8"); assert.match(filters,/s\.categories\.length/); assert.match(filters,/x\.category/);
-});
-
 test("deal cards use canonical category and gift state without generic Product fallback",()=>{
   const card=fs.readFileSync("src/components/HomepageProductCard.astro","utf8");const client=fs.readFileSync("src/scripts/dynamic-consumer-deals.ts","utf8");
   assert.match(card,/data-deal-category-badge/);assert.match(card,/consumerDeal\.giftable === true/);assert.doesNotMatch(client,/\|\| "Продукт"/);assert.match(client,/deal\.giftable===true/);

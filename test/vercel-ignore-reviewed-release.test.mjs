@@ -117,25 +117,19 @@ test('manual-price profile skips the exact public release from either root', () 
   assert.equal(shouldIgnoreReleaseProfile({ ...profile, project: 'admin' }), false);
 });
 
-test('manual-price production profile skips its exact release and expected merge', () => {
+test('manual-price production profile skips its historical exact release and merge, not a newer release', () => {
   const root = git(process.cwd(), 'rev-parse', '--show-toplevel');
-  const releaseSha = git(root, 'rev-parse', 'HEAD');
-  const options = {
-    cwd: root,
-    releaseSha,
-    profileName: 'manual-price-admin-only',
-  };
-
-  assert.equal(shouldIgnoreReleaseProfile(options), true);
-  assert.equal(shouldIgnoreReleaseProfile({ ...options, cwd: path.join(root, 'admin-app') }), true);
-  assert.equal(shouldIgnoreReleaseProfile({ ...options, project: 'admin' }), false);
-
+  const releaseSha = '04bb409eb826af50e7451ab5b642f0da1a28f378';
   const fixture = mkdtempSync(path.join(tmpdir(), 'vercel-manual-price-merge-'));
   git(fixture, 'clone', '--quiet', root, '.');
-  git(fixture, 'switch', '--quiet', '--detach', 'e666812ecd1224e671edda7562826764f5a2fbeb');
-  git(fixture, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
-    'merge', '--no-ff', '--no-edit', releaseSha);
-  assert.equal(shouldIgnoreReleaseProfile({ ...options, cwd: fixture }), true);
+  git(fixture, 'switch', '--quiet', '--detach', releaseSha);
+  const options = { cwd: fixture, releaseSha, profileName: 'manual-price-admin-only' };
+  assert.equal(shouldIgnoreReleaseProfile(options), true);
+  assert.equal(shouldIgnoreReleaseProfile({ ...options, cwd: path.join(fixture, 'admin-app') }), true);
+  assert.equal(shouldIgnoreReleaseProfile({ ...options, project: 'admin' }), false);
+  git(fixture, 'switch', '--quiet', '--detach', '45643ada55077eef2ec29aeeee3ce4220c0de386');
+  assert.equal(shouldIgnoreReleaseProfile(options), true);
+  assert.equal(shouldIgnoreReleaseProfile({ ...options, cwd: root, releaseSha: git(root, 'rev-parse', 'HEAD') }), false);
 });
 
 test('manual-price production profile rejects unexpected release or merge contents', () => {

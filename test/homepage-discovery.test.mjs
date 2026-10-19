@@ -7,17 +7,18 @@ import vm from 'node:vm';
 const source = fs.readFileSync(new URL('../src/pages/index.astro', import.meta.url), 'utf8');
 const loader = source.slice(source.indexOf('    const firstPageCards ='), source.indexOf('    const catalogueMaterials ='));
 async function harness(total, seed = 3, fail = () => false) {
-  const pages = Array.from({ length: Math.ceil(total / 48) }, (_, page) => Array.from({ length: Math.min(48, total - page * 48) }, (_, index) => ({ dataset: { productSlug: String(page * 48 + index) } })));
+  const pages = Array.from({ length: Math.ceil(total / 48) }, (_, page) => Array.from({ length: Math.min(48, total - page * 48) }, (_, index) => ({ remove() {}, dataset: { productSlug: String(page * 48 + index) } })));
   const requests = [];
   const math = Object.create(Math);
   math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-  const context = vm.createContext({ Math: math, Set, Array, Number, String, Error,
+  const context = vm.createContext({ Math: math, Set, Array, Number, String, Error, window: {}, sessionStorage: { getItem: () => String(seed), setItem() {} },
     grid: { querySelectorAll: () => pages[0] },
     productFeed: { dataset: { totalPages: pages.length, totalItems: total } },
     document: { importNode: card => ({ dataset: { ...card.dataset } }) },
     DOMParser: class { parseFromString(html) { return { querySelectorAll: () => pages[Number(html) - 1] }; } },
     fetch: async url => { const page = Number(url.split('/')[2]); requests.push(page); if (fail(page)) throw Error('offline'); return { ok: true, text: async () => String(page) }; },
   });
+  vm.runInContext(fs.readFileSync(new URL('../public/product-discovery.js', import.meta.url), 'utf8'), context);
   const api = await vm.runInContext(`(async () => { ${loader}; return { cards: () => allCards, next: () => loadStaticPage(pageOrder[loadedThroughPage]), all: ensureAllStaticPages, pages: pageOrder }; })()`, context);
   return { api, requests, initialNodes: pages[0] };
 }
@@ -34,9 +35,9 @@ for (const total of [1000, 2000, 10032]) test(`progressive discovery preserves o
   assert.equal(new Set(requests).size, requests.length, 'each remote page fetched once');
   assert.deepEqual(Array.from(api.cards().slice(0, initial.length), c => c.dataset.productSlug), initial);
 });
-test('first SSR page stays stable while subsequent discovery changes', async () => {
+test('separate sessions change the opening products and the whole page plan', async () => {
   const a = await harness(2000, 3), b = await harness(2000, 987);
-  assert.deepEqual(Array.from(a.api.cards(), c => c.dataset.productSlug), Array.from(b.api.cards(), c => c.dataset.productSlug));
+  assert.notDeepEqual(Array.from(a.api.cards(), c => c.dataset.productSlug), Array.from(b.api.cards(), c => c.dataset.productSlug));
   assert.notDeepEqual(Array.from(a.api.pages.slice(1)), Array.from(b.api.pages.slice(1)));
 });
 test('offline entry retains SSR cards; failed subsequent request and retry preserve membership', async () => {
@@ -51,17 +52,12 @@ test('offline entry retains SSR cards; failed subsequent request and retry prese
   assert.equal(new Set(api.cards().map(c => c.dataset.productSlug)).size, 1000);
 });
 
-test('adopts the original nodes and metadata without fetching page one', async () => {
-  const { api, requests, initialNodes } = await harness(1000);
-  assert.equal(requests.length, 0);
-  assert.equal(api.pages[0], 1);
-  for (let i = 0; i < 48; i++) {
-    assert.equal(api.cards()[i], initialNodes[i]);
-    assert.equal(api.cards()[i].dataset.originalIndex, String(i));
-    assert.equal(api.cards()[i].dataset.featuredIndex, String(i));
-  }
-  await api.all();
-  assert.ok(!requests.includes(1));
+test('same session reuses the opening products and entire plan', async () => {
+  const a = await harness(1000, 42), b = await harness(1000, 42);
+  assert.deepEqual(Array.from(a.api.pages), Array.from(b.api.pages));
+  await a.api.all(); await b.api.all();
+  assert.deepEqual(Array.from(a.api.cards(), c => c.dataset.productSlug), Array.from(b.api.cards(), c => c.dataset.productSlug));
+  assert.ok(!a.requests.includes(1), 'reuses original page-one nodes');
 });
 test('small catalogues stay usable without a subsequent page', async () => {
   const { api, requests } = await harness(7);

@@ -32,14 +32,21 @@
     "verify:seo-membership": "admin-app/node_modules/.bin/tsx scripts/verify-seo-product-membership.ts",
     "verify:seo-content": "node scripts/validate-primary-cluster-content.mjs",
     "verify:internal-links": "node scripts/validate-internal-linking.mjs",
-    "setup:product-facets": "node scripts/setup-product-facets.mjs"
+    "setup:product-facets": "node scripts/setup-product-facets.mjs",
+    "test:dynamic-deals": "node --import ./admin-app/node_modules/tsx/dist/loader.mjs --test test/consumer-deals-client.test.mjs test/dynamic-consumer-deals.test.mjs test/weekly-discounts.test.ts admin-app/tests/consumer-deals-api.test.ts",
+    "test:deals-browser": "node --test test/consumer-deals-browser.test.mjs",
+    "test:release": "node --import ./admin-app/node_modules/tsx/dist/loader.mjs --test test/*.test.mjs test/*.test.ts",
+    "test:release-admin": "node --import ./admin-app/node_modules/tsx/dist/loader.mjs --test admin-app/tests/*.test.ts",
+    "test:release-smoke": "node --test test/release-browser.smoke.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
-    "astro": "^6.1.4"
+    "astro": "7.4.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "parse5": "^8.0.1",
+    "playwright": "^1.62.1",
     "typescript": "^5.9.3"
   }
 }

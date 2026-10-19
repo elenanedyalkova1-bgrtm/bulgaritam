@@ -1,3 +1,11 @@
+// Preserve legacy stored values while presenting one canonical public concept.
+export const PRODUCT_TYPE_ALIASES: Record<string, string> = { "Палта и якета": "Якета" };
+export const normalizeProductType = (value: unknown): string => {
+  const text = String(value ?? "").trim();
+  const alias = Object.keys(PRODUCT_TYPE_ALIASES).find((key) => key.toLocaleLowerCase("bg") === text.toLocaleLowerCase("bg"));
+  return alias ? PRODUCT_TYPE_ALIASES[alias] : text;
+};
+
 export const PRODUCT_TAXONOMY = {
   "Аксесоари": {
     "Бижута": ["Гривни", "Колиета", "Комплекти бижута", "Обеци", "Пръстени"],

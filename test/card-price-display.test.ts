@@ -14,8 +14,8 @@ const sources = [
 for (const [file, pattern, argument, result] of sources) test(`${file}: safe exact price and unchanged fallback`, () => {
  const code = fs.readFileSync(file, 'utf8').match(pattern)?.[0];
  assert.ok(code, 'price presentation exists');
- const render = new Function(argument, 'resolvePublishableOffer', 'formatVerifiedOfferAmount', 'discount', `${code}\n${result}`);
- const label = (product: object) => render(product, resolvePublishableOffer, formatVerifiedOfferAmount, undefined);
+ const render = new Function(argument, 'resolvePublishableOffer', 'formatVerifiedOfferAmount', 'discount', 'neutralDeal', `${code}\n${result}`);
+ const label = (product: object) => render(product, resolvePublishableOffer, formatVerifiedOfferAmount, undefined, false);
  assert.equal(label(base), '69 EUR');
  for (const patch of [{offer_price_status:'unverified'}, {offer_price_status:'change_pending'}, {offer_price_verified_at:'2020-01-01'}, {offer_price_source_url:'https://other.test/product'}, {offer_price_amount:0}]) assert.equal(label({...base,...patch}), '69–89 EUR');
  assert.equal(label({...base,offer_price_status:'unverified',price_max_eur:null}), '69+ EUR');

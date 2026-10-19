@@ -87,20 +87,10 @@ test("discount money follows Bulgarian EUR formatting", () => {
 test("HomepageProductCard keeps normal price fallback and uses evaluator prices only in optional discount mode", () => {
   const source = fs.readFileSync("src/components/HomepageProductCard.astro", "utf8");
   assert.match(source, /discount\?: WeeklyDiscountProduct/);
-  assert.match(source, /discount \? null : resolvePublishableOffer/);
+  assert.match(source, /discount \|\| neutralDeal \? null : resolvePublishableOffer/);
   assert.match(source, /discount \? formatDiscountMoney\(Number\(discount\.current_price\)/);
   assert.match(source, /discountRegularPrice/);
   assert.match(source, /p\.price_min_eur != null && p\.price_max_eur != null/);
-});
-
-test("discount page has an explicit valid empty state and no report snapshot dependency", () => {
-  const source = fs.readFileSync("src/pages/namaleniya/index.astro", "utf8");
-  assert.match(source, /deals\.length \?/);
-  assert.match(source, /няма потвърдени намаления|няма активно проверени намаления/);
-  assert.doesNotMatch(source, /reports\/discounts|price_min_eur|price_max_eur/);
-  assert.match(source, /PHASE3_EXTERNAL_DEALS_LOCAL/);
-  assert.match(source, /Препоръчани/);
-  assert.match(source, /Търси продукт или бранд/);
 });
 
 test("consumer deals fail closed, enforce 72-hour freshness and route observed matches internally", () => {

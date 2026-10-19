@@ -462,7 +462,7 @@ const editorialSections = [
       box-shadow: 0 10px 22px rgba(0, 0, 0, 0.04);
       color: rgba(26, 26, 26, 0.72);
       font-size: 13px;
-      font-weight: 650;
+      font-weight: var(--weight-ui);
       cursor: pointer;
     }
 
@@ -485,7 +485,7 @@ const editorialSections = [
       box-shadow: 0 12px 26px rgba(0, 0, 0, 0.05);
       color: rgba(26, 26, 26, 0.86);
       font: inherit;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       cursor: pointer;
     }
 
@@ -504,7 +504,7 @@ const editorialSections = [
     .brand-search__label,
     .brand-sort__label {
       font-size: 11px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.52);
@@ -527,7 +527,7 @@ const editorialSections = [
       padding: 0 16px;
     }
     .brand-search__row { display: flex; gap: 8px; min-width: 0; }
-    .brand-search__submit { min-height: 48px; padding: 0 18px; border: 0; border-radius: 18px; background: var(--accent-strong); color: #fff; font: inherit; font-weight: 750; cursor: pointer; }
+    .brand-search__submit { min-height: 48px; padding: 0 18px; border: 0; border-radius: 18px; background: var(--accent-strong); color: #fff; font: inherit; font-weight: var(--weight-ui); cursor: pointer; }
 
     .brand-sort__select {
       min-width: 220px;
@@ -546,8 +546,8 @@ const editorialSections = [
     }
 
     .pills--secondary { margin-top: 10px; }
-    .pills--secondary :global(.pill) { box-shadow: none; font-weight: 700; }
-    .brand-filter-level { margin: 16px 0 8px; text-align: center; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(26,26,26,.52); }
+    .pills--secondary :global(.pill) { box-shadow: none; font-weight: var(--weight-ui); }
+    .brand-filter-level { margin: 16px 0 8px; text-align: center; font-size: 12px; font-weight: var(--weight-ui); letter-spacing: .08em; text-transform: uppercase; color: rgba(26,26,26,.52); }
 
     .pill,
     .pills--secondary :global(.pill) {
@@ -561,7 +561,7 @@ const editorialSections = [
       color: rgba(26, 26, 26, 0.84);
       font: inherit;
       text-decoration: none;
-      font-weight: 800;
+      font-weight: var(--weight-ui);
       cursor: pointer;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
       transition: transform 0.08s ease, background 0.12s ease;
@@ -603,7 +603,7 @@ const editorialSections = [
       border-radius: 999px;
       background: transparent;
       color: var(--accent-strong);
-      font: 700 14px var(--font-body);
+      font: var(--weight-ui) 14px var(--font-body);
       cursor: pointer;
     }
 
@@ -686,11 +686,11 @@ const editorialSections = [
     }
 
     .brand-name {
-      font-family: var(--font-title);
+      font-family: var(--font-body);
       font-size: clamp(20px, 1.45vw, 25px);
       line-height: 1.08;
       letter-spacing: -0.03em;
-      font-weight: 700;
+      font-weight: var(--weight-medium);
       text-wrap: balance;
       overflow-wrap: normal;
       word-break: normal;
@@ -733,11 +733,11 @@ const editorialSections = [
     .brand-logo--fallback {
       display: grid;
       place-items: center;
-      font-family: var(--font-title);
+      font-family: var(--font-body);
       font-size: 28px;
       color: rgba(26, 26, 26, 0.7);
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(240, 234, 224, 0.9));
-    }
+     font-weight: var(--weight-ui); }
 
     .brand-logo--fallback::before {
       content: attr(data-fallback-letter);
@@ -792,7 +792,7 @@ const editorialSections = [
       align-items: center;
       gap: 8px;
       font-size: 14px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       color: rgba(26, 26, 26, 0.84);
     }
 
@@ -841,7 +841,7 @@ const editorialSections = [
     .brand-occasion-modal__eyebrow {
       margin: 0 0 6px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.5);
@@ -849,11 +849,11 @@ const editorialSections = [
 
     .brand-occasion-modal__title {
       margin: 0;
-      font-family: var(--font-title);
+      font-family: var(--font-body);
       font-size: 34px;
       line-height: 1;
       letter-spacing: -0.04em;
-    }
+     font-weight: var(--weight-ui); }
 
     .brand-occasion-modal__close {
       display: inline-grid;
@@ -880,7 +880,7 @@ const editorialSections = [
     .brand-occasion-group__title {
       margin: 0;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.52);
@@ -914,7 +914,7 @@ const editorialSections = [
 
     .brand-occasion-option span {
       font-size: 14px;
-      font-weight: 650;
+      font-weight: var(--weight-ui);
       color: rgba(26, 26, 26, 0.82);
     }
 
@@ -938,7 +938,7 @@ const editorialSections = [
       background: rgba(95, 127, 107, 0.12);
       color: rgba(26, 26, 26, 0.88);
       font: inherit;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       cursor: pointer;
     }
 
@@ -961,7 +961,7 @@ const editorialSections = [
     .seo-editorial__kicker {
       margin: 0 0 10px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.5);
@@ -969,11 +969,11 @@ const editorialSections = [
 
     .seo-editorial__title {
       margin: 0;
-      font-family: var(--font-title);
+      font-family: var(--font-display);
       font-size: clamp(34px, 4vw, 54px);
       line-height: 0.98;
       letter-spacing: -0.04em;
-    }
+     font-weight: var(--weight-display); }
 
     .seo-editorial__intro {
       max-width: 760px;
@@ -1025,11 +1025,11 @@ const editorialSections = [
 
     .seo-editorial__card h3 {
       margin: 0 0 12px;
-      font-family: var(--font-title);
+      font-family: var(--font-display);
       font-size: clamp(27px, 2.5vw, 36px);
       line-height: 1.04;
       letter-spacing: -0.03em;
-    }
+     font-weight: var(--weight-display); }
 
     .seo-editorial__card p {
       margin: 0;
@@ -1052,7 +1052,7 @@ const editorialSections = [
       background: rgba(95, 127, 107, 0.1);
       color: rgba(26, 26, 26, 0.76);
       font-size: 12px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -1189,7 +1189,7 @@ const editorialSections = [
     }
     #brand-feed-sentinel { min-height: 1px; }
     .collection-pagination { display:flex; justify-content:center; align-items:center; gap:18px; margin-top:24px; font-size:13px; }
-    .collection-pagination a { color:var(--accent-strong); font-weight:700; text-decoration:none; }
+    .collection-pagination a { color:var(--accent-strong); font-weight:var(--weight-ui); text-decoration:none; }
     .collection-pagination[hidden] { display:none; }
     :global(.js) [data-pagination-first-page] { display:none; }
   </style>

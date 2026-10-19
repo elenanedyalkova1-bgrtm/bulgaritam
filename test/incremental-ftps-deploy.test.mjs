@@ -94,3 +94,20 @@ test("trusted completed state makes a second identical run upload nothing", asyn
   assert.equal(second.used_remote_state, true); assert.equal(second.changed.length, 0); assert.equal(second.new.length, 0); assert.equal(second.stale.length, 0);
   assert.equal(second.unchanged.length, second.total);
 });
+
+test("retirement removes only tracked legacy icons absent from the replacement build", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "deploy-retired-icons-"));
+  fs.writeFileSync(path.join(root, "deploy-manifest.json"), JSON.stringify({ commit: "brand" }));
+  fs.writeFileSync(path.join(root, "favicon-48x48.png"), "retained-if-present");
+  const tracked = { version: 1, files: {
+    "favicon.png": "old", "favicon-48x48.png": "old", "mstile-150x150.png": "old",
+    "favicon.ico": "old", ".htaccess": "protected", "unrelated.png": "protected",
+  } };
+  const plan = await createIncrementalPlan({ distDir: root, origin: "https://example.test", fetchImpl: async url =>
+    new URL(url).pathname === "/.bulgaritam-deploy-state.json" ? response(JSON.stringify(tracked)) : response("old") });
+  assert.deepEqual(plan.stale, ["favicon.png", "mstile-150x150.png"]);
+  const commands = path.join(root, "commands.lftp");
+  writeLftpCommands(plan, { distDir: root, output: commands, stateOutput: path.join(root, "state.json") });
+  const removals = fs.readFileSync(commands, "utf8").split("\n").filter(line => line.startsWith("rm "));
+  assert.deepEqual(removals, ['rm -f "/favicon.png"', 'rm -f "/mstile-150x150.png"']);
+});

@@ -6,7 +6,7 @@ import { getCategoryKey, getCategoryLanding, getCanonicalPathForLanding, getDisp
 import { getTaxonomyForProduct } from "../../lib/taxonomy";
 import { loadProducts } from "../../lib/products";
 import { getRecommendationPlan } from "../../lib/product-recommendations";
-import { formatManualPriceReferenceAmount, formatVerifiedOfferAmount, resolvePublicManualPriceReference, resolvePublishableOffer } from "../../lib/verified-offer";
+import { MANUAL_PRICE_REFERENCE_DAYS, formatManualPriceReferenceAmount, formatVerifiedOfferAmount, resolvePublicManualPriceReference, resolvePublishableOffer } from "../../lib/verified-offer";
 import { productPublishing } from "../../lib/product-seo";
 
 /** Helpers */
@@ -222,12 +222,21 @@ const publishing = productPublishing(product);
                 <span class="verified-offer__note">Крайната цена и наличността се потвърждават на сайта на бранда.</span>
               </div>
             ) : manualPriceReference ? (
+              <div data-manual-price-gate data-verified-at={manualPriceReference.verifiedAt} data-expires-at={new Date(Date.parse(manualPriceReference.verifiedAt) + MANUAL_PRICE_REFERENCE_DAYS * 86400000).toISOString()}>
+                <div data-reference-fallback class="meta-item meta-item--price">
+                  <span class="meta-label">Ориентировъчна цена</span>
+                  <span class="price">{priceText || "Провери цената при бранда"}</span>
+                </div>
+                <div data-reference-live></div>
+                <template data-reference-template>
               <div class="meta-item meta-item--price manual-price-reference" data-manual-price-reference data-manual-price-review-state={manualPriceReference.reviewState}>
                 <span class="meta-label">Последно ръчно потвърдена цена</span>
                 <span class="price" data-manual-price-reference-amount>{manualPriceReferenceText}</span>
                 <span class="verified-offer__checked">Проверена на <time datetime={manualPriceReference.verifiedAt}>{manualPriceReferenceDate}</time></span>
                 <span class="verified-offer__note">Цената не е потвърдена автоматично. Провери актуалната цена и наличността на сайта на бранда.</span>
                 <a href={manualPriceReference.sourceUrl} target="_blank" rel="noopener noreferrer">Източник на ръчната проверка ↗</a>
+              </div>
+                </template>
               </div>
             ) : priceText ? (
               <div class="meta-item meta-item--price">
@@ -1182,3 +1191,8 @@ const publishing = productPublishing(product);
     }
   </style>
 </BaseLayout>
+
+<script>
+  import { initializeManualPriceGates } from "../../scripts/manual-price-expiry.mjs";
+  initializeManualPriceGates();
+</script>

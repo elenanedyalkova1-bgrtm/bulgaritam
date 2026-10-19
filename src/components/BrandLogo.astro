@@ -1,0 +1,31 @@
+<a class="brand-logo" href="/" aria-label="Българитъм – начало">
+  <img src="/favicon.svg" width="44" height="44" alt="" />
+</a>
+
+<style>
+  .brand-logo {
+    display: inline-flex;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand-logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+  }
+
+  @media (max-width: 768px) {
+    .brand-logo {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: center;
+      align-self: center;
+    }
+  }
+</style>

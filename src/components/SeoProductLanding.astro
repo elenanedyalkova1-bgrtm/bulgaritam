@@ -1,10 +1,11 @@
 ---
+import { discoveryProducts } from "../lib/discovery-order";
 import { resolvePublishableOffer, formatVerifiedOfferAmount } from "../lib/verified-offer";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCategoryLabel, getCategoryLabelForLang, getSubcategoryLabelForLang, getTaxonomyForProduct } from "../lib/taxonomy";
 import { getProductBadges } from "../lib/product-badges";
 import { PUBLIC_BROWSE_CATEGORIES } from "../lib/public-browse-taxonomy";
-import { GIFT_FACETS_BY_CONTEXT, STRUCTURED_FACET_OPTIONS } from "../../admin-app/src/lib/product-taxonomy";
+import { GIFT_FACETS_BY_CONTEXT, STRUCTURED_FACET_OPTIONS, PRODUCT_TYPE_ALIASES } from "../../admin-app/src/lib/product-taxonomy";
 import { SEO_INTENT_LANDINGS, getFallbackSiblingLinks, getLandingGraphNode, getSeoLandingStateRegistry } from "../lib/seo-landings";
 import { orderPublicFilters } from "../lib/public-filter-order";
 import { priceRangesForProduct } from "../lib/price-ranges";
@@ -66,7 +67,7 @@ const browseSubcategoryKey = landing.audienceSubcategoryKey || landing.subcatego
     ?.subcategories.find((subcategory) => subcategory.value === registeredSubcategory)?.key || "";
 const browseCategory = PUBLIC_BROWSE_CATEGORIES.find((category) => category.key === browseCategoryKey || category.value === registeredCategory);
 const browseSubcategory = browseCategory?.subcategories.find((subcategory) => subcategory.key === browseSubcategoryKey || subcategory.value === registeredSubcategory);
-const displayProducts = [...new Map(products.filter((product) => getPrimaryImage(product)).map((product) => [product.slug, product])).values()];
+const displayProducts = discoveryProducts([...new Map(products.filter((product) => getPrimaryImage(product)).map((product) => [product.slug, product])).values()]);
 const initialDisplayCount = displayProducts.length;
 const totalPages = Math.max(1, Math.ceil(initialDisplayCount / pageSize));
 const pageStart = (pageNumber - 1) * pageSize;
@@ -86,6 +87,13 @@ const allowedProductTypes = new Set(
     : browseCategory?.subcategories.flatMap((subcategory) => subcategory.productTypes) || []
 );
 const refinementOptions = structuredRefinementOptions.filter((option) => allowedProductTypes.has(option.key));
+const facetValuesForProduct = (p) => ({
+  type: allowedProductTypes.has(clean(p.product_type)) ? [clean(p.product_type)] : [], materials: p.materials || [], color: p.colors || [], price: priceRangesForProduct(p),
+  recipient_age: p.recipient_age || [], recipient_gender: p.recipient_gender || [], gift_occasion: p.gift_occasion || [],
+  role_interest: p.role_interest || [], wedding_anniversary_type: p.wedding_anniversary_type || [], attributes: p.attributes || [],
+  gemstone: p.gemstone || [], jewelry_detail: p.jewelry_detail || [], clothing_style: p.clothing_style || [], sleeve: p.sleeve || [], season: p.season || [],
+  ingredient: p.ingredient || [], skin_type: p.skin_type || [], skin_need: p.skin_need || [], hair_need: p.hair_need || [],
+});
 const buildFacetOptions = (field) => {
   const counts = new Map();
   displayProducts.forEach((product) => {
@@ -268,6 +276,7 @@ function priceLabel(p) {
 ---
 
 <BaseLayout
+  newsletterContext={landing.newsletterContext || (landing.categoryKey === "discounts" ? "discounts" : "generic")}
   seo={{
     type: "category",
     title: landing.title,
@@ -366,6 +375,8 @@ function priceLabel(p) {
     <section
       id="products"
       class="section section--feed"
+      data-facet-index={JSON.stringify(displayProducts.map(facetValuesForProduct))}
+      data-product-type-aliases={JSON.stringify(PRODUCT_TYPE_ALIASES)}
       data-seo-state-registry={JSON.stringify(seoStateRegistry)}
       data-base-structured-state={JSON.stringify(baseStructuredState)}
       data-canonical-path={canonicalPath}
@@ -378,10 +389,10 @@ function priceLabel(p) {
         <details class="landing-refinements">
           <summary class="landing-refinements__summary">
             <span class="landing-refinements__summary-copy">
-              <span class="landing-refinements__label">Филтри</span>
+              <span class="landing-refinements__label">{isGiftContext ? "Намери подходящ подарък" : "Филтри"}</span>
               <span class="landing-refinements__support">Избери филтри и резултатите ще се обновят автоматично.</span>
             </span>
-            <span class="landing-refinements__toggle"><span class="when-closed">Отвори филтрите</span><span class="when-open">Затвори филтрите</span></span>
+            <span class="landing-refinements__toggle"><span class="when-closed">{isGiftContext ? "Започни →" : "Отвори филтрите"}</span><span class="when-open">Затвори филтрите</span></span>
           </summary>
 
           <div class="landing-refinements__groups">
@@ -448,13 +459,7 @@ function priceLabel(p) {
             data-materials={(p.materials || []).join("|")}
             data-colors={(p.colors || []).join("|")}
             data-price-ranges={priceRangesForProduct(p).join("|")}
-            data-facet-values={JSON.stringify({
-              type: refinementKeys ? [refinementKeys] : [], materials: p.materials || [], color: p.colors || [], price: priceRangesForProduct(p),
-              recipient_age: p.recipient_age || [], recipient_gender: p.recipient_gender || [], gift_occasion: p.gift_occasion || [],
-              role_interest: p.role_interest || [], wedding_anniversary_type: p.wedding_anniversary_type || [], attributes: p.attributes || [],
-              gemstone: p.gemstone || [], jewelry_detail: p.jewelry_detail || [], clothing_style: p.clothing_style || [], sleeve: p.sleeve || [], season: p.season || [],
-              ingredient: p.ingredient || [], skin_type: p.skin_type || [], skin_need: p.skin_need || [], hair_need: p.hair_need || [],
-            })}
+            data-facet-values={JSON.stringify(facetValuesForProduct(p))}
             data-initial-match="1"
             data-product-slug={p.slug}
             data-product-name={p.name_bg}
@@ -620,7 +625,7 @@ function priceLabel(p) {
       margin: 0 0 10px;
       text-align: center;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.16em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.48);
@@ -638,7 +643,7 @@ function priceLabel(p) {
       color: rgba(26, 26, 26, 0.82);
       text-decoration: none;
       font-size: 14px;
-      font-weight: 600;
+      font-weight: var(--weight-medium);
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
     }
 
@@ -650,6 +655,11 @@ function priceLabel(p) {
       border-color: rgba(95, 127, 107, 0.3);
       background: rgba(95, 127, 107, 0.12);
       color: rgba(26, 26, 26, 0.92);
+    }
+
+    .landing-subcategories__pill:hover {
+      border-color: rgba(95, 127, 107, 0.3);
+      background: rgba(95, 127, 107, 0.08);
     }
 
     .landing-gift-more { display: none; }
@@ -687,13 +697,14 @@ function priceLabel(p) {
       content: "";
     }
 
+    .landing-refinements:not([open]) > :not(summary) { display: none; }
     .landing-refinements__groups { display: grid; gap: 18px; padding: 0 18px 18px; }
     .landing-refinements__group { min-width: 0; margin: 0; padding: 0; border: 0; }
-    .landing-refinements__group legend { margin: 0 0 10px; padding: 0; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: rgba(26,26,26,.52); }
+    .landing-refinements__group legend { margin: 0 0 10px; padding: 0; font-size: 12px; font-weight: var(--weight-ui); letter-spacing: .12em; text-transform: uppercase; color: rgba(26,26,26,.52); }
 
     .landing-refinements__label {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       color: rgba(26, 26, 26, 0.82);
     }
     .landing-refinements__summary-copy { display: grid; gap: 3px; }
@@ -703,10 +714,10 @@ function priceLabel(p) {
     .landing-refinements[open] .landing-refinements__toggle .when-closed { display: none; }
     .landing-refinements[open] .landing-refinements__toggle .when-open { display: inline; }
     .landing-refinements__sticky-close { display: none; padding: 0 14px 14px; }
-    .landing-refinements__sticky-close button { width: 100%; min-height: 44px; border: 0; border-radius: 999px; background: var(--accent-strong); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
-    .landing-sort { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; font-weight: 700; }
+    .landing-refinements__sticky-close button { width: 100%; min-height: 44px; border: 0; border-radius: 999px; background: var(--accent-strong); color: #fff; font: inherit; font-weight: var(--weight-ui); cursor: pointer; }
+    .landing-sort { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; font-weight: var(--weight-ui); }
     .landing-sort select { min-height: 42px; padding: 0 36px 0 13px; border: 1px solid rgba(26,26,26,.12); border-radius: 999px; background: #fff; color: inherit; font: inherit; }
-    .feed-load-more { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; margin-top: 10px; padding: 0 18px; border: 1px solid rgba(26,26,26,.12); border-radius: 999px; background: #fff; color: inherit; font: inherit; font-weight: 750; cursor: pointer; }
+    .feed-load-more { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; margin-top: 10px; padding: 0 18px; border: 1px solid rgba(26,26,26,.12); border-radius: 999px; background: #fff; color: inherit; font: inherit; font-weight: var(--weight-ui); cursor: pointer; }
     .feed-load-more[hidden] { display: none; }
 
     .landing-refinements__toggle {
@@ -718,7 +729,7 @@ function priceLabel(p) {
       border-radius: 999px;
       background: rgba(95, 127, 107, 0.1);
       font-size: 11px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
       color: rgba(26, 26, 26, 0.78);
@@ -757,7 +768,7 @@ function priceLabel(p) {
 
     .landing-refinements__option span {
       font-size: 13px;
-      font-weight: 650;
+      font-weight: var(--weight-ui);
       color: rgba(26, 26, 26, 0.82);
     }
 
@@ -777,7 +788,7 @@ function priceLabel(p) {
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.66);
       color: var(--accent-strong);
-      font: 700 13px/1.2 var(--font-body);
+      font: var(--weight-ui) 13px/1.2 var(--font-body);
       cursor: pointer;
       transition: background-color .18s ease, border-color .18s ease;
     }
@@ -829,7 +840,7 @@ function priceLabel(p) {
       height: 2px;
     }
     .collection-pagination { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 18px 0 0; font-size: 13px; }
-    .collection-pagination a { color: var(--accent-strong); font-weight: 700; text-decoration: none; }
+    .collection-pagination a { color: var(--accent-strong); font-weight: var(--weight-ui); text-decoration: none; }
     .collection-pagination[hidden] { display: none; }
     :global(.js) [data-pagination-first-page] { display: none; }
 
@@ -952,7 +963,7 @@ function priceLabel(p) {
       padding: 0 10px;
       border-radius: 999px;
       font-size: 10px;
-      font-weight: 800;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
@@ -988,7 +999,7 @@ function priceLabel(p) {
       background: rgba(95, 127, 107, 0.1);
       color: rgba(26, 26, 26, 0.72);
       font-size: 11px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -1019,7 +1030,9 @@ function priceLabel(p) {
     }
 
     .seo-editorial {
-      margin-top: 48px;
+      width: 100%;
+      max-width: 960px;
+      margin: 48px auto 0;
       border-radius: 26px;
       border: 1px solid rgba(26, 26, 26, 0.08);
       background: rgba(255, 255, 255, 0.7);
@@ -1035,17 +1048,17 @@ function priceLabel(p) {
       gap: 20px;
       padding: 22px 24px;
       cursor: pointer;
-      font-family: var(--font-title);
+      font-family: var(--font-display);
       font-size: clamp(24px, 3vw, 34px);
       line-height: 1.08;
       letter-spacing: -0.03em;
-    }
+     font-weight: var(--weight-display); }
     .seo-editorial__disclosure::-webkit-details-marker { display: none; }
     .seo-editorial__disclosure::marker { display: none; content: ""; }
-    .seo-editorial__body { padding: 0 24px 24px; }
+    .seo-editorial__body { max-width: 792px; margin-inline: auto; padding: 0 24px 24px; }
 
     .seo-editorial__intro {
-      max-width: 760px;
+      max-width: 700px;
       margin: 14px auto 0;
       line-height: 1.72;
       color: rgba(26, 26, 26, 0.74);
@@ -1053,7 +1066,7 @@ function priceLabel(p) {
 
     .seo-editorial__grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 1fr);
       gap: 18px;
     }
 
@@ -1066,11 +1079,11 @@ function priceLabel(p) {
 
     .seo-editorial__card h3 {
       margin: 0;
-      font-family: var(--font-title);
+      font-family: var(--font-display);
       font-size: clamp(27px, 2.5vw, 36px);
       line-height: 1.04;
       letter-spacing: -0.03em;
-    }
+     font-weight: var(--weight-display); }
 
     .seo-editorial__toggle {
       flex: 0 0 auto;
@@ -1083,7 +1096,7 @@ function priceLabel(p) {
       background: rgba(95, 127, 107, 0.1);
       color: rgba(26, 26, 26, 0.76);
       font-size: 12px;
-      font-weight: 700;
+      font-weight: var(--weight-ui);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -1150,6 +1163,7 @@ function priceLabel(p) {
       border: 1px solid rgba(26, 26, 26, 0.1);
       color: rgba(26, 26, 26, 0.76);
       font-size: 13px;
+      line-height: 20.8px;
       text-decoration: none;
       display: inline-flex;
       border-radius: 999px;
@@ -1220,6 +1234,7 @@ function priceLabel(p) {
         width: 100%;
         min-height: 36px;
         font-size: 10px;
+        line-height: 16px;
       }
 
       .save-btn--card {
@@ -1265,7 +1280,7 @@ function priceLabel(p) {
         border: 0;
         background: transparent;
         color: var(--accent-strong);
-        font: 700 14px var(--font-body);
+        font: var(--weight-ui) 14px var(--font-body);
         text-decoration: underline;
         text-underline-offset: 4px;
         cursor: pointer;
@@ -1286,9 +1301,9 @@ function priceLabel(p) {
         margin-bottom: 12px;
       }
 
-      .seo-editorial__grid {
-        grid-template-columns: 1fr;
-      }
+      .seo-editorial__disclosure { padding: 16px; gap: 12px; }
+      .seo-editorial__body { padding: 0 16px 16px; }
+      .seo-editorial__card { padding: 16px; }
 
       .seo-editorial__toggle {
         min-height: 34px;
@@ -1304,6 +1319,8 @@ function priceLabel(p) {
     }
   </style>
 
+  <script is:inline src="/filter-options.js"></script>
+  <script is:inline src="/product-discovery.js"></script>
   <script is:inline>
     const grid = document.getElementById("grid");
     const count = document.getElementById("count");
@@ -1317,20 +1334,40 @@ function priceLabel(p) {
     const landingSortSelect = document.getElementById("landing-sort-select");
     const collectionPagination = feedSection?.querySelector(".collection-pagination");
     const parseJson = (value, fallback) => { try { return JSON.parse(value || "") || fallback; } catch { return fallback; } };
+    const facetIndex = parseJson(feedSection?.dataset.facetIndex, []);
+    const productTypeAliases = parseJson(feedSection?.dataset.productTypeAliases, {});
+    const normalizeFacetValue = (group, value) => group === "type" ? productTypeAliases[value] || value : value;
     const seoStateRegistry = new Map(parseJson(feedSection?.dataset.seoStateRegistry, []).map((entry) => [entry.stateKey, entry.path]));
     const baseStructuredState = parseJson(feedSection?.dataset.baseStructuredState, {});
     const splitFacetValues = (value) => String(value || "").split("|").map((entry) => entry.trim()).filter(Boolean);
     let loadedThroughPage = Number(feedSection?.dataset.currentPage || 1);
     const loadedStaticPages = new Set([loadedThroughPage]);
     const totalPages = Number(feedSection?.dataset.totalPages || 1);
+    const initialPage = loadedThroughPage;
+    const initialCards = [...allCards];
+    const discoveryPlan = window.bulgaritamDiscoveryPlan(totalPages, allCards.length);
+    const pageOrder = discoveryPlan.pages;
+    // Direct paginated URLs start at their requested page; the remaining plan is shared.
+    if (initialPage !== 1) {
+      pageOrder.splice(pageOrder.indexOf(initialPage), 1);
+      pageOrder.unshift(initialPage);
+    }
+    const assignDiscoveryRanks = (cards, page) => cards.forEach((card, index) => {
+      card.dataset.featuredIndex = String(discoveryPlan.rank(page, index));
+    });
+    assignDiscoveryRanks(initialCards, initialPage);
+    loadedThroughPage = 0;
     const totalItems = Number(feedSection?.dataset.totalItems || allCards.length);
     const collectionPath = feedSection?.dataset.collectionPath || feedSection?.dataset.canonicalPath || window.location.pathname;
     let pageLoadPromise = null;
     let appendInProgress = false;
+    let autoLoadPaused = false;
+    let restoringFeed = true;
     const pageUrl = (page) => page === 1 ? collectionPath : `${collectionPath.replace(/\/$/, "")}/page/${page}/`;
     const loadStaticPage = async (page) => {
       if (loadedStaticPages.has(page) || page < 1 || page > totalPages) return false;
-      if (pageLoadPromise) return pageLoadPromise;
+      if (pageLoadPromise) await pageLoadPromise;
+      if (loadedStaticPages.has(page)) return false;
       pageLoadPromise = fetch(pageUrl(page), { credentials: "same-origin" })
         .then((response) => { if (!response.ok) throw new Error(`Pagination ${response.status}`); return response.text(); })
         .then((html) => {
@@ -1338,11 +1375,13 @@ function priceLabel(p) {
           const existing = new Set(allCards.map((card) => card.dataset.productSlug));
           const added = Array.from(documentPage.querySelectorAll("#grid li.card"))
             .filter((card) => !existing.has(card.dataset.productSlug));
+          if (!added.length) throw new Error("Empty product page");
+          assignDiscoveryRanks(added, page);
           added.forEach((card) => { card.style.display = "none"; grid.appendChild(document.importNode(card, true)); });
           allCards = Array.from(grid.querySelectorAll("li.card"));
           allCards.forEach((card, index) => { if (!card.dataset.originalPosition) card.dataset.originalPosition = card.dataset.position || String(index + 1); });
           loadedStaticPages.add(page);
-          loadedThroughPage = Math.max(loadedThroughPage, page);
+          while (loadedStaticPages.has(pageOrder[loadedThroughPage])) loadedThroughPage += 1;
           window.dispatchEvent(new CustomEvent("bulgaritam:products-appended", { detail: { nodes: allCards.slice(-added.length) } }));
           if (typeof window.syncSaveButtons === "function") window.syncSaveButtons();
           return added.length > 0;
@@ -1351,7 +1390,7 @@ function priceLabel(p) {
       return pageLoadPromise;
     };
     const ensureAllStaticPages = async () => {
-      for (let page = 1; page <= totalPages; page += 1) await loadStaticPage(page);
+      for (const page of pageOrder) await loadStaticPage(page);
     };
     const cardFacetKey = (group) => group === "material" ? "materials" : group;
     const stateFacetKey = (group) => ({ type: "product_type", material: "materials", color: "colors" })[group] || group;
@@ -1381,7 +1420,7 @@ function priceLabel(p) {
     const numericPrice = (card) => { const min = Number(card.dataset.priceMin); const max = Number(card.dataset.priceMax); return Number.isFinite(min) && min > 0 ? min : Number.isFinite(max) && max > 0 ? max : Number.POSITIVE_INFINITY; };
     const originalPosition = (card) => Number(card.dataset.originalPosition || Number.MAX_SAFE_INTEGER);
     const sortCards = (cards) => [...cards].sort((a, b) => {
-      if (selectedSort === "featured") return originalPosition(a) - originalPosition(b);
+      if (selectedSort === "featured") return Number(a.dataset.featuredIndex) - Number(b.dataset.featuredIndex);
       if (selectedSort === "alpha-asc") return String(a.dataset.productName || "").localeCompare(String(b.dataset.productName || ""), "bg") || originalPosition(a) - originalPosition(b);
       if (selectedSort === "alpha-desc") return String(b.dataset.productName || "").localeCompare(String(a.dataset.productName || ""), "bg") || originalPosition(a) - originalPosition(b);
       const ap = numericPrice(a), bp = numericPrice(b), am = !Number.isFinite(ap), bm = !Number.isFinite(bp);
@@ -1429,7 +1468,7 @@ function priceLabel(p) {
       sessionStorage.removeItem("bulgaritam:seo-filter-transition");
       refinementInputs.forEach((input) => {
         const values = saved.state?.[stateFacetKey(input.dataset.filterGroup || "type")] || [];
-        input.checked = values.some((value) => String(value).toLowerCase() === String(input.value).toLowerCase());
+        input.checked = values.some((value) => String(normalizeFacetValue(input.dataset.filterGroup || "type", value)).toLowerCase() === String(input.value).toLowerCase());
       });
       if (saved.filtersOpen && refinements) refinements.open = true;
       requestAnimationFrame(() => document.getElementById(saved.anchor || "products")?.scrollIntoView({ block: "start" }));
@@ -1437,7 +1476,7 @@ function priceLabel(p) {
 
     refinementInputs.forEach((input) => {
       const values = baseStructuredState[stateFacetKey(input.dataset.filterGroup || "type")] || [];
-      input.checked = values.some((value) => String(value).toLowerCase() === String(input.value).toLowerCase());
+      input.checked = values.some((value) => String(normalizeFacetValue(input.dataset.filterGroup || "type", value)).toLowerCase() === String(input.value).toLowerCase());
     });
     restoreTransitionState();
 
@@ -1464,14 +1503,14 @@ function priceLabel(p) {
         const groupName = group.dataset.facetGroup;
         const selected = selectionsByGroup();
         delete selected[groupName];
-        const candidates = allCards.filter((card) => Object.entries(selected).every(([name, values]) =>
-          values.some((value) => cardFacetValues(card, name).includes(value))
+        const candidates = facetIndex.filter((facets) => Object.entries(selected).every(([name, values]) =>
+          values.some((value) => (facets[cardFacetKey(name)] || []).includes(value))
         ));
         let available = 0;
         group.querySelectorAll("[data-facet-option]").forEach((option) => {
           const input = option.querySelector("input");
-          const count = candidates.filter((card) => {
-            return cardFacetValues(card, groupName).includes(input.value);
+          const count = candidates.filter((facets) => {
+            return (facets[cardFacetKey(groupName)] || []).includes(input.value);
           }).length;
           option.hidden = count === 0 && !input.checked;
           input.disabled = count === 0 && !input.checked;
@@ -1483,15 +1522,7 @@ function priceLabel(p) {
         if (groupName !== "type") group.hidden = available < 2 && !hasSelectedOption;
       });
       document.querySelectorAll("[data-collapsible-facet]").forEach((panel) => {
-        const options = Array.from(panel.querySelectorAll("[data-facet-option]")).filter((option) => !option.hidden);
-        let button = panel.parentElement?.querySelector(":scope > .landing-refinements__more");
-        if (options.length <= 8) { options.forEach((option) => option.classList.remove("is-overflow-option")); button?.remove(); return; }
-        if (!button) { button = document.createElement("button"); button.type = "button"; button.className = "landing-refinements__more"; panel.insertAdjacentElement("afterend", button); }
-        const expanded = button.getAttribute("aria-expanded") === "true";
-        options.forEach((option, index) => option.classList.toggle("is-overflow-option", !expanded && index >= 8 && !option.querySelector("input")?.checked));
-        button.textContent = expanded ? "Покажи по-малко" : `Покажи още (${options.length - 8})`;
-        button.setAttribute("aria-expanded", String(expanded));
-        button.onclick = () => { button.setAttribute("aria-expanded", String(!expanded)); updateFacetAvailability(); };
+        window.bulgaritamUpdateFacetOverflow(panel, "[data-facet-option]", "landing-refinements__more");
       });
     };
 
@@ -1555,25 +1586,112 @@ function priceLabel(p) {
     };
 
     const loadMore = async () => {
-      if (appendInProgress) return;
+      if (appendInProgress || restoringFeed) return;
       appendInProgress = true;
+      autoLoadPaused = false;
+      if (feedLoadMore) feedLoadMore.textContent = "Покажи още";
       try {
-      if (visibleCount >= getFilteredCards().length && loadedThroughPage < totalPages) {
-        await loadStaticPage(loadedThroughPage + 1);
-      }
-      if (visibleCount >= getFilteredCards().length) return;
-      visibleCount += getBatchSize();
-      updateFeedVisibility();
+        if (visibleCount >= getFilteredCards().length && loadedThroughPage < totalPages) {
+          await loadStaticPage(pageOrder[loadedThroughPage]);
+        }
+        if (visibleCount < getFilteredCards().length) visibleCount += getBatchSize();
+        // Also refresh the sentinel when the last page adds no matching products.
+        updateFeedVisibility();
+      } catch {
+        // Keep the current cards and page cursor. Retry only after an explicit tap.
+        autoLoadPaused = true;
+        if (feedStatus) feedStatus.textContent = "Не успяхме да заредим още продукти. Опитайте отново.";
+        if (feedLoadMore) {
+          feedLoadMore.hidden = false;
+          feedLoadMore.textContent = "Опитай отново";
+        }
       } finally {
         appendInProgress = false;
-        if (feedSentinel && !feedSentinel.hidden) {
+        if (!autoLoadPaused && feedSentinel && !feedSentinel.hidden) {
           const rect = feedSentinel.getBoundingClientRect();
-          if (rect.top <= window.innerHeight + 320 && rect.bottom >= -320) requestAnimationFrame(loadMore);
+          if (rect.top <= window.innerHeight + 320 && rect.bottom >= -320) requestAnimationFrame(() => {
+            if (!autoLoadPaused) loadMore();
+          });
         }
       }
     };
 
-    commitSeoDiscoveryState(updateFeedVisibility());
+    // A history return may create a fresh document instead of using the back/forward cache.
+    // Store only this landing's UI state; ordinary visits and reloads still start normally.
+    const historyStateKey = `bulgaritam:seo-feed:v1:${window.location.pathname}${window.location.search}`;
+    window.addEventListener("pagehide", () => {
+      if (restoringFeed) return;
+      const scroller = document.body.scrollHeight > document.documentElement.scrollHeight
+        ? document.body : (document.scrollingElement || document.documentElement);
+      try {
+        sessionStorage.setItem(historyStateKey, JSON.stringify({
+          visibleCount, pages: [...loadedStaticPages], selectedSort, filtersTouched,
+          filtersOpen: Boolean(refinements?.open),
+          filters: refinementInputs.filter((input) => input.checked).map((input) => ({
+            group: input.dataset.filterGroup || "type", value: input.value,
+          })),
+          scrollTop: scroller.scrollTop,
+        }));
+      } catch { /* Browsing still works when storage is unavailable. */ }
+    });
+
+    const initializeFeed = async () => {
+      let historyState = null;
+      try {
+        // Keep SSR usable until the first visitor-specific page has loaded.
+        try {
+          await loadStaticPage(pageOrder[0]);
+          if (pageOrder[0] !== initialPage) {
+            initialCards.forEach((card) => card.remove());
+            allCards = allCards.filter((card) => !initialCards.includes(card));
+            loadedStaticPages.delete(initialPage);
+          }
+        } catch {
+          pageOrder.splice(pageOrder.indexOf(initialPage), 1);
+          pageOrder.unshift(initialPage);
+          assignDiscoveryRanks(initialCards, initialPage);
+        }
+        loadedThroughPage = 0;
+        while (loadedStaticPages.has(pageOrder[loadedThroughPage])) loadedThroughPage += 1;
+        if (selectedSort !== "featured") await ensureAllStaticPages();
+        if (performance.getEntriesByType("navigation")[0]?.type === "back_forward") {
+          historyState = parseJson(sessionStorage.getItem(historyStateKey), null);
+        }
+        if (historyState && Array.isArray(historyState.pages) && Array.isArray(historyState.filters)) {
+          for (const page of historyState.pages) {
+            if (Number.isInteger(page) && page >= 1 && page <= totalPages) await loadStaticPage(page);
+          }
+          if (supportedSorts.has(historyState.selectedSort)) selectedSort = historyState.selectedSort;
+          if (landingSortSelect) landingSortSelect.value = selectedSort;
+          refinementInputs.forEach((input) => {
+            input.checked = historyState.filters.some((entry) => entry.group === (input.dataset.filterGroup || "type") && normalizeFacetValue(entry.group, entry.value) === input.value);
+          });
+          filtersTouched = Boolean(historyState.filtersTouched);
+          if (refinements) refinements.open = Boolean(historyState.filtersOpen);
+          visibleCount = Math.max(getBatchSize(), Math.min(Number(historyState.visibleCount) || getBatchSize(), allCards.length));
+        } else historyState = null;
+        commitSeoDiscoveryState(updateFeedVisibility());
+        if (historyState) {
+          // Let the existing masonry measurement finish before restoring the scroll container.
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          const scroller = document.body.scrollHeight > document.documentElement.scrollHeight
+            ? document.body : (document.scrollingElement || document.documentElement);
+          scroller.scrollTo({ top: Math.max(0, Number(historyState.scrollTop) || 0), behavior: "instant" });
+        }
+      } catch {
+        commitSeoDiscoveryState(updateFeedVisibility());
+        autoLoadPaused = true;
+        if (feedStatus) feedStatus.textContent = "Не успяхме да заредим още продукти. Опитайте отново.";
+        if (feedLoadMore) { feedLoadMore.hidden = false; feedLoadMore.textContent = "Опитай отново"; }
+      } finally {
+        restoringFeed = false;
+        if (!autoLoadPaused && feedSentinel && !feedSentinel.hidden) {
+          const rect = feedSentinel.getBoundingClientRect();
+          if (rect.top <= window.innerHeight + 320 && rect.bottom >= -320) loadMore();
+        }
+      }
+    };
+    initializeFeed();
 
     refinementInputs.forEach((input) => {
       input.addEventListener("change", async () => {
@@ -1602,7 +1720,7 @@ function priceLabel(p) {
     if ("IntersectionObserver" in window && feedSentinel) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) loadMore();
+          if (entry.isIntersecting && !autoLoadPaused && !restoringFeed) loadMore();
         });
       }, { rootMargin: "320px 0px" });
 
@@ -1625,5 +1743,5 @@ function priceLabel(p) {
   </script>
 </BaseLayout>
 <style>
-  .landing-breadcrumbs{margin:0 0 18px;font:600 13px/1.4 var(--font-body);color:rgba(26,26,26,.62)}.landing-breadcrumbs ol{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}.landing-breadcrumbs li:not(:last-child)::after{content:"/";margin-left:6px;color:rgba(26,26,26,.32)}.landing-breadcrumbs a{text-decoration:none}.landing-breadcrumbs a:hover{text-decoration:underline}@media(max-width:640px){.landing-breadcrumbs{margin-bottom:14px;text-align:left}}
+  .landing-breadcrumbs{margin:0 0 18px;font:var(--weight-body) 13px/1.4 var(--font-body);color:rgba(26,26,26,.62)}.landing-breadcrumbs ol{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}.landing-breadcrumbs li:not(:last-child)::after{content:"/";margin-left:6px;color:rgba(26,26,26,.32)}.landing-breadcrumbs a{text-decoration:none}.landing-breadcrumbs a:hover{text-decoration:underline}@media(max-width:640px){.landing-breadcrumbs{margin-bottom:14px;text-align:left}}
 </style>

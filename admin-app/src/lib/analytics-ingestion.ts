@@ -2,7 +2,7 @@ import { mapAnalyticsPayloadToInsert, safeAnalyticsErrorDiagnostics, type Analyt
 
 export const ALLOWED_ANALYTICS_ORIGINS = new Set(["https://bulgaritam.bg", "https://www.bulgaritam.bg"]);
 export const ALLOWED_ANALYTICS_EVENTS = new Set([
-  "page_view", "product_impression", "brand_impression", "view_product", "view_brand",
+  "page_view", "product_impression", "brand_impression", "deal_impression", "deal_click", "view_product", "view_brand",
   "search", "search_results_view", "search_no_results", "select_category", "select_subcategory",
   "select_product_type", "select_gift_recipient", "select_gift_occasion", "apply_filter",
   "open_gift_discovery", "surprise_me",

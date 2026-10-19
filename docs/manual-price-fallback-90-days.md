@@ -37,13 +37,14 @@ discount evaluator, cards, or automatic approval.
 
 ## Static-public expiry safety
 
-The canonical resolver keeps the exact 90-day boundary inclusive. Static HTML
-cannot remove an amount after publication, and this project does not have an
-approved dynamic product-page runtime. Public builds therefore use a
-conservative 83-day emission cutoff, reserving seven days for the maximum
-supported weekly publishing interval. A reference emitted at the inclusive
-day-83 boundary may remain visible through day 90; the next build must occur no
-later than seven days afterward. Day-84 through day-90 references remain valid
-in the data model and Admin, but the static public page shows the orientational
-range instead. If the publishing interval can exceed seven days, the public
-build must be withheld or this safety window must be increased before release.
+The canonical resolver keeps the exact 90-day boundary inclusive, and public
+builds retain the conservative 83-day eligibility cutoff. Exact manual amounts
+are now emitted only inside inert templates. The visible static/no-JavaScript
+fallback is the orientational range or a link to check the brand's price.
+
+The client validates the original verification date and the exact 90-day expiry
+before displaying the template. It removes the amount at expiry, when hidden,
+and rechecks on visibility/page restoration. A missed publication no longer
+leaves an expired manual amount visible in ordinary browsers. This gate relies
+on the browser clock; it is a display safeguard, not authoritative server time.
+No data approval, verification timestamp or monitoring rule is changed.

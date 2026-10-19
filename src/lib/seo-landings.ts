@@ -1,3 +1,4 @@
+import { normalizeProductType } from "../../admin-app/src/lib/product-taxonomy";
 import type { Product } from "./products";
 import primaryClusterSpecs from "../data/primary-cluster-landings.json";
 import { getPublicBrowseForProduct, PUBLIC_BROWSE_CATEGORIES } from "./public-browse-taxonomy";
@@ -1397,7 +1398,7 @@ export type SeoLandingCoverageGraph = {
   productCountByKey: Map<string, number>;
   contentfulKeys: Set<string>;
   parentNavigationByKey: Map<string, LandingGraphNode[]>;
-  productLinksBySlug: Map<string, SeoIntentLanding[]>;
+  productLinksBySlug: Map<string, PublicLanding[]>;
   fallbackSiblingLinksByKey: Map<string, LandingGraphNode[]>;
 };
 
@@ -1439,16 +1440,32 @@ export function getSeoLandingCoverageGraph(products: Product[]): SeoLandingCover
     parentNavigationByKey.set(parent.key, children);
   }
 
-  const productLinksBySlug = new Map<string, SeoIntentLanding[]>();
+  const productLinksBySlug = new Map<string, PublicLanding[]>();
   for (const product of products) {
-    const intentMatches = intentNodes
+    const candidates = [...intentNodes, ...taxonomyNodes]
       .filter((node) => contentfulKeys.has(node.key))
-      .filter((node) => exactStructuredLandingMatchesProduct(node.landing as SeoIntentLanding, product))
-      .sort((a, b) => structuredLandingSpecificity(b.landing as SeoIntentLanding) - structuredLandingSpecificity(a.landing as SeoIntentLanding)
-        || (productCountByKey.get(a.key) || 0) - (productCountByKey.get(b.key) || 0)
-        || a.order - b.order);
-    const unique = new Map<string, SeoIntentLanding>();
-    for (const node of intentMatches) unique.set(node.canonicalUrl, node.landing as SeoIntentLanding);
+      .filter((node) => {
+        if (node.pageType === "intent") {
+          const landing = node.landing as SeoIntentLanding;
+          // A text-only match is never sufficient for a product discovery link.
+          return exactStructuredLandingMatchesProduct(landing, product)
+            && getProductsForIntentLanding([product], landing).length > 0;
+        }
+        const landing = node.landing as SeoLanding;
+        return !landing.canonicalSlug && !landing.hidden && productMatchesLanding(product, landing);
+      })
+      .sort((a, b) => {
+        const specificity = (node: LandingGraphNode) => node.pageType === "intent"
+          ? structuredLandingSpecificity(node.landing as SeoIntentLanding) + 2
+          : node.pageType === "subcategory" ? 2 : 1;
+        return specificity(b) - specificity(a)
+          || (productCountByKey.get(a.key) || 0) - (productCountByKey.get(b.key) || 0)
+          || a.order - b.order;
+      });
+    const unique = new Map<string, PublicLanding>();
+    for (const node of candidates) {
+      if (!unique.has(node.canonicalUrl)) unique.set(node.canonicalUrl, { ...node.landing, path: node.canonicalUrl });
+    }
     productLinksBySlug.set(product.slug, [...unique.values()].slice(0, 4));
   }
 
@@ -1720,7 +1737,8 @@ export const productMatchesStructuredState = (product: Product, state: Record<st
   Object.entries(state).every(([field, expected]) => {
     if (!expected?.length) return true;
     if (field === "giftable") return expected.some((value) => normalize(value) === String(product.giftable));
-    if (field === "category" || field === "subcategory" || field === "product_type") {
+    if (field === "product_type") return expected.some((value) => normalize(normalizeProductType(value)) === normalize(normalizeProductType(product.product_type)));
+    if (field === "category" || field === "subcategory") {
       return expected.some((value) => normalize(value) === normalize(product[field]));
     }
     if (!STRUCTURED_ARRAY_FIELDS.has(field)) return false;
@@ -1731,7 +1749,7 @@ export const productMatchesStructuredState = (product: Product, state: Record<st
 const normalizedStateEntries = (state: Record<string, string[]>) => Object.entries(state)
   .filter(([, values]) => values?.length)
   .sort(([a], [b]) => a.localeCompare(b))
-  .map(([field, values]) => [field, [...new Set(values.map(normalize).filter(Boolean))].sort()] as const);
+  .map(([field, values]) => [field, [...new Set(values.map((value) => normalize(field === "product_type" ? normalizeProductType(value) : value)).filter(Boolean))].sort()] as const);
 
 export const serializeSeoLandingState = (state: Record<string, string[]>) =>
   normalizedStateEntries(state).map(([field, values]) => `${field}=${values.join("|")}`).join("&");

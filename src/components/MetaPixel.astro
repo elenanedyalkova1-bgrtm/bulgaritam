@@ -1,0 +1,47 @@
+<!-- Meta Pixel: uses the shared analytics consent; no unconditional noscript beacon. -->
+<script is:inline>
+  (() => {
+    if (window.__bulgaritamMetaPixelInstalled) return;
+    window.__bulgaritamMetaPixelInstalled = true;
+    let initialized = false;
+    let pageViewSent = false;
+    let granted = false;
+
+    const syncConsent = () => {
+      const allowed = Boolean(window.__cookieConsent?.analytics) &&
+        !document.cookie.split(";").some((part) => part.trim() === "bulgaritam_analytics_excluded=1");
+      if (!allowed) {
+        if (initialized && granted) window.fbq('consent', 'revoke');
+        granted = false;
+        return;
+      }
+
+      if (!initialized) {
+        // Official Meta base loader, invoked only after consent is granted.
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        // Limit this integration to explicit PageView events.
+        window.fbq('set', 'autoConfig', false, '1994579961234776');
+        window.fbq('init', '1994579961234776');
+        initialized = true;
+      }
+      if (!granted) window.fbq('consent', 'grant');
+      granted = true;
+      // Astro uses full document navigation. Repeated consent events must not
+      // send another PageView for the same document (including revoke/regrant).
+      if (!pageViewSent) {
+        pageViewSent = true;
+        window.fbq('track', 'PageView');
+      }
+    };
+
+    window.addEventListener('cookie-consent', syncConsent);
+    syncConsent();
+  })();
+</script>

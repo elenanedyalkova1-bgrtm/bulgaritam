@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
+const context={window:{}};
+runInNewContext(readFileSync(new URL('../public/filter-options.js',import.meta.url),'utf8'),context);
+const hidden=(count,selected=[])=>Array.from(context.window.bulgaritamFacetOverflowIndices(Array.from({length:count},(_,i)=>({selected:selected.includes(i)}))));
+test('overflow exists immediately for nine or more valid values',()=>{assert.deepEqual(hidden(8),[]);assert.deepEqual(hidden(9),[8]);assert.equal(hidden(18).length,10);});
+test('selected values beyond the normal subset stay visible without miscounting hidden values',()=>{const values=hidden(18,[15,17]);assert.equal(values.length,10);assert.ok(!values.includes(15)&&!values.includes(17));assert.ok(values.includes(6));});
+test('more than eight selected values remain visible and only unselected values overflow',()=>{assert.deepEqual(hidden(12,[0,1,2,3,4,5,6,7,8,9]),[10,11]);});
+test('recalculation handles shrinking groups and empty results',()=>{assert.equal(hidden(30,[20]).length,22);assert.deepEqual(hidden(4,[3]),[]);assert.deepEqual(hidden(0),[]);});

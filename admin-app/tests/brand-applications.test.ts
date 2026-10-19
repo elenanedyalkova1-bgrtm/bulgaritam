@@ -8,7 +8,7 @@ process.env.RESEND_API_KEY = "test-resend";
 const { POST } = await import("../src/pages/api/brand-applications");
 const originalFetch = globalThis.fetch;
 
-type Scenario = { monthly: boolean; existing?: boolean; resendFails?: boolean; persistenceFails?: boolean };
+type Scenario = { monthly: boolean; existing?: boolean; resendFails?: boolean; persistenceFails?: boolean; presence?: { website?: string; instagram?: string; facebook?: string } };
 let scenarioIndex = 10;
 const run = async (name: string, scenario: Scenario) => {
   const calls: Array<{ url: string; method: string; body: any }> = [];
@@ -51,6 +51,7 @@ const run = async (name: string, scenario: Scenario) => {
     brand_story: `История ${name}`, own_contribution: ["Разработка", "Ръчна изработка"], own_contribution_other: "",
     contact_name: "Тест", email: `${name}@example.com`, phone: "", consent: true, monthly_email: scenario.monthly,
     optional_consent: false, supplier_recommendations: [],
+    ...scenario.presence,
   };
   const request = new Request("http://localhost:4321/api/brand-applications/", {
     method: "POST", headers: { Origin: "http://localhost:4321", "Content-Type": "application/json" }, body: JSON.stringify(payload),
@@ -88,6 +89,37 @@ try {
   assert.equal(e.result.code, "persistence_unavailable");
   assert.equal(e.calls.some(x => x.url.includes("1154960")), false);
   assert.equal(e.calls.some(x => x.url.includes("api.resend.com")), false);
+
+  for (const [name, presence] of Object.entries({
+    empty: { website: "", instagram: "", facebook: "" },
+    whitespace: { website: "  ", instagram: "  ", facebook: "  " },
+    website: { website: "example.com", instagram: "", facebook: "" },
+    instagram: { website: "", instagram: "instagram.com/test", facebook: "" },
+    facebook: { website: "", instagram: "", facebook: "facebook.com/test" },
+    all: { website: "example.com", instagram: "instagram.com/test", facebook: "facebook.com/test" },
+    invalidFacebook: { website: "example.com", instagram: "", facebook: "https://" },
+    invalidInstagram: { website: "example.com", instagram: "https://", facebook: "" },
+    invalidWebsite: { website: "https://", instagram: "instagram.com/test", facebook: "" },
+  })) {
+    const result = await run(name, { monthly: false, presence });
+    if (["empty", "whitespace", "invalidFacebook", "invalidInstagram", "invalidWebsite"].includes(name)) {
+      assert.equal(result.response.status, 400, name);
+      assert.equal(result.calls.length, 0, name + " must not persist or notify");
+    } else {
+      assert.equal(result.response.status, 202, name);
+      const row = result.applicationRows[0];
+      const raw = JSON.parse(row.raw_payload);
+      for (const key of ["website", "instagram", "facebook"] as const) {
+        const expected = presence[key] ? "https://" + presence[key] : "";
+        if (key === "facebook") assert.equal(Object.hasOwn(row, key), false, "No unprovisioned Baserow column");
+        else assert.equal(row[key], expected, name + " column " + key);
+        assert.equal(raw[key], expected, name + " payload " + key);
+      }
+      const email = result.calls.find(call => call.url.includes("api.resend.com"));
+      assert.ok(email?.body.text.includes("Facebook:"));
+      if (presence.facebook) assert.ok(email?.body.text.includes("https://" + presence.facebook));
+    }
+  }
 
   const source = await import("node:fs/promises").then(fs => fs.readFile(new URL("../src/pages/api/brand-applications.ts", import.meta.url), "utf8"));
   assert.ok(source.includes('"Разработка"'));

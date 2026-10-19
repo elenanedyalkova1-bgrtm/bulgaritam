@@ -1,5 +1,5 @@
 import type { Product } from "./products";
-import { PRODUCT_TAXONOMY } from "../../admin-app/src/lib/product-taxonomy";
+import { PRODUCT_TAXONOMY, normalizeProductType } from "../../admin-app/src/lib/product-taxonomy";
 
 export type PublicBrowseSubcategory = {
   key: string;
@@ -87,7 +87,7 @@ export const PUBLIC_BROWSE_CATEGORIES: PublicBrowseCategory[] = Object.entries(P
       label: value,
       labelEn: SUBCATEGORY_EN[value] || value,
       value,
-      productTypes,
+      productTypes: [...new Set(productTypes.map(normalizeProductType))],
     })),
   };
 });

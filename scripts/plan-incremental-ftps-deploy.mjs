@@ -79,7 +79,13 @@ export async function createIncrementalPlan({ distDir = "dist", origin = "https:
     else changed.push(result.file);
   }
   let previousGenerated = [];
-  if (trustedState) previousGenerated = Object.keys(trustedState.files).filter(file => /^(?:p|brand)\/.+\/index\.html$/.test(file));
+  if (trustedState) {
+    // Retire only these explicitly owned legacy icons, and only when absent
+    // from the replacement build. Never broaden deletion to other root files.
+    const retiredIcons = new Set(["favicon.png", "favicon-48x48.png", "mstile-150x150.png"]);
+    previousGenerated = Object.keys(trustedState.files).filter(file =>
+      /^(?:p|brand)\/.+\/index\.html$/.test(file) || retiredIcons.has(file));
+  }
   else {
     const liveManifest = await fetchJson(new URL("/deploy-manifest.json", origin), fetchImpl);
     previousGenerated = [...(liveManifest?.product_paths || []), ...(liveManifest?.brand_paths || [])].map(generatedRouteFile).filter(Boolean);

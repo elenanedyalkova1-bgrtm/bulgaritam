@@ -18,7 +18,7 @@ Full per-file local-work disposition: [inventory](consolidated-release-inventory
 
 ## Validation (local, 2026-10-19)
 
-- Node 24.13.0; lockfile dependency installation.
+- Local Node 24.13.0; GitHub runner Node 24.21.0/npm 11.19.0. Initial CI exposed missing optional compiler dependencies in the old-npm-generated lockfile. Both locks were regenerated with npm 11.19.0 in clean directories and Linux-target `npm ci --dry-run` passed.
 - Public/monitoring/discounts suite: **423 passed**, including 19 offline deals browser tests. `DEALS_BROWSER_CHANNEL=chrome TSX_DISABLE_CACHE=1 npm run test:release`.
 - Admin suite: **24 passed** (several files run additional assertions internally), `npm run test:release-admin`.
 - Built-site browser smoke: **5 passed**. Desktop/mobile main routes, no overflow or uncaught script errors, homepage unique products/load-more/filter/sort, no-JS SEO/neutral deals/manual references, full catalog partition across pagination without duplicates/omissions, and a real product's manual amount disappearing at the original expiry without rebuilding. `DEALS_BROWSER_CHANNEL=chrome npm run test:release-smoke` after build.
@@ -43,7 +43,7 @@ Vercel settings were inspected in the signed-in dashboard; no Save/deploy/rollba
 
 Both commands allow the new combined release to build (the extra Admin text is tolerated by the existing parser). They are historical exact-release exclusions, not a universal publication lock. Public Vercel's last successful deployment shown in dashboard is `21f23ad` from September 13; the PR #2 public build failed. Admin's production source is PR #2. Do not merge until the user approves both Vercel consequences and the public hosting release sequence.
 
-Public Vercel lists `www.bulgaritam.bg`; the FTPS workflow targets `https://bulgaritam.bg`. Verify both hostnames and their redirect/DNS ownership before approval; do not assume an FTPS upload updates Vercel's separate artifact.
+Public Vercel lists `www.bulgaritam.bg`; the FTPS workflow targets `https://bulgaritam.bg`. Read-only HTTP checks confirmed apex returns 200 from Apache and www returns 301 from Apache to apex. Thus current public traffic uses SuperHosting despite the Vercel domain listing. Recheck before approval; FTPS does not update Vercel's separate artifact.
 
 `publish-public.yml` remains manual-only, with its protected `public-production` environment and deployment concurrency. A branch push/PR does not invoke FTPS. The environment currently requires a human reviewer. Permanent Thursday publishing is not silently enabled by this release.
 

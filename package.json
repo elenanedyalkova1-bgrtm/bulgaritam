@@ -32,7 +32,9 @@
     "verify:seo-membership": "admin-app/node_modules/.bin/tsx scripts/verify-seo-product-membership.ts",
     "verify:seo-content": "node scripts/validate-primary-cluster-content.mjs",
     "verify:internal-links": "node scripts/validate-internal-linking.mjs",
-    "setup:product-facets": "node scripts/setup-product-facets.mjs"
+    "setup:product-facets": "node scripts/setup-product-facets.mjs",
+    "test:dynamic-deals": "node --import ./admin-app/node_modules/tsx/dist/loader.mjs --test test/consumer-deals-client.test.mjs test/dynamic-consumer-deals.test.mjs test/weekly-discounts.test.ts admin-app/tests/consumer-deals-api.test.ts",
+    "test:deals-browser": "node --test test/consumer-deals-browser.test.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
@@ -40,6 +42,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "playwright": "^1.62.1",
     "typescript": "^5.9.3"
   }
 }

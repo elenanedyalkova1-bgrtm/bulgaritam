@@ -798,3 +798,12 @@ test("generic monitoring metadata payload cannot mutate protected authoritative 
   await assert.rejects(() => currentWriter.write({ product_id: 42, current: { price_check_status: "verified" }, authoritative_renewal: { offer_price_verified_at: "2026-09-17T10:00:00.000Z", offer_price_amount: 50 } }), /Invalid authoritative renewal payload/);
   assert.equal(requests, 0);
 });
+
+test("monitor retains subscription context without changing the extracted current price", async () => {
+  const result = await monitorProduct({ product_url: url }, {
+    page: page(200, `${jsonLd(product(offer("49.90", "EUR")))}<main>Subscribe &amp; save 20%</main>`),
+  });
+  assert.equal(result.detected_price, 49.9);
+  assert.equal(result.regular_price, null);
+  assert.deepEqual(result.regular_price_evidence.promotion_semantics.conditional_purchase_signals, ["quantity_or_subscription_saving"]);
+});

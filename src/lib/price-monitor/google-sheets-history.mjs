@@ -50,7 +50,8 @@ export function historyObservation(result) {
     regular_price: validRegular ? regular : null,
     regular_price_currency: validRegular ? regularCurrency : "",
     regular_price_method: validRegular ? text(result.regular_price_method) : "",
-    regular_price_evidence: validRegular && result.regular_price_evidence != null
+    // Purchase conditions remain relevant even without a valid old/current pair.
+    regular_price_evidence: result.regular_price_evidence != null
       ? (typeof result.regular_price_evidence === "string" ? result.regular_price_evidence : JSON.stringify(result.regular_price_evidence))
       : "",
     entity_type: identity.entity_type, entity_id: identity.entity_id,

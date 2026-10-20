@@ -1,5 +1,5 @@
 import { isReliableDetectedObservation, PRICE_HISTORY_HEADERS } from "./google-sheets-history.mjs";
-import { classifyPromotionSemantics, MINIMUM_DISCOUNT, promotionConsumerEligible } from "./promotion-semantics.mjs";
+import { classifyPromotionSemantics, hasConditionalPurchase, MINIMUM_DISCOUNT, promotionConsumerEligible } from "./promotion-semantics.mjs";
 
 const text = (value) => String(value ?? "").trim();
 const finite = (value) => {
@@ -43,10 +43,27 @@ function explicitSalePair(latest) {
   return { current, regular, currency: currentCurrency };
 }
 
+function observedVariant(row) {
+  try {
+    const evidence = typeof row.regular_price_evidence === "string"
+      ? JSON.parse(row.regular_price_evidence || "{}") : row.regular_price_evidence;
+    return text(evidence?.variant_id);
+  } catch { return ""; }
+}
+
 function priceDrop(reliable, latestIndex, current, currentCurrency) {
+  const latest = reliable[latestIndex];
+  // Never bridge a change of purchase identity or a conditional-price observation.
+  const comparable = (row) => Boolean(text(latest.product_url) && text(latest.product_name))
+    && text(row.product_url) === text(latest.product_url)
+    && text(row.product_name) === text(latest.product_name)
+    && observedVariant(row) === observedVariant(latest)
+    && !hasConditionalPurchase(row.regular_price_evidence);
+  if (!comparable(latest)) return null;
   let runStart = latestIndex;
   while (runStart > 0) {
     const earlier = reliable[runStart - 1];
+    if (!comparable(earlier)) return null;
     if (currency(earlier.currency) !== currentCurrency || !samePrice(finite(earlier.detected_price), current)) break;
     runStart -= 1;
   }
@@ -54,7 +71,7 @@ function priceDrop(reliable, latestIndex, current, currentCurrency) {
   let previous = null;
   for (let index = runStart - 1; index >= 0; index -= 1) {
     const candidate = reliable[index];
-    if (currency(candidate.currency) !== currentCurrency) continue;
+    if (!comparable(candidate) || currency(candidate.currency) !== currentCurrency) return null;
     previous = finite(candidate.detected_price);
     break;
   }
@@ -97,11 +114,11 @@ export function evaluateProductDiscount(rawObservations, options = {}) {
   const promotionConfidence = classifyPromotionSemantics({
     activeSale: Boolean(sale), verifiedPriceDrop: Boolean(drop),
     regularPriceMethod: sale ? latest.regular_price_method : null,
-    regularPriceEvidence: sale ? latest.regular_price_evidence : null,
+    regularPriceEvidence: latest.regular_price_evidence,
     productName: text(latest.product_name),
   });
   const consumerEligible = promotionConsumerEligible(promotionConfidence);
-  const comparisonPrice = sale?.regular ?? drop?.previous ?? null;
+  const comparisonPrice = drop?.previous ?? sale?.regular ?? null;
   const discountAmount = comparisonPrice != null ? rounded(comparisonPrice - current) : null;
   const discountPercent = comparisonPrice != null ? rounded(((comparisonPrice - current) / comparisonPrice) * 100) : null;
 

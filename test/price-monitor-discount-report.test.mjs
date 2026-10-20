@@ -27,7 +27,7 @@ test("discount report reuses evaluator output, groups methods, counts eligibilit
     verified_price_drop_count: 1,
   });
   assert.deepEqual(report.active_sale_methods, [{ extraction_method: "woocommerce_product_data", regular_price_method: "woocommerce_del_ins", count: 3 }]);
-  assert.deepEqual(report.eligible_products.map((item) => item.product_id), ["p1", "p2"], "larger discount sorts first");
+  assert.deepEqual(report.eligible_products.map((item) => item.product_id), ["p2", "p1"], "20% sale sorts above the observed 60 to 50 drop, ignoring compare-at 100");
   assert.equal(typeof report.eligible_products[0].discount_percent, "number");
 });
 

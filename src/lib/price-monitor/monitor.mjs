@@ -68,7 +68,7 @@ export async function monitorProduct(product, options = {}) {
     const extracted = extractPrice(page.html || "", { url: result.final_url, platform: result.detected_platform });
     const metadata = extractProductMetadata(page.html || "", { url: result.final_url });
     const promotionSemantics = extractPromotionSemanticEvidence({ html: page.html || "", productName: metadata.title || result.product_name, regularPriceMethod: extracted.regular_price_method });
-    const regularPriceEvidence = extracted.regular_price_evidence == null ? null
+    const regularPriceEvidence = extracted.regular_price_evidence == null ? { promotion_semantics: promotionSemantics }
       : typeof extracted.regular_price_evidence === "object"
         ? { ...extracted.regular_price_evidence, promotion_semantics: promotionSemantics }
         : { source_evidence: extracted.regular_price_evidence, promotion_semantics: promotionSemantics };

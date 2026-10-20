@@ -10,6 +10,7 @@ import {
   getSofiaWeekWindow,
   joinWeeklyDiscountProducts,
   loadWeeklyDiscountProducts,
+  loadConsumerDeals,
 } from "../src/lib/weekly-discounts";
 import { combineStructuredFacets, discountFacetCounts, filterDiscountItems, priceBucketFor, sortDiscountItems } from "../src/lib/weekly-discount-ui";
 
@@ -227,4 +228,23 @@ test("discount sorting uses percent or verified current price only", () => {
   assert.deepEqual(sortDiscountItems(uiItems, "price-asc").map((item) => item.row_id), ["1", "2", "3", "4", "5"]);
   assert.deepEqual(sortDiscountItems(uiItems, "price-desc").map((item) => item.row_id), ["5", "4", "3", "2", "1"]);
   assert.equal(JSON.stringify(uiItems).includes("price_min_eur"), false); assert.equal(JSON.stringify(uiItems).includes("price_max_eur"), false);
+});
+
+
+test("consumer API loader excludes bundle claims and publishes only the observed bundle reduction", async () => {
+  const observation = (id: string, overrides = {}) => ({
+    product_id: id, product_name: "Gift box", product_url: "https://brand.test/box",
+    checked_at: "2026-09-25T10:00:00Z", detected_price: 100, currency: "EUR",
+    status: "verified", confidence: "high", extraction_method: "json_ld_product_offer",
+    regular_price: 200, regular_price_currency: "EUR", regular_price_method: "shopify_compare_at_price_enrichment",
+    regular_price_evidence: JSON.stringify({ promotion_semantics: { product_is_bundle: true, temporary_sale_signals: ["sale_or_discount_label"] } }),
+    ...overrides,
+  });
+  const result = await loadConsumerDeals(new Date("2026-09-25T12:00:00Z"), {
+    readHistory: async () => [observation("1"), observation("2", { checked_at: "2026-09-24T10:00:00Z", detected_price: 120 }), observation("2")],
+    loadCatalog: async () => [product(1, { brand_id: 777 }), product(2, { brand_id: 777 })], readObserved: async () => [], readBrands: async () => [],
+  });
+  assert.equal(result.deals.length, 1);
+  assert.equal(result.deals[0].regular_price, 120);
+  assert.equal(result.deals[0].discount_percent, 16.6667);
 });

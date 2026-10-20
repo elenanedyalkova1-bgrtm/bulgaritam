@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { evaluateDiscounts, evaluateProductDiscount } from "../src/lib/price-monitor/index.mjs";
 
+import { extractPromotionSemanticEvidence } from "../src/lib/price-monitor/promotion-semantics.mjs";
+import { historyObservation } from "../src/lib/price-monitor/google-sheets-history.mjs";
+
 const window = { week_start: "2026-09-21T00:00:00Z", week_end: "2026-09-28T00:00:00Z" };
 const row = (overrides = {}) => ({
   checked_at: "2026-09-25T10:00:00Z", product_id: "p1", product_name: "Product", brand: "Brand",
@@ -112,9 +115,9 @@ test("bundle compare-at price fails closed without temporary-sale semantics", ()
   assert.equal(result.active_sale, true); assert.equal(result.promotion_confidence, "UNKNOWN"); assert.equal(result.weekly_discount_eligible, false);
 });
 
-test("bundle remains an explicit sale with deterministic temporary-sale evidence", () => {
+test("bundle marketing labels do not prove its former price", () => {
   const result = evaluateProductDiscount([row({ product_name: "Подаръчен комплект", regular_price: 59, regular_price_currency: "EUR", regular_price_method: "shopify_compare_at_price_enrichment", regular_price_evidence: '{"promotion_semantics":{"product_is_bundle":true,"temporary_sale_signals":["promotional_price_label"],"reference_value_signals":[]}}' })], window);
-  assert.equal(result.promotion_confidence, "EXPLICIT_SALE"); assert.equal(result.weekly_discount_eligible, true);
+  assert.equal(result.promotion_confidence, "UNKNOWN"); assert.equal(result.weekly_discount_eligible, false);
 });
 
 test("quantified bundle saving is reference value even when sale labels also exist", () => {
@@ -149,4 +152,74 @@ test("array rows and multiple products produce numeric sortable output", () => {
 
 test("invalid evaluation window is rejected", () => {
   assert.throws(() => evaluateDiscounts([row()], { week_start: "2026-09-28", week_end: "2026-09-21" }), /valid half-open week window/);
+});
+
+
+const semanticRow = (name, html, overrides = {}) => row({
+  product_name: name, regular_price: 99, regular_price_currency: "EUR",
+  regular_price_method: "shopify_compare_at_price_enrichment",
+  regular_price_evidence: { promotion_semantics: extractPromotionSemanticEvidence({ productName: name, html }) },
+  ...overrides,
+});
+
+for (const [name, html] of [
+  ["Gift box skincare", "<del>99€</del><ins>49€</ins> Save 50%"],
+  ["Подаръчен комплект", "Промо цена 49€. Спестяваш 50€!"],
+  ["Vitamin multipack", "Limited time! Save 50%"],
+  ["Summer bundles", "Sale!"],
+  ["Face cream", "99€ if purchased separately. Now 49€"],
+  ["Крем за лице", "Сбор от цените на продуктите 99€. Цена 49€"],
+  ["Coffee", "Subscribe &amp; save 20%"],
+  ["Кафе", "Абонаментна цена 49€"],
+  ["Soap", "Buy 3 get 1 free"],
+  ["Сапун", "3 за 2"],
+]) test(`purchase saving is not a sale: ${name} / ${html}`, () => {
+  assert.equal(evaluateProductDiscount([semanticRow(name, html)], window).weekly_discount_eligible, false);
+});
+
+test("genuine bundle drop uses observed bundle price, never the component sum", () => {
+  const result = evaluateProductDiscount([
+    semanticRow("Gift box", "Worth 200€", { checked_at: "2026-09-20T10:00:00Z", detected_price: 120 }),
+    semanticRow("Gift box", "Worth 200€ Save 50%", { detected_price: 100, regular_price: 200 }),
+  ], window);
+  assert.equal(result.weekly_discount_eligible, true);
+  assert.equal(result.promotion_confidence, "VERIFIED_PRICE_DROP");
+  assert.equal(result.regular_price, 120);
+  assert.equal(result.discount_percent, 16.6667);
+});
+
+for (const conditionalOn of ["previous", "latest"]) test(`conditional ${conditionalOn} observation cannot prove a historical drop`, () => {
+  const previous = semanticRow("Coffee", conditionalOn === "previous" ? "Subscribe and save" : "One-time purchase", { detected_price: 59, checked_at: "2026-09-20T10:00:00Z", regular_price: null });
+  const latest = semanticRow("Coffee", conditionalOn === "latest" ? "Quantity discount" : "One-time purchase", { regular_price: null });
+  const result = evaluateProductDiscount([previous, latest], window);
+  assert.equal(result.verified_price_drop, false);
+  assert.equal(result.weekly_discount_eligible, false);
+});
+
+for (const changes of [{ product_url: "https://brand.test/product?variant=2" }, { product_name: "Gift box 2 pieces" }]) test(`changed purchase identity cannot establish bundle drop: ${JSON.stringify(changes)}`, () => {
+  const result = evaluateProductDiscount([
+    row({ product_name: "Gift box 3 pieces", detected_price: 99, checked_at: "2026-09-20T10:00:00Z", ...changes }),
+    row({ product_name: "Gift box 3 pieces" }),
+  ], window);
+  assert.equal(result.weekly_discount_eligible, false);
+});
+
+test("semantic evidence survives sheet serialization without an old price", () => {
+  const source = semanticRow("Coffee", "Subscribe &amp; save", { regular_price: null });
+  const serialized = historyObservation(source);
+  assert.equal(serialized.regular_price, null);
+  assert.deepEqual(JSON.parse(serialized.regular_price_evidence), source.regular_price_evidence);
+  assert.equal(evaluateProductDiscount([serialized], window).weekly_discount_eligible, false);
+});
+
+test("newsletter subscription alone does not suppress an ordinary sale", () => {
+  assert.equal(evaluateProductDiscount([semanticRow("Face cream", "Subscribe to our newsletter")], window).weekly_discount_eligible, true);
+});
+
+test("a variant switch on the same URL is not a verified bundle drop", () => {
+  const result = evaluateProductDiscount([
+    row({ product_name: "Gift box", checked_at: "2026-09-20T10:00:00Z", detected_price: 99, regular_price_evidence: '{"variant_id":1}' }),
+    row({ product_name: "Gift box", regular_price_evidence: '{"variant_id":2}' }),
+  ], window);
+  assert.equal(result.weekly_discount_eligible, false);
 });

@@ -16,8 +16,10 @@ function evidenceText(value) {
 }
 
 const REFERENCE_VALUE_PATTERN = /(?:combined|component|package|bundle)[-_ ]?(?:value|worth)|(?:recommended|reference|retail)[-_ ]?(?:value|price)|\b(?:msrp|rrp|worth)\b|(?:обща|комбинирана|пакетна|препоръчителна)[-_ ]?(?:стойност|цена)|стойност[-_ ]?на[-_ ]?(?:комплекта|продуктите)/i;
+const CONDITIONAL_SAVING_PATTERN = /subscribe\s*(?:&|and)\s*save|subscription\s*(?:price|saving|discount)|абонаментн[а-я]*\s*(?:цена|отстъпка)|спест[а-я]*[^.!?]{0,40}абонамент|buy\s+\d+\s*(?:get|for)|\d+\s*(?:for|за)\s*(?:the\s+price\s+of\s*)?\d+|quantity\s*(?:saving|discount)|bulk\s*(?:saving|discount)|отстъпка\s+за\s+количество/i;
+const SEPARATE_PURCHASE_PATTERN = /(?:bought|purchased|sold)\s+separately|sum\s+of\s+(?:individual|unit)\s+prices|(?:сбор|сума)[^.!?]{0,60}(?:цените|продукти)|(?:закупени|купени|покупка)\s+поотделно/i;
 const EXPLICIT_PRICE_TYPE_PATTERN = /(?:list|regular|original|was|strikethrough)[-_ ]?price/i;
-const BUNDLE_PATTERN = /(?:\b(?:bundle|gift\s*box|kit|set|package)\b|комплект|подаръч(?:на|ен)\s+кутия|кутия|пакет|(?:^|\s)сет(?:\s|$))/i;
+const BUNDLE_PATTERN = /(?:\b(?:bundles?|gift\s*boxes?|gift\s*box|kits?|sets?|packages?|multi[- ]?packs?|\d+[- ]?pack)\b|комплект|подаръч(?:на|ен)\s+кутия|кутия|пакет|(?:^|\s)сет(?:\s|$))/i;
 
 const decodedVisibleText = (html = "") => String(html)
   .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
@@ -39,9 +41,10 @@ export function extractPromotionSemanticEvidence({ html = "", productName = "", 
   if (/редовна\s+цена[\s\S]{0,120}(?:промоционална|промо)\s+цена/i.test(visible)) temporary.push("regular_promotional_pair");
 
   const reference = [];
+  if (SEPARATE_PURCHASE_PATTERN.test(visible)) reference.push("separate_purchase_comparison");
   if (REFERENCE_VALUE_PATTERN.test(visible)) reference.push("combined_or_reference_value_label");
   if (/(?:спест(?:и|яваш|ете)|save)\s+(?:€|£|\$|\d)[^.!?]{0,90}(?:комплект|пакет|кутия|bundle|set|package)|(?:комплект|пакет|кутия|bundle|set|package)[^.!?]{0,90}(?:спест(?:и|яваш|ете)|save)\s+(?:€|£|\$|\d)/i.test(visible)) reference.push("quantified_bundle_saving_claim");
-  return { product_is_bundle: BUNDLE_PATTERN.test(combined), temporary_sale_signals: [...new Set(temporary)], reference_value_signals: [...new Set(reference)] };
+  return { conditional_purchase_signals: CONDITIONAL_SAVING_PATTERN.test(combined) ? ["quantity_or_subscription_saving"] : [], product_is_bundle: BUNDLE_PATTERN.test(combined), temporary_sale_signals: [...new Set(temporary)], reference_value_signals: [...new Set(reference)] };
 }
 
 function parsedEvidence(value) {
@@ -51,6 +54,7 @@ function parsedEvidence(value) {
 }
 
 export function classifyPromotionSemantics({ activeSale = false, verifiedPriceDrop = false, regularPriceMethod, regularPriceEvidence, productName = "" } = {}) {
+  if (hasConditionalPurchase(regularPriceEvidence)) return PROMOTION_CONFIDENCE.REFERENCE_VALUE_SAVING;
   if (verifiedPriceDrop) return PROMOTION_CONFIDENCE.VERIFIED_PRICE_DROP;
   if (!activeSale) return PROMOTION_CONFIDENCE.UNKNOWN;
 
@@ -60,10 +64,10 @@ export function classifyPromotionSemantics({ activeSale = false, verifiedPriceDr
   const legacyEvidence = parsed && Object.keys(parsed).length
     ? evidenceText(Object.fromEntries(Object.entries(parsed).filter(([key]) => key !== "promotion_semantics")))
     : evidenceText(regularPriceEvidence);
-  if (REFERENCE_VALUE_PATTERN.test(`${method} ${legacyEvidence}`)) return PROMOTION_CONFIDENCE.REFERENCE_VALUE_SAVING;
+  if (REFERENCE_VALUE_PATTERN.test(`${method} ${legacyEvidence}`) || SEPARATE_PURCHASE_PATTERN.test(legacyEvidence)) return PROMOTION_CONFIDENCE.REFERENCE_VALUE_SAVING;
   const bundle = semantic.product_is_bundle === true || BUNDLE_PATTERN.test(productName);
   if (bundle) {
-    if (Array.isArray(semantic.temporary_sale_signals) && semantic.temporary_sale_signals.length) return PROMOTION_CONFIDENCE.EXPLICIT_SALE;
+    // Marketing labels and compare-at amounts do not establish the former bundle price.
     return PROMOTION_CONFIDENCE.UNKNOWN;
   }
 
@@ -85,4 +89,9 @@ export function classifyPromotionSemantics({ activeSale = false, verifiedPriceDr
 
 export function promotionConsumerEligible(state) {
   return state === PROMOTION_CONFIDENCE.VERIFIED_PRICE_DROP || state === PROMOTION_CONFIDENCE.EXPLICIT_SALE;
+}
+
+export function hasConditionalPurchase(evidence) {
+  const signals = parsedEvidence(evidence)?.promotion_semantics?.conditional_purchase_signals;
+  return (Array.isArray(signals) && signals.length > 0) || CONDITIONAL_SAVING_PATTERN.test(evidenceText(evidence));
 }

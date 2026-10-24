@@ -1,0 +1,725 @@
+[
+  {
+    "group": "noun-to-adjective / gender / number / definiteness",
+    "kind": "positive-equivalence",
+    "query": "лен",
+    "anchor": "лен",
+    "expectedMembershipCount": 21,
+    "observedMembershipCount": 21,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "noun-to-adjective / gender / number / definiteness",
+    "kind": "positive-equivalence",
+    "query": "ленен",
+    "anchor": "лен",
+    "expectedMembershipCount": 21,
+    "observedMembershipCount": 21,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "noun-to-adjective / gender / number / definiteness",
+    "kind": "positive-equivalence",
+    "query": "ленена",
+    "anchor": "лен",
+    "expectedMembershipCount": 21,
+    "observedMembershipCount": 21,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "noun-to-adjective / gender / number / definiteness",
+    "kind": "positive-equivalence",
+    "query": "ленено",
+    "anchor": "лен",
+    "expectedMembershipCount": 21,
+    "observedMembershipCount": 21,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "noun-to-adjective / gender / number / definiteness",
+    "kind": "positive-equivalence",
+    "query": "ленени",
+    "anchor": "лен",
+    "expectedMembershipCount": 21,
+    "observedMembershipCount": 21,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "noun-to-adjective / gender / number / definiteness",
+    "kind": "positive-equivalence",
+    "query": "ленената",
+    "anchor": "лен",
+    "expectedMembershipCount": 21,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "noun-to-adjective / gender / number / definiteness",
+    "kind": "positive-equivalence",
+    "query": "лененият",
+    "anchor": "лен",
+    "expectedMembershipCount": 21,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "noun-to-adjective / gender / number / definiteness",
+    "kind": "positive-equivalence",
+    "query": "ленените",
+    "anchor": "лен",
+    "expectedMembershipCount": 21,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "cotton derivation",
+    "kind": "positive-equivalence",
+    "query": "памук",
+    "anchor": "памук",
+    "expectedMembershipCount": 209,
+    "observedMembershipCount": 209,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "cotton derivation",
+    "kind": "positive-equivalence",
+    "query": "памучен",
+    "anchor": "памук",
+    "expectedMembershipCount": 209,
+    "observedMembershipCount": 209,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "cotton derivation",
+    "kind": "positive-equivalence",
+    "query": "памучна",
+    "anchor": "памук",
+    "expectedMembershipCount": 209,
+    "observedMembershipCount": 209,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "cotton derivation",
+    "kind": "positive-equivalence",
+    "query": "памучно",
+    "anchor": "памук",
+    "expectedMembershipCount": 209,
+    "observedMembershipCount": 209,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "cotton derivation",
+    "kind": "positive-equivalence",
+    "query": "памучни",
+    "anchor": "памук",
+    "expectedMembershipCount": 209,
+    "observedMembershipCount": 209,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "cotton derivation",
+    "kind": "positive-equivalence",
+    "query": "памучната",
+    "anchor": "памук",
+    "expectedMembershipCount": 209,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "cotton derivation",
+    "kind": "positive-equivalence",
+    "query": "памучните",
+    "anchor": "памук",
+    "expectedMembershipCount": 209,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "silver inflection",
+    "kind": "positive-equivalence",
+    "query": "сребро",
+    "anchor": "сребро",
+    "expectedMembershipCount": 94,
+    "observedMembershipCount": 94,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "silver inflection",
+    "kind": "positive-equivalence",
+    "query": "сребърен",
+    "anchor": "сребро",
+    "expectedMembershipCount": 94,
+    "observedMembershipCount": 94,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "silver inflection",
+    "kind": "positive-equivalence",
+    "query": "сребърна",
+    "anchor": "сребро",
+    "expectedMembershipCount": 94,
+    "observedMembershipCount": 94,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "silver inflection",
+    "kind": "positive-equivalence",
+    "query": "сребърно",
+    "anchor": "сребро",
+    "expectedMembershipCount": 94,
+    "observedMembershipCount": 94,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "silver inflection",
+    "kind": "positive-equivalence",
+    "query": "сребърни",
+    "anchor": "сребро",
+    "expectedMembershipCount": 94,
+    "observedMembershipCount": 94,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "silver inflection",
+    "kind": "positive-equivalence",
+    "query": "сребърните",
+    "anchor": "сребро",
+    "expectedMembershipCount": 94,
+    "observedMembershipCount": 94,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wood inflection",
+    "kind": "positive-equivalence",
+    "query": "дърво",
+    "anchor": "дърво",
+    "expectedMembershipCount": 31,
+    "observedMembershipCount": 31,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wood inflection",
+    "kind": "positive-equivalence",
+    "query": "дървен",
+    "anchor": "дърво",
+    "expectedMembershipCount": 31,
+    "observedMembershipCount": 31,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wood inflection",
+    "kind": "positive-equivalence",
+    "query": "дървена",
+    "anchor": "дърво",
+    "expectedMembershipCount": 31,
+    "observedMembershipCount": 31,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wood inflection",
+    "kind": "positive-equivalence",
+    "query": "дървено",
+    "anchor": "дърво",
+    "expectedMembershipCount": 31,
+    "observedMembershipCount": 31,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wood inflection",
+    "kind": "positive-equivalence",
+    "query": "дървени",
+    "anchor": "дърво",
+    "expectedMembershipCount": 31,
+    "observedMembershipCount": 31,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wood inflection",
+    "kind": "positive-equivalence",
+    "query": "дървената",
+    "anchor": "дърво",
+    "expectedMembershipCount": 31,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "wood inflection",
+    "kind": "positive-equivalence",
+    "query": "дървените",
+    "anchor": "дърво",
+    "expectedMembershipCount": 31,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "wool inflection",
+    "kind": "positive-equivalence",
+    "query": "вълна",
+    "anchor": "вълна",
+    "expectedMembershipCount": 54,
+    "observedMembershipCount": 54,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wool inflection",
+    "kind": "positive-equivalence",
+    "query": "вълнен",
+    "anchor": "вълна",
+    "expectedMembershipCount": 54,
+    "observedMembershipCount": 54,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wool inflection",
+    "kind": "positive-equivalence",
+    "query": "вълнена",
+    "anchor": "вълна",
+    "expectedMembershipCount": 54,
+    "observedMembershipCount": 54,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wool inflection",
+    "kind": "positive-equivalence",
+    "query": "вълнено",
+    "anchor": "вълна",
+    "expectedMembershipCount": 54,
+    "observedMembershipCount": 54,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wool inflection",
+    "kind": "positive-equivalence",
+    "query": "вълнени",
+    "anchor": "вълна",
+    "expectedMembershipCount": 54,
+    "observedMembershipCount": 54,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "wool inflection",
+    "kind": "positive-equivalence",
+    "query": "вълнената",
+    "anchor": "вълна",
+    "expectedMembershipCount": 54,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "wool inflection",
+    "kind": "positive-equivalence",
+    "query": "вълнените",
+    "anchor": "вълна",
+    "expectedMembershipCount": 54,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "ceramic derivation",
+    "kind": "positive-equivalence",
+    "query": "керамика",
+    "anchor": "керамика",
+    "expectedMembershipCount": 5,
+    "observedMembershipCount": 5,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "ceramic derivation",
+    "kind": "positive-equivalence",
+    "query": "керамичен",
+    "anchor": "керамика",
+    "expectedMembershipCount": 5,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "ceramic derivation",
+    "kind": "positive-equivalence",
+    "query": "керамична",
+    "anchor": "керамика",
+    "expectedMembershipCount": 5,
+    "observedMembershipCount": 5,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "ceramic derivation",
+    "kind": "positive-equivalence",
+    "query": "керамично",
+    "anchor": "керамика",
+    "expectedMembershipCount": 5,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "ceramic derivation",
+    "kind": "positive-equivalence",
+    "query": "керамични",
+    "anchor": "керамика",
+    "expectedMembershipCount": 5,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "ceramic derivation",
+    "kind": "positive-equivalence",
+    "query": "керамичната",
+    "anchor": "керамика",
+    "expectedMembershipCount": 5,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "ceramic derivation",
+    "kind": "positive-equivalence",
+    "query": "ceramic",
+    "anchor": "керамика",
+    "expectedMembershipCount": 5,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "number / definite / retail spelling",
+    "kind": "positive-equivalence",
+    "query": "обеца",
+    "anchor": "обеци",
+    "expectedMembershipCount": 32,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "number / definite / retail spelling",
+    "kind": "positive-equivalence",
+    "query": "обеци",
+    "anchor": "обеци",
+    "expectedMembershipCount": 32,
+    "observedMembershipCount": 32,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "number / definite / retail spelling",
+    "kind": "positive-equivalence",
+    "query": "обеците",
+    "anchor": "обеци",
+    "expectedMembershipCount": 32,
+    "observedMembershipCount": 32,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "number / definite / retail spelling",
+    "kind": "positive-equivalence",
+    "query": "обици",
+    "anchor": "обеци",
+    "expectedMembershipCount": 32,
+    "observedMembershipCount": 32,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "number / definite / retail spelling",
+    "kind": "positive-equivalence",
+    "query": "обиците",
+    "anchor": "обеци",
+    "expectedMembershipCount": 32,
+    "observedMembershipCount": 32,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "number / definite / retail spelling",
+    "kind": "positive-equivalence",
+    "query": "earrings",
+    "anchor": "обеци",
+    "expectedMembershipCount": 32,
+    "observedMembershipCount": 32,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "number / definite / retail spelling",
+    "kind": "positive-equivalence",
+    "query": "obeci",
+    "anchor": "обеци",
+    "expectedMembershipCount": 32,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "number / definite / retail spelling",
+    "kind": "positive-equivalence",
+    "query": "obetsi",
+    "anchor": "обеци",
+    "expectedMembershipCount": 32,
+    "observedMembershipCount": 32,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "dress already working",
+    "kind": "positive-equivalence",
+    "query": "рокля",
+    "anchor": "рокля",
+    "expectedMembershipCount": 36,
+    "observedMembershipCount": 36,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "dress already working",
+    "kind": "positive-equivalence",
+    "query": "рокли",
+    "anchor": "рокля",
+    "expectedMembershipCount": 36,
+    "observedMembershipCount": 36,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "dress already working",
+    "kind": "positive-equivalence",
+    "query": "роклята",
+    "anchor": "рокля",
+    "expectedMembershipCount": 36,
+    "observedMembershipCount": 36,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "dress already working",
+    "kind": "positive-equivalence",
+    "query": "роклите",
+    "anchor": "рокля",
+    "expectedMembershipCount": 36,
+    "observedMembershipCount": 36,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "dress already working",
+    "kind": "positive-equivalence",
+    "query": "рокличка",
+    "anchor": "рокля",
+    "expectedMembershipCount": 36,
+    "observedMembershipCount": 36,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "dress already working",
+    "kind": "positive-equivalence",
+    "query": "dress",
+    "anchor": "рокля",
+    "expectedMembershipCount": 36,
+    "observedMembershipCount": 36,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "dress already working",
+    "kind": "positive-equivalence",
+    "query": "roklya",
+    "anchor": "рокля",
+    "expectedMembershipCount": 36,
+    "observedMembershipCount": 36,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "shirt already working",
+    "kind": "positive-equivalence",
+    "query": "риза",
+    "anchor": "риза",
+    "expectedMembershipCount": 29,
+    "observedMembershipCount": 29,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "shirt already working",
+    "kind": "positive-equivalence",
+    "query": "ризи",
+    "anchor": "риза",
+    "expectedMembershipCount": 29,
+    "observedMembershipCount": 29,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "shirt already working",
+    "kind": "positive-equivalence",
+    "query": "ризата",
+    "anchor": "риза",
+    "expectedMembershipCount": 29,
+    "observedMembershipCount": 29,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "shirt already working",
+    "kind": "positive-equivalence",
+    "query": "ризите",
+    "anchor": "риза",
+    "expectedMembershipCount": 29,
+    "observedMembershipCount": 29,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "shirt already working",
+    "kind": "positive-equivalence",
+    "query": "shirt",
+    "anchor": "риза",
+    "expectedMembershipCount": 29,
+    "observedMembershipCount": 29,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "shirt already working",
+    "kind": "positive-equivalence",
+    "query": "riza",
+    "anchor": "риза",
+    "expectedMembershipCount": 29,
+    "observedMembershipCount": 29,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "transliteration / English",
+    "kind": "positive-equivalence",
+    "query": "srebarni obetsi",
+    "anchor": "сребърни обеци",
+    "expectedMembershipCount": 22,
+    "observedMembershipCount": 22,
+    "currentSatisfiesProposedExpectation": true
+  },
+  {
+    "group": "transliteration / English",
+    "kind": "positive-equivalence",
+    "query": "srebyrni obeci",
+    "anchor": "сребърни обеци",
+    "expectedMembershipCount": 22,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "transliteration / English",
+    "kind": "positive-equivalence",
+    "query": "сребърната обеца",
+    "anchor": "сребърни обеци",
+    "expectedMembershipCount": 22,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "English sterling preserves purity evidence",
+    "kind": "positive-equivalence",
+    "query": "sterling silver",
+    "anchor": "сребро 925",
+    "expectedMembershipCount": 66,
+    "observedMembershipCount": 0,
+    "currentSatisfiesProposedExpectation": false
+  },
+  {
+    "group": "negation",
+    "kind": "target-product",
+    "query": "верижка",
+    "slug": "srebaren-komplekt-rayska-perla",
+    "shouldInclude": false,
+    "observedIncluded": true,
+    "currentSatisfiesProposedExpectation": false,
+    "rationale": "Chain is explicitly not included. Do not retrieve it as an included chain."
+  },
+  {
+    "group": "negation",
+    "kind": "target-product",
+    "query": "синджир",
+    "slug": "vodni-koncheta",
+    "shouldInclude": false,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": true,
+    "rationale": "Chain not included in set."
+  },
+  {
+    "group": "incidental name",
+    "kind": "target-product",
+    "query": "сребро",
+    "slug": "halat-za-banya-cyxo-srebarna-rozov",
+    "shouldInclude": false,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": true,
+    "rationale": "Nature reserve name; robe composition cotton."
+  },
+  {
+    "group": "art theme",
+    "kind": "target-product",
+    "query": "дърво",
+    "slug": "semeino-darvo-kartina",
+    "shouldInclude": false,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": true,
+    "rationale": "Family tree is artwork theme, not physical wood evidence."
+  },
+  {
+    "group": "care instruction",
+    "kind": "target-product",
+    "query": "вълна",
+    "slug": "damski-chehli-ema-natural",
+    "shouldInclude": false,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": true,
+    "rationale": "Wool cycle is not material."
+  },
+  {
+    "group": "compound T-shirt",
+    "kind": "target-product",
+    "query": "риза",
+    "slug": "teniska-the-wet-t-shirt",
+    "shouldInclude": false,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": true,
+    "rationale": "T-shirt must not collapse to ordinary shirt."
+  },
+  {
+    "group": "motif vs product",
+    "kind": "target-product",
+    "query": "играчка",
+    "slug": "dreshka-za-domashen-lyubimets-koledni-igrachki",
+    "shouldInclude": false,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": true,
+    "rationale": "Toys are a clothing motif."
+  },
+  {
+    "group": "wave vs wool",
+    "kind": "target-product",
+    "query": "картина вълна",
+    "slug": "kartina-yaponski-vulni",
+    "shouldInclude": true,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": false,
+    "rationale": "Artwork context should allow wave sense; no wool material is required."
+  },
+  {
+    "group": "strict age threshold",
+    "kind": "target-product",
+    "query": "подарък за дете на 6 години",
+    "slug": "cherno-more",
+    "shouldInclude": false,
+    "observedIncluded": true,
+    "currentSatisfiesProposedExpectation": false,
+    "rationale": "Source says over 6, not suitable at exactly 6."
+  },
+  {
+    "group": "age metadata + source",
+    "kind": "target-product",
+    "query": "подарък за дете на 7 години",
+    "slug": "cherno-more",
+    "shouldInclude": true,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": false,
+    "rationale": "Source says over 6 and canonical stored age 7."
+  },
+  {
+    "group": "identity modifier",
+    "kind": "target-product",
+    "query": "детска риза",
+    "slug": "detska-severnyashka-riza",
+    "shouldInclude": true,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": false,
+    "rationale": "Description directly identifies actual shirt; type blank."
+  },
+  {
+    "group": "skin not leather",
+    "kind": "target-product",
+    "query": "крем за кожа",
+    "slug": "slantsezashtiten-krem-za-litse-spf30",
+    "shouldInclude": true,
+    "observedIncluded": false,
+    "currentSatisfiesProposedExpectation": false,
+    "rationale": "Skin context should not require leather; face cream identity is separately incomplete."
+  }
+]

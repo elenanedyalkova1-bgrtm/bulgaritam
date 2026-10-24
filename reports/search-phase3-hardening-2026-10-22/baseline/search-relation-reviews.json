@@ -1,0 +1,72 @@
+[
+  {
+    "slug": "damski-srebaren-komplekt-arc",
+    "field": "long_desc_bg",
+    "text": "Комплектът Arc включва сребърни обеци на щифт с широчина 2 мм и дължина 14 мм и сребърен пръстен с централен циркон, широчина 2 мм и камък с диаметър 3,5 мм. Дизайнът следва плавна минималистична извивка, а гладката полирана повърхност подчертава чистата линия. Комплектът е ръчно изработен и се предлага с избор на размер за пръстена.",
+    "concept": "earrings",
+    "materials": [
+      "Сребро"
+    ],
+    "reason": "Audited actual included item and source composition; scoped to this item, not a material inference for every component."
+  },
+  {
+    "slug": "srebaren-komplekt-rayska-perla",
+    "field": "long_desc_bg",
+    "text": "Комплектът „Райска перла“ включва сребърни обеци с върбило и естествена перла, сребърен медальон с перла и сребърен пръстен с перла. Елементите са с гладка полирана повърхност и могат да се носят заедно или поотделно. Комплектът е ръчно изработен, а верижка за медальона не е включена.",
+    "concept": "earrings",
+    "materials": [
+      "Сребро"
+    ],
+    "reason": "Audited actual included item and source composition; scoped to this item, not a material inference for every component."
+  },
+  {
+    "slug": "damski-set-boho-earth",
+    "field": "long_desc_bg",
+    "text": "Дамският сет Boho Earth от Belong е изработен от фина и дишаща памучна муселинова материя. Комплектът включва свободна риза с регулируема връзка в талията и пискюли по ръкавите и широки къси панталони с ластична талия. Предлага се в пясъчно бежово, маслинено зелено, тюркоазено и дълбоко горско зелено.",
+    "concept": "shirt",
+    "materials": [
+      "Памук"
+    ],
+    "reason": "Audited actual included item and source composition; scoped to this item, not a material inference for every component."
+  },
+  {
+    "slug": "mazhki-set-boho-earth",
+    "field": "long_desc_bg",
+    "text": "Мъжкият сет Boho Earth от Belong е изработен от лека и дишаща памучна муселинова материя. Комплектът включва оувърсайзд риза с изчистен силует и къси панталони с ластична талия и джобове. Предлага се в пясъчно бежово, маслинено зелено, тюркоазено и дълбоко горско зелено.",
+    "concept": "shirt",
+    "materials": [
+      "Памук"
+    ],
+    "reason": "Audited actual included item and source composition; scoped to this item, not a material inference for every component."
+  },
+  {
+    "slug": "vodni-koncheta",
+    "field": "long_desc_bg",
+    "text": "Сребърен комплект „Водни кончета“ от сребро проба 925, включващ обеци, пръстен и медальон с циркони. Обеците тежат 2,5 г и са с размер 16 х 16 мм, пръстенът тежи 1,75 г и е с лице 15 мм, а медальонът тежи 1,1 г и е с дължина 26 мм. Размерът на пръстена може да бъде коригиран. Синджирът не е включен в цената. Подходящ подарък за скъп човек или дете.",
+    "concept": "earrings",
+    "materials": [
+      "Сребро"
+    ],
+    "reason": "Audited actual included item and source composition; scoped to this item, not a material inference for every component."
+  },
+  {
+    "slug": "mini-kapchitsi",
+    "field": "long_desc_bg",
+    "text": "Сребърен комплект „Мини капчици“ от сребро проба 925, включващ обеци и медальон с централни капковидни циркони. Медальонът тежи 0,8 г и е с размер на елемента 25 х 7 мм, а обеците тежат 2,4 г и са с размер 15 х 7 мм. Синджирът не е включен в посочената цена. Комплектът е подходящ за подарък на любим човек или като допълнение към елегантен тоалет.",
+    "concept": "earrings",
+    "materials": [
+      "Сребро"
+    ],
+    "reason": "Audited actual included item and source composition; scoped to this item, not a material inference for every component."
+  },
+  {
+    "slug": "komplekt-s-etno-motivi-kenarena-riza-pola-i-karpa",
+    "field": "long_desc_bg",
+    "text": "Детски комплект с етно мотиви от 100% памук, включващ кенарена риза с бродирана пазва и шевица „Роза“, пола по избор с бродерия или памучна дантела и триъгълна бродирана кърпа за глава. Подходящ е за празници, фолклорни събития, сценични изяви, фотосесии и ежедневие и се предлага за възраст от 3 месеца до 12 години.",
+    "concept": "shirt",
+    "materials": [
+      "Памук"
+    ],
+    "reason": "Audited actual included item and source composition; scoped to this item, not a material inference for every component."
+  }
+]

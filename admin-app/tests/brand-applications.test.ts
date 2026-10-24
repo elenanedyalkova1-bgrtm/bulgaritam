@@ -1,131 +1,149 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
-process.env.BASEROW_API_TOKEN = "test-token";
-process.env.BASEROW_BRAND_APPLICATIONS_TABLE_ID = "1167849";
-process.env.BASEROW_NEWSLETTER_SUBSCRIBERS_TABLE_ID = "1154960";
-process.env.RESEND_API_KEY = "test-resend";
-
-const { POST } = await import("../src/pages/api/brand-applications");
+// No real credentials or requests: Baserow must never be contacted.
+delete process.env.BASEROW_API_TOKEN;
+process.env.RESEND_API_KEY = "mock-resend";
+const { POST, OPTIONS } = await import("../src/pages/api/brand-applications");
 const originalFetch = globalThis.fetch;
-
-type Scenario = { monthly: boolean; existing?: boolean; resendFails?: boolean; persistenceFails?: boolean; presence?: { website?: string; instagram?: string; facebook?: string } };
-let scenarioIndex = 10;
-const run = async (name: string, scenario: Scenario) => {
-  const calls: Array<{ url: string; method: string; body: any }> = [];
-  const applicationRows: any[] = [];
-  const newsletterRows: any[] = [];
-  let nextApplicationId = 100;
-  globalThis.fetch = async (input, init = {}) => {
-    const url = String(input);
-    const method = init.method || "GET";
-    const body = init.body ? JSON.parse(String(init.body)) : null;
-    calls.push({ url, method, body });
-    if (url.includes("/database/rows/table/1167849/") && method === "POST") {
-      if (scenario.persistenceFails) return Response.json({ error: "mock" }, { status: 500 });
-      const row = { id: nextApplicationId++, ...body };
-      applicationRows.push(row);
-      return Response.json(row, { status: 200 });
-    }
-    if (url.includes("/database/rows/table/1167849/") && method === "PATCH") {
-      Object.assign(applicationRows[0], body);
-      return Response.json(applicationRows[0], { status: 200 });
-    }
-    if (url.includes("/database/rows/table/1154960/") && method === "GET") {
-      return Response.json({ results: scenario.existing ? [{ id: 77, email: `${name}@example.com`, consent_source: "newsletter_popup" }] : [] });
-    }
-    if (url.includes("/database/rows/table/1154960/") && method === "POST") {
-      newsletterRows.push({ id: 88, ...body });
-      return Response.json(newsletterRows[0], { status: 200 });
-    }
-    if (url.includes("/database/rows/table/1154960/") && method === "PATCH") {
-      return Response.json({ id: 77, ...body }, { status: 200 });
-    }
-    if (url.includes("api.resend.com")) {
-      return scenario.resendFails ? Response.json({ error: "mock" }, { status: 502 }) : Response.json({ id: `email-${name}` }, { status: 200 });
-    }
-    throw new Error(`Unexpected fetch: ${method} ${url}`);
-  };
-  const payload = {
-    started_at: Date.now() - 3_000, company: "", brand_name: `Test ${name}`, website: "https://example.com",
-    instagram: "", physical_address: "Тестов адрес", delivers_outside_bulgaria: "Да",
-    brand_story: `История ${name}`, own_contribution: ["Разработка", "Ръчна изработка"], own_contribution_other: "",
-    contact_name: "Тест", email: `${name}@example.com`, phone: "", consent: true, monthly_email: scenario.monthly,
-    optional_consent: false, supplier_recommendations: [],
-    ...scenario.presence,
-  };
-  const request = new Request("http://localhost:4321/api/brand-applications/", {
-    method: "POST", headers: { Origin: "http://localhost:4321", "Content-Type": "application/json" }, body: JSON.stringify(payload),
-  });
-  const response = await POST({ request, clientAddress: `127.0.0.${scenarioIndex++}` } as any);
-  const result = await response.json();
-  return { calls, applicationRows, newsletterRows, response, result };
+const originalError = console.error;
+const errors: unknown[][] = [];
+console.error = (...args) => { errors.push(args); };
+let sequence = 0;
+const payload = (extra: Record<string, unknown> = {}) => ({
+  started_at: Date.now() - 3000, company: "", brand_name: `Mock ${sequence++}`,
+  contact_name: "Mock contact", email: "mock@example.com", phone: "mock-phone",
+  website: "example.com", instagram: "instagram.com/mock", facebook: "facebook.com/mock",
+  physical_address: "Mock address", delivers_outside_bulgaria: "Да",
+  brand_story: "Mock story <script>", own_contribution: ["Разработка", "Друг съществен принос"],
+  own_contribution_other: "Mock contribution", consent: true, monthly_email: true,
+  optional_consent: true, founder_start_year: "2020", founder_start_budget: "До €250",
+  founder_first_order_time: "Mock first order time", founder_first_order_channel: "Mock first channel",
+  founder_current_channel: "Mock current channel", founder_marketing_budget: "До €50",
+  founder_advice: "Mock advice", founder_hardest_part: "Mock difficulty",
+  supplier_recommendations: [{ name: "Mock supplier", type: "Печат", reason: "Mock reason" }], ...extra,
+});
+const invoke = (data: unknown, ip = `mock-ip-${sequence++}`, origin = "https://bulgaritam.bg") => POST({
+  request: new Request("https://admin.bulgaritam.bg/api/brand-applications/", {
+    method: "POST", headers: { origin, "Content-Type": "application/json" }, body: JSON.stringify(data),
+  }), clientAddress: ip,
+} as any);
+const calls: { url: string; body: any; key: string }[] = [];
+let mode: "ok" | "reject" | "network" | "timeout" | "no-id" | "malformed" | "slow" = "ok";
+let release: (() => void) | undefined;
+globalThis.fetch = async (input, init = {}) => {
+  const url = String(input);
+  assert.equal(url, "https://api.resend.com/emails", "Only Resend may be contacted");
+  calls.push({ url, body: JSON.parse(String(init.body)), key: new Headers(init.headers).get("Idempotency-Key")! });
+  assert.ok(init.signal, "Request must have a timeout");
+  if (mode === "slow") await new Promise<void>(resolve => { release = resolve; });
+  if (mode === "network") throw new Error("Mock transport failure");
+  if (mode === "timeout") throw new DOMException("Mock timeout", "TimeoutError");
+  if (mode === "reject") return Response.json({ message: "Private provider detail" }, { status: 429 });
+  if (mode === "no-id") return Response.json({}, { status: 200 });
+  if (mode === "malformed") return new Response("not json", { status: 200 });
+  return Response.json({ id: `mock-email-${calls.length}` });
 };
-
 try {
-  const a = await run("case-a", { monthly: false });
-  assert.equal(a.response.status, 202);
-  assert.equal(a.applicationRows[0].monthly_email_opt_in, false);
-  assert.equal(a.applicationRows[0].newsletter_sync_status, "not_requested");
-  assert.equal(a.newsletterRows.length, 0);
-  assert.ok(a.calls.findIndex(x => x.url.includes("1167849") && x.method === "POST") < a.calls.findIndex(x => x.url.includes("api.resend.com")));
+  const full = payload();
+  const response = await invoke(full);
+  assert.equal(response.status, 202);
+  const result = await response.json();
+  assert.equal(result.accepted, true);
+  assert.equal(result.notification_status, "sent");
+  assert.equal(result.newsletter_status, "manual_follow_up");
+  assert.equal(calls.length, 1);
+  const sent = calls[0].body;
+  assert.deepEqual(sent.to, ["info@bulgaritam.bg"]);
+  assert.equal(sent.from, "Bulgaritam <applications@bulgaritam.bg>");
+  assert.equal(sent.reply_to, full.email);
+  for (const value of [full.brand_name, full.contact_name, full.email, full.phone, full.brand_story,
+    full.physical_address, full.own_contribution_other, full.founder_start_year, full.founder_start_budget,
+    full.founder_first_order_time, full.founder_first_order_channel, full.founder_current_channel,
+    full.founder_marketing_budget, full.founder_advice, full.founder_hardest_part,
+    "https://example.com", "https://instagram.com/mock", "https://facebook.com/mock",
+    "Mock supplier", "Печат", "Mock reason", "Да — заявка за ръчно добавяне",
+    "Съгласие за обработка и контакт:\nДа", "Съгласие за допълнителните отговори:\nДа"]) {
+    assert.ok(sent.text.includes(value), `Email must preserve ${value}`);
+  }
+  assert.ok(sent.html.includes("&lt;script&gt;"));
+  assert.equal(sent.html.includes("<script>"), false);
+  assert.ok(sent.html.includes("<table"));
+  const count = calls.length;
+  const repeated = await invoke(full);
+  assert.equal(repeated.status, 202);
+  assert.equal(calls.length, count, "Already accepted submission is not resent");
 
-  const b = await run("case-b", { monthly: true });
-  assert.equal(b.applicationRows[0].monthly_email_opt_in, true);
-  assert.equal(b.applicationRows[0].newsletter_sync_status, "subscribed");
-  assert.equal(b.newsletterRows.length, 1);
-  assert.equal(b.newsletterRows[0].brand_insights_opt_in, true);
-
-  const c = await run("case-c", { monthly: true, existing: true });
-  assert.equal(c.applicationRows[0].newsletter_sync_status, "already_subscribed");
-  assert.equal(c.newsletterRows.length, 0);
-
-  const d = await run("case-d", { monthly: false, resendFails: true });
-  assert.equal(d.response.status, 202);
-  assert.equal(d.result.accepted, true);
-  assert.equal(d.applicationRows[0].notification_email_status, "failed");
-
-  const e = await run("case-e", { monthly: true, persistenceFails: true });
-  assert.equal(e.response.status, 503);
-  assert.equal(e.result.code, "persistence_unavailable");
-  assert.equal(e.calls.some(x => x.url.includes("1154960")), false);
-  assert.equal(e.calls.some(x => x.url.includes("api.resend.com")), false);
-
-  for (const [name, presence] of Object.entries({
-    empty: { website: "", instagram: "", facebook: "" },
-    whitespace: { website: "  ", instagram: "  ", facebook: "  " },
-    website: { website: "example.com", instagram: "", facebook: "" },
-    instagram: { website: "", instagram: "instagram.com/test", facebook: "" },
-    facebook: { website: "", instagram: "", facebook: "facebook.com/test" },
-    all: { website: "example.com", instagram: "instagram.com/test", facebook: "facebook.com/test" },
-    invalidFacebook: { website: "example.com", instagram: "", facebook: "https://" },
-    invalidInstagram: { website: "example.com", instagram: "https://", facebook: "" },
-    invalidWebsite: { website: "https://", instagram: "instagram.com/test", facebook: "" },
-  })) {
-    const result = await run(name, { monthly: false, presence });
-    if (["empty", "whitespace", "invalidFacebook", "invalidInstagram", "invalidWebsite"].includes(name)) {
-      assert.equal(result.response.status, 400, name);
-      assert.equal(result.calls.length, 0, name + " must not persist or notify");
-    } else {
-      assert.equal(result.response.status, 202, name);
-      const row = result.applicationRows[0];
-      const raw = JSON.parse(row.raw_payload);
-      for (const key of ["website", "instagram", "facebook"] as const) {
-        const expected = presence[key] ? "https://" + presence[key] : "";
-        if (key === "facebook") assert.equal(Object.hasOwn(row, key), false, "No unprovisioned Baserow column");
-        else assert.equal(row[key], expected, name + " column " + key);
-        assert.equal(raw[key], expected, name + " payload " + key);
-      }
-      const email = result.calls.find(call => call.url.includes("api.resend.com"));
-      assert.ok(email?.body.text.includes("Facebook:"));
-      if (presence.facebook) assert.ok(email?.body.text.includes("https://" + presence.facebook));
-    }
+  for (const failure of ["reject", "network", "timeout", "no-id", "malformed"] as const) {
+    mode = failure;
+    const data = payload();
+    const failed = await invoke(data);
+    assert.equal(failed.status, 503, failure);
+    const error = await failed.json();
+    assert.notEqual(error.accepted, true, failure);
+    assert.equal(error.code, "notification_unavailable");
+    const first = calls.at(-1)!;
+    mode = "ok";
+    const retried = await invoke(data);
+    assert.equal(retried.status, 202, "Failed emails remain retryable");
+    assert.equal(calls.at(-1)!.key, first.key, "Retry has same Resend idempotency key");
+    assert.deepEqual(calls.at(-1)!.body, first.body, "Retry has identical Resend body");
   }
 
-  const source = await import("node:fs/promises").then(fs => fs.readFile(new URL("../src/pages/api/brand-applications.ts", import.meta.url), "utf8"));
-  assert.ok(source.includes('"Разработка"'));
-  assert.equal(source.includes('"Разработка / концепция"'), false);
-  assert.equal(source.includes('"Шивашко производство"'), false);
-  console.log("Brand application persistence tests passed (CASE A-E, G backend). ");
+  mode = "slow";
+  const concurrentData = payload();
+  const beforeConcurrent = calls.length;
+  const first = invoke(concurrentData);
+  while (!release) await new Promise(resolve => setTimeout(resolve, 1));
+  const second = invoke(concurrentData);
+  await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal(calls.length, beforeConcurrent + 1);
+  release!();
+  const paired = await Promise.all([first, second]);
+  assert.ok(paired.every(response => response.status === 202));
+  mode = "ok";
+
+  const changed = { ...full, phone: "changed-phone", founder_advice: "Changed advice" };
+  await invoke(changed);
+  assert.notEqual(calls.at(-1)!.key, calls[0].key, "Different contact/optional data is not suppressed");
+
+  for (const extra of [{ consent: false }, { optional_consent: false }, { company: "bot" },
+    { website: "", instagram: "", facebook: "" }, { facebook: "https://" },
+    { started_at: Date.now() }, { started_at: Date.now() - 86401000 }, { own_contribution: [] }]) {
+    const count = calls.length;
+    assert.equal((await invoke(payload(extra))).status, 400);
+    assert.equal(calls.length, count, "Invalid input must not send email");
+  }
+  assert.equal((await invoke(null)).status, 400);
+  assert.equal((await invoke(payload(), undefined, "https://invalid.example")).status, 403);
+  const options = await OPTIONS({ request: new Request("https://admin.bulgaritam.bg/api/brand-applications/", {
+    method: "OPTIONS", headers: { origin: "https://bulgaritam.bg" },
+  }) } as any);
+  assert.equal(options.status, 204);
+  assert.equal(options.headers.get("Access-Control-Allow-Origin"), "https://bulgaritam.bg");
+  for (const key of ["website", "instagram", "facebook"]) {
+    const presence = { website: "", instagram: "", facebook: "", [key]: "example.com" };
+    assert.equal((await invoke(payload(presence))).status, 202);
+  }
+  for (let i = 0; i < 3; i++) assert.equal((await invoke(payload(), "one-rate-limit-ip")).status, 202);
+  const countBeforeLimit = calls.length;
+  assert.equal((await invoke(payload(), "one-rate-limit-ip")).status, 429);
+  assert.equal(calls.length, countBeforeLimit);
+
+  delete process.env.RESEND_API_KEY;
+  const callsBeforeMissingKey = calls.length;
+  assert.equal((await invoke(payload())).status, 503);
+  assert.equal(calls.length, callsBeforeMissingKey);
+  process.env.RESEND_API_KEY = "mock-resend";
+
+  const source = await readFile(new URL("../src/pages/api/brand-applications.ts", import.meta.url), "utf8");
+  assert.equal(/baserowUrl|baserowRequest|createBaserowRow|updateBaserowRow|APPLICATIONS_TABLE/.test(source), false);
+  for (const args of errors) {
+    const text = args.join(" ");
+    assert.equal(/mock@example|Mock contact|Mock story|Private provider detail/.test(text), false);
+  }
+  console.log("PASS: email-only success/failure, full fields, retry/idempotency, concurrent clicks, spam protection, zero Baserow requests.");
 } finally {
   globalThis.fetch = originalFetch;
+  console.error = originalError;
 }

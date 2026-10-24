@@ -1,0 +1,1072 @@
+[
+  {
+    "name": "housewarming ranking only",
+    "query": "нещо за нов дом",
+    "before": [
+      "semeino-darvo-kartina",
+      "rachno-risuvani-chashi-za-vino-slanchogledi",
+      "izkustvo-za-stena-michaelangelos-david",
+      "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+      "rozober",
+      "kalufka-za-vazglavnitsa-coquette",
+      "vitosha-planinska-karta-poster",
+      "kozhena-podlozhka-za-mishka",
+      "lavandulovi-polya",
+      "podlozhka-za-byuro",
+      "kartina-yaponski-vulni",
+      "srebarna-imperatorska-lazhichka",
+      "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+      "srebarna-lazhichka-vetrilo-1223l",
+      "salfetka-dzhob-za-pribori-toni",
+      "podarachen-komplekt-riviera-cherven",
+      "srebarna-vilichka",
+      "travel-album-greece",
+      "kolektsia-planinski-karti-5-planini",
+      "risuvani-chashi-za-vino-motiv",
+      "travel-album-istanbul",
+      "podarachen-komplekt-verona-ekryu",
+      "stara-planina",
+      "pazel-bay-toshovo-vreme",
+      "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+      "pirin-planinska-karta-poster"
+    ],
+    "after": [
+      "semeino-darvo-kartina",
+      "rachno-risuvani-chashi-za-vino-slanchogledi",
+      "izkustvo-za-stena-michaelangelos-david",
+      "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+      "rozober",
+      "kalufka-za-vazglavnitsa-coquette",
+      "vitosha-planinska-karta-poster",
+      "lavandulovi-polya",
+      "kartina-yaponski-vulni",
+      "srebarna-imperatorska-lazhichka",
+      "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+      "salfetka-dzhob-za-pribori-toni",
+      "podarachen-komplekt-riviera-cherven",
+      "kolektsia-planinski-karti-5-planini",
+      "risuvani-chashi-za-vino-motiv",
+      "podarachen-komplekt-verona-ekryu",
+      "stara-planina",
+      "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+      "pirin-planinska-karta-poster",
+      "kozhena-podlozhka-za-mishka",
+      "podlozhka-za-byuro",
+      "travel-album-greece",
+      "travel-album-istanbul",
+      "pazel-bay-toshovo-vreme",
+      "srebarna-lazhichka-vetrilo-1223l",
+      "srebarna-vilichka"
+    ],
+    "movements": [
+      {
+        "slug": "semeino-darvo-kartina",
+        "name": "Семейно дърво - картина",
+        "before": 1,
+        "after": 1
+      },
+      {
+        "slug": "rachno-risuvani-chashi-za-vino-slanchogledi",
+        "name": "Ръчно рисувани чаши за вино Слънчогледи",
+        "before": 2,
+        "after": 2
+      },
+      {
+        "slug": "izkustvo-za-stena-michaelangelos-david",
+        "name": "Изкуство за стена Michaelangelo’s David",
+        "before": 3,
+        "after": 3
+      },
+      {
+        "slug": "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+        "name": "Закачалка за ключове с ваши аватари - двама възрастни и две деца",
+        "before": 4,
+        "after": 4
+      },
+      {
+        "slug": "rozober",
+        "name": "Розобер",
+        "before": 5,
+        "after": 5
+      },
+      {
+        "slug": "kalufka-za-vazglavnitsa-coquette",
+        "name": "Калъфка за възглавница Coquette",
+        "before": 6,
+        "after": 6
+      },
+      {
+        "slug": "vitosha-planinska-karta-poster",
+        "name": "Витоша – Планинска Карта Постер",
+        "before": 7,
+        "after": 7
+      },
+      {
+        "slug": "kozhena-podlozhka-za-mishka",
+        "name": "Кожена подложка за мишка",
+        "before": 8,
+        "after": 20
+      },
+      {
+        "slug": "lavandulovi-polya",
+        "name": "Лавандулови поля",
+        "before": 9,
+        "after": 8
+      },
+      {
+        "slug": "podlozhka-za-byuro",
+        "name": "Подложка за бюро",
+        "before": 10,
+        "after": 21
+      },
+      {
+        "slug": "kartina-yaponski-vulni",
+        "name": "Картина – японски вълни",
+        "before": 11,
+        "after": 9
+      },
+      {
+        "slug": "srebarna-imperatorska-lazhichka",
+        "name": "Сребърна императорска лъжичка",
+        "before": 12,
+        "after": 10
+      },
+      {
+        "slug": "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+        "name": "Закачалка за ключове и каишки с аватар на твоя любимец",
+        "before": 13,
+        "after": 11
+      },
+      {
+        "slug": "srebarna-lazhichka-vetrilo-1223l",
+        "name": "Сребърна лъжичка „Ветрило“ 1223L",
+        "before": 14,
+        "after": 25
+      },
+      {
+        "slug": "salfetka-dzhob-za-pribori-toni",
+        "name": "Салфетка-джоб за прибори Тони",
+        "before": 15,
+        "after": 12
+      },
+      {
+        "slug": "podarachen-komplekt-riviera-cherven",
+        "name": "Подаръчен комплект Ривиера – червен",
+        "before": 16,
+        "after": 13
+      },
+      {
+        "slug": "srebarna-vilichka",
+        "name": "Сребърна виличка",
+        "before": 17,
+        "after": 26
+      },
+      {
+        "slug": "travel-album-greece",
+        "name": "Travel албум Greece",
+        "before": 18,
+        "after": 22
+      },
+      {
+        "slug": "kolektsia-planinski-karti-5-planini",
+        "name": "Колекция Планински Карти – 5 планини",
+        "before": 19,
+        "after": 14
+      },
+      {
+        "slug": "risuvani-chashi-za-vino-motiv",
+        "name": "Рисувани чаши за вино Мотив",
+        "before": 20,
+        "after": 15
+      },
+      {
+        "slug": "travel-album-istanbul",
+        "name": "Travel албум Istanbul",
+        "before": 21,
+        "after": 23
+      },
+      {
+        "slug": "podarachen-komplekt-verona-ekryu",
+        "name": "Подаръчен комплект Верона – екрю",
+        "before": 22,
+        "after": 16
+      },
+      {
+        "slug": "stara-planina",
+        "name": "Стара планина",
+        "before": 23,
+        "after": 17
+      },
+      {
+        "slug": "pazel-bay-toshovo-vreme",
+        "name": "Пъзел Бай-Тошово време",
+        "before": 24,
+        "after": 24
+      },
+      {
+        "slug": "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+        "name": "Ivory Botanica – дизайнерски спален комплект от 4 части",
+        "before": 25,
+        "after": 18
+      },
+      {
+        "slug": "pirin-planinska-karta-poster",
+        "name": "Пирин – Планинска Карта Постер",
+        "before": 26,
+        "after": 19
+      }
+    ]
+  },
+  {
+    "name": "two proposed occasion corrections only",
+    "query": "нещо за нов дом",
+    "before": [
+      "semeino-darvo-kartina",
+      "rachno-risuvani-chashi-za-vino-slanchogledi",
+      "izkustvo-za-stena-michaelangelos-david",
+      "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+      "rozober",
+      "kalufka-za-vazglavnitsa-coquette",
+      "vitosha-planinska-karta-poster",
+      "kozhena-podlozhka-za-mishka",
+      "lavandulovi-polya",
+      "podlozhka-za-byuro",
+      "kartina-yaponski-vulni",
+      "srebarna-imperatorska-lazhichka",
+      "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+      "srebarna-lazhichka-vetrilo-1223l",
+      "salfetka-dzhob-za-pribori-toni",
+      "podarachen-komplekt-riviera-cherven",
+      "srebarna-vilichka",
+      "travel-album-greece",
+      "kolektsia-planinski-karti-5-planini",
+      "risuvani-chashi-za-vino-motiv",
+      "travel-album-istanbul",
+      "podarachen-komplekt-verona-ekryu",
+      "stara-planina",
+      "pazel-bay-toshovo-vreme",
+      "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+      "pirin-planinska-karta-poster"
+    ],
+    "after": [
+      "semeino-darvo-kartina",
+      "rachno-risuvani-chashi-za-vino-slanchogledi",
+      "izkustvo-za-stena-michaelangelos-david",
+      "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+      "rozober",
+      "kalufka-za-vazglavnitsa-coquette",
+      "vitosha-planinska-karta-poster",
+      "kozhena-podlozhka-za-mishka",
+      "lavandulovi-polya",
+      "podlozhka-za-byuro",
+      "kartina-yaponski-vulni",
+      "srebarna-imperatorska-lazhichka",
+      "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+      "salfetka-dzhob-za-pribori-toni",
+      "podarachen-komplekt-riviera-cherven",
+      "travel-album-greece",
+      "kolektsia-planinski-karti-5-planini",
+      "risuvani-chashi-za-vino-motiv",
+      "travel-album-istanbul",
+      "podarachen-komplekt-verona-ekryu",
+      "stara-planina",
+      "pazel-bay-toshovo-vreme",
+      "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+      "pirin-planinska-karta-poster"
+    ],
+    "movements": [
+      {
+        "slug": "semeino-darvo-kartina",
+        "name": "Семейно дърво - картина",
+        "before": 1,
+        "after": 1
+      },
+      {
+        "slug": "rachno-risuvani-chashi-za-vino-slanchogledi",
+        "name": "Ръчно рисувани чаши за вино Слънчогледи",
+        "before": 2,
+        "after": 2
+      },
+      {
+        "slug": "izkustvo-za-stena-michaelangelos-david",
+        "name": "Изкуство за стена Michaelangelo’s David",
+        "before": 3,
+        "after": 3
+      },
+      {
+        "slug": "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+        "name": "Закачалка за ключове с ваши аватари - двама възрастни и две деца",
+        "before": 4,
+        "after": 4
+      },
+      {
+        "slug": "rozober",
+        "name": "Розобер",
+        "before": 5,
+        "after": 5
+      },
+      {
+        "slug": "kalufka-za-vazglavnitsa-coquette",
+        "name": "Калъфка за възглавница Coquette",
+        "before": 6,
+        "after": 6
+      },
+      {
+        "slug": "vitosha-planinska-karta-poster",
+        "name": "Витоша – Планинска Карта Постер",
+        "before": 7,
+        "after": 7
+      },
+      {
+        "slug": "kozhena-podlozhka-za-mishka",
+        "name": "Кожена подложка за мишка",
+        "before": 8,
+        "after": 8
+      },
+      {
+        "slug": "lavandulovi-polya",
+        "name": "Лавандулови поля",
+        "before": 9,
+        "after": 9
+      },
+      {
+        "slug": "podlozhka-za-byuro",
+        "name": "Подложка за бюро",
+        "before": 10,
+        "after": 10
+      },
+      {
+        "slug": "kartina-yaponski-vulni",
+        "name": "Картина – японски вълни",
+        "before": 11,
+        "after": 11
+      },
+      {
+        "slug": "srebarna-imperatorska-lazhichka",
+        "name": "Сребърна императорска лъжичка",
+        "before": 12,
+        "after": 12
+      },
+      {
+        "slug": "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+        "name": "Закачалка за ключове и каишки с аватар на твоя любимец",
+        "before": 13,
+        "after": 13
+      },
+      {
+        "slug": "srebarna-lazhichka-vetrilo-1223l",
+        "name": "Сребърна лъжичка „Ветрило“ 1223L",
+        "before": 14,
+        "after": null
+      },
+      {
+        "slug": "salfetka-dzhob-za-pribori-toni",
+        "name": "Салфетка-джоб за прибори Тони",
+        "before": 15,
+        "after": 14
+      },
+      {
+        "slug": "podarachen-komplekt-riviera-cherven",
+        "name": "Подаръчен комплект Ривиера – червен",
+        "before": 16,
+        "after": 15
+      },
+      {
+        "slug": "srebarna-vilichka",
+        "name": "Сребърна виличка",
+        "before": 17,
+        "after": null
+      },
+      {
+        "slug": "travel-album-greece",
+        "name": "Travel албум Greece",
+        "before": 18,
+        "after": 16
+      },
+      {
+        "slug": "kolektsia-planinski-karti-5-planini",
+        "name": "Колекция Планински Карти – 5 планини",
+        "before": 19,
+        "after": 17
+      },
+      {
+        "slug": "risuvani-chashi-za-vino-motiv",
+        "name": "Рисувани чаши за вино Мотив",
+        "before": 20,
+        "after": 18
+      },
+      {
+        "slug": "travel-album-istanbul",
+        "name": "Travel албум Istanbul",
+        "before": 21,
+        "after": 19
+      },
+      {
+        "slug": "podarachen-komplekt-verona-ekryu",
+        "name": "Подаръчен комплект Верона – екрю",
+        "before": 22,
+        "after": 20
+      },
+      {
+        "slug": "stara-planina",
+        "name": "Стара планина",
+        "before": 23,
+        "after": 21
+      },
+      {
+        "slug": "pazel-bay-toshovo-vreme",
+        "name": "Пъзел Бай-Тошово време",
+        "before": 24,
+        "after": 22
+      },
+      {
+        "slug": "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+        "name": "Ivory Botanica – дизайнерски спален комплект от 4 части",
+        "before": 25,
+        "after": 23
+      },
+      {
+        "slug": "pirin-planinska-karta-poster",
+        "name": "Пирин – Планинска Карта Постер",
+        "before": 26,
+        "after": 24
+      }
+    ]
+  },
+  {
+    "name": "ranking + two proposed corrections",
+    "query": "нещо за нов дом",
+    "before": [
+      "semeino-darvo-kartina",
+      "rachno-risuvani-chashi-za-vino-slanchogledi",
+      "izkustvo-za-stena-michaelangelos-david",
+      "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+      "rozober",
+      "kalufka-za-vazglavnitsa-coquette",
+      "vitosha-planinska-karta-poster",
+      "kozhena-podlozhka-za-mishka",
+      "lavandulovi-polya",
+      "podlozhka-za-byuro",
+      "kartina-yaponski-vulni",
+      "srebarna-imperatorska-lazhichka",
+      "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+      "srebarna-lazhichka-vetrilo-1223l",
+      "salfetka-dzhob-za-pribori-toni",
+      "podarachen-komplekt-riviera-cherven",
+      "srebarna-vilichka",
+      "travel-album-greece",
+      "kolektsia-planinski-karti-5-planini",
+      "risuvani-chashi-za-vino-motiv",
+      "travel-album-istanbul",
+      "podarachen-komplekt-verona-ekryu",
+      "stara-planina",
+      "pazel-bay-toshovo-vreme",
+      "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+      "pirin-planinska-karta-poster"
+    ],
+    "after": [
+      "semeino-darvo-kartina",
+      "rachno-risuvani-chashi-za-vino-slanchogledi",
+      "izkustvo-za-stena-michaelangelos-david",
+      "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+      "rozober",
+      "kalufka-za-vazglavnitsa-coquette",
+      "vitosha-planinska-karta-poster",
+      "lavandulovi-polya",
+      "kartina-yaponski-vulni",
+      "srebarna-imperatorska-lazhichka",
+      "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+      "salfetka-dzhob-za-pribori-toni",
+      "podarachen-komplekt-riviera-cherven",
+      "kolektsia-planinski-karti-5-planini",
+      "risuvani-chashi-za-vino-motiv",
+      "podarachen-komplekt-verona-ekryu",
+      "stara-planina",
+      "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+      "pirin-planinska-karta-poster",
+      "kozhena-podlozhka-za-mishka",
+      "podlozhka-za-byuro",
+      "travel-album-greece",
+      "travel-album-istanbul",
+      "pazel-bay-toshovo-vreme"
+    ],
+    "movements": [
+      {
+        "slug": "semeino-darvo-kartina",
+        "name": "Семейно дърво - картина",
+        "before": 1,
+        "after": 1
+      },
+      {
+        "slug": "rachno-risuvani-chashi-za-vino-slanchogledi",
+        "name": "Ръчно рисувани чаши за вино Слънчогледи",
+        "before": 2,
+        "after": 2
+      },
+      {
+        "slug": "izkustvo-za-stena-michaelangelos-david",
+        "name": "Изкуство за стена Michaelangelo’s David",
+        "before": 3,
+        "after": 3
+      },
+      {
+        "slug": "zakachalka-za-klyuchove-s-vashi-avatari-dvama-vazrastni-i-dve-detsa",
+        "name": "Закачалка за ключове с ваши аватари - двама възрастни и две деца",
+        "before": 4,
+        "after": 4
+      },
+      {
+        "slug": "rozober",
+        "name": "Розобер",
+        "before": 5,
+        "after": 5
+      },
+      {
+        "slug": "kalufka-za-vazglavnitsa-coquette",
+        "name": "Калъфка за възглавница Coquette",
+        "before": 6,
+        "after": 6
+      },
+      {
+        "slug": "vitosha-planinska-karta-poster",
+        "name": "Витоша – Планинска Карта Постер",
+        "before": 7,
+        "after": 7
+      },
+      {
+        "slug": "kozhena-podlozhka-za-mishka",
+        "name": "Кожена подложка за мишка",
+        "before": 8,
+        "after": 20
+      },
+      {
+        "slug": "lavandulovi-polya",
+        "name": "Лавандулови поля",
+        "before": 9,
+        "after": 8
+      },
+      {
+        "slug": "podlozhka-za-byuro",
+        "name": "Подложка за бюро",
+        "before": 10,
+        "after": 21
+      },
+      {
+        "slug": "kartina-yaponski-vulni",
+        "name": "Картина – японски вълни",
+        "before": 11,
+        "after": 9
+      },
+      {
+        "slug": "srebarna-imperatorska-lazhichka",
+        "name": "Сребърна императорска лъжичка",
+        "before": 12,
+        "after": 10
+      },
+      {
+        "slug": "zakachalka-za-klyuchove-i-kaishki-s-avatar-na-tvoya-lyubimets",
+        "name": "Закачалка за ключове и каишки с аватар на твоя любимец",
+        "before": 13,
+        "after": 11
+      },
+      {
+        "slug": "srebarna-lazhichka-vetrilo-1223l",
+        "name": "Сребърна лъжичка „Ветрило“ 1223L",
+        "before": 14,
+        "after": null
+      },
+      {
+        "slug": "salfetka-dzhob-za-pribori-toni",
+        "name": "Салфетка-джоб за прибори Тони",
+        "before": 15,
+        "after": 12
+      },
+      {
+        "slug": "podarachen-komplekt-riviera-cherven",
+        "name": "Подаръчен комплект Ривиера – червен",
+        "before": 16,
+        "after": 13
+      },
+      {
+        "slug": "srebarna-vilichka",
+        "name": "Сребърна виличка",
+        "before": 17,
+        "after": null
+      },
+      {
+        "slug": "travel-album-greece",
+        "name": "Travel албум Greece",
+        "before": 18,
+        "after": 22
+      },
+      {
+        "slug": "kolektsia-planinski-karti-5-planini",
+        "name": "Колекция Планински Карти – 5 планини",
+        "before": 19,
+        "after": 14
+      },
+      {
+        "slug": "risuvani-chashi-za-vino-motiv",
+        "name": "Рисувани чаши за вино Мотив",
+        "before": 20,
+        "after": 15
+      },
+      {
+        "slug": "travel-album-istanbul",
+        "name": "Travel албум Istanbul",
+        "before": 21,
+        "after": 23
+      },
+      {
+        "slug": "podarachen-komplekt-verona-ekryu",
+        "name": "Подаръчен комплект Верона – екрю",
+        "before": 22,
+        "after": 16
+      },
+      {
+        "slug": "stara-planina",
+        "name": "Стара планина",
+        "before": 23,
+        "after": 17
+      },
+      {
+        "slug": "pazel-bay-toshovo-vreme",
+        "name": "Пъзел Бай-Тошово време",
+        "before": 24,
+        "after": 24
+      },
+      {
+        "slug": "ivory-botanica-dizaynerski-spalen-komplekt-ot-4-chasti",
+        "name": "Ivory Botanica – дизайнерски спален комплект от 4 части",
+        "before": 25,
+        "after": 18
+      },
+      {
+        "slug": "pirin-planinska-karta-poster",
+        "name": "Пирин – Планинска Карта Постер",
+        "before": 26,
+        "after": 19
+      }
+    ]
+  },
+  {
+    "name": "skincare preserved",
+    "query": "skincare",
+    "before": [
+      "glow-dalboko-hidratirasht-dneven-krem-za-litse",
+      "cellular-night-regeneration-cream",
+      "hydralift-eye-complex",
+      "pochistvashto-i-izmivashto-maslo-za-lice-phytoessencebio",
+      "sos-balsam-za-ratse",
+      "krem-s-aloe-vera-za-litse-30-ml",
+      "serum-za-lice-s-retinol-i-lakesis-30-ml",
+      "podarachna-kutiya-l-cheresha",
+      "podarachna-kutiya-l-lavandula",
+      "pochistvasht-gel-za-chuvstvitelna-kozha-gems-of-clarity",
+      "sapun-ilang-ilang",
+      "serum-za-lice-sas-ceramidi-za-vazstanovyavane-na-kozhata-phytoessencebio",
+      "mus-za-tyalo-s-cheresha-i-blestyashti-chastitsi",
+      "losion-za-tyalo-s-blestyashti-chastitsi-glow-babe",
+      "mus-za-tyalo-sas-sladak-portokal-i-kokos",
+      "sapun-detoks-s-aktiven-vaglen",
+      "mus-za-tyalo-sas-solen-karamel-i-kokos",
+      "bofi-lift-krem-s-kolagen-i-babasu-za-litse-i-shiya",
+      "vazstanovyavasht-krem-s-matcha-i-aloe-vera",
+      "podarachna-kutiya-m-cheresha",
+      "papkotrepach-korektor-za-papki-i-cherni-tochki",
+      "bofi-serum-buster-s-peptidi-i-kolagen-s-troyno-deystvie",
+      "bofi-regenesis-multiregenerirasht-krem-s-kolagen-i-edelvays",
+      "summer-oil-2in1-olio-za-ten-s-marakuyа-100-ml",
+      "pearllixir-microfluidic-illuminating-serum",
+      "anti-pollution-clay-mask",
+      "puga-dneven-krem-protiv-brachki",
+      "bio-dush-gel-citrus",
+      "dush-gel-piling-2v1-s-cheresha-200-ml",
+      "bofi-krem-za-ochi-i-nazolabialni-ganki-s-kolagen-i-hialuron",
+      "serum-za-mazna-kozha-30-ml",
+      "deo-stik-vaniliya-i-laym",
+      "toner-balance",
+      "olio-za-po-barz-ten-beach-babe",
+      "bofi-pyana-za-litse-s-vitamin-c-i-kolagen",
+      "zaharen-eksfoliant-kokos",
+      "vanilla-glow-shimmering-body-oil",
+      "bio-balsam-za-sled-tatuirane-roza-20-ml",
+      "hidratirashta-maska-za-litse-s-kolagen",
+      "floral-face-gommage",
+      "pyana-za-lice-bha-prebiotics-phytoessence",
+      "naturalna-floralna-lavandulova-voda-100-ml",
+      "slantsezashtiten-krem-za-litse-spf30"
+    ],
+    "after": [
+      "glow-dalboko-hidratirasht-dneven-krem-za-litse",
+      "cellular-night-regeneration-cream",
+      "hydralift-eye-complex",
+      "pochistvashto-i-izmivashto-maslo-za-lice-phytoessencebio",
+      "sos-balsam-za-ratse",
+      "krem-s-aloe-vera-za-litse-30-ml",
+      "serum-za-lice-s-retinol-i-lakesis-30-ml",
+      "podarachna-kutiya-l-cheresha",
+      "podarachna-kutiya-l-lavandula",
+      "pochistvasht-gel-za-chuvstvitelna-kozha-gems-of-clarity",
+      "sapun-ilang-ilang",
+      "serum-za-lice-sas-ceramidi-za-vazstanovyavane-na-kozhata-phytoessencebio",
+      "mus-za-tyalo-s-cheresha-i-blestyashti-chastitsi",
+      "losion-za-tyalo-s-blestyashti-chastitsi-glow-babe",
+      "mus-za-tyalo-sas-sladak-portokal-i-kokos",
+      "sapun-detoks-s-aktiven-vaglen",
+      "mus-za-tyalo-sas-solen-karamel-i-kokos",
+      "bofi-lift-krem-s-kolagen-i-babasu-za-litse-i-shiya",
+      "vazstanovyavasht-krem-s-matcha-i-aloe-vera",
+      "podarachna-kutiya-m-cheresha",
+      "papkotrepach-korektor-za-papki-i-cherni-tochki",
+      "bofi-serum-buster-s-peptidi-i-kolagen-s-troyno-deystvie",
+      "bofi-regenesis-multiregenerirasht-krem-s-kolagen-i-edelvays",
+      "summer-oil-2in1-olio-za-ten-s-marakuyа-100-ml",
+      "pearllixir-microfluidic-illuminating-serum",
+      "anti-pollution-clay-mask",
+      "puga-dneven-krem-protiv-brachki",
+      "bio-dush-gel-citrus",
+      "dush-gel-piling-2v1-s-cheresha-200-ml",
+      "bofi-krem-za-ochi-i-nazolabialni-ganki-s-kolagen-i-hialuron",
+      "serum-za-mazna-kozha-30-ml",
+      "deo-stik-vaniliya-i-laym",
+      "toner-balance",
+      "olio-za-po-barz-ten-beach-babe",
+      "bofi-pyana-za-litse-s-vitamin-c-i-kolagen",
+      "zaharen-eksfoliant-kokos",
+      "vanilla-glow-shimmering-body-oil",
+      "bio-balsam-za-sled-tatuirane-roza-20-ml",
+      "hidratirashta-maska-za-litse-s-kolagen",
+      "floral-face-gommage",
+      "pyana-za-lice-bha-prebiotics-phytoessence",
+      "naturalna-floralna-lavandulova-voda-100-ml",
+      "slantsezashtiten-krem-za-litse-spf30"
+    ],
+    "movements": [
+      {
+        "slug": "glow-dalboko-hidratirasht-dneven-krem-za-litse",
+        "name": "GLOW дълбоко хидратиращ дневен крем за лице",
+        "before": 1,
+        "after": 1
+      },
+      {
+        "slug": "cellular-night-regeneration-cream",
+        "name": "Cellular Night Regeneration Cream",
+        "before": 2,
+        "after": 2
+      },
+      {
+        "slug": "hydralift-eye-complex",
+        "name": "HydraLIFT Eye Complex",
+        "before": 3,
+        "after": 3
+      },
+      {
+        "slug": "pochistvashto-i-izmivashto-maslo-za-lice-phytoessencebio",
+        "name": "Почистващо и измиващо масло за лице",
+        "before": 4,
+        "after": 4
+      },
+      {
+        "slug": "sos-balsam-za-ratse",
+        "name": "SOS балсам за ръце",
+        "before": 5,
+        "after": 5
+      },
+      {
+        "slug": "krem-s-aloe-vera-za-litse-30-ml",
+        "name": "Крем с алое вера за лице 30 мл",
+        "before": 6,
+        "after": 6
+      },
+      {
+        "slug": "serum-za-lice-s-retinol-i-lakesis-30-ml",
+        "name": "Серум за лице с ретинол и Lakesis 30 мл",
+        "before": 7,
+        "after": 7
+      },
+      {
+        "slug": "podarachna-kutiya-l-cheresha",
+        "name": "Подаръчна кутия L „Череша“",
+        "before": 8,
+        "after": 8
+      },
+      {
+        "slug": "podarachna-kutiya-l-lavandula",
+        "name": "Подаръчна кутия L „Лавандула“",
+        "before": 9,
+        "after": 9
+      },
+      {
+        "slug": "pochistvasht-gel-za-chuvstvitelna-kozha-gems-of-clarity",
+        "name": "Почистващ гел за чувствителна кожа GEMS OF CLARITY",
+        "before": 10,
+        "after": 10
+      },
+      {
+        "slug": "sapun-ilang-ilang",
+        "name": "Сапун Иланг-Иланг",
+        "before": 11,
+        "after": 11
+      },
+      {
+        "slug": "serum-za-lice-sas-ceramidi-za-vazstanovyavane-na-kozhata-phytoessencebio",
+        "name": "Серум за лице със серамиди за възстановяване на кожата",
+        "before": 12,
+        "after": 12
+      },
+      {
+        "slug": "mus-za-tyalo-s-cheresha-i-blestyashti-chastitsi",
+        "name": "Мус за тяло с череша и блестящи частици",
+        "before": 13,
+        "after": 13
+      },
+      {
+        "slug": "losion-za-tyalo-s-blestyashti-chastitsi-glow-babe",
+        "name": "Лосион за тяло с блестящи частици GLOW BABE",
+        "before": 14,
+        "after": 14
+      },
+      {
+        "slug": "mus-za-tyalo-sas-sladak-portokal-i-kokos",
+        "name": "Мус за тяло със сладък портокал и кокос",
+        "before": 15,
+        "after": 15
+      },
+      {
+        "slug": "sapun-detoks-s-aktiven-vaglen",
+        "name": "Сапун Детокс",
+        "before": 16,
+        "after": 16
+      },
+      {
+        "slug": "mus-za-tyalo-sas-solen-karamel-i-kokos",
+        "name": "Мус за тяло със солен карамел и кокос",
+        "before": 17,
+        "after": 17
+      },
+      {
+        "slug": "bofi-lift-krem-s-kolagen-i-babasu-za-litse-i-shiya",
+        "name": "Bo:Fi Лифт крем с колаген и бабасу за лице и шия",
+        "before": 18,
+        "after": 18
+      },
+      {
+        "slug": "vazstanovyavasht-krem-s-matcha-i-aloe-vera",
+        "name": "Възстановяващ крем с матча и алое вера",
+        "before": 19,
+        "after": 19
+      },
+      {
+        "slug": "podarachna-kutiya-m-cheresha",
+        "name": "Подаръчна кутия M „Череша“",
+        "before": 20,
+        "after": 20
+      },
+      {
+        "slug": "papkotrepach-korektor-za-papki-i-cherni-tochki",
+        "name": "Пъпкотрепач – коректор за пъпки и черни точки",
+        "before": 21,
+        "after": 21
+      },
+      {
+        "slug": "bofi-serum-buster-s-peptidi-i-kolagen-s-troyno-deystvie",
+        "name": "Bo:Fi Серум-бустер с пептиди и колаген с тройно действие",
+        "before": 22,
+        "after": 22
+      },
+      {
+        "slug": "bofi-regenesis-multiregenerirasht-krem-s-kolagen-i-edelvays",
+        "name": "Bo:Fi Regenesis мултирегенериращ крем с колаген и еделвайс",
+        "before": 23,
+        "after": 23
+      },
+      {
+        "slug": "summer-oil-2in1-olio-za-ten-s-marakuyа-100-ml",
+        "name": "SUMMER OIL 2in1 – олио за тен с маракуя 100 мл",
+        "before": 24,
+        "after": 24
+      },
+      {
+        "slug": "pearllixir-microfluidic-illuminating-serum",
+        "name": "PearlLixir Microfluidic Illuminating Serum",
+        "before": 25,
+        "after": 25
+      },
+      {
+        "slug": "anti-pollution-clay-mask",
+        "name": "Anti-Pollution Clay Mask",
+        "before": 26,
+        "after": 26
+      },
+      {
+        "slug": "puga-dneven-krem-protiv-brachki",
+        "name": "PUGA дневен крем против бръчки",
+        "before": 27,
+        "after": 27
+      },
+      {
+        "slug": "bio-dush-gel-citrus",
+        "name": "БИО Душ гел Цитрус",
+        "before": 28,
+        "after": 28
+      },
+      {
+        "slug": "dush-gel-piling-2v1-s-cheresha-200-ml",
+        "name": "Душ-гел пилинг 2в1 с череша 200 мл",
+        "before": 29,
+        "after": 29
+      },
+      {
+        "slug": "bofi-krem-za-ochi-i-nazolabialni-ganki-s-kolagen-i-hialuron",
+        "name": "Bo:Fi Крем за очи и назолабиални гънки с колаген и хиалурон",
+        "before": 30,
+        "after": 30
+      },
+      {
+        "slug": "serum-za-mazna-kozha-30-ml",
+        "name": "Серум за мазна кожа 30 мл",
+        "before": 31,
+        "after": 31
+      },
+      {
+        "slug": "deo-stik-vaniliya-i-laym",
+        "name": "Део стик Ванилия и лайм",
+        "before": 32,
+        "after": 32
+      },
+      {
+        "slug": "toner-balance",
+        "name": "Toner Balance",
+        "before": 33,
+        "after": 33
+      },
+      {
+        "slug": "olio-za-po-barz-ten-beach-babe",
+        "name": "Олио за по-бърз тен BEACH BABE™",
+        "before": 34,
+        "after": 34
+      },
+      {
+        "slug": "bofi-pyana-za-litse-s-vitamin-c-i-kolagen",
+        "name": "Bo:Fi Пяна за лице с витамин C и колаген",
+        "before": 35,
+        "after": 35
+      },
+      {
+        "slug": "zaharen-eksfoliant-kokos",
+        "name": "Захарен ексфолиант Кокос",
+        "before": 36,
+        "after": 36
+      },
+      {
+        "slug": "vanilla-glow-shimmering-body-oil",
+        "name": "Vanilla Glow Shimmering Body Oil",
+        "before": 37,
+        "after": 37
+      },
+      {
+        "slug": "bio-balsam-za-sled-tatuirane-roza-20-ml",
+        "name": "Био балсам за след татуиране роза 20 мл",
+        "before": 38,
+        "after": 38
+      },
+      {
+        "slug": "hidratirashta-maska-za-litse-s-kolagen",
+        "name": "Хидратираща маска за лице с колаген",
+        "before": 39,
+        "after": 39
+      },
+      {
+        "slug": "floral-face-gommage",
+        "name": "Floral Face Gommage",
+        "before": 40,
+        "after": 40
+      },
+      {
+        "slug": "pyana-za-lice-bha-prebiotics-phytoessence",
+        "name": "Пяна за лице BHA + Prebiotics – PhytoEssence",
+        "before": 41,
+        "after": 41
+      },
+      {
+        "slug": "naturalna-floralna-lavandulova-voda-100-ml",
+        "name": "100% натурална флорална лавандулова вода 100 мл",
+        "before": 42,
+        "after": 42
+      },
+      {
+        "slug": "slantsezashtiten-krem-za-litse-spf30",
+        "name": "Слънцезащитен крем за лице SPF30",
+        "before": 43,
+        "after": 43
+      }
+    ]
+  },
+  {
+    "name": "mother preserved",
+    "query": "подарък за мама",
+    "before": [
+      "set-i-mama-e-chovek",
+      "teniska-za-mama-mama",
+      "kartina-mama-s-4-snimki",
+      "kartichka-mamo-mamo-mamo-obicham-te",
+      "denyat-v-koyto-stana-nasha-mayka-kartina-s-fazite-na-lunata",
+      "kartina-mamo-s-poslanie",
+      "kartina-parvo-mayka-a-sega-baba"
+    ],
+    "after": [
+      "set-i-mama-e-chovek",
+      "teniska-za-mama-mama",
+      "kartina-mama-s-4-snimki",
+      "kartichka-mamo-mamo-mamo-obicham-te",
+      "denyat-v-koyto-stana-nasha-mayka-kartina-s-fazite-na-lunata",
+      "kartina-mamo-s-poslanie",
+      "kartina-parvo-mayka-a-sega-baba"
+    ],
+    "movements": [
+      {
+        "slug": "set-i-mama-e-chovek",
+        "name": "Сет И мама е човек",
+        "before": 1,
+        "after": 1
+      },
+      {
+        "slug": "teniska-za-mama-mama",
+        "name": "Тениска за мама Mama ♥",
+        "before": 2,
+        "after": 2
+      },
+      {
+        "slug": "kartina-mama-s-4-snimki",
+        "name": "Картина МАМА - с 4 снимки",
+        "before": 3,
+        "after": 3
+      },
+      {
+        "slug": "kartichka-mamo-mamo-mamo-obicham-te",
+        "name": "Картичка „Мамо, мамо, мамо… Обичам те“",
+        "before": 4,
+        "after": 4
+      },
+      {
+        "slug": "denyat-v-koyto-stana-nasha-mayka-kartina-s-fazite-na-lunata",
+        "name": "Денят в който стана наша МАЙКА - Картина с фазите на Луната",
+        "before": 5,
+        "after": 5
+      },
+      {
+        "slug": "kartina-mamo-s-poslanie",
+        "name": "Картина МАМО - с послание",
+        "before": 6,
+        "after": 6
+      },
+      {
+        "slug": "kartina-parvo-mayka-a-sega-baba",
+        "name": "Картина - първо МАЙКА, а сега БАБА",
+        "before": 7,
+        "after": 7
+      }
+    ]
+  }
+]

@@ -62,16 +62,26 @@ export async function createIncrementalPlan({ distDir = "dist", origin = "https:
   const stateUrl = new URL(DEPLOY_STATE_PATH, origin);
   const remoteState = await fetchJson(stateUrl, fetchImpl);
   const trustedState = remoteState?.version === 1 && remoteState.files && typeof remoteState.files === "object" ? remoteState : null;
-  const candidates = localFiles.filter(file => trustedState?.files?.[file] !== localHashes[file]);
+  // A failed publication may have replaced files without publishing its state.
+  // Probe actual bytes even when the last completed state claims equality;
+  // otherwise retry/rollback could silently skip partially replaced documents.
+  const candidates = localFiles;
   const probed = await mapLimit(candidates, concurrency, async file => {
     try {
+      if (/\.(?:m?js|css)$/i.test(file) && trustedState?.files?.[file] && trustedState.files[file] !== localHashes[file]) {
+        throw new Error("Code asset URL changed since completed release; fingerprint/version it even if a partial upload already replaced origin bytes");
+      }
       const response = await fetchImpl(new URL(`/${file}`, origin), { headers: { Accept: "*/*", "Cache-Control": "no-cache" } });
       if (response.status === 404) return { file, kind: "new" };
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return { file, kind: await responseHash(response) === localHashes[file] ? "unchanged" : "changed" };
+      const same = await responseHash(response) === localHashes[file];
+      // Replacing code at a cached URL can break old HTML even with asset-first
+      // upload. New code must use a new URL (Astro's normal fingerprinting).
+      if (!same && /\.(?:m?js|css)$/i.test(file)) throw new Error("Code asset URL already contains different bytes; fingerprint/version the replacement instead of overwriting a cached URL");
+      return { file, kind: same ? "unchanged" : "changed" };
     } catch (error) { throw new Error(`Remote comparison failed for /${file}: ${error instanceof Error ? error.message : error}`); }
   });
-  const unchanged = localFiles.filter(file => trustedState?.files?.[file] === localHashes[file]);
+  const unchanged = [];
   const changed = []; const added = [];
   for (const result of probed) {
     if (result.kind === "unchanged") unchanged.push(result.file);
@@ -79,13 +89,7 @@ export async function createIncrementalPlan({ distDir = "dist", origin = "https:
     else changed.push(result.file);
   }
   let previousGenerated = [];
-  if (trustedState) {
-    // Retire only these explicitly owned legacy icons, and only when absent
-    // from the replacement build. Never broaden deletion to other root files.
-    const retiredIcons = new Set(["favicon.png", "favicon-48x48.png", "mstile-150x150.png"]);
-    previousGenerated = Object.keys(trustedState.files).filter(file =>
-      /^(?:p|brand)\/.+\/index\.html$/.test(file) || retiredIcons.has(file));
-  }
+  if (trustedState) previousGenerated = Object.keys(trustedState.files).filter(file => /^(?:p|brand)\/.+\/index\.html$/.test(file));
   else {
     const liveManifest = await fetchJson(new URL("/deploy-manifest.json", origin), fetchImpl);
     previousGenerated = [...(liveManifest?.product_paths || []), ...(liveManifest?.brand_paths || [])].map(generatedRouteFile).filter(Boolean);
@@ -97,19 +101,56 @@ export async function createIncrementalPlan({ distDir = "dist", origin = "https:
     unchanged: unchanged.sort(), changed: changed.sort(), new: added.sort(), stale, state };
 }
 
-export function writeLftpCommands(plan, { distDir = "dist", output, stateOutput, runId = "local" } = {}) {
+const isDocument = file => /\.(?:html?|json|xml|txt|webmanifest)$/i.test(file);
+
+export function deploymentPhases(plan) {
+  const transfers = [...new Set([...plan.changed, ...plan.new])].sort();
+  return {
+    assets: transfers.filter(file => !isDocument(file)),
+    documents: transfers.filter(file => isDocument(file) && file !== "deploy-manifest.json"),
+    // Always publish the manifest, then completed state, only after document verification.
+    finalize: ["deploy-manifest.json"],
+  };
+}
+
+export async function verifyDeploymentPhase(plan, phase, { distDir = "dist", origin = plan.origin, fetchImpl = fetch, concurrency = 20 } = {}) {
+  if (!["assets", "documents"].includes(phase)) throw new Error("Verification phase must be assets or documents");
+  const phases = deploymentPhases(plan);
+  const files = phase === "assets"
+    ? Object.keys(plan.state.files).filter(file => !isDocument(file))
+    : [...new Set([...phases.documents, "index.html"])];
+  await mapLimit(files, concurrency, async file => {
+    const expected = plan.state.files[file];
+    if (!expected || sha256(fs.readFileSync(path.join(distDir, file))) !== expected) throw new Error(`Local file changed after planning: ${file}`);
+    const response = await fetchImpl(new URL(`/${file}`, origin), { headers: { Accept: "*/*", "Cache-Control": "no-cache" } });
+    if (!response.ok || await responseHash(response) !== expected) throw new Error(`Published ${phase} verification failed: ${file} (HTTP ${response.status})`);
+  });
+  return { phase, verified: files.length };
+}
+
+export function writeLftpCommands(plan, { distDir = "dist", output, stateOutput, runId = "local", phase = "all" } = {}) {
   if (!output || !stateOutput) throw new Error("output and stateOutput are required");
+  if (!["all", "assets", "documents", "finalize"].includes(phase)) throw new Error("Invalid deployment phase");
+  if (plan.stale.some(file => !/^(?:p|brand)\/.+\/index\.html$/.test(file))) throw new Error("Only previously owned product/brand documents may be removed; retain cached assets");
   fs.writeFileSync(stateOutput, `${JSON.stringify(plan.state)}\n`);
   const commands = []; const directories = new Set();
-  for (const file of [...plan.changed, ...plan.new]) {
+  const phases = deploymentPhases(plan);
+  const files = phase === "all" ? [...phases.assets, ...phases.documents, ...phases.finalize] : phases[phase];
+  for (const file of files) {
+    if (file === "deploy-manifest.json") {
+      // Cleanup must succeed before publishing the completion markers.
+      // Never remove old assets: cached HTML and exact rollback still need them.
+      for (const stale of plan.stale) commands.push(`rm -f ${quote(`/${stale}`)}`);
+    }
     const remote = `/${file}`; const directory = path.posix.dirname(remote);
     if (!directories.has(directory)) { commands.push(...ensureRemoteDirectoryCommands(directory)); directories.add(directory); }
     const temporary = `${remote}.upload-${runId}`;
     commands.push(...atomicUploadCommands(path.join(distDir, file), temporary, remote));
   }
-  for (const file of plan.stale) commands.push(`rm -f ${quote(`/${file}`)}`);
-  const stateTemporary = `${DEPLOY_STATE_PATH}.upload-${runId}`;
-  commands.push(...atomicUploadCommands(stateOutput, stateTemporary, DEPLOY_STATE_PATH));
+  if (phase === "all" || phase === "finalize") {
+    const stateTemporary = `${DEPLOY_STATE_PATH}.upload-${runId}`;
+    commands.push(...atomicUploadCommands(stateOutput, stateTemporary, DEPLOY_STATE_PATH));
+  }
   fs.writeFileSync(output, `${commands.join("\n")}\n`);
 }
 
@@ -119,8 +160,18 @@ async function main() {
   const distDir = option("dist", "dist"); const origin = option("origin", "https://bulgaritam.bg");
   const output = option("output", "/tmp/incremental-deploy-plan.json");
   const commands = option("commands", "/tmp/incremental-deploy.lftp"); const stateOutput = option("state-output", "/tmp/bulgaritam-deploy-state.json");
+  const verify = option("verify-phase", "");
+  if (verify) {
+    const plan = JSON.parse(fs.readFileSync(output, "utf8"));
+    console.log(JSON.stringify(await verifyDeploymentPhase(plan, verify, { distDir, origin })));
+    return;
+  }
   const plan = await createIncrementalPlan({ distDir, origin, concurrency: Number(option("concurrency", "20")) });
   writeLftpCommands(plan, { distDir, output: commands, stateOutput, runId: option("run-id", process.env.GITHUB_RUN_ID || "local") });
+  for (const phase of ["assets", "documents", "finalize"]) {
+    const phaseOutput = option(`${phase}-commands`, "");
+    if (phaseOutput) writeLftpCommands(plan, { distDir, output: phaseOutput, stateOutput, phase, runId: option("run-id", process.env.GITHUB_RUN_ID || "local") });
+  }
   fs.writeFileSync(output, `${JSON.stringify(plan, null, 2)}\n`);
   console.log(JSON.stringify({ total: plan.total, unchanged: plan.unchanged.length, changed: plan.changed.length, new: plan.new.length, stale: plan.stale.length,
     transfers: plan.changed.length + plan.new.length, used_remote_state: plan.used_remote_state, plan: output, commands }));

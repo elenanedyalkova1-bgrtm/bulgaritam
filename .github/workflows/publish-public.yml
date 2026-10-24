@@ -112,7 +112,7 @@ jobs:
           path: dist
 
       - name: Plan byte-verified incremental deployment
-        run: node scripts/plan-incremental-ftps-deploy.mjs --dist=dist --origin=https://bulgaritam.bg --output=/tmp/incremental-deploy-plan.json --commands=/tmp/incremental-deploy.lftp --state-output=/tmp/bulgaritam-deploy-state.json --run-id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+        run: node scripts/plan-incremental-ftps-deploy.mjs --dist=dist --origin=https://bulgaritam.bg --output=/tmp/incremental-deploy-plan.json --commands=/tmp/incremental-deploy.lftp --assets-commands=/tmp/deploy-assets.lftp --documents-commands=/tmp/deploy-documents.lftp --finalize-commands=/tmp/deploy-finalize.lftp --state-output=/tmp/bulgaritam-deploy-state.json --run-id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
 
       - name: Store incremental deployment plan
         uses: actions/upload-artifact@v6
@@ -149,7 +149,7 @@ jobs:
           FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
         run: echo "$FTPS_SERVER_IP $FTPS_TLS_HOST" | sudo tee -a /etc/hosts > /dev/null
 
-      - name: Upload only byte-changed files over strict FTPS
+      - name: Upload assets before any consuming documents
         env:
           FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
           FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
@@ -169,7 +169,63 @@ jobs:
           set ssl:verify-certificate true
           set ssl:check-hostname true
           cd /
-          source /tmp/incremental-deploy.lftp
+          source /tmp/deploy-assets.lftp
+          get /.htaccess -o /tmp/live-htaccess
+          bye
+          LFTP
+
+      - name: Verify published assets bytes before proceeding
+        run: node scripts/plan-incremental-ftps-deploy.mjs --dist=dist --origin=https://bulgaritam.bg --output=/tmp/incremental-deploy-plan.json --verify-phase=assets
+
+      - name: Publish documents after verified assets
+        env:
+          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
+          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
+          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
+          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
+        run: |
+          lftp -u "$FTPS_USERNAME","$FTPS_PASSWORD" -p "$FTPS_PORT" "ftp://$FTPS_TLS_HOST" <<LFTP
+          set cmd:fail-exit true
+          set net:max-retries 8
+          set net:timeout 30
+          set net:reconnect-interval-base 5
+          set net:reconnect-interval-max 30
+          set net:reconnect-interval-multiplier 2
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ftp:passive-mode true
+          set ssl:verify-certificate true
+          set ssl:check-hostname true
+          cd /
+          source /tmp/deploy-documents.lftp
+          get /.htaccess -o /tmp/live-htaccess
+          bye
+          LFTP
+
+      - name: Verify published documents bytes before proceeding
+        run: node scripts/plan-incremental-ftps-deploy.mjs --dist=dist --origin=https://bulgaritam.bg --output=/tmp/incremental-deploy-plan.json --verify-phase=documents
+
+      - name: Publish manifest and completed state last
+        env:
+          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
+          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
+          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
+          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
+        run: |
+          lftp -u "$FTPS_USERNAME","$FTPS_PASSWORD" -p "$FTPS_PORT" "ftp://$FTPS_TLS_HOST" <<LFTP
+          set cmd:fail-exit true
+          set net:max-retries 8
+          set net:timeout 30
+          set net:reconnect-interval-base 5
+          set net:reconnect-interval-max 30
+          set net:reconnect-interval-multiplier 2
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ftp:passive-mode true
+          set ssl:verify-certificate true
+          set ssl:check-hostname true
+          cd /
+          source /tmp/deploy-finalize.lftp
           get /.htaccess -o /tmp/live-htaccess
           bye
           LFTP

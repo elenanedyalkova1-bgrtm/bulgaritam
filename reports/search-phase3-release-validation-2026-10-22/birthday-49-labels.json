@@ -1,0 +1,3082 @@
+[
+  {
+    "slug": "vaucher-za-podarak",
+    "productId": "701",
+    "rowId": 826,
+    "name": "Ваучер за подарък",
+    "beforePosition": null,
+    "afterPosition": 17,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "701",
+        "rowId": 826,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://shop.lenavelur.com/shop/vaucher-podarak/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен ваучер от Лена Велур със стойност по избор и място за лично пожелание."
+        }
+      },
+      {
+        "productId": "701",
+        "rowId": 826,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://shop.lenavelur.com/shop/vaucher-podarak/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен ваучер от Лена Велур със стойност по избор и място за лично пожелание."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Ваучер за подарък",
+      "short_desc_bg": "Подаръчен ваучер от Лена Велур със стойност по избор и място за лично пожелание. Ваучерът се изпраща по куриер и е валиден 3 месеца от покупката.",
+      "long_desc_bg": "Ваучерът за подарък от Лена Велур позволява да изберете желаната от Вас стойност. Едната му страна е оставена свободна, за да напишете лично пожелание. Ваучерът се изпраща по куриер с наложен платеж за сметка на клиента, а сумата може да бъде заплатена по банков път или с наложен платеж. Срокът за използване е 3 месеца от датата на закупуване.",
+      "gift_occasion": "Рожден ден,Имен ден",
+      "product_url": "https://shop.lenavelur.com/shop/vaucher-podarak/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "kolie-ot-byalo-zlato-14k-s-estestveni-diamanti-0-14ct-vs-g",
+    "productId": "604",
+    "rowId": 729,
+    "name": "Колие от бяло злато 14K с естествени диаманти 0.14ct VS/G",
+    "beforePosition": null,
+    "afterPosition": 18,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "604",
+        "rowId": 729,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://astogold.bg/bg/magazin/kolie-byalo-zlato-14k-estestveni-diamanti-0-14ct-vs-g-asto-gold",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Предлага се със сертификат за автентичност и е представено като подарък за специални поводи."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Колие от бяло злато 14K с естествени диаманти 0.14ct VS/G",
+      "short_desc_bg": "Дамско колие от 14-каратово бяло злато проба 585 с естествени диаманти 0.14ct VS/G, розетка и диамантиран синджир с плетка „Анкар“.",
+      "long_desc_bg": "Изящно дамско колие от бяло злато 14K, проба 585, с естествени диаманти с общо тегло 0.14ct, чистота VS и цвят G. Централният елемент е геометрична розетка с диаманти, съчетана с фин диамантиран синджир с плетка „Анкар“. Колието е с тегло 1.42 г и дължина 42/47 см с удължител. Предлага се със сертификат за автентичност и е представено като подарък за специални поводи.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://astogold.bg/bg/magazin/kolie-byalo-zlato-14k-estestveni-diamanti-0-14ct-vs-g-asto-gold"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "zlatni-obetsi-halki-florin-ot-zhalto-zlato-14k-s-tsirkoni",
+    "productId": "607",
+    "rowId": 732,
+    "name": "Златни обеци халки „Флорин“ от жълто злато 14K с циркони",
+    "beforePosition": null,
+    "afterPosition": 20,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "607",
+        "rowId": 732,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://astogold.bg/bg/magazin/zlatni-obetsi-zhalto-zlato-14k-tsirkoni-florin",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел с размер 14 х 5 мм, подходящ за специален повод или подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Златни обеци халки „Флорин“ от жълто злато 14K с циркони",
+      "short_desc_bg": "Дамски обеци халки „Флорин“ от жълто злато 14K проба 585 с циркони. Елегантен модел с размер 14 х 5 мм, подходящ за специален повод или подарък.",
+      "long_desc_bg": "Златни обеци халки „Флорин“ от жълто злато 14K, проба 585, декорирани с циркони. Моделът е с тегло 2.66 г и размер 14 х 5 мм. Класическата форма на халките е съчетана с модерен дизайн и блясък от камъните. Обеците са предназначени за жени и са представени като подходящ избор за специален повод или подарък за жена с изискан вкус.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://astogold.bg/bg/magazin/zlatni-obetsi-zhalto-zlato-14k-tsirkoni-florin"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "diamantena-tenis-grivna-s-estestveni-diamanti-0-54ct",
+    "productId": "619",
+    "rowId": 744,
+    "name": "Диамантена тенис гривна с естествени диаманти 0.54ct",
+    "beforePosition": null,
+    "afterPosition": 21,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "619",
+        "rowId": 744,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://astogold.bg/bg/magazin/diamantena-tenis-grivna-estestveni-diamanti-0-54ct",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Представен е като подарък с послание."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Диамантена тенис гривна с естествени диаманти 0.54ct",
+      "short_desc_bg": "Диамантена тенис гривна от бяло злато 14K проба 585 с естествени диаманти 0.54ct VS1/G, дължина 18 см и сигурна двойна закопчалка.",
+      "long_desc_bg": "Диамантена тенис гривна от бяло злато 14K, проба 585, с тегло 7.1 г и дължина 18 см. Всяко звено е инкрустирано с естествен диамант, като общото тегло на камъните е 0.54ct, с чистота VS1 и цвят G. Гъвкавата конструкция обгръща китката с непрекъсната линия от диаманти, а закопчалката е с двойна защита. Моделът е предназначен за дами и е подходящ както за официални събития, така и за ежедневието. Представен е като подарък с послание.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://astogold.bg/bg/magazin/diamantena-tenis-grivna-estestveni-diamanti-0-54ct"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "podarachna-kutiya-l-cheresha",
+    "productId": "904",
+    "rowId": 1031,
+    "name": "Подаръчна кутия L „Череша“",
+    "beforePosition": null,
+    "afterPosition": 22,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "904",
+        "rowId": 1031,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутия-l-череша-cherry-ritual-box-230ml",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчна кутия с три продукта за грижа за кожата с череша, кокос и натурални масла, поднесени в стилна крафт опаковка."
+        }
+      },
+      {
+        "productId": "904",
+        "rowId": 1031,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутия-l-череша-cherry-ritual-box-230ml",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчна кутия с три продукта за грижа за кожата с череша, кокос и натурални масла, поднесени в стилна крафт опаковка."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Подаръчна кутия L „Череша“",
+      "short_desc_bg": "Подаръчна кутия с три продукта за грижа за кожата с череша, кокос и натурални масла, поднесени в стилна крафт опаковка.",
+      "long_desc_bg": "Подаръчна кутия L „Череша“ от Latifolia Cosmetics с три продукта за цялостен ритуал за грижа: скраб за тяло с череша, бадем, маково семе и кокос 230 мл, блестящ мус за тяло и ръце с череша, кокос, алое вера, ший и бадем 230 мл и балсам за устни с натурални масла 4 г. Комплектът е поднесен в крафт кутия с тематичен ръкав и е готов за подарък.",
+      "gift_occasion": "Рожден ден,8 март",
+      "product_url": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутия-l-череша-cherry-ritual-box-230ml"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "podarachna-kutiya-l-lavandula",
+    "productId": "905",
+    "rowId": 1032,
+    "name": "Подаръчна кутия L „Лавандула“",
+    "beforePosition": null,
+    "afterPosition": 24,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "905",
+        "rowId": 1032,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутияl-лавандула-3-продукта",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчна кутия с три пълноразмерни продукта за хидратиращ и подхранващ ритуал за кожата с лавандула, кокос и натурални масла."
+        }
+      },
+      {
+        "productId": "905",
+        "rowId": 1032,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутияl-лавандула-3-продукта",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчна кутия с три пълноразмерни продукта за хидратиращ и подхранващ ритуал за кожата с лавандула, кокос и натурални масла."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Подаръчна кутия L „Лавандула“",
+      "short_desc_bg": "Подаръчна кутия с три пълноразмерни продукта за хидратиращ и подхранващ ритуал за кожата с лавандула, кокос и натурални масла.",
+      "long_desc_bg": "Подаръчна кутия L „Лавандула“ от Latifolia Cosmetics с три продукта за бюти ритуал: натурален скраб за тяло с лавандула, маково семе, бадем и кокос 230 мл, блестящ мус за тяло с лавандула, кокос, бадем, алое вера и ший 230 мл и балсам за устни с натурални масла 4 г. Комплектът е поднесен в крафт кутия и е готов за подарък.",
+      "gift_occasion": "Рожден ден,8 март",
+      "product_url": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутияl-лавандула-3-продукта"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "prasten-aura-rose-ot-rozovo-zlato-s-diamanti-0-13ct",
+    "productId": "617",
+    "rowId": 742,
+    "name": "Пръстен „Aura Rose“ от розово злато с диаманти 0.13ct",
+    "beforePosition": null,
+    "afterPosition": 25,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "617",
+        "rowId": 742,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://astogold.bg/bg/magazin/prasten-aura-rose-rozovo-zlato-0-13ct-diamanti",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Представен е като ценен подарък и избор както за ежедневието, така и за специални моменти."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Пръстен „Aura Rose“ от розово злато с диаманти 0.13ct",
+      "short_desc_bg": "Дамски пръстен „Aura Rose“ от розово злато 14K проба 585 със синтетичен розов камък и естествени диаманти 0.13ct VS/F.",
+      "long_desc_bg": "Пръстен „Aura Rose“ от колекция Odyssey е изработен от розово злато 14K, проба 585, и е с тегло 2.8 г. Централният синтетичен розов камък е с гладка обтекаема форма и е допълнен от естествени диаманти с общо тегло 0.13ct, чистота VS и цвят F. Моделът е създаден за жени и съчетава мек розов нюанс, модерен дизайн и диамантен блясък. Представен е като ценен подарък и избор както за ежедневието, така и за специални моменти.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://astogold.bg/bg/magazin/prasten-aura-rose-rozovo-zlato-0-13ct-diamanti"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "galant-komplekt-s-shal-svesht-i-kasmetche",
+    "productId": "1100",
+    "rowId": 1152,
+    "name": "Галант – комплект с шал, свещ и късметче",
+    "beforePosition": null,
+    "afterPosition": 26,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "1100",
+        "rowId": 1152,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Коледа,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://venix.bg/product/galant-komplekt-shal-svesht-kusmetche/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен комплект „Галант“ с памучен шал с бродирани шевици, свещ с тайно коледно послание и късметче."
+        }
+      },
+      {
+        "productId": "1100",
+        "rowId": 1152,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Коледа,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://venix.bg/product/galant-komplekt-shal-svesht-kusmetche/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен комплект „Галант“ с памучен шал с бродирани шевици, свещ с тайно коледно послание и късметче."
+        }
+      },
+      {
+        "productId": "1100",
+        "rowId": 1152,
+        "kind": "occasion",
+        "concept": "Коледа",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Коледа,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://venix.bg/product/galant-komplekt-shal-svesht-kusmetche/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен комплект „Галант“ с памучен шал с бродирани шевици, свещ с тайно коледно послание и късметче."
+        }
+      },
+      {
+        "productId": "1100",
+        "rowId": 1152,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Коледа,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://venix.bg/product/galant-komplekt-shal-svesht-kusmetche/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен комплект „Галант“ с памучен шал с бродирани шевици, свещ с тайно коледно послание и късметче."
+        }
+      }
+    ],
+    "label": "Adjacent/conditional",
+    "reason_bg": "Изрично коледно послание, коледен късмет и декорация за елха: birthday е условно сезонно съвпадение, не общ birthday gift.",
+    "source": {
+      "name_bg": "Галант – комплект с шал, свещ и късметче",
+      "short_desc_bg": "Подаръчен комплект „Галант“ с памучен шал с бродирани шевици, свещ с тайно коледно послание и късметче.",
+      "long_desc_bg": "Комплект „Галант“ в подаръчна кутия, готов за поднасяне. Включва шал от 100% памук с бродирани български шевици от двата края, свещ с тайно коледно послание и коледен късмет с дървена декорация за елха. Шалът е с размери 150 x 57 см.",
+      "gift_occasion": "Рожден ден, 8 март,Коледа,Имен ден",
+      "product_url": "https://venix.bg/product/galant-komplekt-shal-svesht-kusmetche/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "shadow-mazhka-grivna",
+    "productId": "429",
+    "rowId": 551,
+    "name": "Мъжка гривна Shadow",
+    "beforePosition": null,
+    "afterPosition": 27,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "429",
+        "rowId": 551,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.gabi-jewellery.com/myjki-bijuta/shadow-man-grivna-p.htm",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Ръчно изплетеният модел е лек и удобен за носене, подходящ за ежедневен стил, съчетаване с часовник или като подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Мъжка гривна Shadow",
+      "short_desc_bg": "Мъжка гривна Shadow от естествена кожа с ръчно изплетена Шамбала плетка и регулируемо закопчаване.",
+      "long_desc_bg": "Стилна мъжка гривна от естествена кожа с плетка тип Шамбала и регулируемо плъзгащо закопчаване, което позволява лесно нагласяне спрямо китката. Ръчно изплетеният модел е лек и удобен за носене, подходящ за ежедневен стил, съчетаване с часовник или като подарък.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://www.gabi-jewellery.com/myjki-bijuta/shadow-man-grivna-p.htm"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "vitosha-planinska-karta-poster",
+    "productId": "285",
+    "rowId": 308,
+    "name": "Витоша – Планинска Карта Постер",
+    "beforePosition": null,
+    "afterPosition": 28,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "285",
+        "rowId": 308,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,Нов дом",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://thecuriosityinstitute.com/bg/product/planinska-karta-vitosha/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Детайлна планинска карта на Витоша във формат 50×70 см, отпечатана върху 170 г матова хартия и подходяща за декорация или подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Витоша – Планинска Карта Постер",
+      "short_desc_bg": "Детайлна планинска карта на Витоша във формат 50×70 см, отпечатана върху 170 г матова хартия и подходяща за декорация или подарък.",
+      "long_desc_bg": "Планинска карта постер на Витоша в мащаб 1:40 000 с туристически маршрути, върхове, хижи, заслони, езера, реки и подробни картографски елементи. Картата е с размер 50×70 см и е отпечатана върху 170 г матова хартия. Включва географска и UTM мрежа, легенда, десетте най-високи върха, скала на мащаба, скала на заложението и схема за магнитната деклинация. Рамката не е включена. Част от приходите от продукта се даряват на Планинската спасителна служба.",
+      "gift_occasion": "Рожден ден,Нов дом",
+      "product_url": "https://thecuriosityinstitute.com/bg/product/planinska-karta-vitosha/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "keramichna-chasha-s-cvetya",
+    "productId": "189",
+    "rowId": 167,
+    "name": "Керамична чаша с цветя",
+    "beforePosition": null,
+    "afterPosition": 29,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "189",
+        "rowId": 167,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://magianahartia.bg/produkt/keramichna-chasa-cvetia/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходяща за кафе и подарък, включва чай и скреч късметче за допълнително настроение."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Керамична чаша с цветя",
+      "short_desc_bg": "Ръчно рисувана керамична чаша с флорален дизайн",
+      "long_desc_bg": "Ръчно изработена керамична чаша с флорален дизайн в различни цветове. Подходяща за кафе и подарък, включва чай и скреч късметче за допълнително настроение.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://magianahartia.bg/produkt/keramichna-chasa-cvetia/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "personalizirano-kolie-s-ime-tsveta",
+    "productId": "602",
+    "rowId": 727,
+    "name": "Персонализирано колие с име Цвета",
+    "beforePosition": null,
+    "afterPosition": 30,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "602",
+        "rowId": 727,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Имен ден,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/personalizirano-kolie-s-ime-cveta",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за подарък-изненада за любим човек."
+        }
+      },
+      {
+        "productId": "602",
+        "rowId": 727,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Имен ден,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/personalizirano-kolie-s-ime-cveta",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за подарък-изненада за любим човек."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Персонализирано колие с име Цвета",
+      "short_desc_bg": "Персонализирано сребърно колие с име по избор от сребро проба 925. Името и дължината могат да се персонализират, а към дизайна могат да се добавят детайли.",
+      "long_desc_bg": "Персонализирано сребърно колие с име по избор, изработено от сребро проба 925. Името може да бъде на кирилица или латиница, а дължината на колието се коригира според предпочитанията. Към дизайна могат да се добавят орнаменти и детайли като сърчица и пеперуди. Стандартният срок за изработка е 14 дни. След одобрение на проекта е необходимо 30% капаро. Подходящо е за подарък-изненада за любим човек.",
+      "gift_occasion": "Имен ден,Рожден ден",
+      "product_url": "https://dp-silver.com/product/personalizirano-kolie-s-ime-cveta"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "teniska-za-baba",
+    "productId": "197",
+    "rowId": 117,
+    "name": "Тениска за баба ♥",
+    "beforePosition": null,
+    "afterPosition": 31,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "197",
+        "rowId": 117,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Без конкретен повод,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.malkozaiche.com/bg-product-details-581.html?sRef=ibzr8hc5o7",
+        "support": {
+          "field": "long_desc_bg",
+          "text": "Тениска за баба ♥ от Малко зайче е стилен и емоционален подарък, изработен от 100% памук с вталена дамска кройка."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Тениска за баба ♥",
+      "short_desc_bg": "Дамска тениска от 100% памук с възможност за персонализация.",
+      "long_desc_bg": "Тениска за баба ♥ от Малко зайче е стилен и емоционален подарък, изработен от 100% памук с вталена дамска кройка. Предлага възможност за персонализация с име или буква чрез бродерия, което я прави уникален и личен подарък за специален човек.",
+      "gift_occasion": "Без конкретен повод,Рожден ден",
+      "product_url": "https://www.malkozaiche.com/bg-product-details-581.html?sRef=ibzr8hc5o7"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "prasten-aura-mint-ot-zhalto-zlato-14k-s-diamanti-0-13ct",
+    "productId": "616",
+    "rowId": 741,
+    "name": "Пръстен „Aura Mint“ от жълто злато 14K с диаманти 0.13ct",
+    "beforePosition": null,
+    "afterPosition": 32,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "616",
+        "rowId": 741,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://astogold.bg/bg/magazin/prasten-aura-mint-zhalto-zlato-14k-0-13ct-diamanti",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Моделът е предназначен за жени, които предпочитат нетрадиционни цветови комбинации и модерен минималистичен стил, и е представен като стилен подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Пръстен „Aura Mint“ от жълто злато 14K с диаманти 0.13ct",
+      "short_desc_bg": "Дамски пръстен „Aura Mint“ от жълто злато 14K проба 585 със зелен синтетичен камък и естествени диаманти 0.13ct VS/F.",
+      "long_desc_bg": "Пръстен „Aura Mint“ от колекция Odyssey е изработен от жълто злато 14K, проба 585, и е с тегло 2.66 г. Централният синтетичен камък в маслинено-зелен нюанс Mint е с гладка кабошон шлифовка и е подчертан от естествени диаманти с общо тегло 0.13ct, чистота VS и цвят F. Моделът е предназначен за жени, които предпочитат нетрадиционни цветови комбинации и модерен минималистичен стил, и е представен като стилен подарък.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://astogold.bg/bg/magazin/prasten-aura-mint-zhalto-zlato-14k-0-13ct-diamanti"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "izkustvo-91",
+    "productId": "582",
+    "rowId": 707,
+    "name": "Изкуство №91",
+    "beforePosition": null,
+    "afterPosition": 33,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "582",
+        "rowId": 707,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/ob91",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящи са като интересно допълнение към ежедневен тоалет или като подарък за близък човек."
+        }
+      },
+      {
+        "productId": "582",
+        "rowId": 707,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/ob91",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящи са като интересно допълнение към ежедневен тоалет или като подарък за близък човек."
+        }
+      },
+      {
+        "productId": "582",
+        "rowId": 707,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/ob91",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящи са като интересно допълнение към ежедневен тоалет или като подарък за близък човек."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Изкуство №91",
+      "short_desc_bg": "Висящи сребърни обици с разчупен дизайн, наподобяващ силует. Изработени от сребро проба 925 и подходящи за ежедневен тоалет.",
+      "long_desc_bg": "Висящи сребърни обици с разчупен дизайн, наподобяващ силует. Изработени са от сребро проба 925, с тегло 3,2 г и размери 53/19 мм. Подходящи са като интересно допълнение към ежедневен тоалет или като подарък за близък човек. Предлагат се със сертификат за гаранция и качество.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин",
+      "product_url": "https://dp-silver.com/product/ob91"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "chanta-za-uchitel-teachers-plant-seeds-that-grow-forever",
+    "productId": "854",
+    "rowId": 979,
+    "name": "Чанта за учител Teachers Plant seeds that grow forever",
+    "beforePosition": null,
+    "afterPosition": 34,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "854",
+        "rowId": 979,
+        "kind": "role",
+        "concept": "Учителка",
+        "field": "name_bg",
+        "text": "Чанта за учител Teachers Plant seeds that grow forever",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-intended-teacher-role-no-gender-inference",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.malkozaiche.com/bg-product-details-611.html"
+      },
+      {
+        "productId": "854",
+        "rowId": 979,
+        "kind": "role",
+        "concept": "Учителка",
+        "field": "short_desc_bg",
+        "text": "Чанта за учител от 100% органичен памук с подсилени дълги дръжки и послание „Teachers Plant seeds that grow forever“.",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-intended-teacher-role-no-gender-inference",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.malkozaiche.com/bg-product-details-611.html"
+      },
+      {
+        "productId": "854",
+        "rowId": 979,
+        "kind": "role",
+        "concept": "Учителка",
+        "field": "long_desc_bg",
+        "text": "Текстилна чанта за учител с послание „Teachers Plant seeds that grow forever“.",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-intended-teacher-role-no-gender-inference",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.malkozaiche.com/bg-product-details-611.html"
+      },
+      {
+        "productId": "854",
+        "rowId": 979,
+        "kind": "role",
+        "concept": "Учителка",
+        "field": "long_desc_bg",
+        "text": " Практичен подарък за учител, подходящ за ежедневна употреба.",
+        "start": 189,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-intended-teacher-role-no-gender-inference",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.malkozaiche.com/bg-product-details-611.html"
+      },
+      {
+        "productId": "854",
+        "rowId": 979,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.malkozaiche.com/bg-product-details-611.html",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Практичен подарък за учител, подходящ за ежедневна употреба."
+        }
+      },
+      {
+        "productId": "854",
+        "rowId": 979,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.malkozaiche.com/bg-product-details-611.html",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Практичен подарък за учител, подходящ за ежедневна употреба."
+        }
+      }
+    ],
+    "label": "Adjacent/conditional",
+    "reason_bg": "Практичен подарък с teacher послание; подходящ за birthday само за получател учител.",
+    "source": {
+      "name_bg": "Чанта за учител Teachers Plant seeds that grow forever",
+      "short_desc_bg": "Чанта за учител от 100% органичен памук с подсилени дълги дръжки и послание „Teachers Plant seeds that grow forever“.",
+      "long_desc_bg": "Текстилна чанта за учител с послание „Teachers Plant seeds that grow forever“. Изработена е от 100% органичен памук и има подсилени дръжки с дължина 70 см. Размерът на чантата е 40 × 40 см. Практичен подарък за учител, подходящ за ежедневна употреба.",
+      "gift_occasion": "Рожден ден,8 март",
+      "product_url": "https://www.malkozaiche.com/bg-product-details-611.html"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "angel-pazitel-21",
+    "productId": "593",
+    "rowId": 718,
+    "name": "Ангел-пазител №21",
+    "beforePosition": null,
+    "afterPosition": 35,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "593",
+        "rowId": 718,
+        "kind": "contains_item",
+        "concept": "chain",
+        "field": "short_desc_bg",
+        "text": " Синджирът не е включен.",
+        "start": 117,
+        "scope": "component",
+        "polarity": "negative",
+        "status": "approved",
+        "rule": "explicit-excluded-item",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/m21"
+      },
+      {
+        "productId": "593",
+        "rowId": 718,
+        "kind": "contains_item",
+        "concept": "chain",
+        "field": "long_desc_bg",
+        "text": " Синджирът не е включен в посочената цена.",
+        "start": 209,
+        "scope": "component",
+        "polarity": "negative",
+        "status": "approved",
+        "rule": "explicit-excluded-item",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/m21"
+      },
+      {
+        "productId": "593",
+        "rowId": 718,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/m21",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Символичен модел за ежедневно носене и подарък за любим човек."
+        }
+      },
+      {
+        "productId": "593",
+        "rowId": 718,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/m21",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Символичен модел за ежедневно носене и подарък за любим човек."
+        }
+      },
+      {
+        "productId": "593",
+        "rowId": 718,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/m21",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Символичен модел за ежедневно носене и подарък за любим човек."
+        }
+      },
+      {
+        "productId": "593",
+        "rowId": 718,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/m21",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Символичен модел за ежедневно носене и подарък за любим човек."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Ангел-пазител №21",
+      "short_desc_bg": "Сребърен медальон „Ангел-пазител“ от сребро проба 925. Символичен модел за ежедневно носене и подарък за любим човек. Синджирът не е включен.",
+      "long_desc_bg": "Сребърен медальон „Ангел-пазител“, изработен от сребро проба 925. Теглото е 1,3 г, а размерите са 20 х 13 мм. Представен е като носител на добри вести и е подходящ за ежедневието или за подарък на любим човек. Синджирът не е включен в посочената цена. Предлага се със сертификат за качество и гаранция.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин,Имен ден",
+      "product_url": "https://dp-silver.com/product/m21"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "srebarna-imperatorska-lazhichka",
+    "productId": "402",
+    "rowId": 524,
+    "name": "Сребърна императорска лъжичка",
+    "beforePosition": null,
+    "afterPosition": 37,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "402",
+        "rowId": 524,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Новородено,Рожден ден,Нов дом",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/сребърна-императорска-лъжичка/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Дизайнът е вдъхновен от царски артефакти и е представен като специален подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Сребърна императорска лъжичка",
+      "short_desc_bg": "Ръчно изработена сребърна лъжичка от проба 925 със син емайл и богато декорирана дръжка.",
+      "long_desc_bg": "Сребърна императорска лъжичка от Studio Nikolas, ръчно изработена от сребро проба 925 и декорирана със син емайл. Моделът е с релефна, богато украсена дръжка, широчина 14,2 мм и дължина 89 мм. Дизайнът е вдъхновен от царски артефакти и е представен като специален подарък.",
+      "gift_occasion": "Новородено,Рожден ден,Нов дом",
+      "product_url": "https://studionikolas.com/produkt/сребърна-императорска-лъжичка/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "kozhena-igra-tabla",
+    "productId": "290",
+    "rowId": 161,
+    "name": "Кожена игра табла",
+    "beforePosition": null,
+    "afterPosition": 38,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "290",
+        "rowId": 161,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://vatevleather.com/продукти/табла/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Възможност за гравиране и персонализация, подходяща за подарък и свободно време."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Кожена игра табла",
+      "short_desc_bg": "Ръчно изработена кожена игра табла с възможност за персонализация",
+      "long_desc_bg": "Луксозна игра табла от естествена кожа, ръчно изработена с внимание към детайла. Възможност за гравиране и персонализация, подходяща за подарък и свободно време.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://vatevleather.com/продукти/табла/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "kapkovidna-nezhnost-i-blyasak",
+    "productId": "594",
+    "rowId": 719,
+    "name": "Капковидна нежност и блясък",
+    "beforePosition": null,
+    "afterPosition": 39,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "594",
+        "rowId": 719,
+        "kind": "contains_item",
+        "concept": "earrings",
+        "field": "short_desc_bg",
+        "text": "обеци и гривна с капковидни елементи и циркони",
+        "start": 21,
+        "scope": "component",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-aggregate-includes-list",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s120",
+        "materials": []
+      },
+      {
+        "productId": "594",
+        "rowId": 719,
+        "kind": "contains_item",
+        "concept": "earrings",
+        "field": "long_desc_bg",
+        "text": "обеци и гривна с капковидни изчистени елементи и циркони в обков, изработен от сребро проба 925",
+        "start": 21,
+        "scope": "component",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-aggregate-includes-list",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s120",
+        "materials": []
+      },
+      {
+        "productId": "594",
+        "rowId": 719,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s120",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантно бижу от сребро проба 925, подходящо и за подарък."
+        }
+      },
+      {
+        "productId": "594",
+        "rowId": 719,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s120",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантно бижу от сребро проба 925, подходящо и за подарък."
+        }
+      },
+      {
+        "productId": "594",
+        "rowId": 719,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s120",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантно бижу от сребро проба 925, подходящо и за подарък."
+        }
+      },
+      {
+        "productId": "594",
+        "rowId": 719,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s120",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантно бижу от сребро проба 925, подходящо и за подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Капковидна нежност и блясък",
+      "short_desc_bg": "Сребърен комплект от обеци и гривна с капковидни елементи и циркони. Елегантно бижу от сребро проба 925, подходящо и за подарък.",
+      "long_desc_bg": "Сребърен комплект от обеци и гривна с капковидни изчистени елементи и циркони в обков, изработен от сребро проба 925. Обеците тежат 3,3 г и са с дължина 48 мм, а гривната тежи 4,5 г и е с дължина 17,5 см. Гривната може да бъде изработена в избран размер. Комплектът е подходящ за подарък на любим човек или като допълнение към елегантен тоалет.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин,Имен ден",
+      "product_url": "https://dp-silver.com/product/s120"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "podarachna-kutiya-m-cheresha",
+    "productId": "906",
+    "rowId": 1033,
+    "name": "Подаръчна кутия M „Череша“",
+    "beforePosition": null,
+    "afterPosition": 40,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "906",
+        "rowId": 1033,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутия-м-череша-100мл-cherry-ritual-box",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчна кутия с три продукта в travel size формат за подхранващ и хидратиращ ритуал за кожата с череша, кокос и натурални масла."
+        }
+      },
+      {
+        "productId": "906",
+        "rowId": 1033,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутия-м-череша-100мл-cherry-ritual-box",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчна кутия с три продукта в travel size формат за подхранващ и хидратиращ ритуал за кожата с череша, кокос и натурални масла."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Подаръчна кутия M „Череша“",
+      "short_desc_bg": "Подаръчна кутия с три продукта в travel size формат за подхранващ и хидратиращ ритуал за кожата с череша, кокос и натурални масла.",
+      "long_desc_bg": "Подаръчна кутия M „Череша“ от Latifolia Cosmetics с три продукта в travel size формат: натурален скраб за тяло с череша, бадем, маково семе и кокос 100 мл, блестящ мус за тяло и ръце с череша, кокос, алое вера, ший и бадем 100 мл и балсам за устни с натурални масла 4 г. Комплектът е поднесен в крафт кутия с тематичен ръкав и е готов за подарък.",
+      "gift_occasion": "Рожден ден,8 март",
+      "product_url": "https://latifoliacosmetics.com/collections/podarychni-komplekti/products/подаръчна-кутия-м-череша-100мл-cherry-ritual-box"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "srebarna-lazhichka-vetrilo-1223l",
+    "productId": "404",
+    "rowId": 526,
+    "name": "Сребърна лъжичка „Ветрило“ 1223L",
+    "beforePosition": null,
+    "afterPosition": 41,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "404",
+        "rowId": 526,
+        "kind": "occasion",
+        "concept": "Кръщене",
+        "field": "short_desc_bg",
+        "text": "Ръчно изработена сребърна лъжичка „Ветрило“ от сребро 925, подходяща за захранване на бебе или като подарък за кръщене.",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-occasion-text",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/sreb-rna-lajichka-krashtene-vetrilo-1223l/"
+      },
+      {
+        "productId": "404",
+        "rowId": 526,
+        "kind": "occasion",
+        "concept": "Кръщене",
+        "field": "long_desc_bg",
+        "text": " Моделът е с дължина 11,5 см и широчина 2,30 см и е предназначен за захранване на бебе или като подарък за кръщене.",
+        "start": 91,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-occasion-text",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/sreb-rna-lajichka-krashtene-vetrilo-1223l/"
+      },
+      {
+        "productId": "404",
+        "rowId": 526,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Новородено,Рожден ден,Кръщене,Нов дом",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/sreb-rna-lajichka-krashtene-vetrilo-1223l/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Ръчно изработена сребърна лъжичка „Ветрило“ от сребро 925, подходяща за захранване на бебе или като подарък за кръщене."
+        }
+      },
+      {
+        "productId": "404",
+        "rowId": 526,
+        "kind": "occasion",
+        "concept": "Кръщене",
+        "field": "gift_occasion",
+        "text": "Новородено,Рожден ден,Кръщене,Нов дом",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/sreb-rna-lajichka-krashtene-vetrilo-1223l/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Ръчно изработена сребърна лъжичка „Ветрило“ от сребро 925, подходяща за захранване на бебе или като подарък за кръщене."
+        }
+      }
+    ],
+    "label": "Adjacent/conditional",
+    "reason_bg": "Основният source акцент е захранване/кръщене на бебе; възможен birthday gift за малко дете, не универсален.",
+    "source": {
+      "name_bg": "Сребърна лъжичка „Ветрило“ 1223L",
+      "short_desc_bg": "Ръчно изработена сребърна лъжичка „Ветрило“ от сребро 925, подходяща за захранване на бебе или като подарък за кръщене.",
+      "long_desc_bg": "Сребърна лъжичка „Ветрило“ 1223L от Studio Nikolas, ръчно изработена от сребро с проба 925. Моделът е с дължина 11,5 см и широчина 2,30 см и е предназначен за захранване на бебе или като подарък за кръщене.",
+      "gift_occasion": "Новородено,Рожден ден,Кръщене,Нов дом",
+      "product_url": "https://studionikolas.com/produkt/sreb-rna-lajichka-krashtene-vetrilo-1223l/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "prasten-ruby-royal-s-estestven-rubin-i-diamanti",
+    "productId": "615",
+    "rowId": 740,
+    "name": "Пръстен „Ruby Royal“ с естествен рубин и диаманти",
+    "beforePosition": null,
+    "afterPosition": 42,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "615",
+        "rowId": 740,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://astogold.bg/bg/magazin/prasten-ruby-royal-estestven-rubin-diamanti",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Моделът е част от колекция с обеци и колие и е представен като специален подарък със символика на любов, страст и сила."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Пръстен „Ruby Royal“ с естествен рубин и диаманти",
+      "short_desc_bg": "Пръстен „Ruby Royal“ от бяло злато 14K проба 585 с естествен рубин 0.58ct и естествени диаманти 0.16ct VS/F в елегантен ореол.",
+      "long_desc_bg": "Пръстен „Ruby Royal“ от бяло злато 14K, проба 585, с тегло 2.53 г. Централният естествен рубин е 0.58ct и е обграден от ореол от естествени диаманти с общо тегло 0.16ct, чистота VS и цвят F. Контрастът между червения рубин и диамантите подчертава класическия дизайн на бижуто. Моделът е част от колекция с обеци и колие и е представен като специален подарък със символика на любов, страст и сила.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://astogold.bg/bg/magazin/prasten-ruby-royal-estestven-rubin-diamanti"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "personalizirano-kolie-s-ime-gergana",
+    "productId": "601",
+    "rowId": 726,
+    "name": "Персонализирано колие с име „Гергана“",
+    "beforePosition": null,
+    "afterPosition": 43,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "601",
+        "rowId": 726,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Имен ден,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/personalizirano-kolie-s-ime-gergana",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за подарък-изненада за любим човек."
+        }
+      },
+      {
+        "productId": "601",
+        "rowId": 726,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Имен ден,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/personalizirano-kolie-s-ime-gergana",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за подарък-изненада за любим човек."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Персонализирано колие с име „Гергана“",
+      "short_desc_bg": "Персонализирано сребърно колие с име по избор от сребро проба 925. Името и дължината могат да се персонализират, а към дизайна могат да се добавят детайли.",
+      "long_desc_bg": "Персонализирано сребърно колие с име по избор, изработено от сребро проба 925. Името може да бъде на кирилица или латиница, а дължината на колието се коригира според предпочитанията. Към дизайна могат да се добавят орнаменти и детайли като сърчица и пеперуди. Стандартният срок за изработка е 14 дни. След одобрение на проекта е необходимо 30% капаро. Подходящо е за подарък-изненада за любим човек.",
+      "gift_occasion": "Имен ден,Рожден ден",
+      "product_url": "https://dp-silver.com/product/personalizirano-kolie-s-ime-gergana"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "sedefeni-strelki",
+    "productId": "595",
+    "rowId": 720,
+    "name": "Седефени стрелки",
+    "beforePosition": null,
+    "afterPosition": 44,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "595",
+        "rowId": 720,
+        "kind": "contains_item",
+        "concept": "earrings",
+        "field": "short_desc_bg",
+        "text": "обеци, пръстен и медальон с форми на стрелки и инкрустиран кралски седеф",
+        "start": 21,
+        "scope": "component",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-aggregate-includes-list",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s891",
+        "materials": []
+      },
+      {
+        "productId": "595",
+        "rowId": 720,
+        "kind": "contains_item",
+        "concept": "earrings",
+        "field": "long_desc_bg",
+        "text": "обеци, пръстен и медальон с форми, напомнящи стрелки, и инкрустиран кралски седеф",
+        "start": 21,
+        "scope": "component",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-aggregate-includes-list",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s891",
+        "materials": []
+      },
+      {
+        "productId": "595",
+        "rowId": 720,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s891",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен избор за подарък или специален тоалет."
+        }
+      },
+      {
+        "productId": "595",
+        "rowId": 720,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s891",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен избор за подарък или специален тоалет."
+        }
+      },
+      {
+        "productId": "595",
+        "rowId": 720,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s891",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен избор за подарък или специален тоалет."
+        }
+      },
+      {
+        "productId": "595",
+        "rowId": 720,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s891",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен избор за подарък или специален тоалет."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Седефени стрелки",
+      "short_desc_bg": "Сребърен комплект от обеци, пръстен и медальон с форми на стрелки и инкрустиран кралски седеф. Елегантен избор за подарък или специален тоалет.",
+      "long_desc_bg": "Сребърен комплект от обеци, пръстен и медальон с форми, напомнящи стрелки, и инкрустиран кралски седеф. Обеците тежат 3,5 г и са с размер 17 мм, пръстенът тежи 3,1 г и е с лице 15 х 8 мм, а медальонът тежи 2,1 г и е с дължина 20 мм. Комплектът е изработен от сребро проба 925, а размерът на пръстена може да бъде коригиран. Подходящ е за подарък на скъп човек или към елегантен тоалет.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин,Имен ден",
+      "product_url": "https://dp-silver.com/product/s891"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "kapkovidni-perli-i-nezhnost",
+    "productId": "598",
+    "rowId": 723,
+    "name": "Капковидни перли и нежност",
+    "beforePosition": null,
+    "afterPosition": 46,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "598",
+        "rowId": 723,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/perli-i-nejnost",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел от сребро проба 925, подходящ за подарък или специален тоалет."
+        }
+      },
+      {
+        "productId": "598",
+        "rowId": 723,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/perli-i-nejnost",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел от сребро проба 925, подходящ за подарък или специален тоалет."
+        }
+      },
+      {
+        "productId": "598",
+        "rowId": 723,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/perli-i-nejnost",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел от сребро проба 925, подходящ за подарък или специален тоалет."
+        }
+      },
+      {
+        "productId": "598",
+        "rowId": 723,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/perli-i-nejnost",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел от сребро проба 925, подходящ за подарък или специален тоалет."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Капковидни перли и нежност",
+      "short_desc_bg": "Сребърен комплект с капковидни форми, естествена речна перла и циркон. Елегантен модел от сребро проба 925, подходящ за подарък или специален тоалет.",
+      "long_desc_bg": "Сребърен комплект с капковидни форми, естествена речна перла и циркон, изработен от сребро проба 925. Обеците тежат 2,65 г и са с размер 25 мм, а пръстенът тежи 1,8 г и е с лице 6 мм. Закопчаването на обеците и размерът на пръстена могат да бъдат коригирани според предпочитанията. Подходящ е за елегантен тоалет или подарък за скъп човек.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин,Имен ден",
+      "product_url": "https://dp-silver.com/product/perli-i-nejnost"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "srebarna-vilichka",
+    "productId": "403",
+    "rowId": 525,
+    "name": "Сребърна виличка",
+    "beforePosition": null,
+    "afterPosition": 47,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "403",
+        "rowId": 525,
+        "kind": "occasion",
+        "concept": "Кръщене",
+        "field": "long_desc_bg",
+        "text": " Подходящ е като подарък за новородено или за кръщене на дете и може да бъде допълнен със сребърна лъжица.",
+        "start": 143,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "explicit-occasion-text",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/srebyrna-vilichka-podarak-za-krashtene-1260l2/"
+      },
+      {
+        "productId": "403",
+        "rowId": 525,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Новородено,Рожден ден,Кръщене,Нов дом",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/srebyrna-vilichka-podarak-za-krashtene-1260l2/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящ е като подарък за новородено или за кръщене на дете и може да бъде допълнен със сребърна лъжица."
+        }
+      },
+      {
+        "productId": "403",
+        "rowId": 525,
+        "kind": "occasion",
+        "concept": "Кръщене",
+        "field": "gift_occasion",
+        "text": "Новородено,Рожден ден,Кръщене,Нов дом",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/srebyrna-vilichka-podarak-za-krashtene-1260l2/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящ е като подарък за новородено или за кръщене на дете и може да бъде допълнен със сребърна лъжица."
+        }
+      }
+    ],
+    "label": "Adjacent/conditional",
+    "reason_bg": "Изрично newborn/christening предназначение; birthday пригодността зависи от детския получател.",
+    "source": {
+      "name_bg": "Сребърна виличка",
+      "short_desc_bg": "Ръчно изработена сребърна виличка с гравирани орнаменти по дръжката, дължина 11 см и приблизително тегло 16 г.",
+      "long_desc_bg": "Сребърна виличка от Studio Nikolas, ръчно изработена и гравирана с орнаменти по дръжката. Моделът е с дължина 11 см и приблизително тегло 16 г. Подходящ е като подарък за новородено или за кръщене на дете и може да бъде допълнен със сребърна лъжица.",
+      "gift_occasion": "Новородено,Рожден ден,Кръщене,Нов дом",
+      "product_url": "https://studionikolas.com/produkt/srebyrna-vilichka-podarak-za-krashtene-1260l2/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "podarachen-vaucher-za-srebarni-bizhuta",
+    "productId": "401",
+    "rowId": 523,
+    "name": "Подаръчен ваучер за сребърни бижута",
+    "beforePosition": null,
+    "afterPosition": 48,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "401",
+        "rowId": 523,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "8 март,Рожден ден,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/gift-card-podarachen-vaucher/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен ваучер от Studio Nikolas за избор на бижута от сребро или злато, с налични стойности от 20 до 100 евро."
+        }
+      },
+      {
+        "productId": "401",
+        "rowId": 523,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "8 март,Рожден ден,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/gift-card-podarachen-vaucher/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен ваучер от Studio Nikolas за избор на бижута от сребро или злато, с налични стойности от 20 до 100 евро."
+        }
+      },
+      {
+        "productId": "401",
+        "rowId": 523,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "8 март,Рожден ден,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/gift-card-podarachen-vaucher/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен ваучер от Studio Nikolas за избор на бижута от сребро или злато, с налични стойности от 20 до 100 евро."
+        }
+      },
+      {
+        "productId": "401",
+        "rowId": 523,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "8 март,Рожден ден,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studionikolas.com/produkt/gift-card-podarachen-vaucher/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен ваучер от Studio Nikolas за избор на бижута от сребро или злато, с налични стойности от 20 до 100 евро."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Подаръчен ваучер за сребърни бижута",
+      "short_desc_bg": "Подаръчен ваучер от Studio Nikolas за избор на бижута от сребро или злато, с налични стойности от 20 до 100 евро.",
+      "long_desc_bg": "Подаръчен ваучер от Studio Nikolas, който дава възможност получателят сам да избере бижу от сребро или злато. Предлага се в стойности 20, 30, 40, 50, 70 и 100 евро, като може да бъде персонализиран и с по-висока стойност. Ваучерът се използва онлайн и е с валидност 6 месеца.",
+      "gift_occasion": "8 март,Рожден ден,Свети Валентин,Имен ден",
+      "product_url": "https://studionikolas.com/produkt/gift-card-podarachen-vaucher/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "personalizirano-kolie-s-ime-poli",
+    "productId": "600",
+    "rowId": 725,
+    "name": "Персонализирано колие с име „Поли“",
+    "beforePosition": null,
+    "afterPosition": 49,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "600",
+        "rowId": 725,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Имен ден,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/personalizirano-kolie-s-ime-poli",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за подарък-изненада за любим човек."
+        }
+      },
+      {
+        "productId": "600",
+        "rowId": 725,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Имен ден,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/personalizirano-kolie-s-ime-poli",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за подарък-изненада за любим човек."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Персонализирано колие с име „Поли“",
+      "short_desc_bg": "Персонализирано сребърно колие с име по избор от сребро проба 925. Името и дължината могат да се персонализират, а към дизайна могат да се добавят детайли.",
+      "long_desc_bg": "Персонализирано сребърно колие с име по избор, изработено от сребро проба 925. Името може да бъде на кирилица или латиница, а дължината на колието се коригира според предпочитанията. Към дизайна могат да се добавят орнаменти и детайли като сърчица и пеперуди. Стандартният срок за изработка е 14 дни. След одобрение на проекта е необходимо 30% капаро. Подходящо е за подарък-изненада за любим човек.",
+      "gift_occasion": "Имен ден,Рожден ден",
+      "product_url": "https://dp-silver.com/product/personalizirano-kolie-s-ime-poli"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "set-i-mama-e-chovek",
+    "productId": "4",
+    "rowId": 185,
+    "name": "Сет И мама е човек",
+    "beforePosition": null,
+    "afterPosition": 50,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "4",
+        "rowId": 185,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.160candles.com/produkti/set-i-mama-e-chovek",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен сет с ароматна свещ и кибрит за моменти на спокойствие"
+        }
+      },
+      {
+        "productId": "4",
+        "rowId": 185,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.160candles.com/produkti/set-i-mama-e-chovek",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен сет с ароматна свещ и кибрит за моменти на спокойствие"
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Сет И мама е човек",
+      "short_desc_bg": "Подаръчен сет с ароматна свещ и кибрит за моменти на спокойствие",
+      "long_desc_bg": "Подаръчен сет с ръчно изработена ароматна свещ от 100% соев восък и кибрит с дълги клечки. Създаден да подари уют, релакс и специални моменти за мама с топъл и нежен аромат.",
+      "gift_occasion": "Рожден ден,8 март",
+      "product_url": "https://www.160candles.com/produkti/set-i-mama-e-chovek"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "grivna-s-konets-i-zlatna-bukva",
+    "productId": "603",
+    "rowId": 728,
+    "name": "Гривна с конец и златна буква",
+    "beforePosition": null,
+    "afterPosition": 51,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "603",
+        "rowId": 728,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Имен ден,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/grivna-s-konec-i-zlatna-bukva",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Представена е като семпъл подарък, поднесен с грижа и любов."
+        }
+      },
+      {
+        "productId": "603",
+        "rowId": 728,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Имен ден,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/grivna-s-konec-i-zlatna-bukva",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Представена е като семпъл подарък, поднесен с грижа и любов."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Гривна с конец и златна буква",
+      "short_desc_bg": "Нежна гривна с конец и златна буква от злато 585. Буквата може да бъде инициал на любим човек или собственото име, а гривната се връзва по размера на ръката.",
+      "long_desc_bg": "Нежна гривна с конец и златна буква от злато 585, с тегло 0,30 г. Буквата може да бъде избрана като инициал на любим човек или знак на собственото име. Гривната се връзва в индивидуален за всяка ръка размер и се предлага с конец в червен, син или черен цвят. Срокът за изработка е 14 календарни дни. Представена е като семпъл подарък, поднесен с грижа и любов.",
+      "gift_occasion": "Имен ден,Рожден ден",
+      "product_url": "https://dp-silver.com/product/grivna-s-konec-i-zlatna-bukva"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "print-za-stena-roza",
+    "productId": "284",
+    "rowId": 313,
+    "name": "Принт за стена – Роза",
+    "beforePosition": null,
+    "afterPosition": 52,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "284",
+        "rowId": 313,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://studiodada.eu/product/print-za-stena-roza/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящ е за подарък и за декорация на дома, офиса или други публични пространства."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Принт за стена – Роза",
+      "short_desc_bg": "Авторска илюстрация „Роза“, отпечатана върху структурна хартия във формат 40х50 см. Рамката не е включена.",
+      "long_desc_bg": "Принт за стена с авторска илюстрация „Роза“ от Студио Дада, отпечатан върху ефектна структурна хартия. Размерът е 40х50 см и се доставя в картонен тубус. Подходящ е за подарък и за декорация на дома, офиса или други публични пространства. Рамката не е включена в цената.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://studiodada.eu/product/print-za-stena-roza/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "korda-s-kapkovidno-kamache",
+    "productId": "579",
+    "rowId": 704,
+    "name": "Корда с капковидно камъче",
+    "beforePosition": null,
+    "afterPosition": 53,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "579",
+        "rowId": 704,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/korda-s-kapkovidno-kamache",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за летните месеци, като допълнение към ежедневен тоалет или подарък за близък човек."
+        }
+      },
+      {
+        "productId": "579",
+        "rowId": 704,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/korda-s-kapkovidno-kamache",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за летните месеци, като допълнение към ежедневен тоалет или подарък за близък човек."
+        }
+      },
+      {
+        "productId": "579",
+        "rowId": 704,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/korda-s-kapkovidno-kamache",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е за летните месеци, като допълнение към ежедневен тоалет или подарък за близък човек."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Корда с капковидно камъче",
+      "short_desc_bg": "Нежно дамско колие на корда с капковидно цирконово камъче и сребро проба 925, подходящо за летните месеци и ежедневен тоалет.",
+      "long_desc_bg": "Нежно колие на корда с капковидно цирконово камъче в различни цветове. Бижуто е със сребро проба 925 и тегло 1,6 г. Стандартната дължина е 40–42 см и може да бъде изработена в желана дължина. Подходящо е за летните месеци, като допълнение към ежедневен тоалет или подарък за близък човек.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин",
+      "product_url": "https://dp-silver.com/product/korda-s-kapkovidno-kamache"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "halki-s-troen-blyasak-70",
+    "productId": "583",
+    "rowId": 708,
+    "name": "Халки с троен блясък №70",
+    "beforePosition": null,
+    "afterPosition": 54,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "583",
+        "rowId": 708,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/ob70",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Лекият и прибран модел е подходящ за ежедневно носене, а производителят го препоръчва и като подарък за дете."
+        }
+      },
+      {
+        "productId": "583",
+        "rowId": 708,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/ob70",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Лекият и прибран модел е подходящ за ежедневно носене, а производителят го препоръчва и като подарък за дете."
+        }
+      },
+      {
+        "productId": "583",
+        "rowId": 708,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/ob70",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Лекият и прибран модел е подходящ за ежедневно носене, а производителят го препоръчва и като подарък за дете."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Халки с троен блясък №70",
+      "short_desc_bg": "Нежни сребърни висящи обици с вградени циркони, диаметър 10 мм и лек дизайн, подходящи за ежедневно носене и за дете.",
+      "long_desc_bg": "Сребърни висящи обици с вградени циркони и нежен дизайн. Изработени са от сребро проба 925, с тегло 2,4 г и диаметър 10 мм. Лекият и прибран модел е подходящ за ежедневно носене, а производителят го препоръчва и като подарък за дете. Предлагат се със сертификат за гаранция и качество.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин",
+      "product_url": "https://dp-silver.com/product/ob70"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "knigorazdelitel-luna",
+    "productId": "539",
+    "rowId": 658,
+    "name": "Книгоразделител „Луна“",
+    "beforePosition": null,
+    "afterPosition": 55,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "539",
+        "rowId": 658,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Без конкретен повод,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://craftsofspace.com/product/книгоразделител-6/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Изработен е от картон и бои и е създаден като елегантен аксесоар за книга и подарък за любители на четенето."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Книгоразделител „Луна“",
+      "short_desc_bg": "Ръчно рисуван книгоразделител с мотив на луна в синьо, лилаво, розово и златисто.",
+      "long_desc_bg": "Книгоразделител „Луна“, изцяло рисуван на ръка, със синьо, лилаво, розово, златиста луна и мини декоративни елементи. Изработен е от картон и бои и е създаден като елегантен аксесоар за книга и подарък за любители на четенето.",
+      "gift_occasion": "Без конкретен повод,Рожден ден",
+      "product_url": "https://craftsofspace.com/product/книгоразделител-6/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "elegantno-srebarno-kolie-s-kamani-51k",
+    "productId": "578",
+    "rowId": 703,
+    "name": "Елегантно сребърно колие с камъни №51к",
+    "beforePosition": null,
+    "afterPosition": 56,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "578",
+        "rowId": 703,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/l51k",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е като елегантно допълнение към изискан тоалет и като подарък за любим човек."
+        }
+      },
+      {
+        "productId": "578",
+        "rowId": 703,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/l51k",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е като елегантно допълнение към изискан тоалет и като подарък за любим човек."
+        }
+      },
+      {
+        "productId": "578",
+        "rowId": 703,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/l51k",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящо е като елегантно допълнение към изискан тоалет и като подарък за любим човек."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Елегантно сребърно колие с камъни №51к",
+      "short_desc_bg": "Елегантно дамско колие от сребро проба 925 с циркони и изрязани елементи, с дължина 48 см и възможност за корекция.",
+      "long_desc_bg": "Сребърно дамско колие с нежно проблясващи циркони и изрязани елементи. Изработено е от сребро проба 925, с тегло 14,1 г, дължина 48 см и ширина на елементите 5 мм. Дължината може да бъде коригирана според предпочитанията. Подходящо е като елегантно допълнение към изискан тоалет и като подарък за любим човек.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин",
+      "product_url": "https://dp-silver.com/product/l51k"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "mazhka-grivna-ot-med-spokoystvie-1-5-sm",
+    "productId": "443",
+    "rowId": 564,
+    "name": "Мъжка гривна от мед „Спокойствие“ • 1.5 см",
+    "beforePosition": null,
+    "afterPosition": 57,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "443",
+        "rowId": 564,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.katano.studio/grivni-za-muje/mujka-grivna-med-tunka/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": "5 см и е подходяща за подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Мъжка гривна от мед „Спокойствие“ • 1.5 см",
+      "short_desc_bg": "Ръчно изработена мъжка гривна от мед с тъмна патина, минималистичен дизайн и регулируемо отваряне.",
+      "long_desc_bg": "Мъжка гривна „Спокойствие“, ръчно изработена от мед и покрита с тъмна патина. Изчистеният минималистичен дизайн е подходящ за ежедневни и официални визии, а регулируемото отваряне осигурява удобно прилягане. Гривната е с широчина 1.5 см и е подходяща за подарък.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://www.katano.studio/grivni-za-muje/mujka-grivna-med-tunka/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "vodni-koncheta",
+    "productId": "596",
+    "rowId": 721,
+    "name": "Водни кончета",
+    "beforePosition": null,
+    "afterPosition": 58,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "596",
+        "rowId": 721,
+        "kind": "contains_item",
+        "concept": "earrings",
+        "field": "long_desc_bg",
+        "text": "обеци, пръстен и медальон с циркони",
+        "start": 64,
+        "scope": "component",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "reviewed-included-item-composition",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s208",
+        "materials": [
+          "Сребро"
+        ]
+      },
+      {
+        "productId": "596",
+        "rowId": 721,
+        "kind": "contains_item",
+        "concept": "chain",
+        "field": "long_desc_bg",
+        "text": " Синджирът не е включен в цената.",
+        "start": 276,
+        "scope": "component",
+        "polarity": "negative",
+        "status": "approved",
+        "rule": "explicit-excluded-item",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s208"
+      },
+      {
+        "productId": "596",
+        "rowId": 721,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s208",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Подходящ за подарък на скъп човек или дете."
+        }
+      },
+      {
+        "productId": "596",
+        "rowId": 721,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s208",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Подходящ за подарък на скъп човек или дете."
+        }
+      },
+      {
+        "productId": "596",
+        "rowId": 721,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s208",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Подходящ за подарък на скъп човек или дете."
+        }
+      },
+      {
+        "productId": "596",
+        "rowId": 721,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s208",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Подходящ за подарък на скъп човек или дете."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Водни кончета",
+      "short_desc_bg": "Сребърен комплект „Водни кончета“ с обеци, пръстен и медальон с нежно проблясващи камъчета. Подходящ за подарък на скъп човек или дете.",
+      "long_desc_bg": "Сребърен комплект „Водни кончета“ от сребро проба 925, включващ обеци, пръстен и медальон с циркони. Обеците тежат 2,5 г и са с размер 16 х 16 мм, пръстенът тежи 1,75 г и е с лице 15 мм, а медальонът тежи 1,1 г и е с дължина 26 мм. Размерът на пръстена може да бъде коригиран. Синджирът не е включен в цената. Подходящ подарък за скъп човек или дете.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин,Имен ден",
+      "product_url": "https://dp-silver.com/product/s208"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "zlatna-visulka-sartse-ot-zhalto-zlato-14k-s-tsirkoni",
+    "productId": "608",
+    "rowId": 733,
+    "name": "Златна висулка „Сърце“ от жълто злато 14K с циркони",
+    "beforePosition": null,
+    "afterPosition": 59,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "608",
+        "rowId": 733,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://astogold.bg/bg/magazin/zlatna-visulki-sarce-zhalto-zlato-tsirkon-astogold-1",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантно бижу с размер 15 х 9 мм, представено като подарък и израз на обич."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Златна висулка „Сърце“ от жълто злато 14K с циркони",
+      "short_desc_bg": "Нежна висулка „Сърце“ от жълто злато 14K проба 585 с циркони. Елегантно бижу с размер 15 х 9 мм, представено като подарък и израз на обич.",
+      "long_desc_bg": "Златна висулка „Сърце“ от жълто злато 14K, проба 585, украсена с циркони. Моделът е с тегло 0.63 г и размер 15 х 9 мм. Формата на сърце символизира любов, привързаност и топлина, а цирконите добавят блясък към дизайна. Висулката е представена като подходящ подарък за специален повод или като израз на обич към любим човек.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://astogold.bg/bg/magazin/zlatna-visulki-sarce-zhalto-zlato-tsirkon-astogold-1"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "knigorazdelitel-harmonia",
+    "productId": "540",
+    "rowId": 659,
+    "name": "Книгоразделител „Хармония“",
+    "beforePosition": null,
+    "afterPosition": 60,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "540",
+        "rowId": 659,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Без конкретен повод,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://craftsofspace.com/product/книгоразделител-5/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Подходящ е и като подарък за човек, който обича книгите."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Книгоразделител „Хармония“",
+      "short_desc_bg": "Ръчно рисуван книгоразделител „Хармония“ с възможност за персонализация с име.",
+      "long_desc_bg": "Ръчно рисуваният книгоразделител „Хармония“ е създаден като практичен и декоративен аксесоар за четене. Може да бъде персонализиран с име, а при празно поле се изработва във вида от изображението. Подходящ е и като подарък за човек, който обича книгите.",
+      "gift_occasion": "Без конкретен повод,Рожден ден",
+      "product_url": "https://craftsofspace.com/product/книгоразделител-5/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "rachno-izraboteno-meche-ot-umaleli-dreshki",
+    "productId": "132",
+    "rowId": 151,
+    "name": "Ръчно изработено мече от умалели дрешки",
+    "beforePosition": null,
+    "afterPosition": 61,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "132",
+        "rowId": 151,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://huggybearbg.com/bg-product-details-9.html",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Възможност за персонализация с бродерия, идеален подарък за родители."
+        }
+      }
+    ],
+    "label": "Adjacent/conditional",
+    "reason_bg": "Необходими са лични умалели бебешки дрешки; сантиментален подарък за родители, условен за birthday.",
+    "source": {
+      "name_bg": "Ръчно изработено мече от умалели дрешки",
+      "short_desc_bg": "Персонализирано мече от бебешки дрешки със сантиментална стойност",
+      "long_desc_bg": "Ръчно изработено мече от умалели дрешки, създадено като уникален спомен от бебешките години. Възможност за персонализация с бродерия, идеален подарък за родители.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://huggybearbg.com/bg-product-details-9.html"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "razdelitel-s-brodirana-bukva-po-izbor",
+    "productId": "151",
+    "rowId": 165,
+    "name": "Разделител с бродирана буква по избор",
+    "beforePosition": null,
+    "afterPosition": 62,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "151",
+        "rowId": 165,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://jennembroidery.com/produkt/aksesoari-za-knigi/knigorazdelitel-s-bukva-po-izbor/",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Идеален подарък за любители на книгите."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Разделител с бродирана буква по избор",
+      "short_desc_bg": "Ръчно бродиран книгоразделител с персонализирана буква",
+      "long_desc_bg": "Ръчно изработен книгоразделител с бродирана буква по избор, включващ картичка със стихотворение. Идеален подарък за любители на книгите.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://jennembroidery.com/produkt/aksesoari-za-knigi/knigorazdelitel-s-bukva-po-izbor/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "folkloren-podarachen-komplekt-pazi-balgaria-v-sarceto-si",
+    "productId": "183",
+    "rowId": 137,
+    "name": "Фолклорен подаръчен комплект",
+    "beforePosition": null,
+    "afterPosition": 63,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "183",
+        "rowId": 137,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://lacreartedesign.com/tefter/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Фолклорен подаръчен комплект с тефтер, химикалка и кутия с български мотиви."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Фолклорен подаръчен комплект",
+      "short_desc_bg": "Фолклорен подаръчен комплект с тефтер, химикалка и кутия с български мотиви.",
+      "long_desc_bg": "Стилен комплект, включващ тефтер А5 с твърди корици и пълноцветни страници, брандирана химикалка със син пълнител и елегантна подаръчна кутия с фолклорни мотиви. Създаден да вдъхновява, да съхранява мисли и да носи духа на българските традиции във всекидневието.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://lacreartedesign.com/tefter/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "pazel-bay-toshovo-vreme",
+    "productId": "204",
+    "rowId": 399,
+    "name": "Пъзел Бай-Тошово време",
+    "beforePosition": null,
+    "afterPosition": 64,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "204",
+        "rowId": 399,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,Нов дом",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://mazno.bg/products/baitoshovo",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Със средна трудност, той е подходящ за свободното време и като забавен подарък за хора с чувство за хумор и интерес към ретро тематика."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Пъзел Бай-Тошово време",
+      "short_desc_bg": "Пъзел с 500 части и носталгични детайли, вдъхновени от България от времето на Бай Тошо. Средна трудност и забавен ретро дизайн.",
+      "long_desc_bg": "Пъзел Бай-Тошово време от Mazno съдържа 500 части и множество носталгични и абсурдни детайли, вдъхновени от ежедневието в България от миналото. Със средна трудност, той е подходящ за свободното време и като забавен подарък за хора с чувство за хумор и интерес към ретро тематика.",
+      "gift_occasion": "Рожден ден,Нов дом",
+      "product_url": "https://mazno.bg/products/baitoshovo"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "podarachen-vaucher-tofi",
+    "productId": "839",
+    "rowId": 964,
+    "name": "Подаръчен ваучер TOFI",
+    "beforePosition": null,
+    "afterPosition": 65,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "839",
+        "rowId": 964,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,Коледа",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://tofi.bg/onlajn-magazin-za-chehli-pantofi-i-botu/gift-card-tofi/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен ваучер TOFI с избор на стойност от 100 до 250 € и автоматично изпращане по имейл."
+        }
+      },
+      {
+        "productId": "839",
+        "rowId": 964,
+        "kind": "occasion",
+        "concept": "Коледа",
+        "field": "gift_occasion",
+        "text": "Рожден ден,Коледа",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://tofi.bg/onlajn-magazin-za-chehli-pantofi-i-botu/gift-card-tofi/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Подаръчен ваучер TOFI с избор на стойност от 100 до 250 € и автоматично изпращане по имейл."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Подаръчен ваучер TOFI",
+      "short_desc_bg": "Подаръчен ваучер TOFI с избор на стойност от 100 до 250 € и автоматично изпращане по имейл.",
+      "long_desc_bg": "Подаръчният ваучер TOFI е практичен подарък за хора, които ценят комфорта и естествените материали, но предпочитат сами да изберат продукт. Предлага се в стойности 100, 150, 200 и 250 €. След покупката ваучерът се изпраща автоматично на имейл с уникален код за отстъпка. Получателят може да използва кода при поръчка на всички продукти в tofi.bg до изчерпване на стойността. Ваучерът е валиден 12 месеца, а остатъкът се запазва при частично използване.",
+      "gift_occasion": "Рожден ден,Коледа",
+      "product_url": "https://tofi.bg/onlajn-magazin-za-chehli-pantofi-i-botu/gift-card-tofi/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "mini-kapchitsi",
+    "productId": "597",
+    "rowId": 722,
+    "name": "Мини капчици",
+    "beforePosition": null,
+    "afterPosition": 66,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "597",
+        "rowId": 722,
+        "kind": "contains_item",
+        "concept": "earrings",
+        "field": "long_desc_bg",
+        "text": "обеци и медальон с централни капковидни циркони",
+        "start": 63,
+        "scope": "component",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "reviewed-included-item-composition",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s233",
+        "materials": [
+          "Сребро"
+        ]
+      },
+      {
+        "productId": "597",
+        "rowId": 722,
+        "kind": "contains_item",
+        "concept": "chain",
+        "field": "long_desc_bg",
+        "text": " Синджирът не е включен в посочената цена.",
+        "start": 216,
+        "scope": "component",
+        "polarity": "negative",
+        "status": "approved",
+        "rule": "explicit-excluded-item",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s233"
+      },
+      {
+        "productId": "597",
+        "rowId": 722,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s233",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел от сребро проба 925, подходящ и за подарък."
+        }
+      },
+      {
+        "productId": "597",
+        "rowId": 722,
+        "kind": "occasion",
+        "concept": "8 март",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s233",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел от сребро проба 925, подходящ и за подарък."
+        }
+      },
+      {
+        "productId": "597",
+        "rowId": 722,
+        "kind": "occasion",
+        "concept": "Свети Валентин",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s233",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел от сребро проба 925, подходящ и за подарък."
+        }
+      },
+      {
+        "productId": "597",
+        "rowId": 722,
+        "kind": "occasion",
+        "concept": "Имен ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,8 март,Свети Валентин,Имен ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://dp-silver.com/product/s233",
+        "support": {
+          "field": "short_desc_bg",
+          "text": " Елегантен модел от сребро проба 925, подходящ и за подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Мини капчици",
+      "short_desc_bg": "Сребърен комплект „Мини капчици“ с обеци и медальон с капковидни циркони. Елегантен модел от сребро проба 925, подходящ и за подарък.",
+      "long_desc_bg": "Сребърен комплект „Мини капчици“ от сребро проба 925, включващ обеци и медальон с централни капковидни циркони. Медальонът тежи 0,8 г и е с размер на елемента 25 х 7 мм, а обеците тежат 2,4 г и са с размер 15 х 7 мм. Синджирът не е включен в посочената цена. Комплектът е подходящ за подарък на любим човек или като допълнение към елегантен тоалет.",
+      "gift_occasion": "Рожден ден,8 март,Свети Валентин,Имен ден",
+      "product_url": "https://dp-silver.com/product/s233"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "teniska-za-mama-mama",
+    "productId": "198",
+    "rowId": 118,
+    "name": "Тениска за мама Mama ♥",
+    "beforePosition": null,
+    "afterPosition": 67,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "198",
+        "rowId": 118,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Без конкретен повод,Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://www.malkozaiche.com/bg-product-details-258.html?sRef=ibzr9i7e3q",
+        "support": {
+          "field": "long_desc_bg",
+          "text": "Тениска за мама Mama ♥ от Малко зайче е стилен и персонализиран подарък, изработен от висококачествен памук с вталена дамска кройка."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Тениска за мама Mama ♥",
+      "short_desc_bg": "Дамска тениска от 100% памук с възможност за персонализация.",
+      "long_desc_bg": "Тениска за мама Mama ♥ от Малко зайче е стилен и персонализиран подарък, изработен от висококачествен памук с вталена дамска кройка. Позволява добавяне на име или буква чрез бродерия, което я прави специален и личен избор за подарък.",
+      "gift_occasion": "Без конкретен повод,Рожден ден",
+      "product_url": "https://www.malkozaiche.com/bg-product-details-258.html?sRef=ibzr9i7e3q"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "kolie-ot-rozovo-i-byalo-zlato-14k-s-diamanti-0-14ct-vs-g",
+    "productId": "605",
+    "rowId": 730,
+    "name": "Колие от розово и бяло злато 14K с диаманти 0.14ct VS/G",
+    "beforePosition": null,
+    "afterPosition": 68,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "605",
+        "rowId": 730,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://astogold.bg/bg/magazin/kolie-rozovo-byalo-zlato-14k-diamanti-0-14ct-vs-g-asto-gold",
+        "support": {
+          "field": "long_desc_bg",
+          "text": " Предлага се със сертификат за автентичност и подаръчна кутия."
+        }
+      }
+    ],
+    "label": "Insufficient evidence",
+    "reason_bg": "Избраното support е сертификат и подаръчна кутия към колие: packaging, а не independently stated main-product gift purpose. Колието е правдоподобен подарък; relevance не е доказано отрицателна.",
+    "source": {
+      "name_bg": "Колие от розово и бяло злато 14K с диаманти 0.14ct VS/G",
+      "short_desc_bg": "Дамско колие от розово и бяло злато 14K проба 585 с естествени диаманти 0.14ct VS/G, розетка от бяло злато и синджир с плетка „Анкар“.",
+      "long_desc_bg": "Дамско колие от розово и бяло злато 14K, проба 585, с естествени диаманти с общо тегло 0.14ct, чистота VS и цвят G. Централната висулка е оформена като розетка от бяло злато, а диамантираният синджир с плетка „Анкар“ е от розово злато. Колието е с тегло 1.42 г и дължина 42/47 см с удължител. Предлага се със сертификат за автентичност и подаръчна кутия.",
+      "gift_occasion": "Рожден ден",
+      "product_url": "https://astogold.bg/bg/magazin/kolie-rozovo-byalo-zlato-14k-diamanti-0-14ct-vs-g-asto-gold"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  },
+  {
+    "slug": "pirin-planinska-karta-poster",
+    "productId": "287",
+    "rowId": 310,
+    "name": "Пирин – Планинска Карта Постер",
+    "beforePosition": null,
+    "afterPosition": 69,
+    "classification": "main",
+    "support": [
+      {
+        "productId": "287",
+        "rowId": 310,
+        "kind": "occasion",
+        "concept": "Рожден ден",
+        "field": "gift_occasion",
+        "text": "Рожден ден,Нов дом",
+        "start": 0,
+        "scope": "main",
+        "polarity": "positive",
+        "status": "approved",
+        "rule": "canonical-occasion-plus-independent-gift-purpose",
+        "version": "discovery-relations-v1",
+        "sourceUrl": "https://thecuriosityinstitute.com/bg/product/planinska-karta-pirin/",
+        "support": {
+          "field": "short_desc_bg",
+          "text": "Детайлна планинска карта на Пирин във формат 50×70 см, отпечатана върху 170 г матова хартия и подходяща за декорация или подарък."
+        }
+      }
+    ],
+    "label": "Relevant general birthday gift",
+    "reason_bg": "Физическият продукт е смислен подарък за подходящ получател; canonical birthday плюс изрично source gift purpose. Не е birthday-themed.",
+    "source": {
+      "name_bg": "Пирин – Планинска Карта Постер",
+      "short_desc_bg": "Детайлна планинска карта на Пирин във формат 50×70 см, отпечатана върху 170 г матова хартия и подходяща за декорация или подарък.",
+      "long_desc_bg": "Планинска карта постер на Пирин в мащаб 1:40 000 с релеф, върхове, туристически маршрути, хижи, заслони, езера и реки. Картата е с размер 50×70 см и е отпечатана върху 170 г матова хартия. Включва географска и UTM мрежа, легенда, списък с десетте най-високи върхове, скала на мащаба, скала на заложението и схема за магнитната деклинация. Рамката не е включена. Част от приходите се даряват на Планинската спасителна служба.",
+      "gift_occasion": "Рожден ден,Нов дом",
+      "product_url": "https://thecuriosityinstitute.com/bg/product/planinska-karta-pirin/"
+    },
+    "reviewer": "technical founder-review, not blinded external adjudication"
+  }
+]

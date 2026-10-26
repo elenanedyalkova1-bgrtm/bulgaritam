@@ -1,0 +1,860 @@
+[
+  {
+    "productId": "100",
+    "rowId": 376,
+    "slug": "halat-za-banya-cyxo-srebarna-rozov",
+    "kind": "material",
+    "concept": "Сребро",
+    "status": "rejected",
+    "classification": "Reject incidental mention",
+    "scope": "component",
+    "original": {
+      "name_bg": "Халат за баня CYXO Сребърна – розов",
+      "short_desc_bg": "Розов халат за баня CYXO Сребърна от лек памук със свободен силует и дизайн, вдъхновен от природата на резервата Сребърна.",
+      "long_desc_bg": "Халатът за баня CYXO Сребърна е вдъхновен от спокойните води, птиците и меките тонове на резервата Сребърна. Изработен е от лек и въздушен памук и е със свободен силует за комфорт през различните сезони. Подходящ е за употреба у дома, след баня или в СПА. При изработката са използвани устойчиви процеси с минимално въздействие върху околната среда."
+    },
+    "binding": {
+      "productId": "100",
+      "productSlug": "halat-za-banya-cyxo-srebarna-rozov",
+      "productName": "Халат за баня CYXO Сребърна – розов",
+      "productType": "Хавлии и халати",
+      "publicCategory": "home",
+      "publicSubcategory": "Баня",
+      "materials": "Памук"
+    },
+    "sourceUrl": "https://havlia.com/halat-za-banya-cyxo-srebarna-rozov-1?_gl=1*dc7gn9*_up*MQ..*_ga*MzU2MTUxMjYwLjE3ODY5NzU3Nzc.*_ga_5YV68LNKBX*czE3ODY5NzU3NzYkbzEkZzAkdDE3ODY5NzU3NzYkajYwJGwwJGgyNjc2MzUzODI.",
+    "reason": "Сребърна is the nature reserve/model name; actual composition is cotton."
+  },
+  {
+    "productId": "415",
+    "rowId": 537,
+    "slug": "damski-srebaren-komplekt-arc",
+    "kind": "material",
+    "concept": "Сребро",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "component",
+    "original": {
+      "name_bg": "Дамски сребърен комплект Arc",
+      "short_desc_bg": "Дамски сребърен комплект Arc с обеци на щифт и пръстен с централен циркон, оформени в изчистена плавна линия.",
+      "long_desc_bg": "Комплектът Arc включва сребърни обеци на щифт с широчина 2 мм и дължина 14 мм и сребърен пръстен с централен циркон, широчина 2 мм и камък с диаметър 3,5 мм. Дизайнът следва плавна минималистична извивка, а гладката полирана повърхност подчертава чистата линия. Комплектът е ръчно изработен и се предлага с избор на размер за пръстена."
+    },
+    "binding": {
+      "productId": "415",
+      "productSlug": "damski-srebaren-komplekt-arc",
+      "productName": "Дамски сребърен комплект Arc",
+      "productType": "Комплекти бижута",
+      "publicCategory": "accessories",
+      "publicSubcategory": "accessories_jewelry",
+      "materials": ""
+    },
+    "sourceUrl": "https://studionikolas.com/produkt/komplekt-arc/",
+    "reason": "Title and description repeatedly identify the actual silver earrings/ring/pendant, not packaging. No explicit 925/sterling fineness claim: do not infer 925."
+  },
+  {
+    "productId": "416",
+    "rowId": 538,
+    "slug": "srebaren-komplekt-rayska-perla",
+    "kind": "material",
+    "concept": "Сребро",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "component",
+    "original": {
+      "name_bg": "Сребърен комплект „Райска перла“",
+      "short_desc_bg": "Сребърен комплект „Райска перла“ с обеци, медальон и пръстен с перли и класическа изчистена визия.",
+      "long_desc_bg": "Комплектът „Райска перла“ включва сребърни обеци с върбило и естествена перла, сребърен медальон с перла и сребърен пръстен с перла. Елементите са с гладка полирана повърхност и могат да се носят заедно или поотделно. Комплектът е ръчно изработен, а верижка за медальона не е включена."
+    },
+    "binding": {
+      "productId": "416",
+      "productSlug": "srebaren-komplekt-rayska-perla",
+      "productName": "Сребърен комплект „Райска перла“",
+      "productType": "Комплекти бижута",
+      "publicCategory": "accessories",
+      "publicSubcategory": "accessories_jewelry",
+      "materials": ""
+    },
+    "sourceUrl": "https://studionikolas.com/produkt/sreburen-komplekt-rayska-perla/",
+    "reason": "Title and description repeatedly identify the actual silver earrings/ring/pendant, not packaging. No explicit 925/sterling fineness claim: do not infer 925."
+  },
+  {
+    "productId": "392",
+    "rowId": 514,
+    "slug": "rezeda-mazhka-bluza-morado-basic",
+    "kind": "material",
+    "concept": "Памук",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "main",
+    "original": {
+      "name_bg": "Резеда мъжка блуза Morado basic",
+      "short_desc_bg": "Мъжка блуза Morado basic в цвят резеда, изработена от памучна материя и с гумирана фирмена плочка и етикет.",
+      "long_desc_bg": "Резеда мъжка блуза Morado basic, модел 9548, е изработена от памучна материя и има гумирана фирмена плочка и фирмен етикет. Предлага се в размери S–3XL и е произведена в България."
+    },
+    "binding": {
+      "productId": "392",
+      "productSlug": "rezeda-mazhka-bluza-morado-basic",
+      "productName": "Резеда мъжка блуза Morado basic",
+      "productType": "Блузи",
+      "publicCategory": "clothing",
+      "publicSubcategory": "clothing_men",
+      "materials": ""
+    },
+    "sourceUrl": "https://morado.bg/блузи-и-суитчъри-мъже/резеда-мъжка-блуза-morado-basic-9548",
+    "reason": "Product composition explicitly states cotton/cotton muslin; organic cotton additionally entails cotton. Muslin alone is a weave and would not prove cotton without this statement."
+  },
+  {
+    "productId": "483",
+    "rowId": 602,
+    "slug": "damski-set-boho-earth",
+    "kind": "material",
+    "concept": "Памук",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "main",
+    "original": {
+      "name_bg": "Дамски сет Boho Earth",
+      "short_desc_bg": "Дамски комплект Boho Earth от дишащ памучен муселин със свободна риза и широки къси панталони.",
+      "long_desc_bg": "Дамският сет Boho Earth от Belong е изработен от фина и дишаща памучна муселинова материя. Комплектът включва свободна риза с регулируема връзка в талията и пискюли по ръкавите и широки къси панталони с ластична талия. Предлага се в пясъчно бежово, маслинено зелено, тюркоазено и дълбоко горско зелено."
+    },
+    "binding": {
+      "productId": "483",
+      "productSlug": "damski-set-boho-earth",
+      "productName": "Дамски сет Boho Earth",
+      "productType": "Комплекти и костюми",
+      "publicCategory": "clothing",
+      "publicSubcategory": "clothing_women",
+      "materials": "Муселин"
+    },
+    "sourceUrl": "https://belong.bg/produkt/дамски-сет-boho-earth/",
+    "reason": "Product composition explicitly states cotton/cotton muslin; organic cotton additionally entails cotton. Muslin alone is a weave and would not prove cotton without this statement."
+  },
+  {
+    "productId": "484",
+    "rowId": 603,
+    "slug": "mazhki-set-boho-earth",
+    "kind": "material",
+    "concept": "Памук",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "main",
+    "original": {
+      "name_bg": "Мъжки сет Boho Earth",
+      "short_desc_bg": "Мъжки бохо комплект Boho Earth от лек и дишащ памучен муселин с оувърсайзд риза и къси панталони.",
+      "long_desc_bg": "Мъжкият сет Boho Earth от Belong е изработен от лека и дишаща памучна муселинова материя. Комплектът включва оувърсайзд риза с изчистен силует и къси панталони с ластична талия и джобове. Предлага се в пясъчно бежово, маслинено зелено, тюркоазено и дълбоко горско зелено."
+    },
+    "binding": {
+      "productId": "484",
+      "productSlug": "mazhki-set-boho-earth",
+      "productName": "Мъжки сет Boho Earth",
+      "productType": "Комплекти и костюми",
+      "publicCategory": "clothing",
+      "publicSubcategory": "clothing_men",
+      "materials": "Муселин"
+    },
+    "sourceUrl": "https://belong.bg/produkt/мъжки-сет-boho-earth/",
+    "reason": "Product composition explicitly states cotton/cotton muslin; organic cotton additionally entails cotton. Muslin alone is a weave and would not prove cotton without this statement."
+  },
+  {
+    "productId": "854",
+    "rowId": 979,
+    "slug": "chanta-za-uchitel-teachers-plant-seeds-that-grow-forever",
+    "kind": "material",
+    "concept": "Памук",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "main",
+    "original": {
+      "name_bg": "Чанта за учител Teachers Plant seeds that grow forever",
+      "short_desc_bg": "Чанта за учител от 100% органичен памук с подсилени дълги дръжки и послание „Teachers Plant seeds that grow forever“.",
+      "long_desc_bg": "Текстилна чанта за учител с послание „Teachers Plant seeds that grow forever“. Изработена е от 100% органичен памук и има подсилени дръжки с дължина 70 см. Размерът на чантата е 40 × 40 см. Практичен подарък за учител, подходящ за ежедневна употреба."
+    },
+    "binding": {
+      "productId": "854",
+      "productSlug": "chanta-za-uchitel-teachers-plant-seeds-that-grow-forever",
+      "productName": "Чанта за учител Teachers Plant seeds that grow forever",
+      "productType": "Чанти",
+      "publicCategory": "accessories",
+      "publicSubcategory": "accessories_bags",
+      "materials": "Органичен памук"
+    },
+    "sourceUrl": "https://www.malkozaiche.com/bg-product-details-611.html",
+    "reason": "Product composition explicitly states cotton/cotton muslin; organic cotton additionally entails cotton. Muslin alone is a weave and would not prove cotton without this statement."
+  },
+  {
+    "productId": "1006",
+    "rowId": 1133,
+    "slug": "dvulitsevo-odeyalo-ot-100-organichen-muselin",
+    "kind": "material",
+    "concept": "Памук",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "main",
+    "original": {
+      "name_bg": "Двулицево одеяло от 100% органичен муселин",
+      "short_desc_bg": "Двулицево бебешко одеяло 100х80 см от 100% органичен памучен муселин, леко, дишащо и нежно към чувствителната бебешка кожа.",
+      "long_desc_bg": "Двулицевото одеяло MeriBoo е изработено в България от 100% органичен памучен муселин. Материята е лека, ефирна и дишаща, не запарва и е подходяща за чувствителна бебешка кожа. Двулицевият дизайн предлага две меки страни, а размерът 100х80 см е подходящ за новородени и бебета, за сън, количка, гушкане и ежедневен комфорт у дома и навън."
+    },
+    "binding": {
+      "productId": "1006",
+      "productSlug": "dvulitsevo-odeyalo-ot-100-organichen-muselin",
+      "productName": "Двулицево одеяло от 100% органичен муселин",
+      "productType": "",
+      "publicCategory": "kids",
+      "publicSubcategory": "kids_textiles",
+      "materials": "Органичен памук|Муселин"
+    },
+    "sourceUrl": "https://www.meriboo.com/collections/odeqlca/products/muselinovo-odealce?utm_source=bulgaritam&utm_medium=referral",
+    "reason": "Product composition explicitly states cotton/cotton muslin; organic cotton additionally entails cotton. Muslin alone is a weave and would not prove cotton without this statement."
+  },
+  {
+    "productId": "1014",
+    "rowId": 1141,
+    "slug": "komplekt-little-moments-ot-100-organichen-muselin",
+    "kind": "material",
+    "concept": "Памук",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "main",
+    "original": {
+      "name_bg": "Комплект Little Moments от 100% органичен муселин",
+      "short_desc_bg": "Лек бебешки комплект Little Moments от 100% органичен муселин с боди тип прегърни ме, къси балон панталонки и мек лигавник.",
+      "long_desc_bg": "Little Moments от MeriBoo е комплект за топлите дни, изработен в България от 100% органичен памучен муселин. Включва боди тип прегърни ме, къси балон панталонки със свободна кройка и мека еластична талия и муселинов лигавник. Леката и дишаща материя е нежна към чувствителната бебешка кожа, а моделите са създадени за удобно обличане, движение, разходки и ежедневни моменти у дома."
+    },
+    "binding": {
+      "productId": "1014",
+      "productSlug": "komplekt-little-moments-ot-100-organichen-muselin",
+      "productName": "Комплект Little Moments от 100% органичен муселин",
+      "productType": "",
+      "publicCategory": "kids",
+      "publicSubcategory": "kids_clothing",
+      "materials": "Органичен памук|Муселин"
+    },
+    "sourceUrl": "https://www.meriboo.com/collections/organichen-muselin-za-bebeta-i-deca/products/komplket-little-moments-ot-100-organichen-muselin?utm_source=bulgaritam&utm_medium=referral",
+    "reason": "Product composition explicitly states cotton/cotton muslin; organic cotton additionally entails cotton. Muslin alone is a weave and would not prove cotton without this statement."
+  },
+  {
+    "productId": "1015",
+    "rowId": 1142,
+    "slug": "komplekt-sunny-days-ot-100-organichen-muselin",
+    "kind": "material",
+    "concept": "Памук",
+    "status": "approved",
+    "classification": "Reliable material evidence",
+    "scope": "component",
+    "original": {
+      "name_bg": "Комплект Sunny Days от 100% органичен муселин",
+      "short_desc_bg": "Летен комплект Sunny Days от органичен муселин с тениска, къси панталонки, лигавник и дървена гризалка за бебета и малки деца.",
+      "long_desc_bg": "Sunny Days от MeriBoo е летен комплект за бебета и малки деца. Включва муселинова тениска с къс ръкав, къси панталонки с мека ластична талия, муселинов лигавник и дървена гризалка с муселинови ушички. Текстилните елементи са от 100% органичен памучен муселин, а гризалката е от естествено дърво. Комплектът е произведен в България и е подходящ за топли дни, разходки и подарък."
+    },
+    "binding": {
+      "productId": "1015",
+      "productSlug": "komplekt-sunny-days-ot-100-organichen-muselin",
+      "productName": "Комплект Sunny Days от 100% органичен муселин",
+      "productType": "",
+      "publicCategory": "kids",
+      "publicSubcategory": "kids_clothing",
+      "materials": "Органичен памук|Муселин|Дърво"
+    },
+    "sourceUrl": "https://www.meriboo.com/collections/organichen-muselin-za-bebeta-i-deca/products/komplket-sunny-days?utm_source=bulgaritam&utm_medium=referral",
+    "reason": "Product composition explicitly states cotton/cotton muslin; organic cotton additionally entails cotton. Muslin alone is a weave and would not prove cotton without this statement."
+  },
+  {
+    "productId": "929",
+    "rowId": 1056,
+    "slug": "skrin-s-3-chekmedzheta",
+    "kind": "material",
+    "concept": "Дърво",
+    "status": "needs_review",
+    "classification": "Adjacent / product decision",
+    "scope": "main",
+    "original": {
+      "name_bg": "Скрин с 3 чекмеджета",
+      "short_desc_bg": "Практичен детски скрин с три чекмеджета, корпус от ПДЧ и елементи от иглолистен масив, с плавни механизми и заоблени видими ъгли.",
+      "long_desc_bg": "Скринът с 3 чекмеджета от Kiddoscape е изработен с корпус от 18 мм ПДЧ и шапка и цокъл от иглолистен масив. Разполага с плавни механизми, заоблени видими ъгли и дръжки, проектирани да пазят детските пръсти. Лакът и боята са на водна основа. Предлага се в бяло и натурално дърво или с акцентен цвят при шапката и цокъла."
+    },
+    "binding": {
+      "productId": "929",
+      "productSlug": "skrin-s-3-chekmedzheta",
+      "productName": "Скрин с 3 чекмеджета",
+      "productType": "Гардероби",
+      "publicCategory": "kids",
+      "publicSubcategory": "kids_furniture",
+      "materials": "ПДЧ|Иглолистен масив"
+    },
+    "sourceUrl": "https://kiddoscape.eu/product/skrin/",
+    "reason": "Explicit softwood components, but carcass is chipboard. Good related wood-containing furniture; not proof of solid-wood/100% wood cabinet."
+  },
+  {
+    "productId": "1261",
+    "rowId": 1313,
+    "slug": "semeino-darvo-kartina",
+    "kind": "material",
+    "concept": "Дърво",
+    "status": "rejected",
+    "classification": "Reject incidental mention",
+    "scope": "main",
+    "original": {
+      "name_bg": "Семейно дърво - картина",
+      "short_desc_bg": "Персонализируема картина „Семейно дърво“ от DNArt, предлагана в четири размера от 30 × 45 см до 60 × 90 см.",
+      "long_desc_bg": "„Семейно дърво“ е персонализируема картина от DNArt със семеен дизайн. Предлага се в размери XS (30 × 45 см), S (40 × 60 см), M (50 × 75 см) и L (60 × 90 см). Продуктът е създаден в България."
+    },
+    "binding": {
+      "productId": "1261",
+      "productSlug": "semeino-darvo-kartina",
+      "productName": "Семейно дърво - картина",
+      "productType": "Картини и стенно изкуство",
+      "publicCategory": "home",
+      "publicSubcategory": "home_decor",
+      "materials": ""
+    },
+    "sourceUrl": "https://dnart.bg/products/semeino-durvo-kartina",
+    "reason": "Family tree picture does not establish physical wood material."
+  },
+  {
+    "productId": "442",
+    "rowId": 563,
+    "slug": "damsko-kolie-ot-koprina-i-med",
+    "kind": "material",
+    "concept": "Естествена кожа",
+    "status": "needs_review",
+    "classification": "Insufficient evidence",
+    "scope": "main",
+    "original": {
+      "name_bg": "Дамско колие от коприна и мед",
+      "short_desc_bg": "Ръчно изработено дамско колие от коприна и мед с ахат, речна перла и седеф, с регулируема дължина.",
+      "long_desc_bg": "Ръчно изработено дамско колие с кожена каишка, увита в копринена панделка, и елементи от чешки мъниста, речна перла, ахат и седеф. Централният елемент и телта са от мед, а закопчалката има удължител. Дължината е 43 см."
+    },
+    "binding": {
+      "productId": "442",
+      "productSlug": "damsko-kolie-ot-koprina-i-med",
+      "productName": "Дамско колие от коприна и мед",
+      "productType": "Колиета",
+      "publicCategory": "accessories",
+      "publicSubcategory": "accessories_jewelry",
+      "materials": "Мъниста|Коприна|Мед"
+    },
+    "sourceUrl": "https://www.katano.studio/bijuta-za-podaruk/damsko-kolie-koprina-med/",
+    "reason": "Leather strap is mentioned, but real vs synthetic leather is not explicit. Do not promote to canonical Естествена кожа automatically."
+  },
+  {
+    "productId": "828",
+    "rowId": 953,
+    "slug": "damski-pantofi-sisi-natural",
+    "kind": "material",
+    "concept": "Вълна",
+    "status": "rejected",
+    "classification": "Reject incidental mention",
+    "scope": "main",
+    "original": {
+      "name_bg": "Дамски пантофи СИСИ (натурал)",
+      "short_desc_bg": "Пухкави дамски пантофи СИСИ от естествена агнешка кожа с евапренова подметка, създадени за топлина и комфорт у дома.",
+      "long_desc_bg": "Дамските пантофи СИСИ съчетават пухкав интериор и екстериор от естествена агнешка кожа с гъвкава евапренова подметка. Подходящи са за уют у дома, осигуряват топлина и комфорт през студените дни и могат да се перат на щадяща програма за вълна."
+    },
+    "binding": {
+      "productId": "828",
+      "productSlug": "damski-pantofi-sisi-natural",
+      "productName": "Дамски пантофи СИСИ (натурал)",
+      "productType": "Домашни пантофи",
+      "publicCategory": "clothing",
+      "publicSubcategory": "accessories_shoes",
+      "materials": "Естествена кожа"
+    },
+    "sourceUrl": "https://tofi.bg/damski/pantofi/sissy-womens-slippers/",
+    "reason": "Wool wash cycle is not a wool composition claim. Lambskin/fleece appearance is not automatic proof of wool material."
+  },
+  {
+    "productId": "830",
+    "rowId": 955,
+    "slug": "damski-chehli-ema-zeleno",
+    "kind": "material",
+    "concept": "Вълна",
+    "status": "rejected",
+    "classification": "Reject incidental mention",
+    "scope": "main",
+    "original": {
+      "name_bg": "Дамски чехли ЕМА (зелено)",
+      "short_desc_bg": "Пухкави дамски чехли ЕМА от естествена агнешка кожа в зелено с лека евапренова подметка за мекота, стабилност и ежедневен комфорт.",
+      "long_desc_bg": "Дамските чехли ЕМА в зелено са изработени от висококачествена естествена кожа и са пухкави, меки и леки. Евапреновата подметка е еластична, удобна и устойчива на хлъзгане. Моделът е подходящ за ежедневно носене у дома и навън, а кожата се отпуска и оформя по крака при носене. Чехлите могат да се почистват с топла сапунена вода и да се перат на щадяща програма за вълна."
+    },
+    "binding": {
+      "productId": "830",
+      "productSlug": "damski-chehli-ema-zeleno",
+      "productName": "Дамски чехли ЕМА (зелено)",
+      "productType": "Чехли",
+      "publicCategory": "clothing",
+      "publicSubcategory": "accessories_shoes",
+      "materials": "Естествена кожа"
+    },
+    "sourceUrl": "https://tofi.bg/damski/damski-chehli/damski-chekhul-zeleno/",
+    "reason": "Wool wash cycle is not a wool composition claim. Lambskin/fleece appearance is not automatic proof of wool material."
+  },
+  {
+    "productId": "831",
+    "rowId": 956,
+    "slug": "damski-chehli-ema-natural",
+    "kind": "material",
+    "concept": "Вълна",
+    "status": "rejected",
+    "classification": "Reject incidental mention",
+    "scope": "main",
+    "original": {
+      "name_bg": "Дамски чехли ЕМА (натурал)",
+      "short_desc_bg": "Пухкави дамски чехли ЕМА от естествена агнешка кожа в натурален цвят с лека евапренова подметка за мекота и ежедневен комфорт.",
+      "long_desc_bg": "Дамските чехли ЕМА в натурален цвят са изработени от висококачествена естествена кожа, която не е боядисвана и има индивидуални естествени нюанси. Моделът е пухкав, мек и лек, а евапреновата подметка осигурява гъвкавост, стабилност и комфорт. Кожата се отпуска и оформя по стъпалото при носене. Чехлите са подходящи за дома и за излизане навън и могат да се почистват с топла сапунена вода или да се перат на щадяща програма за вълна."
+    },
+    "binding": {
+      "productId": "831",
+      "productSlug": "damski-chehli-ema-natural",
+      "productName": "Дамски чехли ЕМА (натурал)",
+      "productType": "Чехли",
+      "publicCategory": "clothing",
+      "publicSubcategory": "accessories_shoes",
+      "materials": "Естествена кожа"
+    },
+    "sourceUrl": "https://tofi.bg/damski/damski-chehli/damski-chekhli-natural/",
+    "reason": "Wool wash cycle is not a wool composition claim. Lambskin/fleece appearance is not automatic proof of wool material."
+  },
+  {
+    "productId": "832",
+    "rowId": 957,
+    "slug": "damski-chehli-ema-lilavo",
+    "kind": "material",
+    "concept": "Вълна",
+    "status": "rejected",
+    "classification": "Reject incidental mention",
+    "scope": "main",
+    "original": {
+      "name_bg": "Дамски чехли ЕМА (лилаво)",
+      "short_desc_bg": "Пухкави дамски чехли ЕМА от естествена агнешка кожа в лилаво с лека евапренова подметка за мекота и ежедневен комфорт.",
+      "long_desc_bg": "Дамските чехли ЕМА в лилаво са изработени от висококачествена естествена кожа. Моделът е мек, пухкав и лек, а кожата се отпуска и оформя по стъпалото при носене. Евапреновата подметка е лека, еластична и мека, не трака при ходене и осигурява стабилност, включително във влажни помещения. Чехлите са подходящи за домашна употреба и кратки ежедневни излизания. Могат да се почистват с топла сапунена вода и мека четка или да се перат на щадяща програма за вълна."
+    },
+    "binding": {
+      "productId": "832",
+      "productSlug": "damski-chehli-ema-lilavo",
+      "productName": "Дамски чехли ЕМА (лилаво)",
+      "productType": "Чехли",
+      "publicCategory": "clothing",
+      "publicSubcategory": "accessories_shoes",
+      "materials": "Естествена кожа"
+    },
+    "sourceUrl": "https://tofi.bg/damski/damski-chehli/damski-chekhli-lilavo/",
+    "reason": "Wool wash cycle is not a wool composition claim. Lambskin/fleece appearance is not automatic proof of wool material."
+  },
+  {
+    "productId": "836",
+    "rowId": 961,
+    "slug": "kafiavi-mazhki-chehli-yavor-ot-agneshka-koja",
+    "kind": "material",
+    "concept": "Вълна",
+    "status": "rejected",
+    "classification": "Reject incidental mention",
+    "scope": "main",
+    "original": {
+      "name_bg": "Кафяви мъжки чехли ЯВОР от агнешка кожа",
+      "short_desc_bg": "Кафяви мъжки чехли ЯВОР от агнешка кожа с отворена пета и евапренова подметка за комфорт у дома.",
+      "long_desc_bg": "Кафявите мъжки чехли ЯВОР са изработени от тъмнокафява агнешка кожа с топъл шоколадов нюанс. Моделът е тип мул с отворена пета за лесно обуване и събуване, а вертикалните декоративни шевове придават характер на изчистения силует. Естествената кожа е мека и дишаща, а евапреновата подметка е еластична, безшумна и нехлъзгаща. Чехлите са подходящи за ежедневна употреба у дома и могат да се перат на деликатна програма за вълна."
+    },
+    "binding": {
+      "productId": "836",
+      "productSlug": "kafiavi-mazhki-chehli-yavor-ot-agneshka-koja",
+      "productName": "Кафяви мъжки чехли ЯВОР от агнешка кожа",
+      "productType": "Чехли",
+      "publicCategory": "clothing",
+      "publicSubcategory": "accessories_shoes",
+      "materials": "Естествена кожа"
+    },
+    "sourceUrl": "https://tofi.bg/majki/majki-chehli/kafiavi-majki-chehli-iavor-ot-agneshka-koja/",
+    "reason": "Wool wash cycle is not a wool composition claim. Lambskin/fleece appearance is not automatic proof of wool material."
+  },
+  {
+    "productId": "840",
+    "rowId": 965,
+    "slug": "rakavici-varashki-bezhovo",
+    "kind": "material",
+    "concept": "Вълна",
+    "status": "rejected",
+    "classification": "Reject incidental mention",
+    "scope": "main",
+    "original": {
+      "name_bg": "Ръкавици ВАРАШКИ (бежово)",
+      "short_desc_bg": "Бежови ръкавици ВАРАШКИ от естествена агнешка кожа за топлина и комфорт през студените месеци.",
+      "long_desc_bg": "Ръкавици ВАРАШКИ са изработени от висококачествена агнешка кожа и съчетават мекота, комфорт и защита от студа. Моделът е подходящ за ежедневна употреба през зимните месеци и се предлага в размери XS, S, M, L и XL. Ръкавиците са ръчно изработени и могат да се почистват с топла сапунена вода и мека четка или да се перат на ниска температура на програма за вълна. Не се препоръчва машинно сушене."
+    },
+    "binding": {
+      "productId": "840",
+      "productSlug": "rakavici-varashki-bezhovo",
+      "productName": "Ръкавици ВАРАШКИ (бежово)",
+      "productType": "Ръкавици",
+      "publicCategory": "accessories",
+      "publicSubcategory": "",
+      "materials": "Естествена кожа"
+    },
+    "sourceUrl": "https://tofi.bg/damski/rakavici/rykavici-varaschkibejovo/",
+    "reason": "Wool wash cycle is not a wool composition claim. Lambskin/fleece appearance is not automatic proof of wool material."
+  },
+  {
+    "productId": "1130",
+    "rowId": 1182,
+    "slug": "bebeshki-komplekt-s-shevitsa-bodi-roklya-prestilka-karpa",
+    "kind": "identity",
+    "concept": "dress",
+    "status": "needs_review",
+    "classification": "Relevant included item / rank as set",
+    "scope": "main",
+    "original": {
+      "name_bg": "Бебешки комплект с шевица – боди рокля, престилка и кърпа",
+      "short_desc_bg": "Бебешки комплект за момиче от 100% памук с боди рокля, престилка с шевица „Елбетица“ и кърпа за глава.",
+      "long_desc_bg": "Бебешки комплект за момиче от 100% памук, включващ боди рокля с бродирана българска шевица, престилка с шевица „Елбетица“ и кърпа за глава. Предлага се в размери от 0 до 24 месеца и е подходящ за кръщене, рожден ден, имен ден, фотосесии и фолклорни събития."
+    },
+    "binding": {
+      "productId": "1130",
+      "productSlug": "bebeshki-komplekt-s-shevitsa-bodi-roklya-prestilka-karpa",
+      "productName": "Бебешки комплект с шевица – боди рокля, престилка и кърпа",
+      "productType": "Комплекти и костюми",
+      "publicCategory": "kids",
+      "publicSubcategory": "",
+      "materials": "Памук"
+    },
+    "sourceUrl": "https://venix.bg/product/bebeshki-komplekt-s-shevica-bodi-roklya-prestilka-karpa/",
+    "reason": "main_identity_only_no_contains_item_relation"
+  },
+  {
+    "productId": "966",
+    "rowId": 1093,
+    "slug": "komplekt-aura-riza-kasi-pantaloni",
+    "kind": "identity",
+    "concept": "shirt",
+    "status": "needs_review",
+    "classification": "Relevant included item / rank as set",
+    "scope": "main",
+    "original": {
+      "name_bg": "Комплект AURA с риза и къси панталони",
+      "short_desc_bg": "Комплект AURA с риза и къси панталони в небесносин цвят, свободен силует, фини пайети и ръчно изработени детайли от автентичен гайтан.",
+      "long_desc_bg": "AURA е комплект от риза и къси панталони в небесносин цвят, изработен от мека вискоза с памук и фини пайети. Ризата е с леко вталена предна част, широки маншети, връзки на гърба и ръчно изработени детайли от автентичен бял гайтан. Панталоните са със свободна кройка, ластик на талията и декоративен гайтан по страничните шевове. Срокът за изработка е 7–10 работни дни."
+    },
+    "binding": {
+      "productId": "966",
+      "productSlug": "komplekt-aura-riza-kasi-pantaloni",
+      "productName": "Комплект AURA с риза и къси панталони",
+      "productType": "Комплекти и костюми",
+      "publicCategory": "clothing",
+      "publicSubcategory": "clothing_women",
+      "materials": "Вискоза|Памук"
+    },
+    "sourceUrl": "https://veza.bg/products/сет-риза-и-къси-панталони-aura/",
+    "reason": "main_identity_only_no_contains_item_relation"
+  },
+  {
+    "productId": "1208",
+    "rowId": 1260,
+    "slug": "teniska-the-wet-t-shirt",
+    "kind": "identity",
+    "concept": "shirt",
+    "status": "rejected",
+    "classification": "Irrelevant to queried identity",
+    "scope": "main",
+    "original": {
+      "name_bg": "Тениска THE WET T-SHIRT",
+      "short_desc_bg": "Ръчно изработена тениска THE WET T-SHIRT с мокър ефект, от памук и силикон, в размери XS, S, M и L.",
+      "long_desc_bg": "THE WET T-SHIRT от Goud съчетава памучна тъкан със силикон, който създава мокър ефект и обгръща тялото. Посоченият състав на тъканта е 100% памук, а силиконът е представен от производителя като безопасен за кожата. Тениската е изцяло ръчно изработена и са възможни вариации между отделните бройки. Предлага се в размери XS, S, M и L. Изработва се по поръчка за 3–8 работни дни според артикула. Посоченият срок за международна доставка е 2–14 работни дни. Пере се на ръка със студена вода. Не трябва да се избелва или да се суши в сушилня."
+    },
+    "binding": {
+      "productId": "1208",
+      "productSlug": "teniska-the-wet-t-shirt",
+      "productName": "Тениска THE WET T-SHIRT",
+      "productType": "Тениски и потници",
+      "publicCategory": "clothing",
+      "publicSubcategory": "clothing_women",
+      "materials": "Памук|Силикон"
+    },
+    "sourceUrl": "https://goud.bg/bg/products/the-wet-t-shirt",
+    "reason": "T-shirt compound"
+  },
+  {
+    "productId": "1128",
+    "rowId": 1180,
+    "slug": "komplekt-s-etno-motivi-kenarena-riza-pola-i-karpa",
+    "kind": "identity",
+    "concept": "shirt",
+    "status": "needs_review",
+    "classification": "Relevant included item / rank as set",
+    "scope": "main",
+    "original": {
+      "name_bg": "Комплект с етно мотиви – кенарена риза, пола и кърпа",
+      "short_desc_bg": "Детски етно комплект от 100% памук с кенарена риза, пола и бродирана кърпа за глава.",
+      "long_desc_bg": "Детски комплект с етно мотиви от 100% памук, включващ кенарена риза с бродирана пазва и шевица „Роза“, пола по избор с бродерия или памучна дантела и триъгълна бродирана кърпа за глава. Подходящ е за празници, фолклорни събития, сценични изяви, фотосесии и ежедневие и се предлага за възраст от 3 месеца до 12 години."
+    },
+    "binding": {
+      "productId": "1128",
+      "productSlug": "komplekt-s-etno-motivi-kenarena-riza-pola-i-karpa",
+      "productName": "Комплект с етно мотиви – кенарена риза, пола и кърпа",
+      "productType": "Комплекти и костюми",
+      "publicCategory": "kids",
+      "publicSubcategory": "kids_clothing",
+      "materials": "Памук"
+    },
+    "sourceUrl": "https://venix.bg/product/komplekt-s-etno-motivi/",
+    "reason": "main_identity_only_no_contains_item_relation"
+  },
+  {
+    "productId": "1185",
+    "rowId": 1237,
+    "slug": "korset-frozen-shirt-corset",
+    "kind": "identity",
+    "concept": "shirt",
+    "status": "needs_review",
+    "classification": "Insufficient evidence for ordinary shirt",
+    "scope": "main",
+    "original": {
+      "name_bg": "Корсет FROZEN SHIRT CORSET",
+      "short_desc_bg": "Скулптурен корсет FROZEN SHIRT CORSET, ръчно изработен от епоксидна смола и текстил, с отворен гръб и регулируеми връзки.",
+      "long_desc_bg": "FROZEN SHIRT CORSET от Goud се изработва по поръчка за 5–7 работни дни. Предлага се в един размер за S, M и L, с отворен гръб и регулируеми връзки. Може да се носи самостоятелно или в съчетание с различни дрехи. Според производителя използваната епоксидна смола е сертифицирана и безопасна при контакт с кожата. Почиства се внимателно с мека, влажна кърпа с леки потупващи движения. Не трябва да се стиска, извива или усуква, нито да се поставят тежки предмети върху него. Поради ръчната изработка са възможни леки вариации в индивидуалните детайли."
+    },
+    "binding": {
+      "productId": "1185",
+      "productSlug": "korset-frozen-shirt-corset",
+      "productName": "Корсет FROZEN SHIRT CORSET",
+      "productType": "Корсети",
+      "publicCategory": "clothing",
+      "publicSubcategory": "clothing_women",
+      "materials": "Епоксидна смола|Текстил"
+    },
+    "sourceUrl": "https://goud.bg/bg/products/frozen-shirt-corset",
+    "reason": "compound_fashion_identity"
+  },
+  {
+    "productId": "1127",
+    "rowId": 1179,
+    "slug": "karpa-za-krashtene-v-komplekt-s-kenareni-rizi",
+    "kind": "identity",
+    "concept": "shirt",
+    "status": "needs_review",
+    "classification": "Relevant included item / rank as set",
+    "scope": "main",
+    "original": {
+      "name_bg": "Кърпа за кръщене в комплект с кенарени ризи",
+      "short_desc_bg": "Комплект за кръщене с памучна хавлия и кенарени ризи с бродирани етно елементи.",
+      "long_desc_bg": "Комплект за кръщене от Веникс с хавлия от 100% памук с плътност 400 г и кенарени ризи от 100% памук с бродирани етно елементи. Предлагат се варианти с риза за кръщелника, риза за кръстника или две ризи. Цветовете на бродерията и надписът върху хавлията се изработват по желание, включително с имена и дата. Комплектът се предлага в кутия."
+    },
+    "binding": {
+      "productId": "1127",
+      "productSlug": "karpa-za-krashtene-v-komplekt-s-kenareni-rizi",
+      "productName": "Кърпа за кръщене в комплект с кенарени ризи",
+      "productType": "",
+      "publicCategory": "clothing",
+      "publicSubcategory": "Унисекс облекло",
+      "materials": "Памук"
+    },
+    "sourceUrl": "https://venix.bg/product/kurpa-za-krushtene-v-komplekt-s-kenareni-rizi/",
+    "reason": "main_identity_only_no_contains_item_relation"
+  },
+  {
+    "productId": "1134",
+    "rowId": 1186,
+    "slug": "detska-severnyashka-riza",
+    "kind": "identity",
+    "concept": "shirt",
+    "status": "approved",
+    "classification": "Relevant direct identity",
+    "scope": "main",
+    "original": {
+      "name_bg": "Детска северняшка риза",
+      "short_desc_bg": "Детска северняшка риза от 100% памучен кенар с бродирани традиционни мотиви по пазвата, яката и ръкавите.",
+      "long_desc_bg": "Детска северняшка риза от 100% памучен кенар с бродирани северняшки мотиви по пазвата, яката и ръкавите. Подходяща е за момичета и момчета, за ежедневие, празници, фолклорни участия и като част от народна носия. Предлага се в размери за възраст от 6 месеца до 12 години."
+    },
+    "binding": {
+      "productId": "1134",
+      "productSlug": "detska-severnyashka-riza",
+      "productName": "Детска северняшка риза",
+      "productType": "",
+      "publicCategory": "kids",
+      "publicSubcategory": "kids_clothing",
+      "materials": "Памук"
+    },
+    "sourceUrl": "https://venix.bg/product/detska-severnqshka-riza/",
+    "reason": "missing_type_and_rigid_title_head"
+  },
+  {
+    "productId": "1170",
+    "rowId": 1222,
+    "slug": "bofi-krem-za-ochi-i-nazolabialni-ganki-s-kolagen-i-hialuron",
+    "kind": "identity",
+    "concept": "cream",
+    "status": "needs_review",
+    "classification": "Adjacent eye cream / product decision",
+    "scope": "main",
+    "original": {
+      "name_bg": "Bo:Fi Крем за очи и назолабиални гънки с колаген и хиалурон",
+      "short_desc_bg": "Околоочен крем SHIMANI с колаген, хиалурон и розово масло за грижа при бръчки, тъмни кръгове и торбички около очите.",
+      "long_desc_bg": "Bo:Fi кремът на SHIMANI е предназначен за зоната около очите и назолабиалните гънки. Формулата съдържа колаген, хиалурон, масло от гроздови семки, сусамово масло, българско розово масло и масло от авокадо. Продуктът е насочен към намаляване на бръчките, тъмните кръгове и торбичките и се нанася сутрин и вечер около очите, като може да се използва и около устните."
+    },
+    "binding": {
+      "productId": "1170",
+      "productSlug": "bofi-krem-za-ochi-i-nazolabialni-ganki-s-kolagen-i-hialuron",
+      "productName": "Bo:Fi Крем за очи и назолабиални гънки с колаген и хиалурон",
+      "productType": "",
+      "publicCategory": "cosmetics",
+      "publicSubcategory": "cosmetics_face",
+      "materials": ""
+    },
+    "sourceUrl": "https://shimani.bg/produkt/bofi-крем-за-очи-и-устни-с-колаген-хиалурон/",
+    "reason": "prefixed_title_and_distinct_face_subtype"
+  },
+  {
+    "productId": "917",
+    "rowId": 1044,
+    "slug": "slantsezashtiten-krem-za-litse-spf30",
+    "kind": "identity",
+    "concept": "cream",
+    "status": "approved",
+    "classification": "Relevant direct identity",
+    "scope": "main",
+    "original": {
+      "name_bg": "Слънцезащитен крем за лице SPF30",
+      "short_desc_bg": "Натурален слънцезащитен крем за лице SPF30 с лека текстура, UVA/UVB защита и хидратиращи масла от кайсиеви ядки и ший.",
+      "long_desc_bg": "Слънцезащитният крем за лице SPF30 от CIBLY Natural осигурява ежедневна защита срещу UVA и UVB лъчи. Формулата с масло от кайсиеви ядки, масло от ший и флорална розова вода хидратира, подхранва и омекотява кожата. Кремът е с лека текстура без мазен ефект и бели следи и е подходящ за различни типове кожа, включително чувствителна. Опаковка 30 мл."
+    },
+    "binding": {
+      "productId": "917",
+      "productSlug": "slantsezashtiten-krem-za-litse-spf30",
+      "productName": "Слънцезащитен крем за лице SPF30",
+      "productType": "Слънцезащита за лице",
+      "publicCategory": "cosmetics",
+      "publicSubcategory": "cosmetics_face",
+      "materials": ""
+    },
+    "sourceUrl": "https://cibly.com/produkt/slyncezashtiten-krem/",
+    "reason": "canonical_subtype_not_compatible"
+  },
+  {
+    "productId": "495",
+    "rowId": 614,
+    "slug": "dreshka-za-domashen-lyubimets-koledni-igrachki",
+    "kind": "identity",
+    "concept": "toy",
+    "status": "rejected",
+    "classification": "Irrelevant to queried identity",
+    "scope": "main",
+    "original": {
+      "name_bg": "Дрешка за домашен любимец - Коледни Играчки",
+      "short_desc_bg": "Коледна дрешка за домашен любимец от 100% пениран памук с празнични мотиви на играчки, звезди и лакомства.",
+      "long_desc_bg": "Мека и комфортна коледна дрешка за домашен любимец, създадена за топлина и удобство през студените дни. Десенът включва коледни играчки, звезди и лакомства в червено, зелено и синьо и е част от семейна серия с пижами за мама, татко и деца. Изработена е от интерлок от 100% пениран памук."
+    },
+    "binding": {
+      "productId": "495",
+      "productSlug": "dreshka-za-domashen-lyubimets-koledni-igrachki",
+      "productName": "Дрешка за домашен любимец - Коледни Играчки",
+      "productType": "",
+      "publicCategory": "pets",
+      "publicSubcategory": "Легла и текстил",
+      "materials": "Памук"
+    },
+    "sourceUrl": "https://resleep.bg/products/dreha-domashen-liubimets-koledni-igrachki",
+    "reason": "motif_not_product"
+  },
+  {
+    "productId": "864",
+    "rowId": 989,
+    "slug": "skrech-kniga-s-predizvikatelstva-za-semeystvo",
+    "kind": "identity",
+    "concept": "book",
+    "status": "approved",
+    "classification": "Relevant direct identity",
+    "scope": "main",
+    "original": {
+      "name_bg": "Скреч книга с предизвикателства За Семейство",
+      "short_desc_bg": "Скреч книга-албум с 30 забавни предизвикателства за семейство, роднини и приятели, с места за снимки и спомени.",
+      "long_desc_bg": "Скреч книга-албум „За Семейство“ с 30 забавни и сплотяващи предизвикателства за семейство, роднини и приятели. Предизвикателствата са скрити под скреч фолио, а страниците имат полета за добавяне на снимки. Книгата е с твърди корици, размер 18 × 25 см и празни начална и последна страница за пожелание или колаж."
+    },
+    "binding": {
+      "productId": "864",
+      "productSlug": "skrech-kniga-s-predizvikatelstva-za-semeystvo",
+      "productName": "Скреч книга с предизвикателства За Семейство",
+      "productType": "",
+      "publicCategory": "books",
+      "publicSubcategory": "books_journals",
+      "materials": ""
+    },
+    "sourceUrl": "https://predizvikai.com/produkt/family-edition/?sRef=igokvxngqh",
+    "reason": "missing_type_and_rigid_title_head"
+  },
+  {
+    "productId": "867",
+    "rowId": 992,
+    "slug": "skrech-kniga-s-predizvikatelstva-za-mominsko-parti",
+    "kind": "identity",
+    "concept": "book",
+    "status": "approved",
+    "classification": "Relevant direct identity",
+    "scope": "main",
+    "original": {
+      "name_bg": "Скреч книга с предизвикателства За Моминско Парти",
+      "short_desc_bg": "Скреч книга-албум с 20 забавни предизвикателства за булката и нейния отбор, с места за снимки, пожелания и спомени.",
+      "long_desc_bg": "Скреч книга-албум „За Моминско Парти“ с 20 забавни предизвикателства за булката и нейния отбор. Част от задачите се подготвят предварително, а други се изпълняват по време на партито. Книгата има твърди корици, размер 18 × 25 см, полета за снимки, пожелания и съвети за булката и брака."
+    },
+    "binding": {
+      "productId": "867",
+      "productSlug": "skrech-kniga-s-predizvikatelstva-za-mominsko-parti",
+      "productName": "Скреч книга с предизвикателства За Моминско Парти",
+      "productType": "",
+      "publicCategory": "books",
+      "publicSubcategory": "books_journals",
+      "materials": ""
+    },
+    "sourceUrl": "https://predizvikai.com/produkt/mominsko-party/?sRef=igokzta8kz",
+    "reason": "missing_type_and_rigid_title_head"
+  },
+  {
+    "productId": "124",
+    "rowId": 189,
+    "slug": "rozova-svobodna-riza-s-printove",
+    "kind": "material",
+    "concept": "Лен",
+    "status": "conflict",
+    "classification": "Stored/source conflict; preserve historical match",
+    "scope": "main",
+    "original": {
+      "name_bg": "Розова свободна риза с принтове",
+      "short_desc_bg": "Овърсайз розова риза с дизайнерски принтове и свободна кройка",
+      "long_desc_bg": "Стилна розова овърсайз риза с метални копчета и ръчно изработени принтове в бяло. Създадена в българско модно студио, моделът комбинира комфорт и модерен дизайн. Изработена от 80% памук и 20% полиестер, подходяща за ежедневни и летни визии."
+    },
+    "binding": {
+      "productId": "124",
+      "productSlug": "rozova-svobodna-riza-s-printove",
+      "productName": "Розова свободна риза с принтове",
+      "productType": "Ризи",
+      "publicCategory": "clothing",
+      "publicSubcategory": "clothing_women",
+      "materials": "Памук|Полиестер|Метал|Лен"
+    },
+    "sourceUrl": "https://foldmind.com/bg/shop/clothing/pink-oversized-shirt-with-prints",
+    "reason": "Audit requires source review, not automatic removal."
+  },
+  {
+    "productId": "476",
+    "rowId": 595,
+    "slug": "halat-namaste",
+    "kind": "material",
+    "concept": "Сребро",
+    "status": "conflict",
+    "classification": "Stored/source conflict; preserve historical match",
+    "scope": "main",
+    "original": {
+      "name_bg": "Халат Namasté",
+      "short_desc_bg": "Дамски халат Namasté тип кимоно от мек сатен със свободна кройка, прикрепен колан и вътрешна връзка.",
+      "long_desc_bg": "Халат Namasté е модел тип кимоно от висококачествен мек сатен. Свободната кройка и ръкавите създават ефирно усещане, а прикрепеният колан и вътрешната връзка позволяват удобно регулиране. Моделът е one size и се предлага в различни цветове."
+    },
+    "binding": {
+      "productId": "476",
+      "productSlug": "halat-namaste",
+      "productName": "Халат Namasté",
+      "productType": "Кимона",
+      "publicCategory": "clothing",
+      "publicSubcategory": "clothing_women",
+      "materials": "Сатен|Сребро"
+    },
+    "sourceUrl": "https://belong.bg/produkt/namaste/",
+    "reason": "Audit requires source review, not automatic removal."
+  }
+]

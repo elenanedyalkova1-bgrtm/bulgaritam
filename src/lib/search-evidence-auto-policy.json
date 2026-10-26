@@ -1,0 +1,11 @@
+{
+  "version": "activation-policy-v2",
+  "enabledMaterials": [
+    "Памук"
+  ],
+  "enabledIdentities": [
+    "dress",
+    "earrings"
+  ],
+  "reason": "Enabled cotton: explicit whole-product 100% composition, verified on 3 unseen products across 3 brands (5 source claims), with negative controls. Identity dress and earrings have 19 held-out positives. Coverage gate is not a statistical precision guarantee; other material and identity classes remain review-required."
+}

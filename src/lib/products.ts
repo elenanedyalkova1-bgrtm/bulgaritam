@@ -4,6 +4,7 @@ import { normalizeProductType } from "../../admin-app/src/lib/product-taxonomy";
 import { getGiftMeta, type GiftTarget } from "./gifts";
 import { baserowUrl } from "./baserow-url";
 import fs from "node:fs";
+import { parseImageUrls } from "./image-urls.mjs";
 
 export type Product = {
   id: string;
@@ -341,7 +342,7 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
     product_url: norm(row.product_url),
     brand_url: norm(brand?.brand_url) || norm(row.brand_url),
 
-    image_urls: splitList(LOCAL_PRODUCT_IMAGE_OVERRIDES[slug] || row.image_urls),
+    image_urls: parseImageUrls(LOCAL_PRODUCT_IMAGE_OVERRIDES[slug] || row.image_urls),
 
     is_active,
     created_at: norm(row.created_at),

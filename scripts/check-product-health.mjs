@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { baserowUrl } from "./lib/baserow-url.mjs";
+import { parseImageUrls } from "../src/lib/image-urls.mjs";
 import { probeImage, confirmImageHealth } from "./lib/image-health.mjs";
 
 try {
@@ -34,7 +35,6 @@ const publicHeaders = {
 };
 
 const clean = (value) => String(value ?? "").trim();
-const splitUrls = (value) => clean(value).split(",").map((item) => item.trim()).filter(Boolean);
 const isActive = (value) => value === true || ["true", "1", "yes", "y"].includes(clean(value).toLowerCase());
 
 async function fetchWithTimeout(url, options = {}) {
@@ -102,7 +102,7 @@ async function confirmGone(url) {
 
 async function checkProduct(row) {
   const productUrl = clean(row.product_url);
-  const imageUrl = splitUrls(row.image_urls)[0] || "";
+  const imageUrl = parseImageUrls(row.image_urls)[0] || "";
   const product = await probe(productUrl, "product");
   const image = imageUrl ? await probe(imageUrl, "image") : { status: 0, state: "missing", finalUrl: "" };
   const imageConfirmation = await confirmImageHealth(imageUrl, image, (url) => probe(url, "image"));

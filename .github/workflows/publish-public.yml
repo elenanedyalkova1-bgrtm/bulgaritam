@@ -1,240 +1,129 @@
-name: Publish public Bulgaritam site
-
+name: Publish exact approved Bulgaritam artifact
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Build only, or build and publish to SuperHosting
+        description: Verify only, or publish the pinned approved artifact (no build)
         required: true
-        default: dry-run
+        default: preflight
         type: choice
-        options:
-          - dry-run
-          - deploy
-
+        options: [preflight, deploy]
+permissions:
+  contents: read
+  actions: read
 concurrency:
   group: bulgaritam-public-production
   cancel-in-progress: false
-
-permissions:
-  contents: read
-
 jobs:
-  build-and-verify:
-    name: Build and verify static site
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    outputs:
-      artifact-name: ${{ steps.manifest.outputs.artifact-name }}
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install public-site dependencies
-        run: npm ci
-
-      - name: Check Product and image health
-        run: npm run health:products -- --report=/tmp/product-health-report.json
-        env:
-          BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
-          BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
-
-      - name: Store Product health report
-        uses: actions/upload-artifact@v6
-        with:
-          name: product-health-report-${{ github.run_id }}
-          path: /tmp/product-health-report.json
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Build latest Baserow catalog
-        run: npm run build
-        env:
-          BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
-          BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
-          BASEROW_BRANDS_TABLE_ID: ${{ vars.BASEROW_BRANDS_TABLE_ID }}
-          BASEROW_SITE_SETTINGS_TABLE_ID: ${{ vars.BASEROW_SITE_SETTINGS_TABLE_ID }}
-          GOOGLE_PRICE_MONITOR_SPREADSHEET_ID: ${{ vars.GOOGLE_PRICE_MONITOR_SPREADSHEET_ID }}
-          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
-          GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY }}
-          BASEROW_OBSERVED_PRODUCTS_TABLE_ID: 1229183
-          PHASE3_EXTERNAL_DEALS_LOCAL: true
-          PUBLIC_DYNAMIC_DEALS_ENDPOINT: https://admin.bulgaritam.bg/api/consumer-deals/
-          PUBLIC_ANALYTICS_ENDPOINT: https://admin.bulgaritam.bg/api/events/
-          PRODUCT_HEALTH_REPORT_PATH: /tmp/product-health-report.json
-
-      - name: Verify generated pages and stale routes
-        id: manifest
-        run: |
-          node scripts/verify-public-build.mjs
-          echo "artifact-name=bulgaritam-public-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
-        env:
-          BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
-          BASEROW_TABLE_ID: ${{ vars.BASEROW_TABLE_ID }}
-          BASEROW_BRANDS_TABLE_ID: ${{ vars.BASEROW_BRANDS_TABLE_ID }}
-          BASEROW_SITE_SETTINGS_TABLE_ID: ${{ vars.BASEROW_SITE_SETTINGS_TABLE_ID }}
-          BUILD_COMMIT_SHA: ${{ github.sha }}
-          PRODUCT_HEALTH_REPORT_PATH: /tmp/product-health-report.json
-
-      - name: Upload verified static artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ steps.manifest.outputs.artifact-name }}
-          path: dist/
-          if-no-files-found: error
-          include-hidden-files: true
-          retention-days: 14
-
-  deploy-superhosting:
-    name: Publish verified artifact to SuperHosting
-    if: ${{ inputs.mode == 'deploy' }}
-    needs: build-and-verify
+  exact-release:
+    if: github.ref == 'refs/heads/codex/exact-artifact-release-20261029'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: public-production
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: elenanedyalkova1-bgrtm/bulgaritam
+      BASEROW_API_TOKEN: ${{ secrets.BASEROW_API_TOKEN }}
+      FTPS_SERVER_IP: ${{ vars.SUPERHOSTING_FTPS_SERVER_IP }}
+      FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
+      FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
+      FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
+      FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
     steps:
       - uses: actions/checkout@v6
-
+        with:
+          persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-
-      - name: Download verified artifact
-        uses: actions/download-artifact@v6
-        with:
-          name: ${{ needs.build-and-verify.outputs.artifact-name }}
-          path: dist
-
-      - name: Plan byte-verified incremental deployment
-        run: node scripts/plan-incremental-ftps-deploy.mjs --dist=dist --origin=https://bulgaritam.bg --output=/tmp/incremental-deploy-plan.json --commands=/tmp/incremental-deploy.lftp --assets-commands=/tmp/deploy-assets.lftp --documents-commands=/tmp/deploy-documents.lftp --finalize-commands=/tmp/deploy-finalize.lftp --state-output=/tmp/bulgaritam-deploy-state.json --run-id="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-
-      - name: Store incremental deployment plan
+      - name: Verify source scope and pinned artifact identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .exact-release
+          test "$(gh api repos/$GH_REPO/git/ref/heads/main --jq .object.sha)" = b629cd7d1a5a30e2efc9063128e773d8e49888da
+          git diff --name-only b629cd7d1a5a30e2efc9063128e773d8e49888da HEAD > .exact-release/workflow-changes.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          files=Path('.exact-release/workflow-changes.txt').read_text().splitlines()
+          assert files and all(x=='.github/workflows/publish-public.yml' or x.startswith('ops/exact-release-20261029/') for x in files)
+          PY
+          gh api repos/$GH_REPO/actions/artifacts/12745306313 > .exact-release/artifact-metadata.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('.exact-release/artifact-metadata.json').read_text())
+          assert d['name']=='bulgaritam-public-40527313369-1' and not d['expired']
+          assert d['workflow_run']['head_sha']=='b629cd7d1a5a30e2efc9063128e773d8e49888da'
+          assert d['workflow_run']['id']==40527313369
+          assert d['digest']=='sha256:08bb5ce1eac73faa45cb3873f0d7a8af02d7ee4f2c23a8cb729904cd4d4ea1bf'
+          PY
+      - name: Download exact release and rollback ZIPs without rebuilding
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/$GH_REPO/actions/artifacts/12745306313/zip > .exact-release/release.zip
+          gh api repos/$GH_REPO/actions/artifacts/12219708574/zip > .exact-release/rollback.zip
+          python3 ops/exact-release-20261029/unpack.py
+      - name: Install secure FTPS transport
+        run: sudo apt-get update && sudo apt-get install -y lftp
+      - name: Map verified TLS hostname and validate configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,ipaddress
+          ipaddress.ip_address(os.environ['FTPS_SERVER_IP'])
+          h=os.environ['FTPS_TLS_HOST']
+          assert h.endswith('.superhosting.bg') and all(x.isalnum() or x in '.-' for x in h)
+          assert os.environ['FTPS_PORT']=='21'
+          assert os.environ['FTPS_USERNAME'] and os.environ['FTPS_PASSWORD']
+          PY
+          printf '%s %s\n' "$FTPS_SERVER_IP" "$FTPS_TLS_HOST" | sudo tee -a /etc/hosts > /dev/null
+      - name: Verify jailed FTPS root and preserve hosting-owned file (read only)
+        run: python3 ops/exact-release-20261029/ftps.py
+        env:
+          FTPS_PHASE: read-only
+      - name: Immediate exact origin, rollback, artifact and inactive-route preflight
+        run: node ops/exact-release-20261029/release.mjs preflight
+      - name: Assets - first production write
+        if: inputs.mode == 'deploy'
+        run: python3 ops/exact-release-20261029/ftps.py
+        env:
+          FTPS_PHASE: assets
+      - name: Assets HTTP and SHA barrier
+        if: inputs.mode == 'deploy'
+        run: node ops/exact-release-20261029/release.mjs assets
+      - name: Documents - only after verified assets
+        if: inputs.mode == 'deploy'
+        run: python3 ops/exact-release-20261029/ftps.py
+        env:
+          FTPS_PHASE: documents
+      - name: Documents HTTP and SHA barrier
+        if: inputs.mode == 'deploy'
+        run: node ops/exact-release-20261029/release.mjs documents
+      - name: Recheck exact inactive records immediately before cleanup
+        if: inputs.mode == 'deploy'
+        run: node ops/exact-release-20261029/release.mjs stale
+      - name: Remove exact 22 stale files, publish manifest and completed state last
+        if: inputs.mode == 'deploy'
+        run: python3 ops/exact-release-20261029/ftps.py
+        env:
+          FTPS_PHASE: finalize
+      - name: Verify all production file hashes, removed routes and 14 images
+        if: inputs.mode == 'deploy'
+        run: node ops/exact-release-20261029/release.mjs postflight
+      - name: Preserve release evidence even after a failure - no automatic rollback
+        if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: incremental-deploy-plan-${{ github.run_id }}-${{ github.run_attempt }}
-          path: /tmp/incremental-deploy-plan.json
-          if-no-files-found: error
+          name: exact-release-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            .exact-release/*.json
+            .exact-release/*.log
+            .exact-release/workflow-changes.txt
+            .exact-release/htaccess-*
+          if-no-files-found: warn
+          include-hidden-files: true
           retention-days: 30
-
-      - name: Validate restricted FTPS configuration
-        env:
-          FTPS_SERVER_IP: ${{ vars.SUPERHOSTING_FTPS_SERVER_IP }}
-          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
-          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
-          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
-          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
-        run: |
-          test -n "$FTPS_SERVER_IP"
-          test -n "$FTPS_TLS_HOST"
-          test "$FTPS_PORT" = "21"
-          test -n "$FTPS_USERNAME"
-          test -n "$FTPS_PASSWORD"
-          case "$FTPS_TLS_HOST" in *.superhosting.bg) ;; *) echo "FTPS TLS hostname must be a SuperHosting hostname" >&2; exit 1;; esac
-          test -f dist/index.html
-          test -f dist/deploy-manifest.json
-          test -f dist/.htaccess
-
-      - name: Prepare secure FTPS client
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
-      - name: Map the verified certificate hostname
-        env:
-          FTPS_SERVER_IP: ${{ vars.SUPERHOSTING_FTPS_SERVER_IP }}
-          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
-        run: echo "$FTPS_SERVER_IP $FTPS_TLS_HOST" | sudo tee -a /etc/hosts > /dev/null
-
-      - name: Upload assets before any consuming documents
-        env:
-          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
-          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
-          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
-          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
-        run: |
-          lftp -u "$FTPS_USERNAME","$FTPS_PASSWORD" -p "$FTPS_PORT" "ftp://$FTPS_TLS_HOST" <<LFTP
-          set cmd:fail-exit true
-          set net:max-retries 8
-          set net:timeout 30
-          set net:reconnect-interval-base 5
-          set net:reconnect-interval-max 30
-          set net:reconnect-interval-multiplier 2
-          set ftp:ssl-force true
-          set ftp:ssl-protect-data true
-          set ftp:passive-mode true
-          set ssl:verify-certificate true
-          set ssl:check-hostname true
-          cd /
-          source /tmp/deploy-assets.lftp
-          get /.htaccess -o /tmp/live-htaccess
-          bye
-          LFTP
-
-      - name: Verify published assets bytes before proceeding
-        run: node scripts/plan-incremental-ftps-deploy.mjs --dist=dist --origin=https://bulgaritam.bg --output=/tmp/incremental-deploy-plan.json --verify-phase=assets
-
-      - name: Publish documents after verified assets
-        env:
-          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
-          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
-          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
-          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
-        run: |
-          lftp -u "$FTPS_USERNAME","$FTPS_PASSWORD" -p "$FTPS_PORT" "ftp://$FTPS_TLS_HOST" <<LFTP
-          set cmd:fail-exit true
-          set net:max-retries 8
-          set net:timeout 30
-          set net:reconnect-interval-base 5
-          set net:reconnect-interval-max 30
-          set net:reconnect-interval-multiplier 2
-          set ftp:ssl-force true
-          set ftp:ssl-protect-data true
-          set ftp:passive-mode true
-          set ssl:verify-certificate true
-          set ssl:check-hostname true
-          cd /
-          source /tmp/deploy-documents.lftp
-          get /.htaccess -o /tmp/live-htaccess
-          bye
-          LFTP
-
-      - name: Verify published documents bytes before proceeding
-        run: node scripts/plan-incremental-ftps-deploy.mjs --dist=dist --origin=https://bulgaritam.bg --output=/tmp/incremental-deploy-plan.json --verify-phase=documents
-
-      - name: Publish manifest and completed state last
-        env:
-          FTPS_TLS_HOST: ${{ vars.SUPERHOSTING_FTPS_TLS_HOST }}
-          FTPS_PORT: ${{ vars.SUPERHOSTING_FTPS_PORT }}
-          FTPS_USERNAME: ${{ secrets.SUPERHOSTING_FTPS_USERNAME }}
-          FTPS_PASSWORD: ${{ secrets.SUPERHOSTING_FTPS_PASSWORD }}
-        run: |
-          lftp -u "$FTPS_USERNAME","$FTPS_PASSWORD" -p "$FTPS_PORT" "ftp://$FTPS_TLS_HOST" <<LFTP
-          set cmd:fail-exit true
-          set net:max-retries 8
-          set net:timeout 30
-          set net:reconnect-interval-base 5
-          set net:reconnect-interval-max 30
-          set net:reconnect-interval-multiplier 2
-          set ftp:ssl-force true
-          set ftp:ssl-protect-data true
-          set ftp:passive-mode true
-          set ssl:verify-certificate true
-          set ssl:check-hostname true
-          cd /
-          source /tmp/deploy-finalize.lftp
-          get /.htaccess -o /tmp/live-htaccess
-          bye
-          LFTP
-
-      - name: Confirm protected hosting file remains present
-        run: test -s /tmp/live-htaccess
-
-      - name: Verify public origin
-        run: |
-          curl --fail --silent --show-error --retry 3 https://bulgaritam.bg/ > /tmp/live-index.html
-          curl --fail --silent --show-error --retry 3 https://bulgaritam.bg/deploy-manifest.json > /tmp/live-manifest.json
-          node -e 'const fs=require("fs"),crypto=require("crypto");const m=JSON.parse(fs.readFileSync("/tmp/live-manifest.json","utf8"));const h=crypto.createHash("sha256").update(fs.readFileSync("/tmp/live-index.html")).digest("hex");if(m.commit!==process.env.GITHUB_SHA||m.index_sha256!==h)process.exit(1)'

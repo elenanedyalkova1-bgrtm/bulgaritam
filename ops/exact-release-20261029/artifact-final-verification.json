@@ -1,0 +1,368 @@
+{
+  "checked_at": "2026-10-27T15:17:43.986013+00:00",
+  "main": "b629cd7d1a5a30e2efc9063128e773d8e49888da",
+  "existing_13_product_routes_preserved": true,
+  "all_14_images_exact": true,
+  "previously_unpublished_records_excluded": [
+    {
+      "id": 344,
+      "remains_unpublished": true
+    },
+    {
+      "id": 418,
+      "remains_unpublished": true
+    }
+  ],
+  "stale_count": 22,
+  "stale_all_existing_inactive_records": true,
+  "stale_rows": [
+    {
+      "path": "p/bijou-dvulitseva-chanta-ot-sin-denim-i-zlatist-saten/index.html",
+      "id": 1194,
+      "name": "BIJOU двулицева чанта от син деним и златист сатен",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/clea-ropes-vtalen-top-ot-cheren-denim-sas-zlatisti-detayli/index.html",
+      "id": 1209,
+      "name": "CLEA Ropes втален топ от черен деним със златисти детайли",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/clea-ropes-vtalen-top-ot-siv-denim-sas-srebristi-detayli/index.html",
+      "id": 1210,
+      "name": "CLEA Ropes втален топ от сив деним със сребристи детайли",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/clea-vtalen-top-ot-byal-denim-sas-zlatisti-detayli/index.html",
+      "id": 1207,
+      "name": "CLEA втален топ от бял деним със златисти детайли",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/clea-vtalen-top-ot-sin-denim-sas-zlatisti-detayli/index.html",
+      "id": 1206,
+      "name": "CLEA втален топ от син деним със златисти детайли",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/clea-vtalen-top-ot-sin-i-byal-denim/index.html",
+      "id": 1208,
+      "name": "CLEA втален топ от син и бял деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/denva-uniseks-ovarsayz-yake-ot-sin-denim/index.html",
+      "id": 1212,
+      "name": "DENVA унисекс оувърсайз яке от син деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/elva-light-asimetrichna-pola-s-drapirovka/index.html",
+      "id": 1204,
+      "name": "ELVA LIGHT асиметрична пола с драпировка",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/mima-asimetrichna-pola-ot-sin-denim-sas-srebristi-detayli/index.html",
+      "id": 1197,
+      "name": "MIMA асиметрична пола от син деним със сребристи детайли",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/mima-asimetrichna-pola-ot-sin-denim-sas-zlatisti-detayli/index.html",
+      "id": 1205,
+      "name": "MIMA асиметрична пола от син деним със златисти детайли",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/nora-vtalena-cherna-pamuchna-riza-sas-zlatisti-kopcheta/index.html",
+      "id": 1198,
+      "name": "NORA вталена черна памучна риза със златисти копчета",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/nora-vtalena-riza-ot-bezhov-denim/index.html",
+      "id": 1188,
+      "name": "NORA вталена риза от бежов деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/nora-vtalena-riza-ot-tamnosin-denim/index.html",
+      "id": 1195,
+      "name": "NORA вталена риза от тъмносин деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/rift-byustie-ot-dzhobove-ot-cheren-denim/index.html",
+      "id": 1203,
+      "name": "RIFT бюстие от джобове от черен деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/rift-byustie-ot-dzhobove-ot-sin-denim/index.html",
+      "id": 1192,
+      "name": "RIFT бюстие от джобове от син деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/set-oversized-grey/index.html",
+      "id": 445,
+      "name": "Set Oversized Grey",
+      "brand": "Boriana Sport",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/uniseks-trench-ot-sin-denim/index.html",
+      "id": 1211,
+      "name": "Унисекс тренч от син деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/va-va-geti-ot-sin-denim/index.html",
+      "id": 1187,
+      "name": "VA VA гети от син деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/va-va-rakavi-ot-cheren-denim/index.html",
+      "id": 1201,
+      "name": "VA VA ръкави от черен деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/va-va-voom-kaso-ovarsayz-yake-ot-siv-denim/index.html",
+      "id": 1196,
+      "name": "VA VA VOOM късо оувърсайз яке от сив деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/va-va-voom-kaso-ovarsayz-yake-ot-tamnosin-denim/index.html",
+      "id": 1193,
+      "name": "VA VA VOOM късо оувърсайз яке от тъмносин деним",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    },
+    {
+      "path": "p/va-va-voom-kaso-ovarsayz-yake-v-personalizirani-tsvetove/index.html",
+      "id": 1200,
+      "name": "VA VA VOOM късо оувърсайз яке в персонализирани цветове",
+      "brand": "SIM K",
+      "is_active": "false",
+      "reason": "Existing Baserow product is inactive"
+    }
+  ],
+  "local_hashes_match_plan": true,
+  "public_artifact_secret_findings": [],
+  "items": [
+    {
+      "id": 978,
+      "slug": "kasa-teniska-never-waste-talent-tsvetove",
+      "path": "/p/kasa-teniska-never-waste-talent-tsvetove/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://static.wixstatic.com/media/c5125c_1b527fc180f9423b89f9eba93f65a1ba~mv2.jpg",
+      "og_image": "https://static.wixstatic.com/media/c5125c_1b527fc180f9423b89f9eba93f65a1ba~mv2.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://www.zinaarts.com/product-page/never-waste-talent-cropped-t-shirt-colors"
+    },
+    {
+      "id": 347,
+      "slug": "blossom-strapless-mini-dress-soft-pink",
+      "path": "/p/blossom-strapless-mini-dress-soft-pink/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://cdn.sellavi.com/image/upload/if_ar_gt_2:1/c_mpad,h_504,w_450,q_100/c_fill,h_504,w_525/if_else/c_pad,h_504,q_100,w_450/if_end/bg/clients/103445/1c744aa96e55f2a857321e531f114cdfe7338fb5.jpeg",
+      "og_image": "https://cdn.sellavi.com/image/upload/if_ar_gt_2:1/c_mpad,h_504,w_450,q_100/c_fill,h_504,w_525/if_else/c_pad,h_504,q_100,w_450/if_end/bg/clients/103445/1c744aa96e55f2a857321e531f114cdfe7338fb5.jpeg",
+      "image_url_matches": true,
+      "merchant_url": "https://bolgeva.com/bg/bolgva/view-all/blossom-strapless-mini-dress-in-soft-pink/"
+    },
+    {
+      "id": 416,
+      "slug": "ounass-asymetric-gathered-top",
+      "path": "/p/ounass-asymetric-gathered-top/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://cdn.sellavi.com/image/upload/if_ar_gt_2:1/c_mpad,h_504,w_450,q_100/c_fill,h_504,w_525/if_else/c_pad,h_504,q_100,w_450/if_end/bg/clients/103445/0b2f50bafc2f216754f6021d7b22f4138d594dd0.png",
+      "og_image": "https://cdn.sellavi.com/image/upload/if_ar_gt_2:1/c_mpad,h_504,w_450,q_100/c_fill,h_504,w_525/if_else/c_pad,h_504,q_100,w_450/if_end/bg/clients/103445/0b2f50bafc2f216754f6021d7b22f4138d594dd0.png",
+      "image_url_matches": true,
+      "merchant_url": "https://bolgeva.com/bg/bolgva/view-all/ounass-asymetric-gathered-top/"
+    },
+    {
+      "id": 1,
+      "slug": "peshtemal-ocean",
+      "path": "/p/peshtemal-ocean/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://bohosi.bg/wp-content/uploads/2024/06/peshtemal-ocean.webp",
+      "og_image": "https://bohosi.bg/wp-content/uploads/2024/06/peshtemal-ocean.webp",
+      "image_url_matches": true,
+      "merchant_url": "https://bohosi.bg/produkt/peshtemal-ocean/"
+    },
+    {
+      "id": 177,
+      "slug": "satenena-karpa-za-glava-cheren-saten",
+      "path": "/p/satenena-karpa-za-glava-cheren-saten/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://lacocona.eu/uploads/wp/2025/08/blacksatin-featured-scaled.jpg",
+      "og_image": "https://lacocona.eu/uploads/wp/2025/08/blacksatin-featured-scaled.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://lacocona.eu/product/black-satin/"
+    },
+    {
+      "id": 178,
+      "slug": "satenena-karpa-za-kosa-leopard",
+      "path": "/p/satenena-karpa-za-kosa-leopard/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://lacocona.eu/uploads/wp/2025/08/leopard-featured-scaled.jpg",
+      "og_image": "https://lacocona.eu/uploads/wp/2025/08/leopard-featured-scaled.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://lacocona.eu/product/leopard/"
+    },
+    {
+      "id": 950,
+      "slug": "bezhovi-detski-chehli-miia-ot-agneshka-koja",
+      "path": "/p/bezhovi-detski-chehli-miia-ot-agneshka-koja/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://tofi.bg/wp-content/uploads/2024/05/bezhovi-detski-chehli-miya-ot-agneshka-kozha.jpg",
+      "og_image": "https://tofi.bg/wp-content/uploads/2024/05/bezhovi-detski-chehli-miya-ot-agneshka-kozha.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://tofi.bg/detski/detski-chehli/bejovi-detski-chehli-miia-ot-agneshka-koja/"
+    },
+    {
+      "id": 953,
+      "slug": "damski-pantofi-sisi-natural",
+      "path": "/p/damski-pantofi-sisi-natural/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://tofi.bg/wp-content/uploads/2024/05/damski-pantofli-sisi-natural-600x600.jpg",
+      "og_image": "https://tofi.bg/wp-content/uploads/2024/05/damski-pantofli-sisi-natural-600x600.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://tofi.bg/damski/pantofi/sissy-womens-slippers/"
+    },
+    {
+      "id": 957,
+      "slug": "damski-chehli-ema-lilavo",
+      "path": "/p/damski-chehli-ema-lilavo/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://tofi.bg/wp-content/uploads/2024/05/damski-chehli-ema-lilavo-agneshka-koja.jpg",
+      "og_image": "https://tofi.bg/wp-content/uploads/2024/05/damski-chehli-ema-lilavo-agneshka-koja.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://tofi.bg/damski/damski-chehli/damski-chekhli-lilavo/"
+    },
+    {
+      "id": 958,
+      "slug": "damski-chehli-sofiya-bezhovo",
+      "path": "/p/damski-chehli-sofiya-bezhovo/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://tofi.bg/wp-content/uploads/2024/05/bezhovi-damski-chehli-agneshka-kozha-sofiya.jpg",
+      "og_image": "https://tofi.bg/wp-content/uploads/2024/05/bezhovi-damski-chehli-agneshka-kozha-sofiya.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://tofi.bg/damski/damski-chehli/damski-chehlil-sofiya-bejovo/"
+    },
+    {
+      "id": 962,
+      "slug": "kvadratnata-taburetka",
+      "path": "/p/kvadratnata-taburetka/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://tofi.bg/wp-content/uploads/2025/12/kvadratna-taburetka-ot-agneshka-kozha-600x600.jpg",
+      "og_image": "https://tofi.bg/wp-content/uploads/2025/12/kvadratna-taburetka-ot-agneshka-kozha-600x600.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://tofi.bg/za-doma/taburetki/kvadratna-taburetka/"
+    },
+    {
+      "id": 963,
+      "slug": "kragla-taburetka",
+      "path": "/p/kragla-taburetka/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://tofi.bg/wp-content/uploads/2025/12/kragla-taburetka-agneshka-kozha-naturalen-tsvyat-2-600x600.jpg",
+      "og_image": "https://tofi.bg/wp-content/uploads/2025/12/kragla-taburetka-agneshka-kozha-naturalen-tsvyat-2-600x600.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://tofi.bg/za-doma/taburetki/kragla-taburetka/"
+    },
+    {
+      "id": 965,
+      "slug": "rakavici-varashki-bezhovo",
+      "path": "/p/rakavici-varashki-bezhovo/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://tofi.bg/wp-content/uploads/2024/10/bezhovi-rakavitsi-ot-agneshka-kozha-varashki.jpg",
+      "og_image": "https://tofi.bg/wp-content/uploads/2024/10/bezhovi-rakavitsi-ot-agneshka-kozha-varashki.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://tofi.bg/damski/rakavici/rykavici-varaschkibejovo/"
+    },
+    {
+      "id": 967,
+      "slug": "stelki-za-obuvki",
+      "path": "/p/stelki-za-obuvki/",
+      "in_artifact": true,
+      "in_stale": false,
+      "data_matches_approved": true,
+      "hero_src": "https://tofi.bg/wp-content/uploads/2024/11/stelki-za-obuvki-agneska-koha-600x600.jpg",
+      "og_image": "https://tofi.bg/wp-content/uploads/2024/11/stelki-za-obuvki-agneska-koha-600x600.jpg",
+      "image_url_matches": true,
+      "merchant_url": "https://tofi.bg/damski/botuschi/stelki-za-obuvki/"
+    }
+  ]
+}

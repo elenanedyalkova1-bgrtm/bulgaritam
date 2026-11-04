@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-11-04T23:16:53.458Z",
+  "source": "fresh report-only health check; current Baserow is the approved source of truth",
+  "confirmed_broken_image_products": [
+    {
+      "slug": "svobodna-riza-ot-organichen-pamuk"
+    },
+    {
+      "slug": "top-ot-koprinena-smes-s-obemni-volani-i-dalboko-izryazan-grab-v-byalo"
+    }
+  ],
+  "fresh_health_summary": {
+    "generated_at": "2026-11-04T23:16:53.458Z",
+    "mode": "report-only",
+    "checked": 1260,
+    "healthy": 934,
+    "confirmed_gone": 0,
+    "broken_images": 30,
+    "confirmed_broken_images": 2,
+    "inconclusive_images": 28,
+    "needs_review": 326
+  },
+  "corrected_product_image": {
+    "slug": "bio-dush-gel-citrus",
+    "healthy": true,
+    "evidence": "targeted report-only health check: 1 checked, 1 healthy, 0 review issues"
+  }
+}

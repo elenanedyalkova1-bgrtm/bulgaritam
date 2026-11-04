@@ -1,0 +1,1111 @@
+{
+  "checked_at": "2026-11-04T23:19:18.231Z",
+  "baseline": {
+    "commit": "b629cd7d1a5a30e2efc9063128e773d8e49888da",
+    "generated_at": "2026-11-02T19:36:33.428Z",
+    "products": 1151,
+    "brands": 124,
+    "health_excluded_products": [
+      "rozova-svobodna-riza-s-printove",
+      "svetlosinya-dankova-riza-asimetrichna-kroika-dizainerski-dzhobove",
+      "svobodna-riza-ot-organichen-pamuk",
+      "top-ot-koprinena-smes-s-obemni-volani-i-dalboko-izryazan-grab-v-byalo"
+    ]
+  },
+  "current": {
+    "raw_products": 1329,
+    "raw_brands": 135,
+    "eligible_products": 1242,
+    "unique_product_paths": 1242,
+    "published_brands": 129,
+    "no_site_products": 3
+  },
+  "new_products": [
+    {
+      "row_id": 1414,
+      "product_id": "1326",
+      "slug": "vaginalen-probiotik",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1475,
+      "product_id": "1387",
+      "slug": "vlozhka-za-kartichka-komplekt-napravi-si-sam-svesht-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1438,
+      "product_id": "1350",
+      "slug": "damska-ranitsa-byala-5983",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1436,
+      "product_id": "1348",
+      "slug": "damska-ranitsa-srebro-cherno-5982",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1440,
+      "product_id": "1352",
+      "slug": "damska-ranitsa-cherna-5981",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1434,
+      "product_id": "1346",
+      "slug": "damska-ranitsa-cherna-6071",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1428,
+      "product_id": "1340",
+      "slug": "taxi-brown",
+      "brand_slug": "nedi-stil",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1430,
+      "product_id": "1342",
+      "slug": "taxi-brownred",
+      "brand_slug": "nedi-stil",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1429,
+      "product_id": "1341",
+      "slug": "taxi-white",
+      "brand_slug": "nedi-stil",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1435,
+      "product_id": "1347",
+      "slug": "valentina-ranitsa-eko-kozha-bukle",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1443,
+      "product_id": "1355",
+      "slug": "valentina-ranitsa-eko-kozha-kadife-6203",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1444,
+      "product_id": "1356",
+      "slug": "valentina-ranitsa-eko-kozha-karakul-5202",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1442,
+      "product_id": "1354",
+      "slug": "valentina-black-ranitsa-6201",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1439,
+      "product_id": "1351",
+      "slug": "zoe-ranitsa-cherno-bordo-6052",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1433,
+      "product_id": "1345",
+      "slug": "zoe-black-ranitsa",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1441,
+      "product_id": "1353",
+      "slug": "zoe-black-and-white-ranitsa-6059",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1437,
+      "product_id": "1349",
+      "slug": "zoe-brown-ranitsa-kafyavo",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1432,
+      "product_id": "1344",
+      "slug": "bond-zebra",
+      "brand_slug": "nedi-stil",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1415,
+      "product_id": "1327",
+      "slug": "detoks-prechistvashta-smes",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1455,
+      "product_id": "1367",
+      "slug": "darvena-koledna-igrachka-zvezda",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1447,
+      "product_id": "1359",
+      "slug": "darvena-koledna-igrachka-luna",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1448,
+      "product_id": "1360",
+      "slug": "darvena-koledna-igrachka-snezhinki",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1416,
+      "product_id": "1328",
+      "slug": "zashtita-za-cheren-drob-byal-tran",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1465,
+      "product_id": "1377",
+      "slug": "kalafka-ot-dishashta-vegan-koprina-silkify",
+      "brand_slug": "silkify",
+      "no_site": true,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1480,
+      "product_id": "1392",
+      "slug": "kartichka-za-svatba-sas-svetlinka-zaedno-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1477,
+      "product_id": "1389",
+      "slug": "kartichka-sas-svetlinka-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1479,
+      "product_id": "1391",
+      "slug": "kartichka-sas-svetlinka-nadezhda-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1453,
+      "product_id": "1365",
+      "slug": "koledna-kartichka-priyateli",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1454,
+      "product_id": "1366",
+      "slug": "koledna-kartichka-snezhni-chovetsi",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1483,
+      "product_id": "1395",
+      "slug": "koledna-kartichka-sas-svetlinka-valshebna-sheyna-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1478,
+      "product_id": "1390",
+      "slug": "koledna-kartichka-sas-svetlinka-zvezditsa-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1482,
+      "product_id": "1394",
+      "slug": "koledna-kartichka-sas-svetlinka-zimen-praznik-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1417,
+      "product_id": "1329",
+      "slug": "kompleks-za-kravna-zahar",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1418,
+      "product_id": "1330",
+      "slug": "kompleks-za-oblekchavane-na-stresa",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1419,
+      "product_id": "1331",
+      "slug": "kompleks-za-spokoyni-nervi",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1446,
+      "product_id": "1358",
+      "slug": "komplekt-darveni-koledni-igrachki-3-po-izbor",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1481,
+      "product_id": "1393",
+      "slug": "komplekt-ot-5-koledni-kartichki-sas-svetlinka-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1420,
+      "product_id": "1332",
+      "slug": "kontrol-na-apetita",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1473,
+      "product_id": "1385",
+      "slug": "kutiya-s-10-sveshti-ot-pchelen-vosak-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1474,
+      "product_id": "1386",
+      "slug": "kutiya-s-3-sveshti-ot-pchelen-vosak-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1472,
+      "product_id": "1384",
+      "slug": "kutiya-s-4-konusovidni-sveshti-ot-pchelen-vosak-siyayna-krasota",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1452,
+      "product_id": "1364",
+      "slug": "kasmeti-za-banitsa-dyado-koleda-i-geroi",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1451,
+      "product_id": "1363",
+      "slug": "kasmeti-za-banitsa-kukeri",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1450,
+      "product_id": "1362",
+      "slug": "kasmeti-za-banitsa-s-kauza-semeystvo-i-priyateli",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1449,
+      "product_id": "1361",
+      "slug": "kasmeti-za-banitsa-s-kauza-party-animals",
+      "brand_slug": "studio-dada",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1421,
+      "product_id": "1333",
+      "slug": "metaaktiv-kompleks",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1422,
+      "product_id": "1334",
+      "slug": "mazhka-zhiznenost-bust",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1423,
+      "product_id": "1335",
+      "slug": "nevrofokus-kompleks",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1476,
+      "product_id": "1388",
+      "slug": "obredna-svesht-ot-pchelen-vosak-40-sm-svatba-krashtene-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1463,
+      "product_id": "1375",
+      "slug": "personaliziran-koleden-album-za-snimki-koleden-venec",
+      "brand_slug": "crafts-of-space",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1462,
+      "product_id": "1374",
+      "slug": "personaliziran-mini-koleden-album-za-20-snimki",
+      "brand_slug": "crafts-of-space",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1460,
+      "product_id": "1372",
+      "slug": "personalizirana-koledna-igrachka-s-ime-ot-epoksidna-smola",
+      "brand_slug": "crafts-of-space",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1459,
+      "product_id": "1371",
+      "slug": "personalizirana-koledna-topka-za-bebe-parvata-koleda",
+      "brand_slug": "crafts-of-space",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1457,
+      "product_id": "1369",
+      "slug": "personalizirana-staklena-koledna-topka-s-bukva",
+      "brand_slug": "crafts-of-space",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1456,
+      "product_id": "1368",
+      "slug": "personalizirana-staklena-koledna-topka-s-ime",
+      "brand_slug": "crafts-of-space",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1445,
+      "product_id": "1357",
+      "slug": "praktichna-damska-ranitsa-6074",
+      "brand_slug": "cashe",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1424,
+      "product_id": "1336",
+      "slug": "pre-pro-biotik",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1425,
+      "product_id": "1337",
+      "slug": "prostata-praym-shiyld",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1431,
+      "product_id": "1343",
+      "slug": "gabana-struzzo",
+      "brand_slug": "nedi-stil",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1467,
+      "product_id": "1379",
+      "slug": "roleri-za-kadrici-ot-vegan-koprina-silkify",
+      "brand_slug": "silkify",
+      "no_site": true,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1461,
+      "product_id": "1373",
+      "slug": "rachno-izraboten-koleden-album-byala-koleda",
+      "brand_slug": "crafts-of-space",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1458,
+      "product_id": "1370",
+      "slug": "staklena-koledna-igrachka-ednorog",
+      "brand_slug": "crafts-of-space",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1486,
+      "product_id": "1398",
+      "slug": "pleten-angel-lyubov-16-sm-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1487,
+      "product_id": "1399",
+      "slug": "pleten-angel-nezhnost-16-sm-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1484,
+      "product_id": "1396",
+      "slug": "pleten-angel-svetal-lach-16-sm-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1485,
+      "product_id": "1397",
+      "slug": "pleten-angel-slantse-16-sm-arkobo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1469,
+      "product_id": "1381",
+      "slug": "svesht-ot-pchelen-vosak-aroma-valshebstvo",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1471,
+      "product_id": "1383",
+      "slug": "svesht-ot-pchelen-vosak-svetla-radost",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1468,
+      "product_id": "1380",
+      "slug": "svesht-ot-pchelen-vosak-svetal-lach",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1470,
+      "product_id": "1382",
+      "slug": "svesht-ot-pchelen-vosak-siyayna-krasota",
+      "brand_slug": "arkobo",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1466,
+      "product_id": "1378",
+      "slug": "skranki-za-kosa-ot-dishashta-vegan-koprina-silkify",
+      "brand_slug": "silkify",
+      "no_site": true,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1426,
+      "product_id": "1338",
+      "slug": "slimbarn-formula",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1427,
+      "product_id": "1339",
+      "slug": "shiladzhit-maks",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1413,
+      "product_id": "1325",
+      "slug": "pms-balans",
+      "brand_slug": "valendy",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1400,
+      "product_id": "1318",
+      "slug": "mazhka-pamuchna-zhiletka-tip-sako-bordo-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1405,
+      "product_id": "1323",
+      "slug": "mazhki-klasicheski-cheren-elek-s-valna-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1406,
+      "product_id": "1324",
+      "slug": "mazhki-klasicheski-cherni-obuvki-estestvena-kozha-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1397,
+      "product_id": "1315",
+      "slug": "mazhko-zimno-yake-bazalt-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1396,
+      "product_id": "1314",
+      "slug": "mazhko-zimno-yake-smaragd-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1395,
+      "product_id": "1313",
+      "slug": "mazhko-zimno-yake-indigo-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1403,
+      "product_id": "1321",
+      "slug": "mazhko-klasichesko-valneno-palto-antratsit-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1401,
+      "product_id": "1319",
+      "slug": "mazhko-pamuchno-polo-cherno-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1402,
+      "product_id": "1320",
+      "slug": "mazhko-pamuchno-polupolo-s-tsip-mastileno-sinyo-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1394,
+      "product_id": "1312",
+      "slug": "mazhko-sportno-elegantno-cherno-zimno-yake-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1404,
+      "product_id": "1322",
+      "slug": "mazhko-tamnosinyo-zimno-valneno-palto-s-kachulka-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1393,
+      "product_id": "1311",
+      "slug": "mazhko-tamnosinyo-zimno-yake-s-kachulka-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1398,
+      "product_id": "1316",
+      "slug": "mazhko-tamnosinyo-shushlyakovo-yake-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1399,
+      "product_id": "1317",
+      "slug": "mazhko-cherno-shushlyakovo-yake-styler",
+      "brand_slug": "styler",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1284,
+      "product_id": "1232",
+      "slug": "roklya-dark-allure-dress-1232",
+      "brand_slug": "goud",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 1078,
+      "product_id": "951",
+      "slug": "kozhena-ranica-daily-carryall",
+      "brand_slug": "bulgarian-factory-store",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 189,
+      "product_id": "124",
+      "slug": "rozova-svobodna-riza-s-printove",
+      "brand_slug": "fold-your-mind",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    },
+    {
+      "row_id": 188,
+      "product_id": "123",
+      "slug": "svetlosinya-dankova-riza-asimetrichna-kroika-dizainerski-dzhobove",
+      "brand_slug": "fold-your-mind",
+      "no_site": false,
+      "image_present": true,
+      "outbound_valid": true
+    }
+  ],
+  "new_brands": [
+    {
+      "row_id": 23,
+      "slug": "fold-your-mind",
+      "no_site": false
+    },
+    {
+      "row_id": 171,
+      "slug": "styler",
+      "no_site": false
+    },
+    {
+      "row_id": 172,
+      "slug": "valendy",
+      "no_site": false
+    },
+    {
+      "row_id": 173,
+      "slug": "silkify",
+      "no_site": true
+    },
+    {
+      "row_id": 174,
+      "slug": "arkobo",
+      "no_site": false
+    }
+  ],
+  "removed_product_paths": [
+    "/p/kozhena-chanta-daily-carryall/"
+  ],
+  "removed_brand_paths": [],
+  "active_unpublished_brand_slugs": [
+    "brodnik"
+  ],
+  "active_excluded_products": [
+    {
+      "row_id": 207,
+      "slug": "artitera-krem-protiv-bolki-v-stavite",
+      "brand_ref_ids": [
+        41
+      ],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 208,
+      "slug": "shampoan-protiv-kosopad",
+      "brand_ref_ids": [
+        41
+      ],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 209,
+      "slug": "chai-za-detoks",
+      "brand_ref_ids": [
+        41
+      ],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 210,
+      "slug": "sapun-cheren-piper-portokal-i-greipfrut",
+      "brand_ref_ids": [
+        41
+      ],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 211,
+      "slug": "chai-protiv-virusi",
+      "brand_ref_ids": [
+        41
+      ],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 212,
+      "slug": "vakuumna-staklena-butilka-s-infuzer-490-ml",
+      "brand_ref_ids": [
+        41
+      ],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 213,
+      "slug": "kutiya-aromatna-trilogiya",
+      "brand_ref_ids": [
+        41
+      ],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 214,
+      "slug": "kutiya-balans-i-detoks-ritual",
+      "brand_ref_ids": [
+        41
+      ],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 344,
+      "slug": "svobodna-riza-ot-organichen-pamuk",
+      "brand_ref_ids": [
+        66
+      ],
+      "missing_identity": false,
+      "missing_image": true
+    },
+    {
+      "row_id": 418,
+      "slug": "top-ot-koprinena-smes-s-obemni-volani-i-dalboko-izryazan-grab-v-byalo",
+      "brand_ref_ids": [
+        68
+      ],
+      "missing_identity": false,
+      "missing_image": true
+    },
+    {
+      "row_id": 970,
+      "slug": "bonboni-za-dushata-v-kutiya-s-tsvetya",
+      "brand_ref_ids": [],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 971,
+      "slug": "personalizirano-kanche-biblioteka",
+      "brand_ref_ids": [],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 972,
+      "slug": "personalizirana-chanta-biblioteka",
+      "brand_ref_ids": [],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 973,
+      "slug": "chanta-za-priyateli-s-tsitati",
+      "brand_ref_ids": [],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 974,
+      "slug": "kartina-zlatno-priyatelstvo-s-kaktus",
+      "brand_ref_ids": [],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 975,
+      "slug": "angeli-za-narichane",
+      "brand_ref_ids": [],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 976,
+      "slug": "bonboni-za-rozhden-den-yubiley",
+      "brand_ref_ids": [],
+      "missing_identity": false,
+      "missing_image": false
+    },
+    {
+      "row_id": 977,
+      "slug": "kartichki-za-priyateli",
+      "brand_ref_ids": [],
+      "missing_identity": false,
+      "missing_image": false
+    }
+  ],
+  "invalid_website_product_destinations": [],
+  "duplicate_product_slugs": [],
+  "local_build_present": true,
+  "missing_build_paths": [],
+  "no_site_build_checks": [
+    {
+      "product_id": 1465,
+      "slug": "kalafka-ot-dishashta-vegan-koprina-silkify",
+      "brand_id": 173,
+      "has_available_contact": true,
+      "has_email": true,
+      "inquiry_rendered": true,
+      "email_copy_rendered": true,
+      "online_offer_present": false,
+      "brand_profile_generated": true
+    },
+    {
+      "product_id": 1467,
+      "slug": "roleri-za-kadrici-ot-vegan-koprina-silkify",
+      "brand_id": 173,
+      "has_available_contact": true,
+      "has_email": true,
+      "inquiry_rendered": true,
+      "email_copy_rendered": true,
+      "online_offer_present": false,
+      "brand_profile_generated": true
+    },
+    {
+      "product_id": 1466,
+      "slug": "skranki-za-kosa-ot-dishashta-vegan-koprina-silkify",
+      "brand_id": 173,
+      "has_available_contact": true,
+      "has_email": true,
+      "inquiry_rendered": true,
+      "email_copy_rendered": true,
+      "online_offer_present": false,
+      "brand_profile_generated": true
+    }
+  ],
+  "new_brand_profile_checks": [
+    {
+      "slug": "fold-your-mind",
+      "page_exists": true,
+      "website_cta_present": true,
+      "email_copy_present": false,
+      "valid_email": false
+    },
+    {
+      "slug": "styler",
+      "page_exists": true,
+      "website_cta_present": true,
+      "email_copy_present": false,
+      "valid_email": false
+    },
+    {
+      "slug": "valendy",
+      "page_exists": true,
+      "website_cta_present": true,
+      "email_copy_present": false,
+      "valid_email": false
+    },
+    {
+      "slug": "silkify",
+      "page_exists": true,
+      "website_cta_present": false,
+      "email_copy_present": true,
+      "valid_email": true
+    },
+    {
+      "slug": "arkobo",
+      "page_exists": true,
+      "website_cta_present": true,
+      "email_copy_present": false,
+      "valid_email": false
+    }
+  ]
+}

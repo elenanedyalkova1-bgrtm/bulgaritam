@@ -1,0 +1,99 @@
+{
+  "checked_at": "2026-11-04T23:19:17.994Z",
+  "schema": [
+    {
+      "name": "brand_name",
+      "type": "text"
+    },
+    {
+      "name": "description_bg",
+      "type": "long_text"
+    },
+    {
+      "name": "is_active",
+      "type": "boolean"
+    },
+    {
+      "name": "brand_slug",
+      "type": "text"
+    },
+    {
+      "name": "brand_url",
+      "type": "url"
+    },
+    {
+      "name": "instagram_url",
+      "type": "url"
+    },
+    {
+      "name": "logo_url",
+      "type": "url"
+    },
+    {
+      "name": "address",
+      "type": "text"
+    },
+    {
+      "name": "created_at",
+      "type": "created_on"
+    },
+    {
+      "name": "updated_at",
+      "type": "last_modified"
+    },
+    {
+      "name": "products",
+      "type": "link_row"
+    },
+    {
+      "name": "facebook_url",
+      "type": "text"
+    },
+    {
+      "name": "physical_address_type",
+      "type": "text"
+    },
+    {
+      "name": "international_delivery",
+      "type": "boolean"
+    },
+    {
+      "name": "external_monitoring_enabled",
+      "type": "boolean"
+    },
+    {
+      "name": "external_monitoring_paused",
+      "type": "boolean"
+    },
+    {
+      "name": "no_site",
+      "type": "boolean"
+    },
+    {
+      "name": "email",
+      "type": "text"
+    }
+  ],
+  "brands": 135,
+  "no_site_brands": 1,
+  "email_pipeline": {
+    "field_exists": true,
+    "field_type": "text",
+    "recognized_as_string": true,
+    "populated_brands": 1,
+    "usable_email_brands": 1,
+    "no_site_with_usable_email": 1,
+    "invalid_email_brand_ids": []
+  },
+  "missing_fields": [],
+  "issues": [],
+  "publication_warnings": [],
+  "retail_types": [
+    "Магазин",
+    "Шоурум"
+  ],
+  "notes": [
+    "Brands.email exists and is read by shared brandContactFields normalization and the linked product pipeline.",
+    "Office, production, workshop and atelier addresses do not imply customer-facing retail."
+  ]
+}

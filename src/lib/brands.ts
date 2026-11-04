@@ -1,8 +1,9 @@
+import { brandContactFields, type BrandContact } from "./brand-contact";
 import { baserowUrl } from "./baserow-url";
 
 const clean = (v: unknown) => (v == null ? "" : String(v).trim());
 
-export type BrandRow = {
+export type BrandRow = BrandContact & {
   id: number;
   brand_slug: string;
   brand_name: string;
@@ -38,14 +39,13 @@ export async function loadBrands(): Promise<BrandRow[]> {
   return rows
     .filter((row) => row.is_active === true && clean(row.brand_slug) && clean(row.brand_name))
     .map((row) => ({
+      ...brandContactFields(row),
       id: Number(row.id),
       brand_slug: clean(row.brand_slug),
       brand_name: clean(row.brand_name),
       intro_bg: clean(row.description_bg),
       website_url: clean(row.brand_url),
       brand_logo_url: clean(row.logo_url),
-      instagram_url: clean(row.instagram_url),
-      address_bg: clean(row.address),
       city_bg: "",
       oblast_bg: "",
       latitude: null,

@@ -1,4 +1,5 @@
 ---
+import { contactMethods } from "../lib/brand-contact";
 import { resolvePublishableOffer, formatVerifiedOfferAmount } from "../lib/verified-offer";
 import { compileSearchEvidence } from "../lib/search-evidence-build";
 import type { Product } from "../lib/products";
@@ -68,7 +69,7 @@ const showBadges = consumerDeal ? Boolean(dealCategory || isGift) : Boolean(cate
   </div>
   <div class="card-foot">
     <button class="useful-result-signal" type="button" data-user-signal="useful_result" data-signal-context="search_results" aria-pressed="false" hidden>Полезен резултат</button>
-    <a class="cta-out" href={outboundUrl} target="_blank" rel="noopener noreferrer" data-deal-link={consumerDeal && (!neutralDeal || dealTemplate) ? "outbound" : undefined} data-deal-destination-type={consumerDeal ? "external" : undefined} data-i18n="home.cardCta">Виж в сайта на бранда ↗</a>
+    {!p.no_site || contactMethods(p).available ? (<a class="cta-out" href={p.no_site ? `/p/${p.slug}/` : outboundUrl} target={p.no_site ? undefined : "_blank"} rel="noopener noreferrer" data-deal-link={consumerDeal && (!neutralDeal || dealTemplate) ? "outbound" : undefined} data-deal-destination-type={consumerDeal ? "external" : undefined} data-i18n={p.no_site ? undefined : "home.cardCta"} data-inquiry-card={p.no_site || undefined}>{p.no_site ? "Направи запитване" : "Виж в сайта на бранда ↗"}</a>) : null}
   </div>
 </li>
 

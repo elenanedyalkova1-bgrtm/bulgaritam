@@ -168,6 +168,7 @@ export function resolvePublishableOffer(product: Record<string, any>, now: Date 
   siteOrigin?: string;
   visible?: boolean;
 } = {}): PublishableOffer | null {
+  if (product.no_site === true) return null;
   if (selectValue(product.offer_price_status) !== "verified_current") return null;
   const parsedAmount = amount(product.offer_price_amount);
   const currency = text(product.offer_price_currency).toUpperCase();
@@ -260,6 +261,7 @@ export function resolveManualPriceReference(product: Record<string, any>, now: D
 export function resolvePublicManualPriceReference(product: Record<string, any>, now: Date | number = new Date(), options: {
   siteOrigin?: string;
 } = {}): ManualPriceReference | null {
+  if (product.no_site === true) return null;
   return resolveManualPriceReference(product, now, {
     ...options,
     maxAgeDays: MANUAL_PRICE_PUBLIC_BUILD_DAYS,

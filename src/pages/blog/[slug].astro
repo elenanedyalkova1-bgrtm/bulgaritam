@@ -1,4 +1,5 @@
 ---
+import { contactMethods } from "../../lib/brand-contact";
 import { resolvePublishableOffer, formatVerifiedOfferAmount } from "../../lib/verified-offer";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCuratedTagPages } from "../../lib/curated-tags";
@@ -171,9 +172,9 @@ if (!page) {
             </div>
 
             <div class="card-foot">
-              <a class="cta-out" href={p.product_url} target="_blank" rel="noopener noreferrer">
-                Виж в сайта на бранда ↗
-              </a>
+              {!p.no_site || contactMethods(p).available ? <a class="cta-out" href={p.no_site ? `/p/${p.slug}/` : p.product_url} target={p.no_site ? undefined : "_blank"} rel="noopener noreferrer" data-inquiry-card={p.no_site || undefined}>
+                {p.no_site ? "Направи запитване" : "Виж в сайта на бранда ↗"}
+              </a> : null}
             </div>
           </li>
         )})}

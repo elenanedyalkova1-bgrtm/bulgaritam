@@ -1,0 +1,50 @@
+---
+import { contactMethods } from '../lib/brand-contact';
+const { product } = Astro.props;
+const contacts = contactMethods(product);
+const subject = `Запитване за продукт: ${product.name_bg}`;
+---
+{contacts.available && <div data-inquiry>
+  <button type="button" class="btn" data-inquiry-open aria-haspopup="dialog">Направи запитване</button>
+  <dialog aria-labelledby="inquiry-heading" data-inquiry-dialog>
+    <button type="button" class="close" data-inquiry-close aria-label="Затвори">×</button>
+    <h2 id="inquiry-heading">Свържи се с бранда</h2>
+    <div class="methods">
+      {contacts.instagram && <a href={contacts.instagram} target="_blank" rel="noopener noreferrer" data-inquiry-contact="instagram">Instagram ↗</a>}
+      {contacts.facebook && <a href={contacts.facebook} target="_blank" rel="noopener noreferrer" data-inquiry-contact="facebook">Facebook ↗</a>}
+      {contacts.email && <div>
+        <p>{contacts.email}</p>
+        <button type="button" data-copy-email={contacts.email} data-inquiry-contact="email">Копирай имейл</button>
+        <p>Тема: <span>{subject}</span></p>
+        <button type="button" data-copy-text={subject}>Копирай тема</button>
+        <span role="status" aria-live="polite" data-copy-status></span>
+      </div>}
+      {contacts.store && <div><p>{contacts.store}</p><a href={contacts.directions} target="_blank" rel="noopener noreferrer" data-inquiry-contact="physical_store">Купи на място ↗</a></div>}
+    </div>
+  </dialog>
+</div>}
+<style>
+  .btn,.methods a,.methods button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 18px;border:1px solid rgba(26,26,26,.12);border-radius:999px;font:inherit;cursor:pointer;text-decoration:none;background:var(--accent);color:white}
+  .btn{width:fit-content;padding:13px 18px;margin-top:6px;font-weight:var(--weight-ui);box-shadow:0 10px 24px rgba(0,0,0,.08)}.btn:hover{background:var(--accent-strong)}
+  @media(max-width:768px){.btn{width:100%;min-height:48px}}
+  dialog{box-sizing:border-box;width:min(460px,calc(100vw - 32px));max-height:85dvh;overflow:auto;padding:28px;border:1px solid rgba(26,26,26,.12);border-radius:24px;background:#faf8f4;color:var(--ink,#1a1a1a);box-shadow:0 20px 60px #0003}
+  dialog::backdrop{background:#0006}h2{padding-right:28px;font-size:24px}.methods{display:grid;gap:14px;overflow-wrap:anywhere}.methods p{margin:8px 0}.close{position:absolute;right:12px;top:10px;min-width:44px;min-height:44px;border:0;border-radius:50%;background:transparent;font-size:28px;cursor:pointer}button:focus-visible,a:focus-visible{outline:2px solid var(--accent-strong,#385b45);outline-offset:3px}[data-copy-status]{display:block;min-height:24px}
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-inquiry]').forEach(root => {
+    const dialog = root.querySelector<HTMLDialogElement>('dialog')!;
+    const opener = root.querySelector<HTMLButtonElement>('[data-inquiry-open]')!;
+    opener.addEventListener('click', () => { dialog.showModal(); });
+    root.querySelector('[data-inquiry-close]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', e => { if(e.target === dialog) { const r=dialog.getBoundingClientRect(); if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) dialog.close(); } });
+    dialog.addEventListener('keydown', e => {
+      if(e.key !== 'Tab') return;
+      const controls=Array.from(dialog.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),[tabindex="0"]'));
+      const first=controls[0], last=controls[controls.length-1];
+      if(e.shiftKey && document.activeElement === first){e.preventDefault();last?.focus();}
+      else if(!e.shiftKey && document.activeElement === last){e.preventDefault();first?.focus();}
+    });
+    dialog.addEventListener('close', () => { opener.focus(); const status=dialog.querySelector('[data-copy-status]');if(status)status.textContent=''; });
+  });
+
+</script>

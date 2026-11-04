@@ -852,6 +852,24 @@ if (seoType === "category" && seoData.category) {
             return;
           }
 
+          const inquiryOpen = target.closest("[data-inquiry-open]");
+          const inquiryContact = target.closest("[data-inquiry-contact]");
+          if (inquiryOpen || inquiryContact) {
+            const action = inquiryOpen || inquiryContact;
+            const method = inquiryContact?.dataset.inquiryContact;
+            const context = { ...getProductContext(action), ...getBrandContext(action), contact_method: method || "", source_context: "product_page" };
+            window.bulgaritamTrack?.(inquiryOpen ? "inquiry_open" : method === "physical_store" ? "physical_store_click" : "inquiry_contact_click", context);
+            if (inquiryContact?.tagName === "A") {
+              window.bulgaritamTrack?.("outbound_product_click", { ...context, destination_domain: destinationDomain(inquiryContact.getAttribute("href") || "") });
+            }
+            return;
+          }
+          const inquiryCard = target.closest("a[data-inquiry-card]");
+          if (inquiryCard) {
+            window.bulgaritamTrack?.("view_product", { ...getProductContext(inquiryCard), view_stage: "selection_click", target_path: inquiryCard.getAttribute("href") });
+            return;
+          }
+
           const outboundLink = target.closest("a.cta-out, a[data-analytics-event='outbound_brand_click']");
           if (outboundLink) {
             const productContext = getProductContext(outboundLink);
@@ -2018,5 +2036,8 @@ window.addEventListener("bulgaritam:saved", (e) => {
     </script>
 
 
+    <script>
+      import "../scripts/copy-contact";
+    </script>
   </body>
 </html>

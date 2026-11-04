@@ -9,7 +9,7 @@ export const ALLOWED_ANALYTICS_EVENTS = new Set([
   "remove_filter", "clear_filters", "change_sort", "save_product", "remove_saved_product",
   "save_brand", "share_product", "create_collection", "add_to_collection", "remove_from_collection",
   "view_collection", "share_collection", "outbound_product_click", "outbound_brand_click",
-  "user_signal",
+  "user_signal", "inquiry_open", "inquiry_contact_click", "physical_store_click",
 ]);
 
 const FORBIDDEN_KEYS = new Set(["email", "phone", "name", "collection_name", "board_name", "destination_url", "page_location"]);

@@ -1,3 +1,4 @@
+import { brandContactFields, type BrandContact } from "./brand-contact";
 // src/lib/products.ts
 import { normalizeProductType } from "../../admin-app/src/lib/product-taxonomy";
 
@@ -6,7 +7,7 @@ import { baserowUrl } from "./baserow-url";
 import fs from "node:fs";
 import { parseImageUrls } from "./image-urls.mjs";
 
-export type Product = {
+export type Product = BrandContact & {
   id: string;
   row_id: number;
   brand_id: number | null;
@@ -248,7 +249,8 @@ type BaserowRow = {
   brand_ref?: Array<{ id?: number; value?: string }>;
 };
 
-type BaserowBrandRow = {
+type BaserowBrandRow = BrandContact & {
+  address?: string;
   id?: number;
   brand_name?: string;
   brand_slug?: string;
@@ -256,7 +258,6 @@ type BaserowBrandRow = {
   description_bg?: string;
   logo_url?: string;
   instagram_url?: string;
-  address?: string;
   is_active?: boolean;
 };
 
@@ -282,6 +283,7 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
 
   return {
     ...legacyGiftMeta,
+    ...brandContactFields(brand || {}),
     id,
     row_id: Number(row.id),
     brand_id: Number(brand?.id) || null,
@@ -354,8 +356,8 @@ function parseRow(row: BaserowRow, brand?: BaserowBrandRow): Product | null {
     intro_bg: norm(brand?.description_bg) || norm(row.intro_bg),
     website_url: norm(brand?.brand_url) || norm(row.website_url) || norm(row.brand_url),
     brand_logo_url: norm(brand?.logo_url) || norm(row.brand_logo_url),
-    instagram_url: norm(brand?.instagram_url) || norm(row.instagram_url),
-    address_bg: norm(brand?.address) || norm(row.address_bg),
+    instagram_url: brand?.no_site === true ? brandContactFields(brand).instagram_url : norm(brand?.instagram_url) || norm(row.instagram_url),
+    address_bg: brand?.no_site === true ? norm(brand?.address) : norm(brand?.address) || norm(row.address_bg),
     city_bg: norm(row.city_bg),
     oblast_bg: norm(row.oblast_bg),
     latitude: toNum(row.latitude),

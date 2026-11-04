@@ -1,4 +1,5 @@
 ---
+import { contactMethods } from "../../lib/brand-contact";
 import { resolvePublishableOffer, formatVerifiedOfferAmount } from "../../lib/verified-offer";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { loadBrands } from "../../lib/brands";
@@ -44,6 +45,7 @@ const { brandSlug, fallbackName } = Astro.props;
 const [allProducts, allBrands] = await Promise.all([loadProducts(), loadBrands()]);
 
 const brandRow = allBrands.find((b) => b.brand_slug === brandSlug);
+const brandContacts = contactMethods(brandRow || {});
 const brandName = brandRow?.brand_name || fallbackName || brandSlug;
 
 const brandProducts = allProducts
@@ -122,7 +124,7 @@ const breadcrumbs = [
 <BaseLayout seo={{ type: "brand", data: {
   brandName,
   description: brandRow?.intro_bg,
-  officialUrl: brandRow?.website_url,
+  officialUrl: brandRow?.no_site ? undefined : brandRow?.website_url,
   instagramUrl: brandRow?.instagram_url,
   logo: brandRow?.brand_logo_url,
   breadcrumbs: breadcrumbs.map((entry) => ({ name: entry.label, item: entry.href }))
@@ -160,8 +162,8 @@ const breadcrumbs = [
         ) : null}
       </div>
 
-      <div class="brand-hero-actions">
-        {brandRow?.website_url ? (
+      <div class:list={["brand-hero-actions", { "brand-hero-actions--standalone": !brandRow?.intro_bg }]}>
+        {!brandRow?.no_site && brandRow?.website_url ? (
           <a
             class="visit"
             href={brandRow.website_url}
@@ -178,10 +180,10 @@ const breadcrumbs = [
           </a>
         ) : null}
 
-        {brandRow?.instagram_url ? (
+        {brandContacts.instagram ? (
           <a
             class="ig"
-            href={brandRow.instagram_url}
+            href={brandContacts.instagram}
             target="_blank"
             rel="noopener noreferrer"
             data-analytics-event="outbound_brand_click"
@@ -194,6 +196,8 @@ const breadcrumbs = [
             Instagram
           </a>
         ) : null}
+        {brandContacts.facebook && <a class="ig" href={brandContacts.facebook} target="_blank" rel="noopener noreferrer" data-analytics-event="outbound_brand_click" data-brand-id={brandRow?.id} data-brand-slug={brandSlug} data-brand-name={brandName}>Facebook</a>}
+        {brandContacts.email && <div class="ig"><span>{brandContacts.email}</span><button type="button" data-copy-email={brandContacts.email}>Копирай имейл</button><span role="status" data-copy-status></span></div>}
       </div>
     </div>
 
@@ -236,7 +240,7 @@ const breadcrumbs = [
               </section>
 
               <div class="brand-actions">
-                {brandRow?.website_url ? (
+                {!brandRow?.no_site && brandRow?.website_url ? (
                   <a
                     class="visit"
                     href={brandRow.website_url}
@@ -253,10 +257,10 @@ const breadcrumbs = [
                   </a>
                 ) : null}
 
-                {brandRow?.instagram_url ? (
+                {brandContacts.instagram ? (
                   <a
                     class="ig"
-                    href={brandRow.instagram_url}
+                    href={brandContacts.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
                     data-analytics-event="outbound_brand_click"
@@ -269,6 +273,8 @@ const breadcrumbs = [
                     Instagram
                   </a>
                 ) : null}
+        {brandContacts.facebook && <a class="ig" href={brandContacts.facebook} target="_blank" rel="noopener noreferrer" data-analytics-event="outbound_brand_click" data-brand-id={brandRow?.id} data-brand-slug={brandSlug} data-brand-name={brandName}>Facebook</a>}
+        {brandContacts.email && <div class="ig"><span>{brandContacts.email}</span><button type="button" data-copy-email={brandContacts.email}>Копирай имейл</button><span role="status" data-copy-status></span></div>}
               </div>
             </div>
           </div>
@@ -374,15 +380,15 @@ const breadcrumbs = [
             </div>
 
             <div class="card-foot">
-              <a
+              {!product.no_site || contactMethods(product).available ? (<a
                 class="cta-out"
-                href={product.product_url}
-                target="_blank"
+                href={product.no_site ? `/p/${product.slug}/` : product.product_url}
+                target={product.no_site ? undefined : "_blank"}
                 rel="noopener noreferrer"
-                data-i18n="brand.cardCta"
+                data-i18n={product.no_site ? undefined : "brand.cardCta"} data-inquiry-card={product.no_site || undefined}
               >
-                Виж в сайта на бранда →
-              </a>
+                {product.no_site ? "Направи запитване" : "Виж в сайта на бранда →"}
+              </a>) : null}
             </div>
           </article>
         );
@@ -1013,7 +1019,7 @@ const breadcrumbs = [
         gap: 8px;
       }
 
-      .brand-hero-actions{
+      .brand-hero-actions:not(.brand-hero-actions--standalone){
         display: none;
       }
 

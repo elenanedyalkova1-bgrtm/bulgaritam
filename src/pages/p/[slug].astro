@@ -1,4 +1,6 @@
 ---
+import InquiryDialog from "../../components/InquiryDialog.astro";
+import { contactMethods } from "../../lib/brand-contact";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCuratedTagsForProduct } from "../../lib/curated-tags";
 import { getProductBadges } from "../../lib/product-badges";
@@ -94,7 +96,7 @@ const publishing = productPublishing(product);
   description: publishing.schemaDescription,
   image: product.image_urls?.[0],
   category: productCategoryLabel,
-  brandUrl: product.website_url || product.brand_url,
+  brandUrl: product.no_site ? undefined : product.website_url || product.brand_url,
   verifiedOffer,
   breadcrumbs: breadcrumbs.map((entry) => ({ name: entry.label, item: entry.href }))
 } }} i18n={{
@@ -271,6 +273,7 @@ const publishing = productPublishing(product);
             <button type="button" class="product-signal" data-user-signal="recommend" data-signal-context="product_page" aria-pressed="false">Препоръчвам</button>
           </div>
 
+          {product.no_site ? <InquiryDialog product={product} /> : (
           <a
             href={verifiedOffer?.sourceUrl || manualPriceReference?.sourceUrl || product.product_url}
             target="_blank"
@@ -287,7 +290,7 @@ const publishing = productPublishing(product);
             data-product-url={verifiedOffer?.sourceUrl || manualPriceReference?.sourceUrl || product.product_url || ""}
           >
             Виж на сайта на бранда →
-          </a>
+          </a>)}
         </div>
       </div>
     </section>
@@ -364,14 +367,15 @@ const publishing = productPublishing(product);
                   </div>
                 </a>
                 <div class="related-foot">
-                  <a
-                    href={r.product_url}
-                    target="_blank"
+                  {!r.no_site || contactMethods(r).available ? <a
+                    data-inquiry-card={r.no_site || undefined}
+                    href={r.no_site ? `/p/${r.slug}/` : r.product_url}
+                    target={r.no_site ? undefined : "_blank"}
                     rel="noopener noreferrer"
                     class="related-cta"
                   >
-                    Виж в сайта на бранда →
-                  </a>
+                    {r.no_site ? "Направи запитване" : "Виж в сайта на бранда →"}
+                  </a> : null}
                 </div>
               </li>
             );
@@ -479,14 +483,15 @@ const publishing = productPublishing(product);
                   </div>
                 </a>
                 <div class="related-foot">
-                  <a
-                    href={r.product_url}
-                    target="_blank"
+                  {!r.no_site || contactMethods(r).available ? <a
+                    data-inquiry-card={r.no_site || undefined}
+                    href={r.no_site ? `/p/${r.slug}/` : r.product_url}
+                    target={r.no_site ? undefined : "_blank"}
                     rel="noopener noreferrer"
                     class="related-cta"
                   >
-                    Виж в сайта на бранда →
-                  </a>
+                    {r.no_site ? "Направи запитване" : "Виж в сайта на бранда →"}
+                  </a> : null}
                 </div>
               </li>
           )})}

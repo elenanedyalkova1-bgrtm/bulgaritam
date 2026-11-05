@@ -170,7 +170,7 @@ jobs:
           set ssl:check-hostname true
           cd /
           source /tmp/deploy-assets.lftp
-          get /.htaccess -o /tmp/live-htaccess
+          get /.htaccess -o /tmp/live-htaccess-assets
           bye
           LFTP
 
@@ -198,7 +198,7 @@ jobs:
           set ssl:check-hostname true
           cd /
           source /tmp/deploy-documents.lftp
-          get /.htaccess -o /tmp/live-htaccess
+          get /.htaccess -o /tmp/live-htaccess-documents
           bye
           LFTP
 

@@ -32,6 +32,13 @@ const pageDescription =
     </header>
 
     <section class="blog__grid" aria-label="Колекции">
+      <article class="card">
+        <a class="card__frame" href="/blog/idei-za-koledni-podaratsi-ot-balgarski-brandove/">
+          <img class="card__featured-image" src="/images/koleda/featured.jpg" alt="Коледни подаръци" width="1067" height="1600" loading="lazy" />
+          <h2 class="card__title">Идеи за коледни подаръци от български брандове</h2>
+          <span class="card__link">Прочети темата →</span>
+        </a>
+      </article>
       {curatedPages.length === 0 ? (
         <div class="blog__empty">
           <p data-i18n="blog.empty">Подготвяме първите тематични селекции. Ела пак скоро.</p>
@@ -124,6 +131,8 @@ const pageDescription =
     @media (min-width: 768px) {
       .card { grid-column: span 6; }
     }
+
+    .card__featured-image { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; margin-bottom: 16px; }
 
     .card__meta {
       font-family: var(--font-body);

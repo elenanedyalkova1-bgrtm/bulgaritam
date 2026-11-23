@@ -1,4 +1,15 @@
 ---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
 import html from "../../../editorial/koleda.html?raw";
+import styles from "../../../editorial/koleda.css?raw";
+const title = "Идеи за коледни подаръци от български брандове 2026 | Българитъм";
+const description = "Разгледай коледната селекция на Българитъм за 2026 г. Открий идеи за коледни подаръци от български брандове, творци и малки производители.";
 ---
-<Fragment set:html={html} />
+<BaseLayout exactSeo title={title} description={description} canonical="https://bulgaritam.bg/blog/idei-za-koledni-podaratsi-ot-balgarski-brandove/" seo={{type: "blog", data: {image: "https://bulgaritam.bg/images/koleda/og.jpg", imageWidth: 1200, imageHeight: 630}}}>
+  <Fragment slot="head">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style is:inline set:html={styles}></style>
+  </Fragment>
+  <div id="christmas-editorial" set:html={html}></div>
+</BaseLayout>

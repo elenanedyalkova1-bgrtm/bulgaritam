@@ -28,6 +28,7 @@ const {
   robots,
   i18n = {},
   newsletterContext = "generic",
+  exactSeo = false,
 } = Astro.props;
 
 const normalizeText = (value = "") => String(value ?? "").replace(/\s+/g, " ").trim();
@@ -167,8 +168,8 @@ function generateDescription(seoConfig, manualDescription) {
   }
 }
 
-const resolvedTitle = generateTitle(seo, title);
-const resolvedDescription = generateDescription(seo, description);
+const resolvedTitle = exactSeo ? normalizeText(title || seo?.title) : generateTitle(seo, title);
+const resolvedDescription = exactSeo ? normalizeText(description || seo?.description) : generateDescription(seo, description);
 const resolvedCanonical = normalizeText(canonical) || new URL(Astro.url.pathname, `${SITE_URL}/`).toString();
 
 const pathname = Astro.url.pathname;
@@ -189,7 +190,7 @@ const seoType = normalizeText(seo?.type).toLowerCase();
 const seoData = seo?.data || {};
 const robotsDirective = normalizeText(robots) || "index,follow,max-image-preview:large";
 const socialImage = normalizeUrl(seoData.image) || `${SITE_URL}/social-preview.png`;
-const openGraphType = seoType === "product" ? "product" : "website";
+const openGraphType = seoType === "product" ? "product" : seoType === "blog" && exactSeo ? "article" : "website";
 const gaMeasurementId = normalizeText(import.meta.env.PUBLIC_GA_MEASUREMENT_ID) || "G-7XT69Z6DKS";
 const gtmContainerId = normalizeText(import.meta.env.PUBLIC_GTM_CONTAINER_ID) || "GTM-58MC374T";
 const newsletterEndpoint = normalizeText(import.meta.env.PUBLIC_NEWSLETTER_ENDPOINT) || "https://admin.bulgaritam.bg/api/newsletter/";
@@ -300,6 +301,7 @@ if (seoType === "category" && seoData.category) {
     <meta name="robots" content={robotsDirective} />
     <meta name="googlebot" content={robotsDirective} />
     <FaviconHead />
+    <slot name="head" />
     <link rel="canonical" href={resolvedCanonical} />
     <link rel="alternate" hrefLang="bg-BG" href={resolvedCanonical} />
     <link rel="alternate" hrefLang="x-default" href={resolvedCanonical} />
@@ -310,8 +312,8 @@ if (seoType === "category" && seoData.category) {
     <meta property="og:site_name" content="Българитъм" />
     <meta property="og:locale" content="bg_BG" />
     <meta property="og:image" content={socialImage} />
-    {!normalizeUrl(seoData.image) && <meta property="og:image:width" content="1200" />}
-    {!normalizeUrl(seoData.image) && <meta property="og:image:height" content="630" />}
+    {(seoData.imageWidth || !normalizeUrl(seoData.image)) && <meta property="og:image:width" content={seoData.imageWidth || "1200"} />}
+    {(seoData.imageHeight || !normalizeUrl(seoData.image)) && <meta property="og:image:height" content={seoData.imageHeight || "630"} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={resolvedTitle} />
     <meta name="twitter:description" content={resolvedDescription} />

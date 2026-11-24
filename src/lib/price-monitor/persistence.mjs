@@ -231,6 +231,7 @@ export async function persistMonitorResults(results, { write = false, historyWri
   if (!historyWriter?.append) throw new Error("Google Sheets Price History writer is required when write=true");
   if (!stateWriter?.write) throw new Error("Baserow current-state writer is required when write=true");
   const history = await historyWriter.append(results);
+  if (history.invalid?.length) throw new Error(`Price History saved valid observations but rejected ${history.invalid.length} invalid observations: ${JSON.stringify(history.invalid)}`);
   const written = [];
   for (const plan of plans) written.push(await stateWriter.write(plan));
   return { mode: "write-monitor-results", writes_performed: true, planned: plans.length, authoritative_renewals: renewalSummary, history, current_state: written };

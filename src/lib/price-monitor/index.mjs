@@ -3,7 +3,7 @@ export { extractProductMetadata, normalizeExternalProductUrl } from "./product-m
 export { ENTITY_TYPES, entityIdentity, matchObservedToCatalog, observedCanonicalKey } from "./entity-identity.mjs";
 export { DEAL_CATEGORIES, normalizeDealCategory, classifyDealCategory } from "../deal-category.mjs";
 export { discoverBrandProducts, fetchDiscoveryPage, selectDiscoveryCandidates, validateDiscoveredProductUrl } from "./discovery.mjs";
-export { OBSERVED_PRODUCT_FIELDS, createObservedProductStore, nextObservedLifecycle, observedProductRecord } from "./observed-products.mjs";
+export { OBSERVED_PRODUCT_FIELDS, createObservedProductStore, nextObservedLifecycle, observedProductRecord, observedIdentityCompatible, observedPriceUpdate } from "./observed-products.mjs";
 export { buildDealCard } from "./deal-contract.mjs";
 export { detectPlatform } from "./platform.mjs";
 export { fetchProductPage, monitorBatch, monitorProduct } from "./monitor.mjs";

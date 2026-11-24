@@ -252,7 +252,7 @@ export async function runDomainThrottled(items, worker, {
       }
       const [entry] = pending.splice(index, 1); activeDomains.add(entry.domain); nextDomainStart.set(entry.domain, currentTime + domainDelayMs);
       try { results[entry.index] = await worker(entry.item); }
-      catch (error) { results[entry.index] = { product_id: entry.item.id, product_url: entry.item.product_url, status: "error", error_reason: String(error?.message || error) }; }
+      catch (error) { results[entry.index] = { entity_type: entry.item.entity_type || "catalog_product", entity_id: entry.item.id, product_id: entry.item.entity_type === "observed_product" ? null : entry.item.id, product_url: entry.item.product_url, checked_at: new Date().toISOString(), status: "error", error_reason: String(error?.message || error), infrastructure_error: true }; }
       finally { activeDomains.delete(entry.domain); completed += 1; onProgress?.({ completed, total: items.length, domain: entry.domain }); }
     }
   }

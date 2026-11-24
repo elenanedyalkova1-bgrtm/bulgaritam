@@ -3,8 +3,9 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { baserowUrl } from "./lib/baserow-url.mjs";
+import { refreshMaterializedViews } from "../src/lib/price-monitor/materialized-views.mjs";
 import {
-  calculateDailyTarget, calculateRunCapacity, createAppsScriptFetchProvider, createBaserowCurrentStatePersistence, createGoogleSheetsHistory, isActiveMonitorable, monitorProduct, monitorProductWithAppsScriptFallback, monitoringCoverageMetrics, persistMonitorResults, PRICE_HISTORY_HEADERS, productDomain, runDomainThrottled,
+  calculateDailyTarget, calculateRunCapacity, createAppsScriptFetchProvider, createBaserowCurrentStatePersistence, createGoogleSheetsHistory, createObservedProductStore, isActiveMonitorable, monitorProduct, monitorProductWithAppsScriptFallback, monitoringCoverageMetrics, persistMonitorResults, PRICE_HISTORY_HEADERS, productDomain, runDomainThrottled,
   scheduledRunSummary, selectAllMonitorableProducts, selectDueProducts, selectProductsByIds, trustedOfferCurrency, withTransientRetry,
 } from "../src/lib/price-monitor/index.mjs";
 
@@ -127,6 +128,13 @@ try {
 } catch (error) {
   persistenceError = error instanceof Error ? error.message : String(error);
 }
+let views = null;
+if (write) {
+  try {
+    const observed = createObservedProductStore({ token, tableId: process.env.BASEROW_OBSERVED_PRODUCTS_TABLE_ID });
+    views = await refreshMaterializedViews({ historyWriter, observedProducts: await observed.list() });
+  } catch (error) { persistenceError = [persistenceError, `View refresh failed: ${error.message || error}`].filter(Boolean).join("; "); }
+}
 if (canaryAudit) {
   const afterCatalog = await fetchProducts();
   const afterHistory = (await historyWriter.getValues("Price History!A:S")).values || [];
@@ -174,7 +182,7 @@ const report = {
   writes_performed: write && !persistenceError, writes_may_be_partial: Boolean(write && persistenceError),
   command, configuration: { selected: selection.length, requested_limit: requestedLimit, daily_target: dailyTarget, max_bounded_run: runCapacity, concurrency, per_domain_concurrency: 1, domain_delay_ms: domainDelayMs, timeout_ms: timeoutMs, max_retries: 2, apps_script_fallback: appsScriptFallback },
   due: dueStats, coverage: coverageAfter, coverage_before: coverageBefore, coverage_after: coverageAfter, operational,
-  summary: scheduledRunSummary(results, startedAt, finishedAt), persistence, persistence_error: persistenceError, canary_audit: canaryAudit, retry_events: retryEvents, results,
+  summary: scheduledRunSummary(results, startedAt, finishedAt), persistence, views, persistence_error: persistenceError, canary_audit: canaryAudit, retry_events: retryEvents, results,
 };
 await fs.mkdir(path.dirname(outputPath), { recursive: true }); await fs.writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify({ output: outputPath, mode: report.mode, configuration: report.configuration, due: report.due, summary: report.summary, retries: retryEvents.length }, null, 2));

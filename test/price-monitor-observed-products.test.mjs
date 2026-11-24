@@ -72,7 +72,7 @@ test("external deal card and lifecycle remain conservative", () => {
 });
 
 test("observed record retains discovery provenance", () => {
-  const row=observedProductRecord({brand_id:1,source_url:"https://brand.test/p",normalized_url:"https://brand.test/p",discovery_method:"product_sitemap",discovery_confidence:"high"},{checked_at:"now",detected_price:10,currency:"EUR",title:"P",image_url:"https://brand.test/p.jpg",status:"verified"},"first"); assert.equal(row.canonical_key,"1|https://brand.test/p"); assert.equal(row.current_price,10);
+  const row=observedProductRecord({brand_id:1,source_url:"https://brand.test/p",normalized_url:"https://brand.test/p",discovery_method:"product_sitemap",discovery_confidence:"high"},{checked_at:"now",detected_price:10,currency:"EUR",title:"P",image_url:"https://brand.test/p.jpg",status:"verified",confidence:"high"},"first"); assert.equal(row.canonical_key,"1|https://brand.test/p"); assert.equal(row.current_price,10);
 });
 
 test("Observed Products pagination upgrades Baserow next URLs to HTTPS without losing auth", async () => {

@@ -1,5 +1,7 @@
 import { observedCanonicalKey } from "./entity-identity.mjs";
 import { classifyDealCategory, normalizeDealCategory } from "../deal-category.mjs";
+import { isReliableDetectedObservation } from "./google-sheets-history.mjs";
+import { normalizeExternalProductUrl } from "./product-metadata.mjs";
 
 export const OBSERVED_PRODUCT_FIELDS = Object.freeze([
   "canonical_key", "brand_id", "source_url", "canonical_url", "external_product_id", "sku", "title", "image_url",
@@ -9,21 +11,42 @@ export const OBSERVED_PRODUCT_FIELDS = Object.freeze([
 ]);
 
 export function observedProductRecord(candidate, observation = {}, now = new Date().toISOString()) {
-  const canonicalUrl = observation.canonical_url || candidate.normalized_url || candidate.source_url;
+  const sourceUrl = normalizeExternalProductUrl(candidate.normalized_url || candidate.source_url);
+  let canonicalUrl = normalizeExternalProductUrl(observation.canonical_url) || sourceUrl;
+  if (sourceUrl && canonicalUrl) {
+    const canonical = new URL(canonicalUrl); const source = new URL(sourceUrl);
+    if (canonical.hostname !== source.hostname || canonical.pathname === "/" || /\/(?:undefined|null)$/i.test(canonical.pathname)) canonicalUrl = sourceUrl;
+  }
   const canonicalKey = observedCanonicalKey({ brand_id: candidate.brand_id, canonical_url: canonicalUrl, source_url: candidate.source_url });
   if (!canonicalKey) throw new Error("Observed product requires brand_id and a valid canonical/source URL");
   const dealCategory=normalizeDealCategory(candidate.deal_category)||classifyDealCategory({catalog_category:candidate.catalog_category,title:observation.title,product_url:canonicalUrl,description:observation.description,product_metadata:observation.product_metadata}).category;
   return {
     canonical_key: canonicalKey, brand_id: candidate.brand_id, source_url: candidate.source_url, canonical_url: canonicalUrl,
     external_product_id: observation.external_product_id || null, sku: observation.sku || null, title: observation.title || null,
-    image_url: observation.image_url || null, current_price: observation.detected_price ?? null, currency: observation.currency || null,
-    regular_price: observation.regular_price ?? null, regular_price_currency: observation.regular_price_currency || null,
+    image_url: observation.image_url || null, current_price: observedPriceUpdate(observation).current_price ?? null, currency: observedPriceUpdate(observation).currency ?? null,
+    regular_price: observedPriceUpdate(observation).regular_price ?? null, regular_price_currency: observedPriceUpdate(observation).regular_price_currency ?? null,
     availability: observation.availability || null, first_seen_at: candidate.first_seen_at || now, last_seen_at: now,
     last_checked_at: observation.checked_at || null, discovery_method: candidate.discovery_method,
     discovery_confidence: candidate.discovery_confidence, reader_status: observation.extraction_status || observation.status || "not_checked",
     reader_error: observation.error_reason || null, lifecycle_status: "active", consecutive_not_seen: 0,
     consecutive_dead: 0, is_active: true, bulgaritam_product_id: candidate.bulgaritam_product_id || null, deal_category: dealCategory,
   };
+}
+
+// A site-wide or otherwise incorrect canonical URL must not merge unrelated
+// source pages. Only reuse a canonical match with corroborating identity.
+export function observedIdentityCompatible(existing, candidate, observation) {
+  const source = normalizeExternalProductUrl(candidate.source_url);
+  if (source && source === normalizeExternalProductUrl(existing.source_url)) return true;
+  for (const field of ["external_product_id", "sku"]) {
+    if (observation[field] && existing[field] && String(observation[field]) === String(existing[field])) return true;
+  }
+  return false;
+}
+
+export function observedPriceUpdate(result) {
+  if (!isReliableDetectedObservation(result) || !String(result.currency || "").trim()) return {};
+  return { current_price: result.detected_price, currency: result.currency, regular_price: result.regular_price ?? null, regular_price_currency: result.regular_price_currency ?? null };
 }
 
 export function nextObservedLifecycle(current, event, now = Date.now()) {
@@ -39,7 +62,19 @@ export function createObservedProductStore({ token, tableId, fetchImpl = fetch }
   if (!token || !tableId) throw new Error("Observed Products store requires token and tableId");
   const headers = { Authorization: `Token ${token}`, "Content-Type": "application/json" };
   const safeUrl = (value) => { const url = new URL(value); if (url.hostname !== "api.baserow.io") throw new Error("Invalid Observed Products API URL"); url.protocol = "https:"; return url.toString(); };
-  const request = async (url, init = {}) => { const response = await fetchImpl(safeUrl(url), { ...init, headers: { ...headers, ...(init.headers || {}) } }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(`Observed Products API ${response.status}: ${JSON.stringify(body).slice(0, 400)}`); return body; };
+  const request = async (url, init = {}) => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const response = await fetchImpl(safeUrl(url), { ...init, headers: { ...headers, ...(init.headers || {}) } });
+        const body = await response.json().catch(() => ({}));
+        if (response.ok) return body;
+        const error = new Error(`Observed Products API ${response.status}: ${JSON.stringify(body).slice(0, 400)}`); error.status = response.status; throw error;
+      } catch (error) {
+        if (init.method === "POST" || attempt >= 2 || (error.status && ![429, 500, 502, 503, 504].includes(error.status))) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt));
+      }
+    }
+  };
   return {
     async list(filters = "") {
       const rows = []; let next = `https://api.baserow.io/api/database/rows/table/${tableId}/?user_field_names=true&size=200${filters}`;

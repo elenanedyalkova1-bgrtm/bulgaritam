@@ -14,10 +14,11 @@ export function matchObservedToCatalog(observed, catalog) {
   const canonical = normalizeExternalProductUrl(observed.canonical_url);
   const source = normalizeExternalProductUrl(observed.source_url);
   const sameBrand = (row) => String(row.brand_id ?? row.brand_ref?.[0]?.id ?? "") === String(observed.brand_id ?? "");
-  const byCanonical = catalog.find((row) => sameBrand(row) && canonical && normalizeExternalProductUrl(row.canonical_url || row.product_url) === canonical);
-  if (byCanonical) return { product_id: byCanonical.id ?? byCanonical.product_id, method: "canonical_url" };
   const bySource = catalog.find((row) => sameBrand(row) && source && normalizeExternalProductUrl(row.product_url) === source);
-  if (bySource) return { product_id: bySource.id ?? bySource.product_id, method: "source_url" };
+  if (bySource) return { product_id: bySource.id ?? bySource.product_id, method: source === canonical ? "canonical_url" : "source_url" };
+  // A different canonical URL alone is not enough to prove two products match.
+  const byCanonical = source === canonical && catalog.find((row) => sameBrand(row) && canonical && normalizeExternalProductUrl(row.canonical_url || row.product_url) === canonical);
+  if (byCanonical) return { product_id: byCanonical.id ?? byCanonical.product_id, method: "canonical_url" };
   const externalId = String(observed.external_product_id || observed.sku || "").trim();
   if (!externalId) return null;
   const candidates = catalog.filter((row) => sameBrand(row) && [row.external_product_id, row.sku].some((v) => String(v || "").trim() === externalId));

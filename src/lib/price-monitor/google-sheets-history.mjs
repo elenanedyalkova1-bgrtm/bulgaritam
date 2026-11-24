@@ -134,15 +134,41 @@ export function createGoogleSheetsHistory({ spreadsheetId, serviceAccountEmail, 
   if (!spreadsheetId || !serviceAccountEmail || !privateKey) throw new Error("Google Sheets history requires spreadsheet ID, service account email, and private key");
   let cachedToken = null;
   const token = async () => cachedToken ||= await (tokenProvider ? tokenProvider() : serviceAccountToken({ email: serviceAccountEmail, privateKey: privateKey.replace(/\\n/g, "\n"), fetchImpl }));
-  const google = async (url, init = {}) => { const response = await fetchImpl(url, { ...init, headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json", ...(init.headers || {}) } }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(`Google Sheets request failed (${response.status}): ${JSON.stringify(body).slice(0, 400)}`); return body; };
+  const google = async (url, init = {}, retry = true) => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const response = await fetchImpl(url, { ...init, headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json", ...(init.headers || {}) } });
+        const body = await response.json().catch(() => ({}));
+        if (response.ok) return body;
+        const error = new Error(`Google Sheets request failed (${response.status}): ${JSON.stringify(body).slice(0, 400)}`); error.status = response.status; throw error;
+      } catch (error) {
+        if (!retry || attempt >= 2 || (error.status && ![429, 500, 502, 503, 504].includes(error.status))) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt));
+      }
+    }
+  };
   const valuesUrl = (range) => `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}`;
   return {
     async append(results) {
-      const observations = results.map(historyObservation); const ids = await google(`${valuesUrl(`${PRICE_HISTORY_TAB}!M2:M`)}?majorDimension=COLUMNS`);
-      const existing = new Set((ids.values?.[0] || []).map(text)); const fresh = observations.filter((item) => !existing.has(item.observation_id));
-      if (!fresh.length) return { appended: 0, duplicates: observations.length, observation_ids: observations.map((item) => item.observation_id) };
-      await google(`${valuesUrl(`${PRICE_HISTORY_TAB}!A:S`)}:append?valueInputOption=RAW&insertDataOption=OVERWRITE`, { method: "POST", body: JSON.stringify({ majorDimension: "ROWS", values: fresh.map(observationRow) }) });
-      return { appended: fresh.length, duplicates: observations.length - fresh.length, observation_ids: observations.map((item) => item.observation_id) };
+      const observations = []; const invalid = [];
+      for (const [index, result] of results.entries()) {
+        try { observations.push(historyObservation(result)); } catch (error) { invalid.push({ index, error: String(error.message || error) }); }
+      }
+      let pending = observations; let appended = 0; let duplicates = 0;
+      for (let attempt = 0; attempt < 3 && pending.length; attempt++) {
+        const ids = await google(`${valuesUrl(`${PRICE_HISTORY_TAB}!M2:M`)}?majorDimension=COLUMNS`);
+        const existing = new Set((ids.values?.[0] || []).map(text)); const fresh = [];
+        for (const item of pending) { if (existing.has(item.observation_id)) duplicates++; else { fresh.push(item); existing.add(item.observation_id); } }
+        if (!fresh.length) break;
+        try {
+          await google(`${valuesUrl(`${PRICE_HISTORY_TAB}!A:S`)}:append?valueInputOption=RAW&insertDataOption=OVERWRITE`, { method: "POST", body: JSON.stringify({ majorDimension: "ROWS", values: fresh.map(observationRow) }) }, false);
+          appended += fresh.length; pending = []; break;
+        } catch (error) {
+          if (attempt === 2 || (error.status && ![429, 500, 502, 503, 504].includes(error.status))) throw error;
+          pending = fresh; await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt));
+        }
+      }
+      return { appended, duplicates, invalid, observation_ids: observations.map((item) => item.observation_id) };
     },
     async metadata() { return google(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=properties.title,sheets.properties`); },
     async batchUpdate(requests) { return google(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}:batchUpdate`, { method: "POST", body: JSON.stringify({ requests }) }); },
